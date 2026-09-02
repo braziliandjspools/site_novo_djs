@@ -22,10 +22,12 @@ if (!databaseUrl) {
   console.warn("[build] DATABASE_URL não definida — pulando setup do banco.");
 } else {
   const migrationEnv = { ...process.env, DATABASE_URL: directUrl };
-  const migrated = tryRun("npx prisma migrate deploy", migrationEnv);
-  if (!migrated) {
-    console.warn("[build] migrate deploy falhou — tentando db push...");
-    if (!tryRun("npx prisma db push --skip-generate", migrationEnv)) {
+
+  // db push primeiro: evita P3005 quando o banco já tem tabelas sem histórico de migration
+  const pushed = tryRun("npx prisma db push --skip-generate", migrationEnv);
+  if (!pushed) {
+    console.warn("[build] db push falhou — tentando migrate deploy...");
+    if (!tryRun("npx prisma migrate deploy", migrationEnv)) {
       console.error(
         "[build] Não foi possível aplicar o schema. " +
           "Defina DIRECT_URL (Neon direct, sem -pooler) ou use DATABASE_URL direct no build.",
