@@ -115,7 +115,16 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = (await res.json()) as { error?: string };
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { error?: string };
+        } catch {
+          setError("Resposta inválida do servidor. Tente novamente.");
+          return;
+        }
+      }
       if (!res.ok) {
         setError(data.error ?? "Não foi possível entrar.");
         return;
@@ -139,7 +148,16 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, whatsapp, password }),
       });
-      const data = (await res.json()) as { error?: string };
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { error?: string };
+        } catch {
+          setError("Resposta inválida do servidor. Tente novamente.");
+          return;
+        }
+      }
       if (!res.ok) {
         setError(data.error ?? "Não foi possível criar a conta.");
         return;

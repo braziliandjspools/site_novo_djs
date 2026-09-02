@@ -29,7 +29,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Informe e-mail e senha." }, { status: 400 });
   }
 
-  const user = await verifyUserPassword(email, password);
+  let user;
+  try {
+    user = await verifyUserPassword(email, password);
+  } catch (err) {
+    console.error("[portal/login] verifyUserPassword failed:", err);
+    const message =
+      err instanceof Error && err.message.includes("portal_users")
+        ? "Banco de dados do portal ainda não foi inicializado. Tente novamente em alguns minutos."
+        : "Serviço temporariamente indisponível. Tente novamente.";
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
 
   if (!user) {
     return NextResponse.json({ error: "E-mail ou senha incorretos." }, { status: 401 });
