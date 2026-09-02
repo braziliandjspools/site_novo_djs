@@ -4,448 +4,484 @@ import {
   CloudCog,
   Folder,
   HardDrive,
-  Headphones,
+  Layers,
+  ListMusic,
   MessageCircle,
-  Music4,
+  Music2,
+  RefreshCw,
   Sparkles,
-  Star,
-  Wrench,
+  Users,
+  Zap,
 } from "lucide-react";
 import { DriveCatalog } from "./components/DriveCatalog";
+import { Hero } from "./components/Hero";
+import { IconBox } from "./components/IconBox";
+import { SectionHeading } from "./components/SectionHeading";
+import { SiteImage } from "./components/SiteImage";
+import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
+import { TrackShowcase } from "./components/TrackShowcase";
+import { ToolPromoSection } from "./components/ToolPromoSection";
+import { getPreviewPlaylists } from "./lib/google-drive";
+import { checkoutUrl, whatsappUrl } from "./lib/site";
+import { SITE_FAQS } from "./lib/site-faqs";
+import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "./lib/theme";
 
-// Paleta inspirada no Brasil: verde, amarelo, azul + acentos vibrantes
-const CARD_COLORS = {
-  green: { bg: "bg-green-600/15", text: "text-green-400", border: "border-green-500/30", hoverBorder: "hover:border-green-500/50" },
-  yellow: { bg: "bg-yellow-500/15", text: "text-yellow-400", border: "border-yellow-500/30", hoverBorder: "hover:border-yellow-500/50" },
-  blue: { bg: "bg-blue-600/15", text: "text-blue-400", border: "border-blue-500/30", hoverBorder: "hover:border-blue-500/50" },
-  violet: { bg: "bg-violet-600/15", text: "text-violet-400", border: "border-violet-500/30", hoverBorder: "hover:border-violet-500/50" },
-  cyan: { bg: "bg-cyan-600/15", text: "text-cyan-400", border: "border-cyan-500/30", hoverBorder: "hover:border-cyan-500/50" },
-  fuchsia: { bg: "bg-fuchsia-600/15", text: "text-fuchsia-400", border: "border-fuchsia-500/30", hoverBorder: "hover:border-fuchsia-500/50" },
-} as const;
-type CardColor = keyof typeof CARD_COLORS;
-const COLOR_CYCLE: CardColor[] = ["green", "yellow", "blue", "violet", "cyan", "fuchsia"];
-
-const brands = ["ULTIMIX", "FUNKYMIX", "SELECTMIX", "MASTERMIX", "BACKSPINS", "DMC"];
-
-const benefits = [
-  "Extended versions, intro edits e clean edits",
-  "Versões editadas em 320 kbps que animam a pista",
-  "Remix nacionais e internacionais de todos os tempos",
-  "Atualizações mensais automáticas",
-  "Mais de 400 serviços incluídos (Ultimix, Funkymix, DMC...)",
-];
-
-const heroStats = [
-  { value: "400+", label: "Pools & Remix Services" },
-  { value: "24/7", label: "Downloads ilimitados" },
-  { value: "100%", label: "Ativação segura" },
-  { value: "Imediato", label: "Acesso após confirmação" },
-];
-
-const softwareSuite = [
-  { title: "Rekordbox Pro", text: "Preparação completa de tracks, cue points, análise e export para CDJs Pioneer.", tags: ["Performance", "Export USB", "Cloud Library"] },
-  { title: "Serato DJ Pro", text: "O padrão dos clubes e battles. Todos os expansion packs e efeitos liberados.", tags: ["Battle Ready", "DVS", "FX Packs"] },
-  { title: "Virtual DJ Pro", text: "Stems em tempo real, mixagem de vídeo e compatibilidade com qualquer controladora.", tags: ["Stems AI", "Video Mix", "Infinity"] },
+const poolHighlights = [
+  {
+    icon: Layers,
+    title: "400+ Pools",
+    description:
+      "Mais de 400 pools e fontes de conteúdo para DJs, reunindo remix services, edits, versões exclusivas e repertório atualizado. Tudo organizado para você encontrar rapidamente as músicas certas para seus sets.",
+    color: "green" as const,
+  },
+  {
+    icon: Sparkles,
+    title: "Curadoria BR",
+    description:
+      "Seleção especial para a pista brasileira, com funk, sertanejo, pop, eletrônico e open format. Conteúdo escolhido para acompanhar as tendências e garantir um repertório atual, versátil e pronto para qualquer tipo de evento.",
+    color: "yellow" as const,
+  },
+  {
+    icon: RefreshCw,
+    title: "Atualizações Mensais",
+    description:
+      "Novos packs, edits, remixes e extended versions adicionados todos os meses. Mantenha seu repertório sempre atualizado com novidades selecionadas para diferentes estilos, pistas e momentos do seu set.",
+    color: "blue" as const,
+  },
+  {
+    icon: ListMusic,
+    title: "Organização por Gênero",
+    description:
+      "Conteúdo organizado por pool, gênero, data e tipo de edit para facilitar sua busca. Encontre rapidamente o que precisa e monte seus sets com mais agilidade, praticidade e organização.",
+    color: "green" as const,
+  },
+  {
+    icon: Zap,
+    title: "Edits Prontos",
+    description:
+      "Extended, intro edits, clean e dirty versions em alta qualidade, prontos para baixar e levar direto para o seu USB. Tenha as versões certas para cada momento da pista, sem perder tempo na preparação.",
+    color: "yellow" as const,
+  },
+  {
+    icon: Users,
+    title: "Comunidade de DJs",
+    description:
+      "Faça parte de uma comunidade de DJs que compartilha experiência, novidades e conteúdo exclusivo. Conte com suporte humano via WhatsApp e acesso à plataforma VIP com milhares de assinantes.",
+    color: "blue" as const,
+  },
 ];
 
 const accessMethods = [
-  { icon: HardDrive, title: "FTP Access", text: "Acesso FTP exclusivo via FileZilla — configuração rápida e conexão estável para downloads em massa." },
-  { icon: CloudCog, title: "Google Drive", text: "Sincronização em nuvem rápida e organizada por pool, gênero e data de atualização." },
-  { icon: Folder, title: "RaiDrive", text: "Integração nativa para acessar todo o conteúdo como um disco rígido direto no seu computador." },
-];
-
-const faqs = [
-  { q: "Em quais formatos os arquivos estão disponíveis?", a: "A maioria em MP3 320kbps, com diversos serviços também em WAV para máxima qualidade." },
-  { q: "Quantos downloads posso fazer por mês?", a: "Downloads ilimitados, 24 horas por dia, 7 dias por semana, durante todo o período do seu plano." },
-  { q: "Qual método de acesso é o mais indicado?", a: "Google Drive é o mais simples para começar; FTP e RaiDrive são ideais para downloads em massa." },
-  { q: "Existe fidelidade ou multa de cancelamento?", a: "Não. Os planos não têm fidelidade, você pode cancelar quando quiser." },
-  { q: "Como funciona o suporte?", a: "Atendimento humano via WhatsApp para dúvidas sobre acesso, pagamento e uso da plataforma." },
-];
-
-const tracks = [
-  { pack: "FUNKYMIX", title: "310babii & James Brown – Bad (Dirty)", bpm: 100, duration: "4:10" },
-  { pack: "ULTIMIX", title: "Alex Warren – Ordinary (Kwikmix)", bpm: 125, duration: "2:29" },
-  { pack: "BACKSPINS", title: "Black Eyed Peas Vs AC/DC – I Gotta Feeling To Shake All Night Long", bpm: 125, duration: "4:06" },
-  { pack: "FUNKYMIX", title: "Lil Tecca – Dark Thoughts (Clean)", bpm: 102, duration: "3:49" },
-  { pack: "HOUSE MIX", title: "Crystal Waters – 100% Pure Love (It's About Time Edit)", bpm: 112, duration: "3:47" },
-  { pack: "AFROBEAT", title: "Beyoncé – Crazy In Love (Edit)", bpm: 0, duration: "2:42" },
+  {
+    icon: HardDrive,
+    title: "FTP Access",
+    text: "Acesse o acervo via FileZilla e faça downloads em massa com mais praticidade. Ideal para transferir grandes volumes de arquivos com conexão estável, organização e acesso direto às pastas disponíveis.",
+    bgImage: PLACEHOLDER.ftpAccess,
+  },
+  {
+    icon: CloudCog,
+    title: "Google Drive",
+    text: "Acesse o acervo pelo Google Drive com pastas organizadas por pool, gênero e data de atualização. Encontre seus arquivos com facilidade, navegue de forma simples e mantenha tudo disponível na nuvem.",
+    bgImage: PLACEHOLDER.googleDrive,
+  },
+  {
+    icon: Folder,
+    title: "RaiDrive",
+    text: "Integre o acervo ao seu computador e acesse os arquivos como se estivessem em um disco rígido local. Navegue pelas pastas com praticidade, abra conteúdos rapidamente e simplifique o acesso ao seu repertório.",
+    bgImage: PLACEHOLDER.raidrive,
+  },
+  {
+    icon: Music2,
+    title: "Plataforma VIP",
+    text: "Navegue, ouça e baixe as atualizações direto no navegador. Mês a mês, por estilo, com busca integrada — o portal online do Brazilian Packs, sem instalar nada além do login.",
+    bgImage: PLACEHOLDER.musicasPortal,
+  },
 ];
 
 const testimonials = [
   {
-    name: "Thales de Paulas",
-    role: "DJ & Produtor",
+    name: "DJ Rafael Martins",
+    role: "DJ Open Format",
     quote:
-      "Agora a coisa ficou séria! Muita música boa e o melhor, tá tudo num lugar só. Todos os DJs do Brasil precisam se ligar nesse material.",
+      "Com o Brazilian Packs ficou muito mais fácil preparar meus sets. Encontro edits, versões extended e remixes organizados sem perder horas pesquisando antes de cada evento.",
   },
   {
-    name: "Leo Gueddez",
-    role: "DJ e Produtor Musical",
+    name: "DJ Bruno Almeida",
+    role: "DJ de Eventos & Casamentos",
     quote:
-      "Incrível. Vou precisar de um HD maior haha... Gostei muito da pasta de Flash. Vou indicar pra uma galera com certeza.",
+      "Antes eu perdia muito tempo procurando versões diferentes da mesma música. Hoje consigo encontrar rapidamente o que preciso e deixar meu repertório muito mais organizado para cada tipo de pista.",
   },
   {
-    name: "Linna Vee",
-    role: "DJ",
-    quote: "Melhor acervo que já assinei. Organização impecável e atualizações constantes.",
+    name: "DJ Lucas Ferreira",
+    role: "DJ & Prod.",
+    quote:
+      "Curti bastante o acervo. Tem mt coisa organizada, vários edits e versões que eu usaria na pista. Pra quem toca direto, ajuda d+ e economiza um tempão na preparação.",
   },
-];
-
-const bonuses = [
-  { number: "01", title: "Vídeos Extend Remix", description: "Pastas exclusivas de vídeos em versões remix e extend para DJs e VJs." },
-  { number: "02", title: "Brasil Extend Remix", description: "Os melhores remix e extends do Brasil, prontos para o seu set." },
-  { number: "03", title: "Instrumentais e Acapellas", description: "Sucessos de todos os tempos para você criar suas próprias misturas." },
-  { number: "04", title: "Mashups", description: "O melhor service de mashups, misturando vários clássicos em uma faixa só." },
-  { number: "05", title: "Curso de Re-Grid", description: "Aprenda a colocar músicas fora do grid para tocar no ritmo certo." },
-  { number: "06", title: "Set Mix", description: "Pastas com sets já mixados para apoiar em momentos específicos." },
+  {
+    name: "DJ Matheus Costa",
+    role: "DJ de Eventos & Open Format",
+    quote:
+      "Assino principalmente pela praticidade. Sempre encontro versões boas, packs atualizados e material que realmente uso nos eventos. Virou parte da minha preparação semanal.",
+  },
 ];
 
 const plans = [
   {
-    name: "1 Mês de Acesso",
-    price: "R$ 47",
+    name: "1 Mês",
+    price: "R$ 50",
     period: "Pagamento único",
-    features: ["Acesso ao Drive por 1 mês", "Acesso aos bônus", "Atualizações do período"],
+    equivalent: null as string | null,
+    badge: null as string | null,
+    features: [
+      "Acesso completo ao acervo por 30 dias",
+      "Músicas, edits, remixes e vídeos",
+      "Acesso ao Google Drive e FTP",
+      "Atualizações disponíveis durante o período",
+      "Acesso às ferramentas inclusas",
+      "Renovação manual, sem cobrança automática",
+    ],
     highlight: false,
   },
   {
-    name: "3 Meses de Acesso",
-    price: "R$ 127",
-    period: "3x de R$ 44,80",
-    features: ["Acesso ao Drive por 3 meses", "Acesso aos bônus", "10% de desconto"],
+    name: "3 Meses",
+    price: "R$ 135",
+    period: "Pagamento único — 10% de desconto",
+    equivalent: "Equivale a R$ 45 por mês",
+    badge: "10% off",
+    features: [
+      "Acesso completo ao acervo por 3 meses",
+      "Músicas, edits, remixes e vídeos",
+      "Acesso ao Google Drive e FTP",
+      "Atualizações disponíveis durante todo o período",
+      "Acesso às ferramentas inclusas",
+      "Renovação manual, sem cobrança automática",
+    ],
+    highlight: false,
+  },
+  {
+    name: "1 Ano",
+    price: "R$ 504",
+    period: "Pagamento único — melhor custo-benefício",
+    equivalent: "Equivale a R$ 42 por mês",
+    badge: "Melhor custo-benefício",
+    features: [
+      "Acesso completo ao acervo por 12 meses",
+      "Músicas, edits, remixes e vídeos",
+      "Acesso ao Google Drive e FTP",
+      "Atualizações disponíveis durante todo o período",
+      "Acesso às ferramentas inclusas",
+      "Renovação manual, sem cobrança automática",
+    ],
     highlight: true,
-  },
-  {
-    name: "1 Ano de Acesso",
-    price: "R$ 357",
-    period: "12x de R$ 35,63",
-    features: ["Acesso ao Drive por 1 ano", "Acesso aos bônus", "35% de desconto"],
-    highlight: false,
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const previewPlaylists = await getPreviewPlaylists().catch(() => []);
+
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-[#150C29] via-[#0B0813] to-[#08070D]">
-      {/* Hero */}
-      <section className="relative overflow-hidden px-6 pb-20 pt-20 text-center">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-violet-600/30 blur-[150px]" />
-        <div className="relative mx-auto max-w-4xl animate-fade-in-up">
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-300 ring-1 ring-inset ring-white/10">
-            <Sparkles size={14} /> 🇧🇷 100% Brasileiro · Acesso imediato ao acervo
-          </span>
-          <h1 className="font-display text-4xl font-bold leading-tight tracking-wide sm:text-6xl">
-            Os edits, remix services e versões que{" "}
-            <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-              DJs profissionais
-            </span>{" "}
-            usam para manter a pista fluindo
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-balance text-gray-400">
-            Tudo pronto para entrar no seu set ainda hoje. Economize horas de pesquisa e tenha acesso às versões
-            certas para mixagens mais rápidas, limpas e versáteis.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
-              href="#planos"
-              className="w-full rounded-lg bg-gradient-to-r from-violet-600 to-cyan-500 px-8 py-4 text-sm font-bold uppercase tracking-wide shadow-lg shadow-violet-900/40 transition-all duration-300 ease-out hover:scale-105 hover:from-violet-500 hover:to-cyan-400 sm:w-auto"
-            >
-              Entrar para o acervo 🔥
-            </a>
-            <a
-              href="#acervo"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-8 py-4 text-sm font-semibold text-gray-200 transition-all duration-300 ease-out hover:border-violet-500/50 hover:bg-white/10 sm:w-auto"
-            >
-              Explorar o acervo
-            </a>
-          </div>
-          <p className="mt-6 text-xs uppercase tracking-wider text-gray-500">
-            Atualizações frequentes &middot; Organização por estilos &middot; Acesso imediato
-          </p>
-          <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
-            {heroStats.map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 py-4">
-                <p className="font-display text-2xl tracking-wide text-white">{stat.value}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-wider text-gray-500">{stat.label}</p>
-              </div>
+    <div className="flex min-h-screen flex-col">
+      <Hero />
+
+      <section id="pools" className="px-4 pb-12 pt-4 br-pattern sm:px-6 md:pb-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto grid max-w-md gap-4 sm:max-w-none sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+            {poolHighlights.map((item) => (
+              <IconBox key={item.title} icon={item.icon} title={item.title} description={item.description} color={item.color} />
             ))}
           </div>
         </div>
-        <div className="relative mx-auto mt-14 max-w-4xl px-2 sm:px-0">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-2 shadow-2xl shadow-violet-900/30 sm:p-3">
-            <img
-              src="/images/repertorio-2026.png"
-              alt="Repertório Brazilian Packs 2026"
-              className="h-auto w-full rounded-xl object-contain"
+      </section>
+
+      {/* Curadoria + imagem */}
+      <section id="curadoria" className="border-y border-white/5 site-section-blue px-4 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto grid max-w-6xl gap-8 text-center md:grid-cols-2 md:items-center md:gap-12 md:text-left">
+          <div className="mx-auto max-w-lg md:mx-0 md:max-w-none">
+            <SectionHeading
+              badge="Curadoria"
+              title="Seleção pensada para a pista brasileira"
+              centered={false}
             />
+            <div className="mt-8 space-y-4 text-sm leading-relaxed text-gray-400">
+              <p>
+                Um repertório selecionado especialmente para DJs que precisam estar sempre preparados para qualquer
+                pista. Reunimos músicas, remixes, edits e versões que fazem sentido para o público brasileiro, com foco
+                no que realmente funciona nos eventos.
+              </p>
+              <p>
+                Do funk ao sertanejo, do pop ao eletrônico, passando pelo open format e pelos grandes sucessos
+                nacionais e internacionais. Nossa curadoria acompanha as tendências e prioriza conteúdos que ajudam você
+                a manter seu repertório atual, variado e competitivo.
+              </p>
+              <p>
+                Tudo organizado para facilitar sua preparação, economizar tempo e deixar você pronto para tocar em
+                festas, clubs, eventos e diferentes formatos de pista.
+              </p>
+            </div>
+          </div>
+          <div className="mx-auto w-full max-w-md md:max-w-none">
+            <div className="overflow-hidden rounded-2xl border border-[#009739]/40 bg-white/[0.03] p-2 shadow-2xl shadow-[#002776]/40">
+              <SiteImage
+                src={PLACEHOLDER.curadoria}
+                alt="Curadoria Brazilian Packs"
+                width={960}
+                height={720}
+                className="h-auto w-full rounded-xl object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Para quem é */}
-      <section className="border-y border-white/5 bg-white/[0.02] px-6 py-14">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">
-            Para DJs de eventos, bares, casamentos, clubs e pistas open format
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-gray-400">
-            Um bom set começa muito antes da primeira mix. Economize horas de pesquisa e encontre rapidamente as
-            versões certas para cada tipo de pista.
-          </p>
-        </div>
-        <div className="mx-auto mt-8 max-w-3xl space-y-4 text-left text-gray-400 [text-align:justify]">
-          <h3 className="font-display text-xl font-bold text-white">Repertório atualizado para DJs profissionais</h3>
-          <p>
-            Se você toca em eventos, bares, casamentos, baladas, clubs ou pistas open format, sabe que o sucesso da
-            pista depende de um repertório certo, atualizado e organizado.
-          </p>
-          <p>
-            Na Brazilian Packs, reunimos as músicas que realmente estão funcionando nas pistas, com versões editadas,
-            remixes exclusivos, hits nacionais e internacionais, funk, sertanejo, eletrônico, pop, pagode, arrocha e
-            muito mais — tudo pronto para tocar.
-          </p>
-          <p>
-            Chega de perder horas procurando músicas em vários lugares. Tenha acesso a um acervo atualizado
-            constantemente, organizado por estilos e ocasiões, para montar seus sets em poucos minutos e focar no que
-            realmente importa: fazer a pista lotar.
-          </p>
-          <p>Mais música, menos tempo pesquisando. Mais qualidade para os seus eventos.</p>
-        </div>
-      </section>
-
-      {/* Benefícios */}
-      <section id="beneficios" className="px-6 py-20">
-        <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-2 md:items-center">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-2 shadow-2xl shadow-violet-900/30 sm:p-3">
-            <img
-              src="https://i.ibb.co/CKt9XVVb/e511fe0f-54f0-48d3-9f16-2d3165d5b9db.png"
-              alt="Organização do acervo Brazilian Packs"
-              className="h-auto w-full rounded-xl object-contain"
-            />
-          </div>
-          <ul className="space-y-4">
-            {benefits.map((item, index) => {
-              const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
-              return (
-                <li
-                  key={item}
-                  className={`flex items-start gap-3 rounded-xl border ${c.border} bg-white/5 p-4 transition-all duration-300 ${c.hoverBorder} hover:bg-white/[0.07]`}
-                >
-                  <CheckCircle2 className={`mt-0.5 h-5 w-5 flex-shrink-0 ${c.text}`} />
-                  <span className="text-sm text-gray-200">{item}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </section>
-
-      {/* Marcas */}
-      <section className="border-y border-white/5 bg-white/[0.02] px-6 py-16">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="font-display text-2xl tracking-wide sm:text-3xl">Veja o que você vai receber</h2>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
-            {brands.map((brand, index) => {
-              const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
-              return (
-                <div
-                  key={brand}
-                  className={`flex items-center justify-center rounded-xl border ${c.border} bg-white/5 py-6 text-sm font-bold tracking-wide ${c.text} transition-all duration-300 hover:-translate-y-1 hover:text-white`}
-                >
-                  {brand}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Software Pro Suite */}
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-violet-300">
-              <Wrench size={14} /> Software Pro Suite
-            </span>
-            <h2 className="mt-4 font-display text-2xl tracking-wide sm:text-3xl">Potencialize sua performance</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-gray-400">
-              As três ferramentas mais usadas do mundo, prontas para tocar. Sem gambiarra, sem travamento no meio do set.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {softwareSuite.map((item, index) => {
-              const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
-              return (
-                <div key={item.title} className={`rounded-2xl border ${c.border} bg-white/5 p-6 transition-all duration-300 ${c.hoverBorder} hover:-translate-y-1`}>
-                  <h3 className="font-display text-xl tracking-wide text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm text-gray-400">{item.text}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {item.tags.map((tag) => (
-                      <span key={tag} className={`rounded-full ${c.bg} px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${c.text}`}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Métodos de Acesso */}
-      <section className="border-y border-white/5 bg-white/[0.02] px-6 py-20">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="font-display text-2xl tracking-wide sm:text-3xl">Métodos de acesso</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-gray-400">
-            Escolha como quer baixar. Todos os métodos liberados na mesma assinatura.
-          </p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+      {/* Métodos de acesso */}
+      <section id="acesso" className="border-y border-white/5 site-section-green px-4 py-12 sm:px-6 lg:px-10 xl:px-14 2xl:px-16 md:py-20">
+        <div className="mx-auto w-full max-w-[90rem]">
+          <SectionHeading
+            badge="Acesso"
+            title="Como você baixa o acervo"
+            subtitle="Escolha a forma mais prática para acessar seus arquivos. Você pode baixar diretamente pela plataforma ou utilizar o acesso via FTP para transferências maiores e mais rápidas — tudo incluso na mesma assinatura."
+          />
+          <div className="mt-10 grid grid-cols-1 gap-8 sm:mt-12 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:gap-x-14 lg:gap-y-14">
             {accessMethods.map((method, index) => {
-              const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
+              const colorKey = COLOR_CYCLE[index % COLOR_CYCLE.length];
+              const c = CARD_COLORS[colorKey];
+              const accentBar =
+                colorKey === "green"
+                  ? "via-[#00B347]"
+                  : colorKey === "yellow"
+                    ? "via-[#FFDF00]"
+                    : "via-[#6B9FFF]";
               return (
-                <div key={method.title} className={`rounded-2xl border ${c.border} bg-white/5 p-6 text-left transition-all duration-300 hover:-translate-y-1`}>
-                  <span className={`font-display text-3xl ${c.text} opacity-50`}>{`0${index + 1}`}</span>
-                  <div className="mt-3 flex items-center gap-2">
-                    <method.icon className={`h-5 w-5 ${c.text}`} />
-                    <h3 className="font-semibold text-white">{method.title}</h3>
+                <article
+                  key={method.title}
+                  className={`group relative aspect-[21/9] min-h-[180px] overflow-hidden rounded-2xl border ${c.border} ${c.hoverBorder} shadow-lg shadow-black/40 ring-1 ring-inset ring-white/[0.06] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/60 md:min-h-[220px] lg:min-h-[240px]`}
+                >
+                  <div className="absolute inset-0 overflow-hidden">
+                    <SiteImage
+                      src={method.bgImage}
+                      alt=""
+                      fill
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      quality={75}
+                    />
                   </div>
-                  <p className="mt-2 text-sm text-gray-400">{method.text}</p>
-                </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#121212]/88 to-[#121212]/35" />
+                  <div
+                    className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent ${accentBar} to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-100`}
+                  />
+                  <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
+                    <div
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 ${c.iconBg} shadow-lg backdrop-blur-md`}
+                    >
+                      <method.icon className={`h-5 w-5 ${c.text}`} />
+                    </div>
+                    <div className="mt-auto pt-4">
+                      <h3 className="font-display text-lg font-semibold tracking-tight text-white sm:text-xl">
+                        {method.title}
+                      </h3>
+                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-300/90">
+                        {method.text}
+                      </p>
+                    </div>
+                  </div>
+                </article>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Acervo */}
-      <section id="acervo" className="px-6 py-20">
+      {/* Portal de atualizações */}
+      <ToolPromoSection
+        id="musicas"
+        badge="Plataforma VIP"
+        title="Portal de atualizações online"
+        description="Acesse o acervo pelo navegador: navegue por mês e estilo, ouça previews, baixe faixas e acompanhe as novidades sem depender só do Drive ou FTP. Tudo organizado na plataforma que criamos para assinantes VIP."
+        image={PLACEHOLDER.musicasPortal}
+        imageAlt="Portal de atualizações Brazilian Packs"
+        href="/musicas/atualizacoes"
+        buttonLabel="Acessar atualizações"
+        accent="green"
+      />
+
+      {/* Catálogo */}
+      <section id="acervo" className="px-4 py-12 br-pattern sm:px-6 md:py-20">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center">
-            <h2 className="font-display text-2xl tracking-wide sm:text-3xl">Catálogo de pools & remix services</h2>
-            <p className="mt-3 text-gray-400">
-              Um acervo gigante de edits, extended, acapellas e clássicos remasterizados — e muito mais chegando todos os dias.
-            </p>
-          </div>
-          <div className="mt-10">
+          <SectionHeading
+            badge="Catálogo"
+            title="Pools & remix services disponíveis"
+            subtitle="Explore centenas de pools, remix services e fontes de conteúdo reunidos no acervo Brazilian Packs. Encontre edits, remixes, extended versions e materiais de diferentes estilos, tudo organizado para facilitar sua busca e a preparação dos seus sets."
+          />
+          <div className="mt-12">
             <DriveCatalog />
           </div>
         </div>
       </section>
 
-      {/* Faixas */}
-      <section className="border-y border-white/5 bg-white/[0.02] px-6 py-20">
+      {/* Faixas exemplo */}
+      <section className="border-y border-white/5 site-section-yellow px-4 py-12 sm:px-6 md:py-20">
         <div className="mx-auto max-w-4xl">
-          <h2 className="text-center font-display text-2xl font-bold sm:text-3xl">
-            Ouça algumas faixas do nosso superpack
-          </h2>
-          <div className="mt-10 space-y-3">
-            {tracks.map((track, index) => (
-              <div
-                key={track.title}
-                className="flex items-center gap-4 rounded-lg border border-white/5 bg-white/5 p-4 transition-all duration-300 hover:border-cyan-400/40"
-              >
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-cyan-500 text-xs font-bold">
-                  {index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-white">{track.title}</p>
-                  <p className="text-xs uppercase tracking-wide text-gray-500">
-                    {track.pack} {track.bpm ? `· ${track.bpm} BPM` : ""}
-                  </p>
-                </div>
-                <span className="flex-shrink-0 text-xs text-gray-500">{track.duration}</span>
-                <Headphones className="h-4 w-4 flex-shrink-0 text-gray-600" />
-              </div>
-            ))}
+          <SectionHeading
+            badge="Preview"
+            title="Ouça algumas faixas do acervo"
+            subtitle="Confira uma seleção de faixas disponíveis no Brazilian Packs e conheça um pouco da variedade do nosso acervo. Ouça exemplos de remixes, edits, extended versions e outras versões pensadas para DJs e diferentes tipos de pista."
+          />
+          <div className="mt-12">
+            <TrackShowcase initialPlaylists={previewPlaylists} />
           </div>
         </div>
       </section>
+
+      {/* Produção Musical */}
+      <ToolPromoSection
+        id="music-producer"
+        badge="Music Producer"
+        title="Sua música produzida do zero"
+        description={
+          <>
+            <p>
+              Você traz a <strong className="font-semibold text-gray-200">ideia, a história e a mensagem</strong>.
+              Nós transformamos tudo em uma música criada especialmente para você.
+            </p>
+            <p>
+              Da composição da letra à escolha do estilo, voz, instrumental, arranjo, mixagem e finalização, cada
+              detalhe é desenvolvido de acordo com o seu projeto.
+            </p>
+            <p>
+              Produzimos{" "}
+              <strong className="font-semibold text-gray-200">
+                músicas para aniversários, casamentos, empresas, escolas, eventos, jingles comerciais e políticos,
+                música eletrônica, vinhetas, intros e projetos especiais
+              </strong>
+              .
+            </p>
+            <p>
+              Você não precisa entender de produção musical. Basta contar o que imagina, enviar suas referências e
+              explicar o que deseja transmitir.
+            </p>
+            <p>
+              <strong className="font-semibold text-gray-200">
+                Sua ideia. Sua história. Sua música — produzida do zero.
+              </strong>
+            </p>
+          </>
+        }
+        descriptionClassName="max-w-3xl text-justify"
+        imageMaxWidth="max-w-md"
+        image={PLACEHOLDER.musicProducerHero}
+        imageAlt="DJ Jéssika Luana — Produção Musical Brazilian Packs"
+        href="/musicproducer"
+        buttonLabel="Conhecer a produção musical"
+        accent="green"
+      />
+
+      {/* Deemix Server */}
+      <ToolPromoSection
+        id="deemix-server"
+        badge="Deemix Server"
+        title="Servidor dedicado para downloads rápidos"
+        description="Com o Deemix Server, o processamento acontece na nossa infraestrutura na nuvem. Você instala o programa no seu PC e baixa músicas com velocidade máxima, sem consumir sua banda nem configurar VPN ou proxies."
+        image={PLACEHOLDER.deemix}
+        imageAlt="Deemix Server"
+        href="/deemix"
+        buttonLabel="Conhecer o Deemix Server"
+        accent="blue"
+      />
+
+      {/* Deemix */}
+      <ToolPromoSection
+        id="deemix"
+        badge="Deemix"
+        title="Deemix incluso no seu acesso"
+        description="Baixe e organize suas músicas com praticidade usando o Deemix. Uma ferramenta simples para ampliar seu repertório e agilizar a preparação dos seus sets."
+        image={PLACEHOLDER.deemix}
+        imageAlt="Deemix"
+        href="/deemix"
+        buttonLabel="Saiba mais sobre o Deemix"
+        accent="green"
+      />
+
+      {/* Allavsoft */}
+      <ToolPromoSection
+        id="allavsoft"
+        badge="Allavsoft"
+        title="Allavsoft incluso no seu acesso"
+        description="Baixe vídeos, músicas e outros conteúdos de diferentes plataformas com mais praticidade. O Allavsoft ajuda a centralizar seus downloads, converter arquivos e agilizar a preparação do seu material em um só lugar."
+        image={PLACEHOLDER.allavsoft}
+        imageAlt="Allavsoft"
+        href="/allavsoft"
+        buttonLabel="Saiba mais sobre o Allavsoft"
+        accent="yellow"
+      />
 
       {/* Depoimentos */}
-      <section id="depoimentos" className="px-6 py-20">
+      <section id="depoimentos" className="px-4 py-12 sm:px-6 md:py-20">
         <div className="mx-auto max-w-5xl">
-          <h2 className="text-center font-display text-2xl font-bold sm:text-3xl">
-            Veja o que os DJs que já adquiriram o Brazilian Packs dizem
-          </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {testimonials.map((t, index) => {
-              const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
-              return (
-                <div key={t.name} className={`rounded-xl border ${c.border} bg-white/5 p-6 transition-all duration-300 hover:-translate-y-1`}>
-                  <div className={`mb-3 flex gap-1 ${c.text}`}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={14} fill="currentColor" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-300">&ldquo;{t.quote}&rdquo;</p>
-                  <p className="mt-4 text-sm font-semibold text-white">{t.name}</p>
-                  <p className="text-xs text-gray-500">{t.role}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Bônus */}
-      <section className="border-y border-white/5 bg-white/[0.02] px-6 py-20">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center font-display text-2xl font-bold sm:text-3xl">
-            Tudo que é bom pode melhorar: conheça nossos bônus exclusivos
-          </h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {bonuses.map((bonus, index) => {
-              const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
-              return (
-                <div
-                  key={bonus.number}
-                  className={`rounded-xl border ${c.border} bg-white/5 p-6 transition-all duration-300 ${c.hoverBorder} hover:-translate-y-1`}
-                >
-                  <span className={`font-display text-3xl font-bold ${c.text}`}>{bonus.number}</span>
-                  <h3 className="mt-3 font-display text-lg font-semibold text-white">{bonus.title}</h3>
-                  <p className="mt-2 text-sm text-gray-400">{bonus.description}</p>
-                </div>
-              );
-            })}
+          <SectionHeading
+            badge="Depoimentos"
+            title="O que dizem os DJs assinantes"
+            subtitle="Veja a experiência de quem já usa o Brazilian Packs no dia a dia. Relatos de DJs que economizam tempo na pesquisa, encontram versões certas com mais facilidade e mantêm o repertório sempre pronto para a pista."
+          />
+          <div className="mt-12">
+            <TestimonialsCarousel testimonials={testimonials} />
           </div>
         </div>
       </section>
 
       {/* Planos */}
-      <section id="planos" className="px-6 py-20">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">Confira nossas opções de planos</h2>
-          <p className="mt-3 text-gray-400">Facilite sua vida como DJ. Ganhe tempo. Eleve seu set.</p>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <section id="planos" className="border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            badge="Acesso"
+            title="Escolha seu acesso"
+            subtitle="Escolha o plano que melhor combina com a sua rotina e tenha acesso ao acervo Brazilian Packs, ferramentas inclusas e atualizações frequentes. Compare as opções e encontre a melhor forma de manter seu repertório sempre completo e organizado."
+          />
+          <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12 sm:max-w-none sm:grid-cols-2 md:grid-cols-3 md:gap-6">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative rounded-2xl border p-8 text-left transition-all duration-300 ${
+                className={`relative rounded-2xl border p-6 text-center transition-all md:p-8 md:text-left ${
                   plan.highlight
-                    ? "scale-[1.03] border-violet-500 bg-gradient-to-b from-violet-600/20 to-transparent shadow-2xl shadow-violet-900/30"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-[#FFDF00]/60 bg-gradient-to-b from-[#009739]/20 to-transparent shadow-2xl shadow-[#009739]/20 md:scale-[1.03]"
+                    : "border-white/10 bg-[#282828] hover:border-[#009739]/40"
                 }`}
               >
-                {plan.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-violet-600 to-cyan-500 px-4 py-1 text-xs font-bold uppercase tracking-wide">
-                    Mais comprado
+                {plan.badge && plan.highlight && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FFDF00] px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#002776]">
+                    {plan.badge}
                   </span>
                 )}
-                <h3 className="font-display text-lg font-semibold text-white">{plan.name}</h3>
+                {plan.badge && !plan.highlight && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-[#009739]/50 bg-[#009739]/20 px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#00B347]">
+                    {plan.badge}
+                  </span>
+                )}
+                <h3 className="font-display text-lg text-white">{plan.name}</h3>
                 <p className="mt-4 font-display text-4xl font-bold text-white">{plan.price}</p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">{plan.period}</p>
-                <ul className="mt-6 space-y-2">
+                {plan.equivalent && (
+                  <p className="mt-2 text-sm font-medium text-[#FFDF00]">{plan.equivalent}</p>
+                )}
+                <ul className="mt-6 space-y-2.5">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-gray-300">
-                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-cyan-400" />
+                    <li key={feature} className="flex items-start justify-center gap-2 text-sm text-gray-300 md:justify-start">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#009739]" />
                       {feature}
                     </li>
                   ))}
                 </ul>
-                <button className="mt-8 w-full rounded-lg bg-gradient-to-r from-violet-600 to-cyan-500 py-3 text-sm font-bold uppercase tracking-wide transition-all duration-300 ease-out hover:scale-105">
+                <a
+                  href={checkoutUrl(plan.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`mt-8 block w-full rounded-lg py-3 text-center text-sm font-bold uppercase tracking-wide transition-all hover:scale-105 ${
+                    plan.highlight ? "bg-[#009739] text-white hover:bg-[#00B347]" : "border border-[#009739]/60 text-[#00B347] hover:bg-[#009739]/10"
+                  }`}
+                >
                   Comprar
-                </button>
+                </a>
               </div>
             ))}
           </div>
@@ -453,33 +489,37 @@ export default function Home() {
       </section>
 
       {/* CTA WhatsApp */}
-      <section className="border-y border-white/5 bg-white/[0.02] px-6 py-16 text-center">
+      <section className="px-4 py-12 text-center sm:px-6 md:py-16">
         <div className="mx-auto max-w-2xl">
-          <h2 className="font-display text-2xl tracking-wide sm:text-3xl">Ainda tem dúvidas?</h2>
-          <p className="mt-3 text-gray-400">
-            Fale agora no WhatsApp com a nossa equipe e vamos tirar todas as suas dúvidas sobre o acesso ao drive.
-          </p>
+          <SectionHeading
+            title="Ainda tem dúvidas?"
+            subtitle="Nossa equipe está pronta para ajudar. Fale com a gente pelo WhatsApp para tirar dúvidas sobre o acervo, formas de acesso, planos, downloads e funcionamento da plataforma antes de assinar."
+          />
           <a
-            href="https://wa.me/message/"
+            href={whatsappUrl("Olá! Vim pelo site e quero saber mais sobre pools e curadoria.")}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ease-out hover:scale-105 hover:bg-green-600"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#009739] px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#009739]/30 transition-all hover:scale-105 hover:bg-[#00B347]"
           >
-            <MessageCircle size={18} /> Quero tirar dúvidas agora!
+            <MessageCircle size={18} /> Falar no WhatsApp
           </a>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="px-6 py-20">
+      <section id="faq" className="border-t border-white/5 site-section-blue px-4 py-12 sm:px-6 md:py-20">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-center font-display text-2xl tracking-wide sm:text-3xl">Perguntas frequentes</h2>
-          <div className="mt-10 space-y-3">
-            {faqs.map((faq) => (
-              <details key={faq.q} className="group rounded-xl border border-white/10 bg-white/5 p-4 open:border-violet-500/40">
+          <SectionHeading
+            badge="FAQ"
+            title="Perguntas frequentes"
+            subtitle="Tire suas dúvidas sobre o acervo, formas de acesso, atualizações, Deemix e como começar no Brazilian Packs."
+          />
+          <div className="mt-12 space-y-3">
+            {SITE_FAQS.map((faq) => (
+              <details key={faq.q} className="group rounded-xl border border-white/10 bg-[#282828] p-4 open:border-[#009739]/50">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
                   {faq.q}
-                  <ChevronDown className="h-4 w-4 flex-shrink-0 text-violet-400 transition-transform duration-300 group-open:rotate-180" />
+                  <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform group-open:rotate-180" />
                 </summary>
                 <p className="mt-3 text-sm text-gray-400">{faq.a}</p>
               </details>
@@ -487,43 +527,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="mt-auto border-t border-white/5 bg-white/[0.02] px-6 py-12 text-sm text-gray-400">
-        <div className="mx-auto grid max-w-5xl gap-10 sm:grid-cols-3">
-          <div>
-            <div className="flex items-center gap-2 font-display text-lg tracking-wide text-white">
-              <Music4 size={18} className="text-violet-400" /> BRAZILIAN PACKS
-            </div>
-            <p className="mt-3 text-xs text-gray-500">
-              O ecossistema completo para DJs profissionais, produtores e criadores de conteúdo de áudio. 🇧🇷 Feito com
-              orgulho no Brasil.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-display text-sm tracking-wide text-white">Plataforma</h4>
-            <ul className="mt-3 space-y-2 text-xs">
-              <li><a href="#planos" className="transition-colors duration-300 hover:text-white">Planos</a></li>
-              <li><a href="/deemix" className="transition-colors duration-300 hover:text-white">Deemix</a></li>
-              <li><a href="/allavsoft" className="transition-colors duration-300 hover:text-white">Allavsoft</a></li>
-              <li><a href="#acervo" className="transition-colors duration-300 hover:text-white">Catálogo</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-display text-sm tracking-wide text-white">Suporte</h4>
-            <ul className="mt-3 space-y-2 text-xs">
-              <li><a href="https://wa.me/message/" target="_blank" rel="noopener noreferrer" className="transition-colors duration-300 hover:text-white">WhatsApp</a></li>
-              <li><a href="#faq" className="transition-colors duration-300 hover:text-white">Central de ajuda</a></li>
-              <li><a href="/termos" className="transition-colors duration-300 hover:text-white">Termos de Serviço</a></li>
-              <li><a href="/privacidade" className="transition-colors duration-300 hover:text-white">Política de Privacidade</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="mx-auto mt-10 flex max-w-5xl flex-col items-center gap-3 border-t border-white/5 pt-6 text-center text-xs text-gray-500 sm:flex-row sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} Brazilian Packs. Todos os direitos reservados.</p>
-          <p className="uppercase tracking-wider">SSL Seguro &middot; Pix & Cartão &middot; Compra Protegida</p>
-        </div>
-      </footer>
     </div>
   );
 }

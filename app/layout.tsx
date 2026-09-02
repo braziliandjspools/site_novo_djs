@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Roboto } from "next/font/google";
+import { Bebas_Neue, DM_Sans, Roboto } from "next/font/google";
 import "./globals.css";
-import { Header } from "./components/Header";
+import { MarketingChrome } from "./components/MarketingChrome";
 
 const bebasNeue = Bebas_Neue({
   variable: "--font-sora",
@@ -15,21 +15,30 @@ const roboto = Roboto({
   weight: ["300", "400", "500", "700", "900"],
 });
 
+const dmSans = DM_Sans({
+  variable: "--font-player",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Brazilian Packs | Remix Services e Edits para DJs",
+  title: "Brazilian Packs | Pools, Curadoria e Remix Services para DJs",
   description:
-    "Edits, remix services e versões que DJs profissionais usam para manter a pista fluindo. Acesso a mais de 400 serviços, atualizações mensais e bonus exclusivos.",
+    "Lorem ipsum dolor sit amet — acervo com mais de 400 pools e remix services curados para DJs profissionais no Brasil.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
-      className={`${bebasNeue.variable} ${roboto.variable} h-full w-full overflow-x-hidden antialiased`}
+      suppressHydrationWarning
+      className={`${bebasNeue.variable} ${roboto.variable} ${dmSans.variable} h-full w-full overflow-x-hidden antialiased`}
     >
-      <body className="flex min-h-full w-full flex-col overflow-x-hidden bg-[#08070D] text-white font-sans">
-        <Header />
-        {children}
+      <head>
+        <link rel="preload" href="/images/logo.png" as="image" type="image/png" />
+      </head>
+      <body className="flex min-h-full w-full flex-col overflow-x-hidden bg-[#121212] text-white font-sans" suppressHydrationWarning>
+        <MarketingChrome>{children}</MarketingChrome>
       </body>
     </html>
   );

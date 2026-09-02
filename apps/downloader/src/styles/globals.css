@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --background: #121212;
+  --foreground: #f5f4f7;
+  --bg-elevated: #181818;
+  --bg-card: #282828;
+  --bg-hover: #333333;
+  --text-muted: #b3b3b3;
+  --accent: #1db954;
+  --accent-hover: #1ed760;
+  --br-green: #009739;
+  --br-yellow: #ffdf00;
+  --br-blue: #002776;
+}
+
+@theme inline {
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(24, 24, 24, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--br-green), var(--accent));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--accent-hover), var(--br-yellow));
+}
+
+.br-stripe-thin {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--br-green) 33.33%,
+    var(--br-yellow) 33.33% 66.66%,
+    var(--br-blue) 66.66%
+  );
+}

@@ -4,23 +4,38 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "portal:create-user": "node scripts/create-portal-user.mjs",
+    "downloader:dev": "npm run tauri dev --prefix apps/downloader",
+    "downloader:build": "npm run tauri build --prefix apps/downloader",
+    "downloader:web:dev": "npm run dev --prefix apps/downloader",
+    "downloader:web:build": "npm run build --prefix apps/downloader"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "archiver": "^8.0.0",
+    "bcryptjs": "^3.0.3",
     "lucide-react": "^1.35.0",
     "next": "16.3.3",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "resend": "^6.25.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/archiver": "^8.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
+    "prisma": "^6.19.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

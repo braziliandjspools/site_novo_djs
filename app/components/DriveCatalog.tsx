@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Disc3, Search, X } from "lucide-react";
+import { CARD_COLORS } from "../lib/theme";
 
-// Lista completa e oficial de pools/remix services do acervo.
 export const ALL_SERVICES = [
   "12 Inch 80's", "80s", "8th Wonder", "90s", "914 Hit Squad",
   "9inch", "Ace Remix Service Collection", "All In One Partybreaks And Remixes", "Alternative Mix Essential", "Alternative Mix Series",
@@ -44,7 +44,6 @@ export const ALL_SERVICES = [
   "Wrexxshopremixes", "X-Mix", "X-Mix Dance", "X-Mix Urban",
 ];
 
-// Os 30 nomes mais reconhecidos do mercado, sempre visíveis.
 const TOP_SERVICES = [
   "Ultimix", "Funkymix", "Mastermix", "Dmc", "Club Killers",
   "Beatport", "Bpm Supreme", "DJ Allan", "Crooklyn Clan", "Hot Tracks",
@@ -54,14 +53,27 @@ const TOP_SERVICES = [
   "Country Rhythm", "Da Throwbackz", "Dance Classics", "Denoizer Traxx", "Discotech",
 ];
 
+const LETTERS = ["Todos", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""), "#"];
+
 export function DriveCatalog() {
   const [query, setQuery] = useState("");
+  const [letter, setLetter] = useState("Todos");
+  const [showAll, setShowAll] = useState(false);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return TOP_SERVICES;
-    return ALL_SERVICES.filter((name) => name.toLowerCase().includes(q));
-  }, [query]);
+    let list = q ? ALL_SERVICES.filter((name) => name.toLowerCase().includes(q)) : showAll || letter !== "Todos" ? ALL_SERVICES : TOP_SERVICES;
+
+    if (!q && letter !== "Todos") {
+      list = ALL_SERVICES.filter((name) => {
+        const first = name.trim()[0]?.toUpperCase() ?? "";
+        if (letter === "#") return !/[A-Z]/.test(first);
+        return first === letter;
+      });
+    }
+
+    return list;
+  }, [query, letter, showAll]);
 
   return (
     <div>
@@ -71,13 +83,13 @@ export function DriveCatalog() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Pesquise entre os 400+ serviços (ex: DMC, Ultimix, Funk...)"
-          className="w-full rounded-full border border-white/10 bg-white/5 py-3 pl-11 pr-11 text-sm text-white placeholder-gray-500 outline-none transition-colors duration-300 focus:border-violet-500/50"
+          placeholder="Buscar pools e remix services..."
+          className="w-full rounded-full border border-white/10 bg-[#282828] py-3 pl-11 pr-11 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-[#1DB954]/60"
         />
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 transition-colors duration-300 hover:text-white"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
             aria-label="Limpar pesquisa"
           >
             <X className="h-4 w-4" />
@@ -85,22 +97,59 @@ export function DriveCatalog() {
         )}
       </div>
 
-      <p className="mt-4 text-center text-xs uppercase tracking-wider text-gray-500">
-        {query ? `${results.length} resultado(s) encontrado(s)` : `Top 30 mais procurados · ${ALL_SERVICES.length}+ no acervo completo`}
-      </p>
+      <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+        {LETTERS.map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => {
+              setLetter(item);
+              if (item !== "Todos") setShowAll(true);
+            }}
+            className={`min-w-8 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+              letter === item ? "bg-[#009739] text-white" : "bg-white/5 text-gray-400 hover:text-white"
+            }`}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+        <p className="text-center text-xs uppercase tracking-wider text-gray-500">
+          {query || letter !== "Todos"
+            ? `${results.length} resultado(s)`
+            : showAll
+              ? `${ALL_SERVICES.length} serviços no acervo`
+              : `Top 30 · ${ALL_SERVICES.length}+ no acervo`}
+        </p>
+        {!query && letter === "Todos" && (
+          <button
+            type="button"
+            onClick={() => setShowAll((value) => !value)}
+            className="text-xs font-semibold uppercase tracking-wide text-[#FFDF00] hover:text-white"
+          >
+            {showAll ? "Ver top 30" : "Ver catálogo completo"}
+          </button>
+        )}
+      </div>
 
       <div className="mt-8 grid max-h-[420px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
-        {results.map((name) => (
-          <div
-            key={name}
-            className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3 text-sm text-gray-200 transition-all duration-300 hover:border-violet-500/40 hover:bg-white/[0.07]"
-          >
-            <Disc3 className="h-4 w-4 flex-shrink-0 text-cyan-400" />
-            <span className="truncate">{name}</span>
-          </div>
-        ))}
+        {results.map((name, i) => {
+          const colorKey = (["green", "yellow", "blue"] as const)[i % 3];
+          const c = CARD_COLORS[colorKey];
+          return (
+            <div
+              key={name}
+              className={`flex items-center gap-3 rounded-xl border ${c.border} bg-white/[0.03] p-3 text-sm text-gray-200 transition-all hover:bg-white/[0.06]`}
+            >
+              <Disc3 className={`h-4 w-4 flex-shrink-0 ${c.text}`} />
+              <span className="truncate">{name}</span>
+            </div>
+          );
+        })}
         {results.length === 0 && (
-          <p className="col-span-full py-6 text-center text-sm text-gray-500">Nenhum serviço encontrado para essa busca.</p>
+          <p className="col-span-full py-6 text-center text-sm text-gray-500">Nenhum serviço encontrado.</p>
         )}
       </div>
     </div>

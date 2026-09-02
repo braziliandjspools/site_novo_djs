@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PortalPlan {
+  NONE
+  VIP
+  DEEMIX
+  ALLAVSOFT
+}
+
+model PortalUser {
+  id                             Int        @id @default(autoincrement())
+  name                           String
+  email                          String     @unique
+  passwordHash                   String     @map("password_hash")
+  whatsapp                       String
+  plan                           PortalPlan
+  dueDay                         Int        @map("due_day")
+  nextDueAt                      DateTime   @map("next_due_at")
+  active                         Boolean    @default(true)
+  notes                          String?
+  musicProducerDeliveriesEnabled Boolean    @default(false) @map("music_producer_deliveries_enabled")
+  createdAt                      DateTime   @default(now()) @map("created_at")
+  updatedAt                      DateTime   @updatedAt @map("updated_at")
+
+  deliveries      MusicProducerDelivery[]
+  briefings       MusicProducerBriefing[]
+  downloadDevices DownloadDevice[]
+  downloadJobs    DownloadJob[]
+
+  @@index([nextDueAt])
+  @@map("portal_users")
+}
+
+enum DownloadJobProvider {
+  GOOGLE_DRIVE
+}
+
+enum DownloadJobStatus {
+  PENDING
+  RECEIVED
+  DOWNLOADING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model DownloadDevice {
+  id           Int        @id @default(autoincrement())
+  portalUserId Int        @map("portal_user_id")
+  portalUser   PortalUser @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  deviceId     String     @map("device_id")
+  deviceName   String     @map("device_name")
+  platform     String
+  appVersion   String     @map("app_version")
+  lastSeenAt   DateTime?  @map("last_seen_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  jobs DownloadJob[]
+
+  @@unique([portalUserId, deviceId])
+  @@index([portalUserId])
+  @@index([lastSeenAt])
+  @@map("download_devices")
+}
+
+model DownloadJob {
+  id               Int                 @id @default(autoincrement())
+  portalUserId     Int                 @map("portal_user_id")
+  portalUser       PortalUser          @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  downloadDeviceId Int?                @map("download_device_id")
+  downloadDevice   DownloadDevice?     @relation(fields: [downloadDeviceId], references: [id], onDelete: SetNull)
+  provider         DownloadJobProvider @default(GOOGLE_DRIVE)
+  fileId           String              @map("file_id")
+  fileName         String              @map("file_name")
+  relativePath     String?             @map("relative_path")
+  fileSize         BigInt?             @map("file_size")
+  mimeType         String?             @map("mime_type")
+  status           DownloadJobStatus   @default(PENDING)
+  progress         Int                 @default(0)
+  downloadedBytes  BigInt              @default(0) @map("downloaded_bytes")
+  totalBytes       BigInt?             @map("total_bytes")
+  error            String?
+  claimedAt        DateTime?           @map("claimed_at")
+  startedAt        DateTime?           @map("started_at")
+  completedAt      DateTime?           @map("completed_at")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  @@index([portalUserId, status])
+  @@index([downloadDeviceId, status])
+  @@index([status, createdAt])
+  @@index([portalUserId, createdAt])
+  @@map("download_jobs")
+}
+
+enum MusicProducerRedoReason {
+  AI
+  PRODUCER
+  BOTH
+}
+
+model MusicProducerDelivery {
+  id              Int                      @id @default(autoincrement())
+  portalUserId    Int                      @map("portal_user_id")
+  portalUser      PortalUser               @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  title           String
+  servicePlan     String?                  @map("service_plan")
+  chargedAmount   String?                  @map("charged_amount")
+  orderDate       DateTime                 @map("order_date")
+  releasedAt      DateTime?                @map("released_at")
+  downloadUrl     String                   @map("download_url")
+  notes           String?
+  visible         Boolean                  @default(false)
+  clientRating    Int?                     @map("client_rating")
+  clientReview    String?                  @map("client_review")
+  redoRequested   Boolean                  @default(false) @map("redo_requested")
+  redoReason      MusicProducerRedoReason? @map("redo_reason")
+  redoNotes       String?                  @map("redo_notes")
+  redoRequestedAt DateTime?                @map("redo_requested_at")
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+
+  @@index([portalUserId, orderDate])
+  @@map("music_producer_deliveries")
+}
+
+model MusicProducerBriefing {
+  id                Int         @id @default(autoincrement())
+  portalUserId      Int?        @map("portal_user_id")
+  portalUser        PortalUser? @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  name              String
+  email             String
+  whatsapp          String
+  servicePlan       String      @map("service_plan")
+  estimatedQuote    String?     @map("estimated_quote")
+  idea              String
+  lyrics            String?
+  style             String?
+  occasion          String?
+  deadline          String?
+  deadlineSurcharge String?     @map("deadline_surcharge")
+  additionalNotes   String?     @map("additional_notes")
+  emailSent         Boolean     @default(false) @map("email_sent")
+  emailError        String?     @map("email_error")
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  @@index([portalUserId, createdAt])
+  @@index([createdAt])
+  @@map("music_producer_briefings")
+}

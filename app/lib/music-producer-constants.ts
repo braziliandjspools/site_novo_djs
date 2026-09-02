@@ -1,0 +1,1 @@
+export const MAX_BRIEFING_AI_GENERATIONS = 5;

@@ -3,127 +3,128 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Sparkles,
-  Layers,
-  Music,
-  Video,
-  CreditCard,
-  Star,
   ExternalLink,
+  Home,
   Menu,
+  Mic2,
+  Music,
+  UserCircle,
+  Video,
   X,
 } from "lucide-react";
+import { PLATFORM_URL } from "../lib/site";
+import { PLACEHOLDER } from "../lib/theme";
+import { SiteImage } from "./SiteImage";
 
 const navLinks = [
-  { href: "#beneficios", label: "Benefícios", icon: Sparkles },
-  { href: "#acervo", label: "Acervo", icon: Layers },
+  { href: "/", label: "Home", icon: Home },
   { href: "/deemix", label: "Deemix", icon: Music },
   { href: "/allavsoft", label: "Allavsoft", icon: Video },
-  { href: "#planos", label: "Planos", icon: CreditCard },
-  { href: "#depoimentos", label: "Depoimentos", icon: Star },
+  { href: "/musicproducer", label: "Producer", icon: Mic2 },
+  { href: "/portal", label: "Portal", icon: UserCircle },
 ];
-
-const PLATFORM_URL = "https://plataformavip.netlify.app/";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#08070D]/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center px-6 py-4">
-        <a href="/" className="mr-auto flex-shrink-0">
-          <img
-            src="https://i.ibb.co/j9BP1zD0/logo-brazilianpacks.png"
-            alt="Brazilian Packs"
-            className="h-9 w-auto max-w-[170px] object-contain"
-          />
-        </a>
+      <div className="br-stripe" />
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#121212]/95 backdrop-blur-md">
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center px-4 md:h-[72px] md:px-6">
+          <a href="/" className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 lg:static lg:translate-x-0 lg:mr-auto">
+            <SiteImage
+              src={PLACEHOLDER.logo}
+              alt="Brazilian Packs"
+              width={360}
+              height={88}
+              priority
+              className="h-9 w-auto max-w-[160px] object-contain sm:h-10 md:h-11 md:max-w-[180px]"
+              sizes="180px"
+            />
+          </a>
 
-        <div className="hidden items-center gap-4 lg:flex">
-          <nav className="flex flex-wrap items-center gap-1 rounded-full border border-white/5 bg-white/5 px-2 py-1.5">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium text-gray-300 transition-all duration-300 hover:bg-white/10 hover:text-white"
-              >
-                <link.icon size={14} className="flex-shrink-0" />
-                {link.label}
-              </a>
-            ))}
+          <nav className="ml-auto hidden items-center lg:flex">
+            <ul className="flex items-center">
+              {navLinks.map((link, i) => (
+                <li key={link.href} className="flex items-center">
+                  {i > 0 && <span className="mx-1 h-4 w-px bg-white/10" aria-hidden />}
+                  <a
+                    href={link.href}
+                    className="group relative px-4 py-2 text-sm font-medium tracking-wide text-gray-400 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                    <span className="absolute inset-x-4 -bottom-px h-0.5 origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#009739] via-[#FFDF00] to-[#1DB954] transition-transform duration-300 group-hover:scale-x-100" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </nav>
 
           <a
             href={PLATFORM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            title="BRAZILIAN PACKS - Plataforma VIP"
-            className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-cyan-500 px-5 py-2 text-sm font-semibold text-white transition-all duration-300 ease-out hover:scale-105 hover:from-violet-500 hover:to-cyan-400"
+            className="hidden flex-shrink-0 items-center gap-2 rounded-lg border border-[#009739]/50 bg-[#009739]/10 px-4 py-2 text-sm font-semibold text-[#1DB954] transition-all hover:border-[#1DB954] hover:bg-[#009739]/20 hover:text-white lg:inline-flex"
           >
-            Acessar Plataforma <ExternalLink size={14} />
+            Plataforma
+            <ExternalLink size={14} />
           </a>
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="relative z-10 ml-auto flex-shrink-0 rounded-md p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
+            aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
+      </header>
 
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="ml-4 flex-shrink-0 rounded-md p-2 text-white transition-colors duration-300 hover:bg-white/10 lg:hidden"
-          aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-    </header>
-
-    {isOpen &&
-      typeof document !== "undefined" &&
-      createPortal(
-        <>
-          <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setIsOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-[101] flex w-72 max-w-[85vw] flex-col overflow-hidden border-l border-violet-500/30 bg-gradient-to-b from-[#150C29] via-[#0B0813] to-[#08070D] shadow-2xl shadow-black/60 transition-transform duration-300 ease-out lg:hidden">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-600/30 blur-[80px]" />
-            <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-cyan-500/20 blur-[80px]" />
-
-            <div className="relative flex items-center justify-between border-b border-white/10 p-4">
-              <span className="flex items-center gap-2 font-display text-lg tracking-wide text-white">
-                🇧🇷 MENU
-              </span>
-              <button onClick={() => setIsOpen(false)} className="rounded-md p-2 text-white transition-colors duration-300 hover:bg-white/10" aria-label="Fechar menu">
-                <X size={20} />
-              </button>
-            </div>
-            <nav className="relative flex flex-1 flex-col gap-1.5 overflow-y-auto p-4">
-              {navLinks.map((link) => (
+      {isOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-y-0 right-0 z-[101] flex w-72 max-w-[85vw] flex-col overflow-hidden border-l border-[#009739]/40 bg-[#121212] shadow-2xl lg:hidden">
+              <div className="br-stripe" />
+              <div className="relative flex items-center justify-between border-b border-white/10 p-4">
+                <span className="font-display text-lg tracking-wide text-white">MENU</span>
+                <button onClick={() => setIsOpen(false)} className="rounded-md p-2 hover:bg-white/10" aria-label="Fechar menu">
+                  <X size={20} />
+                </button>
+              </div>
+              <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto p-4">
+                {navLinks.map((link, i) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#181818] px-3 py-3 text-sm font-medium text-gray-200 transition-all hover:border-[#009739]/50 hover:bg-[#282828]"
+                  >
+                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${i % 3 === 0 ? "bg-[#009739]/25 text-[#00B347]" : i % 3 === 1 ? "bg-[#FFDF00]/15 text-[#FFDF00]" : "bg-[#002776]/40 text-[#6B9FFF]"}`}>
+                      <link.icon size={16} />
+                    </span>
+                    {link.label}
+                  </a>
+                ))}
                 <a
-                  key={link.href}
-                  href={link.href}
+                  href={PLATFORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-3 text-sm font-medium text-gray-200 transition-all duration-300 hover:border-violet-500/40 hover:bg-white/10 hover:text-white"
+                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1DB954] px-5 py-3 text-sm font-bold text-white"
                 >
-                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600/40 to-cyan-500/40 text-violet-300">
-                    <link.icon size={16} />
-                  </span>
-                  {link.label}
+                  Plataforma <ExternalLink size={14} />
                 </a>
-              ))}
-              <a
-                href={PLATFORM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="BRAZILIAN PACKS - Plataforma VIP"
-                onClick={() => setIsOpen(false)}
-                className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 transition-all duration-300 ease-out hover:scale-105"
-              >
-                Acessar Plataforma <ExternalLink size={14} />
-              </a>
-            </nav>
-            <div className="relative border-t border-white/10 p-4 text-center text-[11px] uppercase tracking-wider text-gray-500">
-              Feito com 💚💛 no Brasil
+              </nav>
+              <div className="border-t border-white/10 p-4 text-center text-[11px] uppercase tracking-wider text-gray-500">
+                Verde · Amarelo · Azul
+              </div>
             </div>
-          </div>
-        </>,
-        document.body
-      )}
+          </>,
+          document.body,
+        )}
     </>
   );
 }

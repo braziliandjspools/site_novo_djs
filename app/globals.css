@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #08070d;
+  --background: #121212;
   --foreground: #f5f4f7;
+  --bg-elevated: #181818;
+  --bg-card: #282828;
+  --bg-hover: #333333;
+  --text-muted: #b3b3b3;
+  --accent: #1db954;
+  --accent-hover: #1ed760;
+  --br-green: #009739;
+  --br-yellow: #ffdf00;
+  --br-blue: #002776;
 }
 
 @theme inline {
@@ -10,6 +19,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-display: var(--font-sora);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -31,16 +44,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(24, 24, 24, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.5);
+  background: linear-gradient(180deg, var(--br-green), var(--accent));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.7);
+  background: linear-gradient(180deg, var(--accent-hover), var(--br-yellow));
 }
 
 @keyframes fade-in-up {
@@ -56,4 +69,65 @@ body {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Faixa tricolor brasileira */
+.br-stripe {
+  height: 4px;
+  background: linear-gradient(90deg, var(--br-green) 33.33%, var(--br-yellow) 33.33% 66.66%, var(--br-blue) 66.66%);
+}
+
+.br-stripe-thin {
+  height: 3px;
+  background: linear-gradient(90deg, var(--br-green) 33.33%, var(--br-yellow) 33.33% 66.66%, var(--br-blue) 66.66%);
+}
+
+/* Padrão sutil de losangos */
+.br-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 151, 57, 0.1) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Seções alternadas com toque de cor */
+.site-section {
+  background: var(--bg-elevated);
+}
+
+.site-section-green {
+  background: linear-gradient(180deg, rgba(0, 151, 57, 0.14) 0%, var(--bg-elevated) 38%, var(--bg-elevated) 100%);
+}
+
+.site-section-blue {
+  background: linear-gradient(180deg, rgba(0, 39, 118, 0.22) 0%, var(--bg-elevated) 38%, var(--bg-elevated) 100%);
+}
+
+.site-section-yellow {
+  background: linear-gradient(180deg, rgba(255, 223, 0, 0.08) 0%, var(--bg-elevated) 38%, var(--bg-elevated) 100%);
+}
+
+.site-section-rainbow {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 151, 57, 0.12) 0%,
+    rgba(255, 223, 0, 0.06) 35%,
+    rgba(0, 39, 118, 0.18) 70%,
+    var(--bg-elevated) 100%
+  );
+}
+
+/* Glows coloridos para heroes */
+.site-glow-green {
+  background: radial-gradient(ellipse at top left, rgba(0, 151, 57, 0.22), transparent 55%);
+}
+
+.site-glow-yellow {
+  background: radial-gradient(ellipse at top right, rgba(255, 223, 0, 0.12), transparent 50%);
+}
+
+.site-glow-blue {
+  background: radial-gradient(ellipse at bottom, rgba(0, 39, 118, 0.28), transparent 55%);
+}
+
+.site-glow-spotify {
+  background: radial-gradient(ellipse at top, rgba(29, 185, 84, 0.15), transparent 55%);
 }

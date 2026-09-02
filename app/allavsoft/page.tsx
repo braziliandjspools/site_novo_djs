@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ChevronDown,
   Clipboard,
   Download,
   FileVideo,
@@ -9,140 +10,236 @@ import {
   Globe,
   Info,
   KeyRound,
-  MessageCircleQuestion,
   MonitorPlay,
   Music2,
-  ShoppingCart,
+  Shield,
   Star,
   Zap,
-  Shield,
 } from "lucide-react";
-
-// Paleta inspirada no Brasil: verde, amarelo, azul + acentos vibrantes
-const CARD_COLORS = {
-  green: { bg: "bg-green-600/15", text: "text-green-400", border: "border-green-500/30" },
-  yellow: { bg: "bg-yellow-500/15", text: "text-yellow-400", border: "border-yellow-500/30" },
-  blue: { bg: "bg-blue-600/15", text: "text-blue-400", border: "border-blue-500/30" },
-  violet: { bg: "bg-violet-600/15", text: "text-violet-400", border: "border-violet-500/30" },
-  cyan: { bg: "bg-cyan-600/15", text: "text-cyan-400", border: "border-cyan-500/30" },
-  fuchsia: { bg: "bg-fuchsia-600/15", text: "text-fuchsia-400", border: "border-fuchsia-500/30" },
-} as const;
-type CardColor = keyof typeof CARD_COLORS;
-const COLOR_CYCLE: CardColor[] = ["green", "yellow", "blue", "violet", "cyan", "fuchsia"];
+import { AllavsoftActions } from "../components/AllavsoftActions";
+import { IconBox } from "../components/IconBox";
+import { SectionHeading } from "../components/SectionHeading";
+import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "../lib/theme";
 
 const features = [
-  { title: "Download de Vídeos e Áudios", text: "Baixe vídeos em HD, Full HD, 4K e 8K, além de extrair áudio em MP3, WAV, FLAC e outros." },
-  { title: "Compatibilidade com Mais de 1000 Sites", text: "YouTube, Facebook, Vimeo, TikTok, Instagram, Spotify, Deezer, Dailymotion e muitos outros." },
-  { title: "Conversão de Formatos", text: "Converta vídeos e áudios para MP4, AVI, MOV, MKV, MP3, AAC, entre outros." },
-  { title: "Download em Lote", text: "Cole uma lista de URLs e baixe vários arquivos de uma vez." },
-  { title: "Gravador de Tela Integrado", text: "Capture qualquer conteúdo reproduzido no seu computador." },
-  { title: "Captura de Legendas e Metadados", text: "Baixe com legendas embutidas e preserve metadados de faixa, artista e álbum." },
+  {
+    icon: FileVideo,
+    title: "Vídeos e Áudios",
+    description:
+      "Baixe vídeos em diferentes resoluções e extraia o áudio nos formatos mais usados, como MP3, WAV e FLAC, conforme a disponibilidade do conteúdo.",
+    color: "green" as const,
+  },
+  {
+    icon: Globe,
+    title: "+1000 Sites",
+    description:
+      "Compatível com uma ampla variedade de sites e plataformas de mídia, permitindo centralizar seus downloads em uma única ferramenta.",
+    color: "yellow" as const,
+  },
+  {
+    icon: Film,
+    title: "Conversão de Formatos",
+    description:
+      "Converta seus arquivos para MP4, AVI, MOV, MKV, MP3, AAC e diversos outros formatos de vídeo e áudio.",
+    color: "blue" as const,
+  },
+  {
+    icon: Download,
+    title: "Download em Lote",
+    description:
+      "Adicione vários links de uma só vez e deixe o Allavsoft processar os downloads em sequência, economizando tempo em tarefas repetitivas.",
+    color: "green" as const,
+  },
+  {
+    icon: MonitorPlay,
+    title: "Gravador de Tela",
+    description:
+      "Capture conteúdos reproduzidos no computador utilizando o recurso integrado de gravação de tela.",
+    color: "yellow" as const,
+  },
+  {
+    icon: Music2,
+    title: "Metadados e Legendas",
+    description:
+      "Quando disponíveis, preserve informações do arquivo e trabalhe com legendas para manter sua biblioteca mais completa e organizada.",
+    color: "blue" as const,
+  },
 ];
 
-const colorClasses = {
-  violet: { bg: "bg-violet-600/20", text: "text-violet-400" },
-  cyan: { bg: "bg-cyan-600/20", text: "text-cyan-400" },
-  fuchsia: { bg: "bg-fuchsia-600/20", text: "text-fuchsia-400" },
-} as const;
-
 const highlights = [
-  { icon: Zap, title: "Download Rápido", text: "Otimizado para baixar vídeos e músicas na máxima velocidade da sua conexão.", color: "violet" },
-  { icon: Shield, title: "100% Seguro", text: "Downloads seguros e instalação limpa, livre de adwares ou malwares.", color: "cyan" },
-  { icon: Globe, title: "Suporte a +1000 Sites", text: "Baixe de YouTube, Vimeo, Facebook, Spotify e centenas de outros sites.", color: "fuchsia" },
-  { icon: Film, title: "Conversão Total", text: "Converta para qualquer formato de vídeo ou áudio com compatibilidade total.", color: "violet" },
-  { icon: Star, title: "Interface Intuitiva", text: "Design moderno e fácil de usar. Copie, cole e baixe em segundos.", color: "cyan" },
-  { icon: MonitorPlay, title: "Gravador de Tela", text: "Capture qualquer atividade em sua tela, como lives e chamadas de vídeo.", color: "fuchsia" },
-] as const;
+  {
+    icon: Zap,
+    title: "Download Rápido",
+    description:
+      "Gerencie seus downloads de forma prática e aproveite os recursos do Allavsoft para baixar e converter arquivos em uma única operação.",
+    color: "green" as const,
+  },
+  {
+    icon: Shield,
+    title: "Acesso Protegido",
+    description:
+      "Use uma ferramenta dedicada para organizar seus downloads e conversões em um ambiente simples e centralizado.",
+    color: "yellow" as const,
+  },
+  {
+    icon: Globe,
+    title: "Ampla Compatibilidade",
+    description:
+      "Trabalhe com conteúdos provenientes de diversos sites e serviços compatíveis sem precisar utilizar uma ferramenta diferente para cada fonte.",
+    color: "blue" as const,
+  },
+  {
+    icon: Film,
+    title: "Conversão Total",
+    description:
+      "Transforme vídeos e áudios entre diversos formatos e escolha a opção mais adequada para computador, celular, players, edição ou arquivamento.",
+    color: "green" as const,
+  },
+  {
+    icon: Star,
+    title: "Interface Intuitiva",
+    description:
+      "Cole o link, escolha suas preferências e inicie o processo. A interface foi desenvolvida para tornar downloads e conversões mais simples.",
+    color: "yellow" as const,
+  },
+  {
+    icon: MonitorPlay,
+    title: "Gravador de Tela",
+    description:
+      "Além dos downloads, utilize a captura de tela para gravar conteúdos reproduzidos diretamente no seu computador.",
+    color: "blue" as const,
+  },
+];
 
 const steps = [
-  { icon: Clipboard, title: "Copie o link", text: "Copie a URL do vídeo, música ou playlist que deseja baixar." },
-  { icon: FileVideo, title: "Cole no Allavsoft", text: "Cole o link no programa e escolha o formato de saída desejado." },
-  { icon: Download, title: "Baixe e converta", text: "O Allavsoft baixa e converte automaticamente para o formato escolhido." },
+  {
+    icon: Clipboard,
+    title: "Copie o link",
+    text: "Copie a URL do vídeo, áudio ou conteúdo disponível em uma plataforma compatível.",
+  },
+  {
+    icon: FileVideo,
+    title: "Cole no Allavsoft",
+    text: "Adicione o endereço no programa e escolha a qualidade, o formato e as opções desejadas.",
+  },
+  {
+    icon: Download,
+    title: "Baixe e converta",
+    text: "Inicie o processo e deixe o Allavsoft realizar o download e, quando solicitado, a conversão do arquivo automaticamente.",
+  },
 ];
 
 const formats = [
-  { icon: FileVideo, title: "Vídeo", text: "MP4, AVI, MOV, MKV, WMV, FLV e mais." },
-  { icon: Music2, title: "Áudio", text: "MP3, WAV, FLAC, AAC, M4A e mais." },
-  { icon: KeyRound, title: "Licença", text: "Chave vitalícia com atualizações de compatibilidade incluídas." },
+  {
+    icon: FileVideo,
+    title: "Vídeo",
+    text: "Compatibilidade com formatos populares como MP4, AVI, MOV, MKV, WMV, FLV e outros.",
+  },
+  {
+    icon: Music2,
+    title: "Áudio",
+    text: "Converta e extraia áudio em formatos como MP3, WAV, FLAC, AAC, M4A e outras opções compatíveis.",
+  },
+  {
+    icon: KeyRound,
+    title: "Licença",
+    text: "Acesso às funcionalidades premium conforme o tipo e o período da licença disponibilizada no seu plano.",
+  },
 ];
 
 const faqs = [
-  { q: "Funciona em Mac e Windows?", a: "Sim, o Allavsoft está disponível para Windows e macOS." },
-  { q: "Posso baixar playlists inteiras?", a: "Sim, basta colar o link da playlist e o Allavsoft baixa todos os itens." },
-  { q: "A licença expira?", a: "Não, a licença é vitalícia e inclui atualizações de compatibilidade." },
+  {
+    q: "O Allavsoft está incluso na assinatura do Brazilian Packs?",
+    a: "Sim. Assinantes com acesso às ferramentas inclusas podem utilizar o Allavsoft conforme as condições do plano contratado, com instruções enviadas após a confirmação.",
+  },
+  {
+    q: "Posso baixar de quais sites?",
+    a: "O Allavsoft é compatível com mais de mil sites e plataformas de mídia, incluindo serviços populares de vídeo, áudio e streaming, conforme suporte da ferramenta.",
+  },
+  {
+    q: "Quais formatos posso converter?",
+    a: "É possível trabalhar com formatos de vídeo como MP4, AVI, MOV e MKV, além de áudio em MP3, WAV, FLAC, AAC, M4A e outras opções compatíveis.",
+  },
+  {
+    q: "Como funciona o download em lote?",
+    a: "Você pode adicionar vários links de uma só vez e deixar o Allavsoft processar os downloads em sequência, ideal para listas e coleções maiores.",
+  },
+  {
+    q: "Preciso instalar o programa no computador?",
+    a: "Sim. O Allavsoft é instalado no seu computador para gerenciar downloads, conversões e gravações de tela de forma local.",
+  },
+  {
+    q: "Posso comprar o Allavsoft sem assinar o plano de pools?",
+    a: "Sim. Se você não assina o plano de pools, pode solicitar acesso avulso ao Allavsoft pelo WhatsApp. Nossa equipe informa valores e instruções de ativação.",
+  },
+  {
+    q: "O que inclui a licença premium?",
+    a: "A licença libera os recursos premium disponíveis no Allavsoft conforme o plano contratado. As informações de ativação são fornecidas junto com o seu acesso.",
+  },
+  {
+    q: "Onde gerencio minha licença após a compra?",
+    a: "Clientes com acesso ativo podem entrar na Área do cliente em /portal com e-mail e senha fornecidos, para consultar credenciais e orientações de uso.",
+  },
 ];
 
 export default function AllavsoftPage() {
   return (
-    <div className="mx-auto max-w-5xl space-y-16 px-6 py-16">
-      <div className="flex items-center gap-4">
-        <Link href="/" className="rounded-md border border-violet-600/30 bg-black/40 p-2 transition-colors duration-300 hover:bg-black/60">
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <h1 className="font-display text-3xl font-bold tracking-tight">ALLAVSOFT</h1>
+    <div className="mx-auto max-w-5xl space-y-12 px-4 py-12 sm:space-y-16 sm:px-6 sm:py-16">
+      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link href="/" className="rounded-xl border border-[#002776]/60 bg-[#002776]/20 p-2 transition-colors hover:bg-[#002776]/40">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="font-display text-3xl tracking-wide text-[#FFDF00]">ALLAVSOFT</h1>
+        </div>
+        <AllavsoftActions compact className="!flex-row !gap-2" />
       </div>
 
       <section className="text-center">
-        <h2 className="font-display text-4xl font-bold sm:text-5xl">Allavsoft</h2>
-        <p className="mx-auto mt-4 max-w-3xl text-gray-400">
-          A sua central de download de mídia pessoal. Baixe e converta vídeos e músicas de mais de 1000 sites,
-          incluindo YouTube, Spotify, e muito mais.
-        </p>
-        <div className="mx-auto mt-8 max-w-3xl overflow-hidden rounded-2xl border border-blue-500/30 bg-white/5 p-2 shadow-2xl shadow-blue-900/20 sm:p-3">
-          <Image src="https://i.ibb.co/JXJDdXx/allavsoft.png" alt="Interface do Allavsoft" width={1200} height={600} className="h-auto w-full rounded-xl object-contain" unoptimized />
+        <SectionHeading
+          badge="Ferramenta"
+          title="Allavsoft"
+          subtitle="Baixe vídeos, músicas e outros conteúdos de diferentes plataformas com mais praticidade. Centralize downloads, conversões e gravações em uma única ferramenta."
+        />
+        <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-2xl border border-[#002776]/60 bg-white/[0.03] p-2">
+          <Image
+            src={PLACEHOLDER.allavsoft}
+            alt="Allavsoft"
+            width={1200}
+            height={600}
+            className="h-auto w-full rounded-xl object-contain"
+            sizes="(max-width: 768px) 100vw, 768px"
+            quality={82}
+          />
         </div>
+        <AllavsoftActions className="mt-10" />
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-8">
-        <h3 className="text-center font-display text-2xl font-bold">
-          A Solução Completa para Baixar Vídeos e Áudios da Internet
-        </h3>
-        <p className="mx-auto mt-4 max-w-3xl text-center text-gray-400">
-          O Allavsoft é uma poderosa ferramenta para quem busca praticidade e eficiência na hora de baixar conteúdos
-          multimídia da internet, salvando vídeos, músicas, playlists e até legendas com apenas alguns cliques.
-        </p>
-        <h4 className="mt-8 text-center font-display text-xl font-bold text-violet-400">
-          ✅ Principais Funcionalidades
-        </h4>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {features.map((f, index) => {
-            const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
-            return (
-              <div key={f.title} className={`rounded-lg border ${c.border} bg-black/30 p-4 transition-all duration-300 hover:-translate-y-0.5`}>
-                <p className="text-sm text-gray-300">
-                  <span className={`font-semibold ${c.text}`}>{f.title}:</span> {f.text}
-                </p>
-              </div>
-            );
-          })}
+      <section>
+        <SectionHeading badge="Funcionalidades" title="Principais recursos" />
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => (
+            <IconBox key={f.title} icon={f.icon} title={f.title} description={f.description} color={f.color} />
+          ))}
         </div>
       </section>
 
       <section>
-        <h3 className="text-center font-display text-2xl font-bold uppercase">Recursos em destaque</h3>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {highlights.map((h) => {
-            const colors = colorClasses[h.color];
-            return (
-              <div key={h.title} className="rounded-xl border border-white/10 bg-white/5 p-6 text-center transition-all duration-300 hover:border-violet-500/40">
-                <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${colors.bg}`}>
-                  <h.icon className={`h-7 w-7 ${colors.text}`} />
-                </div>
-                <h4 className="font-display font-semibold uppercase">{h.title}</h4>
-                <p className="mt-2 text-sm text-gray-400">{h.text}</p>
-              </div>
-            );
-          })}
+        <SectionHeading title="Recursos em destaque" />
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {highlights.map((h) => (
+            <IconBox key={h.title} icon={h.icon} title={h.title} description={h.description} color={h.color} />
+          ))}
         </div>
       </section>
 
       <section>
-        <h3 className="text-center font-display text-2xl font-bold uppercase">Como funciona</h3>
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+        <SectionHeading title="Como funciona" />
+        <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {steps.map((step, index) => {
             const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
             return (
-              <div key={step.title} className={`rounded-xl border ${c.border} bg-white/5 p-6 transition-all duration-300 hover:-translate-y-1`}>
+              <div key={step.title} className={`rounded-2xl border ${c.border} bg-white/[0.04] p-6`}>
                 <span className={`font-display text-3xl font-bold ${c.text} opacity-50`}>{`0${index + 1}`}</span>
                 <div className="mt-3 flex items-center gap-2">
                   <step.icon className={`h-5 w-5 ${c.text}`} />
@@ -156,13 +253,13 @@ export default function AllavsoftPage() {
       </section>
 
       <section>
-        <h3 className="text-center font-display text-2xl font-bold uppercase">Formatos e utilidades</h3>
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+        <SectionHeading title="Formatos e utilidades" />
+        <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {formats.map((f, index) => {
-            const c = CARD_COLORS[COLOR_CYCLE[(index + 3) % COLOR_CYCLE.length]];
+            const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
             return (
-              <div key={f.title} className={`rounded-xl border ${c.border} bg-white/5 p-6 text-center transition-all duration-300 hover:-translate-y-1`}>
-                <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full ${c.bg}`}>
+              <div key={f.title} className={`rounded-2xl border ${c.border} bg-white/[0.04] p-6 text-center`}>
+                <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl ${c.iconBg}`}>
                   <f.icon className={`h-6 w-6 ${c.text}`} />
                 </div>
                 <h4 className="font-semibold text-white">{f.title}</h4>
@@ -173,40 +270,38 @@ export default function AllavsoftPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-cyan-600/30 bg-cyan-950/10 p-8 text-center">
-        <h3 className="flex items-center justify-center gap-2 font-display text-xl font-bold text-cyan-300">
+      <section className="rounded-2xl border border-[#FFDF00]/30 bg-[#FFDF00]/5 p-8 text-center">
+        <h3 className="flex items-center justify-center gap-2 font-display text-xl text-[#FFDF00]">
           <Info className="h-6 w-6" /> Sobre a Licença
         </h3>
-        <p className="mx-auto mt-4 max-w-3xl text-sm text-gray-300">
-          Ao comprar, você adquire uma chave de licença para ativar e usar todas as funcionalidades premium do
-          Allavsoft no seu computador, incluindo futuras atualizações de compatibilidade e suporte técnico.
+        <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-gray-300">
+          A licença libera os recursos premium disponíveis no Allavsoft conforme as condições do plano contratado. As
+          informações de ativação e configuração são fornecidas junto com o seu acesso.
         </p>
+        <AllavsoftActions className="mt-8" />
       </section>
 
-      <section>
-        <h3 className="flex items-center justify-center gap-2 text-center font-display text-2xl font-bold uppercase">
-          <MessageCircleQuestion className="h-6 w-6 text-violet-400" /> Perguntas frequentes
-        </h3>
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {faqs.map((faq) => (
-            <div key={faq.q} className="rounded-xl border border-white/10 bg-white/5 p-5">
-              <p className="font-semibold text-white">{faq.q}</p>
-              <p className="mt-2 text-sm text-gray-400">{faq.a}</p>
-            </div>
-          ))}
+      <section id="faq" className="border-t border-white/5 site-section-blue px-6 py-20 -mx-6">
+        <div className="mx-auto max-w-3xl">
+          <SectionHeading
+            badge="FAQ"
+            title="Perguntas frequentes"
+            subtitle="Tire suas dúvidas sobre o Allavsoft, formatos, licença e formas de acesso."
+          />
+          <div className="mt-12 space-y-3">
+            {faqs.map((faq) => (
+              <details key={faq.q} className="group rounded-xl border border-[#002776]/60 bg-white/[0.04] p-4 open:border-[#009739]/50">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
+                  {faq.q}
+                  <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm text-gray-400">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+          <AllavsoftActions variant="banner" className="mt-12" />
         </div>
       </section>
-
-      <div className="flex justify-center">
-        <a
-          href="https://wa.me/5551935052274"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-500 px-8 py-4 text-sm font-bold uppercase tracking-wide text-slate-900 shadow-lg transition-all duration-300 ease-out hover:scale-105"
-        >
-          <ShoppingCart size={20} /> Comprar Licença Allavsoft
-        </a>
-      </div>
     </div>
   );
 }
