@@ -1,12 +1,12 @@
 import { execSync } from "node:child_process";
 
-function run(command) {
-  execSync(command, { stdio: "inherit" });
+function run(command, env = process.env) {
+  execSync(command, { stdio: "inherit", env });
 }
 
-function tryRun(command) {
+function tryRun(command, env = process.env) {
   try {
-    run(command);
+    run(command, env);
     return true;
   } catch {
     return false;
@@ -16,17 +16,19 @@ function tryRun(command) {
 run("npx prisma generate");
 
 const databaseUrl = process.env.DATABASE_URL?.trim();
+const directUrl = process.env.DIRECT_URL?.trim() || databaseUrl;
 
 if (!databaseUrl) {
   console.warn("[build] DATABASE_URL não definida — pulando setup do banco.");
 } else {
-  const migrated = tryRun("npx prisma migrate deploy");
+  const migrationEnv = { ...process.env, DATABASE_URL: directUrl };
+  const migrated = tryRun("npx prisma migrate deploy", migrationEnv);
   if (!migrated) {
     console.warn("[build] migrate deploy falhou — tentando db push...");
-    if (!tryRun("npx prisma db push --skip-generate")) {
+    if (!tryRun("npx prisma db push --skip-generate", migrationEnv)) {
       console.error(
         "[build] Não foi possível aplicar o schema. " +
-          "Confirme DATABASE_URL (URL direct do Neon, sem -pooler) nas env vars de Build.",
+          "Defina DIRECT_URL (Neon direct, sem -pooler) ou use DATABASE_URL direct no build.",
       );
       process.exit(1);
     }
