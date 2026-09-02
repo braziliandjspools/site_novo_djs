@@ -76,7 +76,7 @@ function parseFileName(value: unknown): string | null {
 function parseBigIntInput(value: unknown): bigint | null {
   if (value === undefined || value === null) return null;
   try {
-    if (typeof value === "bigint") return value >= 0n ? value : null;
+    if (typeof value === "bigint") return value >= BigInt(0) ? value : null;
     if (typeof value === "number") {
       if (!Number.isInteger(value) || value < 0) return null;
       return BigInt(value);
@@ -232,13 +232,13 @@ export function parseJobUpdateBody(body: unknown) {
 
   return {
     value: {
-      status,
-      progress,
-      downloadedBytes,
-      totalBytes,
-      error,
-      deviceId,
-    } satisfies DownloadJobUpdateInput,
+      ...(status !== undefined && status !== null ? { status } : {}),
+      ...(progress !== undefined && progress !== null ? { progress } : {}),
+      ...(downloadedBytes !== undefined && downloadedBytes !== null ? { downloadedBytes } : {}),
+      ...(totalBytes !== undefined ? { totalBytes } : {}),
+      ...(error !== undefined ? { error } : {}),
+      ...(deviceId ? { deviceId } : {}),
+    },
   };
 }
 
@@ -319,6 +319,11 @@ async function getOwnedJob(portalUserId: number, jobId: number) {
   });
 }
 
+function toStoredBigInt(value: string | number | bigint | null | undefined): bigint | null {
+  if (value == null) return null;
+  return parseBigIntInput(value);
+}
+
 function buildJobCreateData(portalUserId: number, input: DownloadJobInput) {
   return {
     portalUserId,
@@ -326,7 +331,7 @@ function buildJobCreateData(portalUserId: number, input: DownloadJobInput) {
     fileId: input.fileId,
     fileName: input.fileName,
     relativePath: input.relativePath ?? null,
-    fileSize: input.fileSize ?? null,
+    fileSize: toStoredBigInt(input.fileSize),
     mimeType: input.mimeType ?? null,
   };
 }
@@ -466,8 +471,13 @@ export async function updateDownloadJob(
   } = {};
 
   if (input.progress !== undefined) data.progress = input.progress;
-  if (input.downloadedBytes !== undefined) data.downloadedBytes = input.downloadedBytes;
-  if (input.totalBytes !== undefined) data.totalBytes = input.totalBytes;
+  if (input.downloadedBytes !== undefined) {
+    const bytes = parseBigIntInput(input.downloadedBytes);
+    if (bytes !== null) data.downloadedBytes = bytes;
+  }
+  if (input.totalBytes !== undefined) {
+    data.totalBytes = input.totalBytes === null ? null : parseBigIntInput(input.totalBytes);
+  }
   if (input.error !== undefined) data.error = input.error;
 
   if (input.status) {
@@ -530,7 +540,7 @@ export async function retryDownloadJob(portalUserId: number, jobId: number) {
     data: {
       status: "PENDING",
       progress: 0,
-      downloadedBytes: 0n,
+      downloadedBytes: BigInt(0),
       totalBytes: job.fileSize,
       error: null,
       downloadDeviceId: null,

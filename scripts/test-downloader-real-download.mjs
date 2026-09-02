@@ -70,20 +70,102 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-async function findRealDriveTrack() {
-  const { getPreviewPlaylists } = await import("../app/lib/google-drive.ts");
-  const playlists = await getPreviewPlaylists();
-  for (const playlist of playlists) {
-    const track = playlist.tracks[0];
-    if (track?.id) {
-      return {
-        fileId: track.id,
-        fileName: track.fileName ?? `${track.title}.mp3`,
-        relativePath: "Teste/Download Real",
-      };
-    }
+async function listAudioInFolder(folderId, key) {
+  const params = new URLSearchParams({
+    q: `'${folderId}' in parents and trashed=false`,
+    fields: "files(id,name,mimeType)",
+    pageSize: "100",
+    key,
+  });
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.files ?? [];
+}
+
+async function findAudioRecursive(folderId, key, depth = 0) {
+  if (depth > 4) return null;
+  const files = await listAudioInFolder(folderId, key);
+  const audio = files.find(
+    (file) =>
+      file.mimeType?.startsWith("audio/") || /\.(mp3|wav|flac|m4a|aac|ogg)$/i.test(file.name ?? ""),
+  );
+  if (audio) return audio;
+
+  const folders = files.filter((file) => file.mimeType === "application/vnd.google-apps.folder");
+  for (const folder of folders) {
+    const nested = await findAudioRecursive(folder.id, key, depth + 1);
+    if (nested) return nested;
   }
-  throw new Error("Nenhuma faixa real encontrada no Google Drive.");
+  return null;
+}
+
+async function findRealDriveTrack() {
+  if (process.env.TEST_DRIVE_FILE_ID && process.env.TEST_DRIVE_FILE_NAME) {
+    return {
+      fileId: process.env.TEST_DRIVE_FILE_ID,
+      fileName: process.env.TEST_DRIVE_FILE_NAME,
+      relativePath: "Teste/Download Real",
+    };
+  }
+
+  const key = process.env.GOOGLE_DRIVE_API_KEY ?? "";
+  if (!key) throw new Error("GOOGLE_DRIVE_API_KEY necessária para localizar faixa real.");
+
+  const folderUrl =
+    process.env.GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID ??
+    process.env.GOOGLE_DRIVE_PREVIEW_FOLDER_ID ??
+    process.env.GOOGLE_DRIVE_MUSIC_PRODUCER_FOLDER_ID ??
+    "";
+  const folderId = folderUrl.match(/[-\w]{25,}/)?.[0];
+  if (!folderId) throw new Error("Configure GOOGLE_DRIVE_PREVIEW_FOLDER_ID ou GOOGLE_DRIVE_MUSIC_PRODUCER_FOLDER_ID.");
+
+  const file = await findAudioRecursive(folderId, key);
+  if (!file?.id) throw new Error("Nenhuma faixa de áudio encontrada no Drive.");
+
+  return {
+    fileId: file.id,
+    fileName: file.name,
+    relativePath: "Teste/Download Real",
+  };
+}
+
+async function findTrackFromSiteCatalog(token) {
+  const root = await api(token, "/api/musicas/catalog");
+  assert(root.status === 200, `catalog root: ${root.status}`);
+  const month = root.json.items?.find((item) => item.kind === "folder") ?? root.json.items?.[0];
+  assert(month?.id, "Nenhuma pasta no catálogo VIP.");
+
+  const styleRes = await api(
+    token,
+    `/api/musicas/catalog?folderId=${encodeURIComponent(month.id)}&folderName=${encodeURIComponent(month.name)}`,
+  );
+  assert(styleRes.status === 200, `catalog style: ${styleRes.status}`);
+  const style = styleRes.json.items?.find((item) => item.kind === "folder") ?? styleRes.json.items?.[0];
+  assert(style?.id, "Nenhuma subpasta de estilo no catálogo.");
+
+  const tracksRes = await api(
+    token,
+    `/api/musicas/tracks?folderId=${encodeURIComponent(style.id)}&folderName=${encodeURIComponent(style.name)}&limit=1`,
+  );
+  assert(tracksRes.status === 200, `tracks: ${tracksRes.status}`);
+  const track = tracksRes.json.tracks?.[0];
+  assert(track?.id, "Nenhuma faixa encontrada no catálogo VIP.");
+
+  return {
+    fileId: track.id,
+    fileName: track.fileName ?? `${track.title}.mp3`,
+    relativePath: `${month.name}/${style.name}`,
+  };
+}
+
+async function resolveRealTrack(token) {
+  try {
+    return await findRealDriveTrack();
+  } catch (driveError) {
+    console.log(`Drive API: ${driveError.message} — usando catálogo do site…`);
+    return findTrackFromSiteCatalog(token);
+  }
 }
 
 async function downloadViaProxy(token, fileId, fileName, destPath) {
@@ -120,6 +202,14 @@ async function main() {
   loadEnvFile(".env");
   loadEnvFile(".env.local");
 
+  try {
+    const dotenv = await import("dotenv");
+    dotenv.config({ path: resolve(process.cwd(), ".env.local") });
+    dotenv.config({ path: resolve(process.cwd(), ".env") });
+  } catch {
+    /* dotenv opcional */
+  }
+
   const prisma = new PrismaClient();
   const user = await prisma.portalUser.findFirst({
     where: { active: true, plan: "VIP" },
@@ -128,7 +218,7 @@ async function main() {
   if (!user) throw new Error("Nenhum usuário VIP ativo.");
 
   const token = createPortalToken(user.id);
-  const track = await findRealDriveTrack();
+  const track = await resolveRealTrack(token);
   console.log(`Faixa real: ${track.fileName} (${track.fileId})`);
 
   await api(token, "/api/downloader/devices", {

@@ -4,11 +4,39 @@ mod settings;
 
 use tauri::AppHandle;
 
-use paths::build_destination_path;
+use paths::{build_destination_path, part_path_for};
 use providers::{resolve_provider, DownloadContext, DownloadResultPayload};
-use settings::resolve_download_dir;
+use settings::{open_download_dir as open_dir, pick_download_dir as pick_dir, resolve_download_dir};
 
-pub use settings::{get_default_download_dir_path, get_download_dir, pick_download_dir, set_download_dir};
+#[tauri::command]
+pub fn has_download_dir_configured(app: AppHandle) -> Result<bool, String> {
+    settings::has_download_dir_configured(&app)
+}
+
+#[tauri::command]
+pub fn get_default_download_dir_path() -> String {
+    settings::default_download_dir_path()
+}
+
+#[tauri::command]
+pub fn get_download_dir(app: AppHandle) -> Result<String, String> {
+    settings::get_download_dir(&app)
+}
+
+#[tauri::command]
+pub fn set_download_dir(app: AppHandle, path: String) -> Result<String, String> {
+    settings::set_download_dir(&app, path)
+}
+
+#[tauri::command]
+pub async fn pick_download_dir(app: AppHandle) -> Result<Option<String>, String> {
+    pick_dir(app).await
+}
+
+#[tauri::command]
+pub fn open_download_dir(app: AppHandle) -> Result<(), String> {
+    open_dir(&app)
+}
 
 #[tauri::command]
 pub async fn download_job_file(
@@ -22,7 +50,8 @@ pub async fn download_job_file(
     job_id: u32,
 ) -> Result<DownloadResultPayload, String> {
     let base_dir = resolve_download_dir(&app)?;
-    let dest_path = build_destination_path(&base_dir, relative_path.as_deref(), &file_name)?;
+    let final_path = build_destination_path(&base_dir, relative_path.as_deref(), &file_name)?;
+    let part_path = part_path_for(&final_path);
 
     let ctx = DownloadContext {
         app,
@@ -30,7 +59,8 @@ pub async fn download_job_file(
         auth_token,
         file_id,
         file_name,
-        dest_path,
+        final_path,
+        part_path,
         job_id,
     };
 

@@ -5,22 +5,54 @@ import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { BP_MUSICAS_URL } from "../lib/site";
 import { openBrazilianPacks } from "../lib/open-site";
-import { getDownloadDir, pickDownloadDir } from "../lib/native/download";
+import {
+  getDownloadDir,
+  hasDownloadDirConfigured,
+  openDownloadDir,
+  pickDownloadDir,
+} from "../lib/native/download";
 
 export function SettingsPage() {
   const { user, device, logout } = useAuth();
   const [downloadDir, setDownloadDir] = useState<string>("");
   const [loadingDir, setLoadingDir] = useState(true);
+  const [dirError, setDirError] = useState<string | null>(null);
 
   useEffect(() => {
-    void getDownloadDir()
-      .then(setDownloadDir)
-      .finally(() => setLoadingDir(false));
+    void (async () => {
+      try {
+        const configured = await hasDownloadDirConfigured();
+        if (!configured) {
+          setDownloadDir("");
+          return;
+        }
+        const dir = await getDownloadDir();
+        setDownloadDir(dir);
+      } catch (error) {
+        setDirError(error instanceof Error ? error.message : "Não foi possível carregar a pasta.");
+      } finally {
+        setLoadingDir(false);
+      }
+    })();
   }, []);
 
   async function handlePickFolder() {
-    const picked = await pickDownloadDir();
-    if (picked) setDownloadDir(picked);
+    setDirError(null);
+    try {
+      const picked = await pickDownloadDir();
+      if (picked) setDownloadDir(picked);
+    } catch (error) {
+      setDirError(error instanceof Error ? error.message : "Não foi possível alterar a pasta.");
+    }
+  }
+
+  async function handleOpenFolder() {
+    setDirError(null);
+    try {
+      await openDownloadDir();
+    } catch (error) {
+      setDirError(error instanceof Error ? error.message : "Não foi possível abrir a pasta.");
+    }
   }
 
   return (
@@ -40,30 +72,39 @@ export function SettingsPage() {
             )}
           </div>
         </div>
-        <Button variant="ghost" className="mt-4 !px-0 text-zinc-400 hover:!bg-transparent" onClick={() => void logout()}>
+        <Button
+          variant="ghost"
+          className="mt-4 !px-0 text-zinc-400 hover:!bg-transparent"
+          onClick={() => void logout()}
+        >
           <LogOut className="h-4 w-4" />
           Sair da conta
         </Button>
       </Panel>
 
-      <Panel title="Pasta de destino" description="Escolha onde os arquivos serão salvos no seu computador.">
+      <Panel title="Pasta de downloads" description="Local onde os arquivos finalizados são salvos.">
         <div className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
             <FolderOpen className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white">
-              {loadingDir ? "Carregando..." : downloadDir || "Pasta padrão"}
+              {loadingDir ? "Carregando..." : downloadDir || "Não configurada"}
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-              Os downloads mantêm a estrutura de pastas enviada pela plataforma VIP.
+            <p className="mt-1 break-all text-xs leading-relaxed text-zinc-500">
+              {downloadDir || "Escolha uma pasta para iniciar os downloads."}
             </p>
           </div>
         </div>
-        <Button variant="secondary" className="mt-4" onClick={() => void handlePickFolder()}>
-          <FolderOpen className="h-4 w-4" />
-          Escolher pasta
-        </Button>
+        {dirError && <p className="mt-3 text-xs text-red-400">{dirError}</p>}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={() => void handlePickFolder()}>
+            Alterar pasta
+          </Button>
+          <Button variant="secondary" disabled={!downloadDir} onClick={() => void handleOpenFolder()}>
+            Abrir pasta
+          </Button>
+        </div>
       </Panel>
 
       <Panel title="Plataforma" description="Acesse o catálogo VIP para enviar músicas ao Downloader.">

@@ -10,10 +10,12 @@ pub fn run() {
             auth::save_session_token,
             auth::load_session_token,
             auth::clear_session_token,
+            download::has_download_dir_configured,
             download::get_default_download_dir_path,
             download::get_download_dir,
             download::set_download_dir,
             download::pick_download_dir,
+            download::open_download_dir,
             download::download_job_file,
         ])
         .run(tauri::generate_context!())

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AppShell } from "./components/layout/AppShell";
 import type { AppRoute } from "./components/layout/Sidebar";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DownloadManagerProvider, useDownloadManager } from "./context/DownloadManagerContext";
+import { hasDownloadDirConfigured, isDesktopRuntime } from "./lib/native/download";
+import { ChooseDownloadFolderPage } from "./pages/ChooseDownloadFolderPage";
 import { DownloadsPage } from "./pages/DownloadsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -23,8 +25,29 @@ function AuthenticatedApp() {
   const { user, device, logout } = useAuth();
   const { connectionState } = useDownloadManager();
   const [route, setRoute] = useState<AppRoute>("downloads");
+  const [folderConfigured, setFolderConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!isDesktopRuntime()) {
+      setFolderConfigured(true);
+      return;
+    }
+    void hasDownloadDirConfigured().then(setFolderConfigured);
+  }, []);
 
   if (!user || !device) return null;
+
+  if (folderConfigured === null) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+      </div>
+    );
+  }
+
+  if (!folderConfigured) {
+    return <ChooseDownloadFolderPage onConfigured={() => setFolderConfigured(true)} />;
+  }
 
   const meta = PAGE_META[route];
 

@@ -81,7 +81,7 @@ export async function resolvePortalSessionToken() {
 }
 
 export async function getAuthenticatedPortalUser() {
-  const userId = parsePortalToken(await resolvePortalSessionToken());
+  const userId = parsePortalToken((await resolvePortalSessionToken()) ?? undefined);
   if (!userId) return null;
 
   const user = await findUserById(userId);

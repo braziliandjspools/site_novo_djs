@@ -1,7 +1,12 @@
 import { NetworkError } from "../api/client";
 import { executeFileDownload } from "./file-download-executor";
 import { loadPersistedQueue, persistQueue } from "./local-queue-store";
-import { isDesktopRuntime, onDownloadProgress, type DownloadProgressEvent } from "../native/download";
+import {
+  hasDownloadDirConfigured,
+  isDesktopRuntime,
+  onDownloadProgress,
+  type DownloadProgressEvent,
+} from "../native/download";
 import { loadSessionToken } from "../native/secure-store";
 import {
   CONNECT_BURST_MS,
@@ -306,6 +311,9 @@ export class DownloadManager {
 
     const job = this.pickNextReceivedJob();
     if (!job) return;
+
+    const folderReady = await hasDownloadDirConfigured();
+    if (!folderReady) return;
 
     const token = await loadSessionToken();
     if (!token) return;

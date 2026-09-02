@@ -1,5 +1,5 @@
-import type { VipMusicCatalogItem, VipMusicCatalogResponse } from "../../lib/vip-music-catalog";
-import type { PreviewTrack } from "../../lib/google-drive";
+import type { VipMusicCatalogItem, VipMusicCatalogResponse } from "../lib/vip-music-catalog";
+import type { PreviewTrack } from "../lib/google-drive";
 
 export type MusicasBreadcrumb = {
   id: string;

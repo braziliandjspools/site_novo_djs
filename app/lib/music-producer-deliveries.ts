@@ -55,13 +55,7 @@ export type UpdateMusicProducerDeliveryInput = {
 };
 
 function getDeliveryDelegate() {
-  const delegate = (prisma as { musicProducerDelivery?: typeof prisma.portalUser }).musicProducerDelivery;
-  if (!delegate) {
-    throw new Error(
-      "Banco de entregas não inicializado. Rode `npm run db:push`, depois `npx prisma generate` e reinicie o servidor.",
-    );
-  }
-  return delegate;
+  return prisma.musicProducerDelivery;
 }
 
 function mapDelivery(record: PrismaDelivery): MusicProducerDeliveryRecord {
@@ -306,7 +300,7 @@ export async function listAllMusicProducerDeliveriesGrouped() {
 
   return users.map((user) => ({
     userId: user.id,
-    deliveries: (byUser.get(user.id) ?? []).map(serializeMusicProducerDelivery),
+    deliveries: (byUser.get(user.id) ?? []).map((delivery) => serializeMusicProducerDelivery(delivery)),
   }));
 }
 

@@ -11,6 +11,12 @@ function isTauriRuntime() {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+export async function hasDownloadDirConfigured() {
+  if (!isTauriRuntime()) return true;
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<boolean>("has_download_dir_configured");
+}
+
 export async function getDownloadDir() {
   if (!isTauriRuntime()) {
     return "Downloads/Brazilian Packs";
@@ -31,6 +37,12 @@ export async function pickDownloadDir() {
   if (!isTauriRuntime()) return null;
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<string | null>("pick_download_dir");
+}
+
+export async function openDownloadDir() {
+  if (!isTauriRuntime()) return;
+  const { invoke } = await import("@tauri-apps/api/core");
+  await invoke("open_download_dir");
 }
 
 export function onDownloadProgress(listener: (event: DownloadProgressEvent) => void) {

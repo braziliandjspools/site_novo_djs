@@ -1,10 +1,10 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
-use super::paths::default_download_dir;
+use super::paths::{suggested_download_dir, validate_download_root};
 
 const SETTINGS_FILE: &str = "settings.json";
 
@@ -34,58 +34,75 @@ fn write_settings(app: &AppHandle, settings: &AppSettings) -> Result<(), String>
     fs::write(path, json).map_err(|e| e.to_string())
 }
 
+pub fn has_download_dir_configured(app: &AppHandle) -> Result<bool, String> {
+    let settings = read_settings(app)?;
+    Ok(settings.download_dir.as_ref().is_some_and(|value| !value.trim().is_empty()))
+}
+
 pub fn resolve_download_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let settings = read_settings(app)?;
-    let dir = settings
-        .download_dir
-        .map(PathBuf::from)
-        .unwrap_or_else(default_download_dir);
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    Ok(dir)
+    let Some(raw) = settings.download_dir else {
+        return Err("Pasta de downloads não configurada.".to_string());
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err("Pasta de downloads não configurada.".to_string());
+    }
+
+    let dir = PathBuf::from(trimmed);
+    validate_download_root(&dir.to_string_lossy())
 }
 
-#[tauri::command]
-pub fn get_default_download_dir_path() -> String {
-    default_download_dir().to_string_lossy().to_string()
+pub fn default_download_dir_path() -> String {
+    suggested_download_dir().to_string_lossy().to_string()
 }
 
-#[tauri::command]
-pub fn get_download_dir(app: AppHandle) -> Result<String, String> {
-    Ok(resolve_download_dir(&app)?
+pub fn get_download_dir(app: &AppHandle) -> Result<String, String> {
+    Ok(resolve_download_dir(app)?
         .to_string_lossy()
         .to_string())
 }
 
-#[tauri::command]
-pub fn set_download_dir(app: AppHandle, path: String) -> Result<String, String> {
-    let trimmed = path.trim();
-    if trimmed.is_empty() {
-        return Err("Selecione uma pasta válida.".to_string());
-    }
-    let dir = PathBuf::from(trimmed);
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let mut settings = read_settings(&app)?;
+pub fn set_download_dir(app: &AppHandle, path: String) -> Result<String, String> {
+    let dir = validate_download_root(&path)?;
+    let mut settings = read_settings(app)?;
     settings.download_dir = Some(dir.to_string_lossy().to_string());
-    write_settings(&app, &settings)?;
+    write_settings(app, &settings)?;
     Ok(dir.to_string_lossy().to_string())
 }
 
-#[tauri::command]
 pub async fn pick_download_dir(app: AppHandle) -> Result<Option<String>, String> {
     use tauri_plugin_dialog::DialogExt;
 
     let picked = app
         .dialog()
         .file()
-        .set_title("Selecionar pasta de destino")
+        .set_title("Escolha onde suas músicas serão salvas")
         .blocking_pick_folder();
 
     match picked {
         Some(path) => {
             let value = path.to_string();
-            set_download_dir(app, value.clone())?;
-            Ok(Some(value))
+            let saved = set_download_dir(&app, value)?;
+            Ok(Some(saved))
         }
         None => Ok(None),
+    }
+}
+
+pub fn open_download_dir(app: &AppHandle) -> Result<(), String> {
+    let dir = resolve_download_dir(app)?;
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&dir)
+            .spawn()
+            .map_err(|e| format!("Não foi possível abrir a pasta: {e}"))?;
+        return Ok(());
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = dir;
+        Err("Abrir pasta disponível apenas no Windows.".to_string())
     }
 }
