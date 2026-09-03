@@ -1,6 +1,6 @@
 [package]
 name = "brazilian-packs-downloader"
-version = "0.1.0"
+version = "0.2.0"
 description = "BRS Downloader — fila de downloads da plataforma VIP"
 authors = ["Brazilian Remix Service"]
 edition = "2021"

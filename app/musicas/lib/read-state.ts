@@ -26,6 +26,10 @@ export function stylesReadKey(monthSlug: string) {
   return `${STYLES_KEY_PREFIX}${monthSlug}`;
 }
 
+export function weeksReadKey(monthSlug: string) {
+  return `${STYLES_KEY_PREFIX}weeks:${monthSlug}`;
+}
+
 /** Pastas que não estavam na última visita (primeira visita não destaca nada). */
 export function getNewFolderIds(storageKey: string, currentIds: string[]): Set<string> {
   const seen = readIds(storageKey);

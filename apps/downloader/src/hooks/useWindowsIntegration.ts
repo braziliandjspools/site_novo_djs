@@ -49,6 +49,7 @@ export function useWindowsIntegration(enabled: boolean) {
 
     void getAppPreferences().then((prefs) => {
       downloadManager.setAutoDownload(prefs.autoDownload);
+      downloadManager.setSchedulePreferences(prefs);
       notificationManager.setEnabled(prefs.showNotifications);
       notificationManager.resetKnownJobs(downloadManager.getSnapshot().jobs.map((job) => job.id));
     });

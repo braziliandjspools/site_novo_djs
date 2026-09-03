@@ -58,10 +58,14 @@ pub fn run() {
             }
 
             let args: Vec<String> = std::env::args().collect();
-            if args.iter().any(|arg| arg == "--background") {
+            let start_hidden = args.iter().any(|arg| arg == "--background");
+
+            if start_hidden {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.hide();
                 }
+            } else if let Some(window) = app.get_webview_window("main") {
+                let _ = window.maximize();
             }
 
             if let Some(window) = app.get_webview_window("main") {

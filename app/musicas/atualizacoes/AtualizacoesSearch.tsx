@@ -8,18 +8,21 @@ import { hitHref, useAtualizacoesSearch } from "./AtualizacoesSearchContext";
 
 function HitIcon({ type }: { type: VipMusicSearchHit["type"] }) {
   if (type === "month") return <Calendar className="h-3.5 w-3.5 text-[#00ff9d]" />;
+  if (type === "week") return <Calendar className="h-3.5 w-3.5 text-sky-400" />;
   if (type === "style") return <FolderOpen className="h-3.5 w-3.5 text-amber-400" />;
   return <Music2 className="h-3.5 w-3.5 text-[#ff5500]" />;
 }
 
 function hitTypeLabel(type: VipMusicSearchHit["type"]) {
   if (type === "month") return "Mês";
+  if (type === "week") return "Semana";
   if (type === "style") return "Estilo";
   return "Faixa";
 }
 
 function hitActionLabel(type: VipMusicSearchHit["type"]) {
   if (type === "month") return "Abrir mês";
+  if (type === "week") return "Abrir semana";
   if (type === "style") return "Abrir estilo";
   return "Ir para faixa";
 }
@@ -35,7 +38,7 @@ export function AtualizacoesSearch() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar mês, estilo ou faixa em todo o acervo..."
+          placeholder="Buscar mês, semana, estilo ou faixa..."
           className="w-full rounded-full border-0 bg-[#242424] py-3 pl-10 pr-10 text-sm text-white outline-none transition-colors placeholder:text-zinc-500 focus:bg-[#2a2a2a] focus:ring-2 focus:ring-white/10"
         />
         {query && (

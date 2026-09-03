@@ -2,6 +2,7 @@ import { ApiError } from "../api/client";
 import {
   claimJob as apiClaimJob,
   cancelJob as apiCancelJob,
+  dismissJob as apiDismissJob,
   heartbeatDevice,
   listJobs,
   retryJob as apiRetryJob,
@@ -45,6 +46,11 @@ export function createRestQueueTransport(token: string, deviceId: string): Queue
 
     async retryJob(jobId: number) {
       const response = await apiRetryJob(token, jobId);
+      return response.job;
+    },
+
+    async dismissJob(jobId: number) {
+      const response = await apiDismissJob(token, jobId);
       return response.job;
     },
 

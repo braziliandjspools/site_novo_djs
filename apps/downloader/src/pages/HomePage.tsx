@@ -81,8 +81,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <section className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0c0a0c]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(192,38,211,0.28),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(88,28,135,0.3),transparent_50%)]" />
+      <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a]">
         <div className="relative flex flex-col gap-6 p-7 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <BrsLogo className="mb-5 h-12 w-auto max-w-[280px] object-contain object-left sm:h-14" />
@@ -155,7 +154,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
                 key={route}
                 type="button"
                 onClick={() => onNavigate(route)}
-                className="group flex min-h-[128px] flex-col rounded-2xl border border-white/[0.06] bg-[#111111]/80 p-4 text-left transition-colors hover:border-[#1db954]/35 hover:bg-[#111811]"
+                className="group flex min-h-[128px] flex-col rounded-2xl border border-white/[0.06] bg-[#1f1f1f] p-4 text-left transition-colors hover:border-[#1db954]/40 hover:bg-[#222]"
               >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1db954]/10 text-[#1db954]">
@@ -179,7 +178,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-white/[0.06] bg-[#111111]/70">
+      <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a]">
         <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Atividade recente</p>
@@ -235,7 +234,7 @@ function StatCard({
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-[#111111]/80 px-4 py-4">
+    <div className="rounded-2xl border border-white/[0.06] bg-[#1f1f1f] px-4 py-4">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">{label}</p>
       <p className={`mt-2 text-2xl font-black ${valueClassName}`}>{value}</p>
       <p className="mt-1 text-xs text-zinc-500">{hint}</p>

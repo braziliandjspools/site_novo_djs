@@ -21,7 +21,7 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { slugifyFolderName } from "../../lib/vip-music-slugs";
+import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -35,6 +35,7 @@ type VipMusicTrackListProps = {
     styleName: string;
     monthName: string;
     monthSlug: string;
+    weekSlug?: string;
   };
 };
 
@@ -359,12 +360,18 @@ export function VipMusicTrackList({
       const track = tracks.find((item) => item.id === id);
       if (track && continueContext) {
         const styleSlug = slugifyFolderName(continueContext.styleName);
+        const segments = [continueContext.monthSlug];
+        if (continueContext.weekSlug) segments.push(continueContext.weekSlug);
+        const params = new URLSearchParams({
+          estilo: styleSlug,
+          faixa: id,
+        });
         recordContinueFromTrack({
           ...track,
           styleFolderId: folderId,
           styleName: continueContext.styleName,
           monthName: continueContext.monthName,
-          href: `/musicas/atualizacoes/${continueContext.monthSlug}?estilo=${encodeURIComponent(styleSlug)}&faixa=${encodeURIComponent(id)}`,
+          href: `${folderHref(segments)}?${params.toString()}`,
         });
       }
       await toggleTrack(folderId, id);

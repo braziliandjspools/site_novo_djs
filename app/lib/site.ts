@@ -36,7 +36,7 @@ export const GOOGLE_DRIVE_MUSIC_PRODUCER_DELIVERIES_FOLDER_ID = parseDriveFolder
 
 /**
  * Pasta raiz do acervo VIP (/musicas).
- * Estrutura esperada: Ano → Mês → Pool/Remix → arquivos de áudio.
+ * Estrutura esperada: Mês (ex. JULHO 2024) → Semana (SEMANA 01…) → Estilos → áudio.
  */
 export const GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID = parseDriveFolderId(
   process.env.GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID ??

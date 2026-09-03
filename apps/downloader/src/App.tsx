@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DownloadManagerProvider, useDownloadManager } from "./context/DownloadManagerContext";
 import { hasDownloadDirConfigured, isDesktopRuntime } from "./lib/native/download";
 import { downloadManager } from "./lib/download/download-manager";
+import { loadActiveRoute, persistActiveRoute } from "./lib/active-route";
 import { ChooseDownloadFolderPage } from "./pages/ChooseDownloadFolderPage";
 import { CompletedPage } from "./pages/CompletedPage";
 import { HistoryPage } from "./pages/HistoryPage";
@@ -73,7 +74,7 @@ function countJobs(jobs: DownloadJob[], activeJobIds: number[], deviceId: string
 function AuthenticatedApp() {
   const { user, device, logout } = useAuth();
   const { connectionState, jobs, activeJobIds, workerError } = useDownloadManager();
-  const [route, setRoute] = useState<AppRoute>("home");
+  const [route, setRoute] = useState<AppRoute>(() => loadActiveRoute("home"));
   const [folderConfigured, setFolderConfigured] = useState<boolean | null>(null);
   const counts = useMemo(
     () => countJobs(jobs, activeJobIds, device?.deviceId ?? ""),
@@ -81,6 +82,10 @@ function AuthenticatedApp() {
   );
 
   useWindowsIntegration(Boolean(user && device && folderConfigured));
+
+  useEffect(() => {
+    persistActiveRoute(route);
+  }, [route]);
 
   useEffect(() => {
     if (!isDesktopRuntime()) {
@@ -104,7 +109,7 @@ function AuthenticatedApp() {
 
   if (folderConfigured === null) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black">
+      <div className="flex h-screen items-center justify-center bg-[var(--background)]">
         <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
       </div>
     );
@@ -151,7 +156,7 @@ function AppContent() {
 
   if (status === "loading") {
     return (
-      <div className="flex h-screen items-center justify-center bg-black">
+      <div className="flex h-screen items-center justify-center bg-[var(--background)]">
         <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
       </div>
     );

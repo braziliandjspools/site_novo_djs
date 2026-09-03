@@ -10,7 +10,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Com que frequência o acervo é atualizado?",
-    a: "Os packs são organizados por mês e recebem novas faixas ao longo das semanas, conforme as pastas do Google Drive são sincronizadas. Na página Atualizações você vê os meses disponíveis e os estilos dentro de cada pack.",
+    a: "Os packs são organizados por mês e semana no Google Drive (ex.: JULHO 2024 → SEMANA 01 → estilos). Na página Atualizações você navega nessa ordem até as faixas.",
   },
   {
     q: "Como encontro uma música específica?",

@@ -43,6 +43,7 @@ export type QueueTransport = {
   ) => Promise<DownloadJob>;
   cancelJob: (jobId: number) => Promise<DownloadJob>;
   retryJob: (jobId: number) => Promise<DownloadJob>;
+  dismissJob: (jobId: number) => Promise<DownloadJob>;
   heartbeat: () => Promise<void>;
 };
 

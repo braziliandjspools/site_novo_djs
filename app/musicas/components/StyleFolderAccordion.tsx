@@ -18,6 +18,7 @@ type StyleFolderAccordionProps = {
   relativePath?: string;
   monthSlug?: string;
   monthName?: string;
+  weekSlug?: string;
   isNew?: boolean;
   isOpen: boolean;
   onToggle: () => void;
@@ -42,6 +43,7 @@ export function StyleFolderAccordion({
   relativePath,
   monthSlug,
   monthName,
+  weekSlug,
   isNew = false,
   isOpen,
   onToggle,
@@ -290,6 +292,7 @@ export function StyleFolderAccordion({
                     ? {
                         monthSlug,
                         monthName,
+                        weekSlug,
                         styleName: displayFolderName(folder.name),
                       }
                     : undefined

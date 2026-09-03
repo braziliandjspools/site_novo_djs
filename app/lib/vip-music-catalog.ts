@@ -6,6 +6,7 @@ import {
   type PreviewTrack,
 } from "./google-drive";
 import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
+import { sortVipChildFolders } from "./vip-music-slugs";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 
@@ -44,9 +45,9 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
   const targetId = parentFolderId && parentFolderId !== "root" ? parentFolderId : rootId;
   const subfolders = await listDriveSubfolders(targetId);
 
-  return subfolders
-    .map((folder) => ({ id: folder.id, name: folder.name }))
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
+  return sortVipChildFolders(
+    subfolders.map((folder) => ({ id: folder.id, name: folder.name })),
+  );
 }
 
 async function getDriveCatalog(folderId: string, folderName: string): Promise<VipMusicCatalogResponse> {
@@ -63,13 +64,15 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       folderId,
       folderName,
       level: "folders",
-      items: subfolders
-        .map((folder) => ({
+      items: sortVipChildFolders(
+        subfolders.map((folder) => ({
           id: folder.id,
           name: folder.name,
-          type: "folder" as const,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true })),
+        })),
+      ).map((folder) => ({
+        ...folder,
+        type: "folder" as const,
+      })),
       tracks: [],
     };
   }

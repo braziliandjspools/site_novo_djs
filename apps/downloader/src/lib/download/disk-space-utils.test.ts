@@ -53,10 +53,25 @@ test("estimateQueueBytes sums known file sizes for this device", () => {
       job({ id: 2, fileSize: String(2 * 1024 ** 3), status: "RECEIVED", deviceId }),
       job({ id: 3, fileSize: null, status: "PENDING" }),
       job({ id: 4, fileSize: String(1024 ** 3), status: "PENDING", targetDeviceId: "other" }),
+      job({
+        id: 5,
+        fileSize: String(4 * 1024 ** 3),
+        downloadedBytes: String(1024 ** 3),
+        status: "DOWNLOADING",
+        deviceId,
+      }),
+      job({
+        id: 6,
+        totalBytes: String(512 * 1024 ** 2),
+        fileSize: null,
+        status: "RECEIVED",
+        deviceId,
+      }),
     ],
     deviceId,
   );
-  assert.equal(total, 3 * 1024 ** 3);
+  // 1GB + 2GB + 3GB remaining + 512MB
+  assert.equal(total, 3 * 1024 ** 3 + 3 * 1024 ** 3 + 512 * 1024 ** 2);
 });
 
 test("hasSpaceForQueue respects safety margin", () => {

@@ -58,7 +58,7 @@ export function Sidebar({
   const firstName = userName.split(" ")[0] ?? userName;
 
   return (
-    <aside className="flex h-full w-[256px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-black">
+    <aside className="flex h-full w-[256px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-[var(--bg-sidebar)]">
       <div className="br-stripe-thin" />
       <div className="px-5 py-6">
         <BrsLogo className="h-10 w-auto max-w-[220px] object-contain object-left" />

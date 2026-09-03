@@ -32,22 +32,35 @@ function parseJobBytes(value: string | null | undefined) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
+/** Bytes totais conhecidos do arquivo (fileSize ou totalBytes). */
+export function jobKnownTotalBytes(job: DownloadJob): number {
+  return Math.max(parseJobBytes(job.fileSize), parseJobBytes(job.totalBytes));
+}
+
+/** Bytes ainda a baixar (resta da fila / download). */
+export function jobRemainingBytes(job: DownloadJob): number {
+  const total = jobKnownTotalBytes(job);
+  if (total <= 0) return 0;
+  const downloaded = parseJobBytes(job.downloadedBytes);
+  return Math.max(0, total - downloaded);
+}
+
 export function isJobEligibleForQueueEstimate(job: DownloadJob, deviceId: string) {
   if (job.status === "PENDING") {
     return !job.targetDeviceId || job.targetDeviceId === deviceId;
   }
-  if (job.status === "RECEIVED" || job.status === "FAILED") {
-    return job.deviceId === deviceId;
+  if (["RECEIVED", "FAILED", "PAUSED", "DOWNLOADING"].includes(job.status)) {
+    return !deviceId || !job.deviceId || job.deviceId === deviceId;
   }
   return false;
 }
 
-/** Soma fileSize dos itens na fila com tamanho conhecido. */
+/** Soma o restante a baixar dos itens da fila com tamanho conhecido. */
 export function estimateQueueBytes(jobs: Iterable<DownloadJob>, deviceId: string): number {
   let total = 0;
   for (const job of jobs) {
     if (!isJobEligibleForQueueEstimate(job, deviceId)) continue;
-    total += parseJobBytes(job.fileSize);
+    total += jobRemainingBytes(job);
   }
   return total;
 }

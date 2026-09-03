@@ -2,6 +2,12 @@ import { NetworkError, ApiError } from "../api/client";
 import { executeFileDownload } from "./file-download-executor";
 import { loadPersistedQueue, persistQueue } from "./local-queue-store";
 import {
+  loadQueueOrder,
+  moveJobInOrder,
+  moveJobRelative,
+  persistQueueOrder,
+} from "./local-queue-order";
+import {
   cancelNativeDownload,
   getMaxConcurrentDownloads,
   hasDownloadDirConfigured,
@@ -18,6 +24,11 @@ import {
   POLL_MS,
   computePollDelayMs,
 } from "./polling-schedule";
+import {
+  isWithinDownloadWindow,
+  msUntilNextScheduleBoundary,
+  normalizeTimeInput,
+} from "./download-schedule";
 import { ProgressTracker } from "./progress-tracker";
 import { nextRetryDelay, shouldAutoRetry, sleep } from "./retry-policy";
 import { isClaimConflict, getClaimConflictJob } from "./queue-transport";
@@ -36,23 +47,7 @@ import type {
 } from "./types";
 import { DEFAULT_MAX_CONCURRENCY, PROGRESS_SYNC_MS, PROGRESS_UI_MS, QUEUE_STATUSES } from "./types";
 import type { DownloadJob } from "../api/jobs";
-
-function sortQueueJobs(jobs: DownloadJob[]) {
-  const order: Record<string, number> = {
-    DOWNLOADING: 0,
-    RECEIVED: 1,
-    PENDING: 2,
-    PAUSED: 3,
-    FAILED: 4,
-    COMPLETED: 5,
-  };
-
-  return [...jobs].sort((a, b) => {
-    const byStatus = (order[a.status] ?? 99) - (order[b.status] ?? 99);
-    if (byStatus !== 0) return byStatus;
-    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-  });
-}
+import type { AppPreferences } from "../native/app-preferences";
 
 function isQueueJob(job: DownloadJob) {
   return QUEUE_STATUSES.has(job.status) || job.status === "COMPLETED";
@@ -60,6 +55,10 @@ function isQueueJob(job: DownloadJob) {
 
 function isActiveQueueJob(job: DownloadJob) {
   return ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"].includes(job.status);
+}
+
+function isReorderableJob(job: DownloadJob) {
+  return ["PENDING", "RECEIVED", "PAUSED", "FAILED"].includes(job.status);
 }
 
 function parseBytes(value: string | null | undefined) {
@@ -74,6 +73,8 @@ export class DownloadManager {
   private authToken: string | null = null;
   private jobs = new Map<number, DownloadJob>();
   private knownJobIds = new Set<number>();
+  /** Ordem local da fila (prioridade). Não sincroniza com o Neon. */
+  private queueOrder: number[] = [];
   private listeners = new Set<DownloadManagerListener>();
   private connectionState: ConnectionState = "connecting";
   private error: string | null = null;
@@ -91,13 +92,21 @@ export class DownloadManager {
   private progressTracker = new ProgressTracker();
   private retryAttempts = new Map<number, number>();
   private userPausedJobIds = new Set<number>();
+  private schedulePausedJobIds = new Set<number>();
   private slotPromises = new Map<number, Promise<void>>();
   private globalPaused = false;
   private autoDownload = true;
+  private scheduleEnabled = false;
+  private scheduleStart = "00:00";
+  private scheduleEnd = "07:00";
+  private scheduleAllowManualOverride = true;
+  private scheduleInsideWindow = true;
+  private scheduleTimer: ReturnType<typeof setTimeout> | null = null;
   private diskSpaceAvailable: number | null = null;
   private diskSpaceDriveRoot: string | null = null;
   private diskSpaceError: string | null = null;
   private diskSpaceRefreshInFlight = false;
+  private diskSpaceTimer: ReturnType<typeof setInterval> | null = null;
   private stopTimer: ReturnType<typeof setTimeout> | null = null;
   private lastNotifyKey = "";
 
@@ -110,7 +119,7 @@ export class DownloadManager {
   }
 
   getSnapshot(): DownloadManagerSnapshot {
-    const jobs = sortQueueJobs(
+    const jobs = this.sortJobsByLocalOrder(
       Array.from(this.jobs.values()).filter((job) => isActiveQueueJob(job) || job.status === "COMPLETED"),
     );
     const pendingCount = jobs.filter((job) =>
@@ -136,7 +145,7 @@ export class DownloadManager {
       jobMetrics,
       diskSpace: {
         availableBytes: this.diskSpaceAvailable,
-        queueBytes: estimateQueueBytes(jobs, this.deviceId ?? ""),
+        queueBytes: estimateQueueBytes(this.jobs.values(), this.deviceId ?? ""),
         driveRoot: this.diskSpaceDriveRoot,
         insufficientSpace: this.diskSpaceError,
       },
@@ -190,6 +199,100 @@ export class DownloadManager {
     if (enabled) void this.processQueue(true);
   }
 
+  setSchedulePreferences(
+    prefs: Pick<
+      AppPreferences,
+      "scheduleEnabled" | "scheduleStart" | "scheduleEnd" | "scheduleAllowManualOverride"
+    >,
+  ) {
+    this.scheduleEnabled = Boolean(prefs.scheduleEnabled);
+    this.scheduleStart = normalizeTimeInput(prefs.scheduleStart, "00:00");
+    this.scheduleEnd = normalizeTimeInput(prefs.scheduleEnd, "07:00");
+    this.scheduleAllowManualOverride = prefs.scheduleAllowManualOverride !== false;
+    this.evaluateScheduleWindow(true);
+  }
+
+  isInsideDownloadSchedule(now: Date = new Date()) {
+    if (!this.scheduleEnabled) return true;
+    return isWithinDownloadWindow(now, this.scheduleStart, this.scheduleEnd);
+  }
+
+  private isScheduleAllowingStarts(manualStart: boolean) {
+    if (!this.scheduleEnabled) return true;
+    if (this.isInsideDownloadSchedule()) return true;
+    return manualStart && this.scheduleAllowManualOverride;
+  }
+
+  private clearScheduleTimer() {
+    if (this.scheduleTimer) {
+      clearTimeout(this.scheduleTimer);
+      this.scheduleTimer = null;
+    }
+  }
+
+  private armScheduleTimer() {
+    this.clearScheduleTimer();
+    if (!this.scheduleEnabled || !this.running) return;
+    const delay = msUntilNextScheduleBoundary(new Date(), this.scheduleStart, this.scheduleEnd);
+    this.scheduleTimer = setTimeout(() => {
+      this.scheduleTimer = null;
+      this.evaluateScheduleWindow(true);
+    }, delay);
+  }
+
+  private evaluateScheduleWindow(forceNotify = false) {
+    const inside = this.isInsideDownloadSchedule();
+    const changed = inside !== this.scheduleInsideWindow;
+    this.scheduleInsideWindow = inside;
+
+    if (this.scheduleEnabled && changed) {
+      if (inside) {
+        this.resumeSchedulePausedJobs();
+        void this.processQueue();
+      } else {
+        this.pauseJobsForSchedule();
+      }
+    } else if (this.scheduleEnabled && !inside) {
+      // Ainda fora: garante que ativos sejam pausados (ex.: config alterada).
+      this.pauseJobsForSchedule();
+    } else if (!this.scheduleEnabled && this.schedulePausedJobIds.size > 0) {
+      this.resumeSchedulePausedJobs();
+      void this.processQueue();
+    }
+
+    this.armScheduleTimer();
+    if (forceNotify || changed) this.notify();
+  }
+
+  private pauseJobsForSchedule() {
+    for (const job of this.jobs.values()) {
+      if (!["DOWNLOADING", "RECEIVED"].includes(job.status)) continue;
+      if (this.userPausedJobIds.has(job.id)) continue;
+      this.schedulePausedJobIds.add(job.id);
+      if (this.activeJobIds.has(job.id)) {
+        void cancelNativeDownload({
+          jobId: job.id,
+          fileName: job.fileName,
+          relativePath: job.relativePath,
+          deletePart: false,
+        });
+      } else {
+        void this.updateJobStatus(job.id, { status: "PAUSED", error: null });
+      }
+    }
+  }
+
+  private resumeSchedulePausedJobs() {
+    const ids = [...this.schedulePausedJobIds];
+    this.schedulePausedJobIds.clear();
+    for (const jobId of ids) {
+      if (this.userPausedJobIds.has(jobId)) continue;
+      const job = this.jobs.get(jobId);
+      if (!job || job.status !== "PAUSED") continue;
+      void this.updateJobStatus(jobId, { status: "RECEIVED", error: null });
+    }
+  }
+
   pauseAllDownloads() {
     this.globalPaused = true;
     for (const job of this.jobs.values()) {
@@ -216,6 +319,7 @@ export class DownloadManager {
     this.transport = transport;
     this.deviceId = deviceId;
     this.authToken = authToken?.trim() || null;
+    this.queueOrder = loadQueueOrder(deviceId);
 
     for (const job of loadPersistedQueue(deviceId)) {
       if (this.activeJobIds.has(job.id)) continue;
@@ -225,6 +329,8 @@ export class DownloadManager {
         this.userPausedJobIds.add(job.id);
       }
     }
+
+    this.syncQueueOrderWithJobs();
 
     if (isDesktopRuntime()) {
       try {
@@ -266,6 +372,7 @@ export class DownloadManager {
     this.error = null;
     this.burstUntil = Date.now() + CONNECT_BURST_MS;
     this.notify(true);
+    this.evaluateScheduleWindow(true);
 
     void (async () => {
       await this.bindProgressListener();
@@ -278,6 +385,11 @@ export class DownloadManager {
     this.heartbeatTimer = setInterval(() => {
       void this.sendHeartbeat();
     }, HEARTBEAT_MS);
+
+    if (this.diskSpaceTimer) clearInterval(this.diskSpaceTimer);
+    this.diskSpaceTimer = setInterval(() => {
+      void this.refreshDiskSpace();
+    }, 8_000);
 
     if (typeof window !== "undefined") {
       window.addEventListener("online", this.handleOnline);
@@ -306,6 +418,7 @@ export class DownloadManager {
     this.running = false;
     this.pollInFlight = false;
     this.authToken = null;
+    this.clearScheduleTimer();
     if (this.pollTimer) {
       clearTimeout(this.pollTimer);
       this.pollTimer = null;
@@ -313,6 +426,10 @@ export class DownloadManager {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
+    }
+    if (this.diskSpaceTimer) {
+      clearInterval(this.diskSpaceTimer);
+      this.diskSpaceTimer = null;
     }
     this.progressCleanup?.();
     this.progressCleanup = undefined;
@@ -345,6 +462,7 @@ export class DownloadManager {
     if (!job || !["RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status)) return;
 
     this.userPausedJobIds.add(jobId);
+    this.schedulePausedJobIds.delete(jobId);
     if (this.activeJobIds.has(jobId)) {
       void cancelNativeDownload({
         jobId,
@@ -361,6 +479,7 @@ export class DownloadManager {
     const job = this.jobs.get(jobId);
     if (!job || job.status !== "PAUSED") return;
     this.userPausedJobIds.delete(jobId);
+    this.schedulePausedJobIds.delete(jobId);
     void this.updateJobStatus(jobId, { status: "RECEIVED", error: null });
     void this.processQueue(true);
   }
@@ -370,6 +489,7 @@ export class DownloadManager {
     if (!job) return;
 
     this.userPausedJobIds.delete(jobId);
+    this.schedulePausedJobIds.delete(jobId);
     this.retryAttempts.delete(jobId);
 
     if (this.activeJobIds.has(jobId)) {
@@ -389,7 +509,179 @@ export class DownloadManager {
     if (!job || job.status !== "FAILED") return;
     this.retryAttempts.delete(jobId);
     this.userPausedJobIds.delete(jobId);
-    void this.retryJobRemote(jobId);
+    this.schedulePausedJobIds.delete(jobId);
+    void this.retryJobRemote(jobId, true);
+  }
+
+  /** Torna o job a próxima prioridade possível e tenta iniciar (override de agenda). */
+  downloadNow(jobId: number) {
+    const job = this.jobs.get(jobId);
+    if (!job || !isActiveQueueJob(job)) return;
+
+    this.moveJobInQueueOrder(jobId, 0);
+
+    if (job.status === "PAUSED") {
+      this.resumeJob(jobId);
+      return;
+    }
+    if (job.status === "FAILED") {
+      this.retryJob(jobId);
+      return;
+    }
+
+    this.notify(true);
+    void this.processQueue(true);
+  }
+
+  moveJobToTop(jobId: number) {
+    if (!this.canReorder(jobId)) return;
+    this.moveJobInQueueOrder(jobId, 0);
+    this.notify(true);
+    void this.processQueue();
+  }
+
+  moveJobUp(jobId: number) {
+    if (!this.canReorder(jobId)) return;
+    this.queueOrder = moveJobRelative(this.queueOrder, jobId, -1);
+    this.persistQueueOrderLocal();
+    this.notify(true);
+    void this.processQueue();
+  }
+
+  moveJobDown(jobId: number) {
+    if (!this.canReorder(jobId)) return;
+    this.queueOrder = moveJobRelative(this.queueOrder, jobId, 1);
+    this.persistQueueOrderLocal();
+    this.notify(true);
+    void this.processQueue();
+  }
+
+  moveJobToEnd(jobId: number) {
+    if (!this.canReorder(jobId)) return;
+    this.moveJobInQueueOrder(jobId, this.queueOrder.length);
+    this.notify(true);
+    void this.processQueue();
+  }
+
+  /** Reordena a fila local a partir de uma lista de IDs (drag-and-drop). Sem escrita no Neon. */
+  reorderQueue(orderedIds: number[]) {
+    const activeIds = new Set(
+      Array.from(this.jobs.values())
+        .filter(isActiveQueueJob)
+        .map((job) => job.id),
+    );
+    const normalized = orderedIds.filter((id) => activeIds.has(id));
+    if (normalized.length === 0) return;
+
+    const current = this.queueOrder.filter((id) => activeIds.has(id));
+    const subset = new Set(normalized);
+
+    let next: number[];
+    if (normalized.length >= activeIds.size) {
+      const seen = new Set(normalized);
+      next = [...normalized];
+      for (const id of current) {
+        if (!seen.has(id)) next.push(id);
+      }
+    } else {
+      const subsetIndices = current
+        .map((id, index) => (subset.has(id) ? index : -1))
+        .filter((index) => index >= 0);
+      if (subsetIndices.length === normalized.length) {
+        next = [...current];
+        normalized.forEach((id, index) => {
+          next[subsetIndices[index]] = id;
+        });
+      } else {
+        next = [...normalized];
+        const seen = new Set(normalized);
+        for (const id of current) {
+          if (!seen.has(id)) next.push(id);
+        }
+      }
+    }
+
+    for (const id of activeIds) {
+      if (!next.includes(id)) next.push(id);
+    }
+
+    this.queueOrder = next;
+    this.persistQueueOrderLocal();
+    this.notify(true);
+    void this.processQueue();
+  }
+
+  /** Remove falha/cancelado da fila local e marca dismiss no backend (status importante). */
+  dismissJob(jobId: number) {
+    const job = this.jobs.get(jobId);
+    if (!job) return;
+    if (!["FAILED", "CANCELLED", "COMPLETED"].includes(job.status)) return;
+
+    this.userPausedJobIds.delete(jobId);
+    this.schedulePausedJobIds.delete(jobId);
+    this.retryAttempts.delete(jobId);
+    this.jobs.delete(jobId);
+    this.removeFromQueueOrder(jobId);
+    this.persistLocalQueue();
+    this.notify(true);
+    void this.dismissJobRemote(jobId);
+  }
+
+  private canReorder(jobId: number) {
+    const job = this.jobs.get(jobId);
+    return Boolean(job && isReorderableJob(job) && !this.activeJobIds.has(jobId));
+  }
+
+  private moveJobInQueueOrder(jobId: number, toIndex: number) {
+    if (!this.queueOrder.includes(jobId)) {
+      this.queueOrder = [...this.queueOrder, jobId];
+    }
+    this.queueOrder = moveJobInOrder(this.queueOrder, jobId, toIndex);
+    this.persistQueueOrderLocal();
+  }
+
+  private removeFromQueueOrder(jobId: number) {
+    const next = this.queueOrder.filter((id) => id !== jobId);
+    if (next.length === this.queueOrder.length) return;
+    this.queueOrder = next;
+    this.persistQueueOrderLocal();
+  }
+
+  private persistQueueOrderLocal() {
+    if (!this.deviceId) return;
+    persistQueueOrder(this.deviceId, this.queueOrder);
+  }
+
+  private syncQueueOrderWithJobs() {
+    const activeIds = new Set(
+      Array.from(this.jobs.values())
+        .filter(isActiveQueueJob)
+        .map((job) => job.id),
+    );
+    const kept = this.queueOrder.filter((id) => activeIds.has(id));
+    const keptSet = new Set(kept);
+    for (const id of activeIds) {
+      if (!keptSet.has(id)) kept.push(id);
+    }
+    const unchanged =
+      kept.length === this.queueOrder.length && kept.every((id, index) => id === this.queueOrder[index]);
+    if (unchanged) return;
+    this.queueOrder = kept;
+    this.persistQueueOrderLocal();
+  }
+
+  private sortJobsByLocalOrder(jobs: DownloadJob[]) {
+    const index = new Map(this.queueOrder.map((id, i) => [id, i]));
+    return [...jobs].sort((a, b) => {
+      const aDownloading = a.status === "DOWNLOADING" || this.activeJobIds.has(a.id) ? 0 : 1;
+      const bDownloading = b.status === "DOWNLOADING" || this.activeJobIds.has(b.id) ? 0 : 1;
+      if (aDownloading !== bDownloading) return aDownloading - bDownloading;
+
+      const ai = index.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const bi = index.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+      if (ai !== bi) return ai - bi;
+      return a.id - b.id;
+    });
   }
 
   private async bindProgressListener() {
@@ -505,8 +797,11 @@ export class DownloadManager {
       snapshot.connectionState,
       snapshot.error ?? "",
       snapshot.activeJobIds.join(","),
+      snapshot.diskSpace.availableBytes ?? "",
+      snapshot.diskSpace.queueBytes,
       snapshot.diskSpace.insufficientSpace ?? "",
       snapshot.pendingCount,
+      this.queueOrder.join(","),
       jobs,
     ].join("/");
   }
@@ -623,8 +918,18 @@ export class DownloadManager {
       if (this.isClaimablePending(job)) pendingIds.add(job.id);
     }
 
+    const orderedPending = this.sortJobsByLocalOrder(
+      Array.from(pendingIds)
+        .map((id) => this.jobs.get(id) ?? serverJobs.find((job) => job.id === id))
+        .filter((job): job is DownloadJob => Boolean(job)),
+    ).map((job) => job.id);
+
+    for (const id of pendingIds) {
+      if (!orderedPending.includes(id)) orderedPending.push(id);
+    }
+
     let claimed = 0;
-    for (const jobId of pendingIds) {
+    for (const jobId of orderedPending) {
       if (claimed >= MAX_CLAIMS_PER_POLL) break;
       try {
         const next = await this.transport.claimJob(jobId);
@@ -639,6 +944,7 @@ export class DownloadManager {
         if (isClaimConflict(error)) continue;
         if (error instanceof ApiError && error.status === 404) {
           this.jobs.delete(jobId);
+          this.removeFromQueueOrder(jobId);
           continue;
         }
         continue;
@@ -648,6 +954,7 @@ export class DownloadManager {
 
   private persistLocalQueue() {
     if (!this.deviceId) return;
+    this.syncQueueOrderWithJobs();
     persistQueue(this.deviceId, Array.from(this.jobs.values()));
   }
 
@@ -664,7 +971,7 @@ export class DownloadManager {
   }
 
   private pickNextReceivedJobs(limit: number) {
-    return sortQueueJobs(Array.from(this.jobs.values()))
+    return this.sortJobsByLocalOrder(Array.from(this.jobs.values()))
       .filter(
         (job) =>
           (job.status === "RECEIVED" || job.status === "DOWNLOADING") &&
@@ -707,6 +1014,7 @@ export class DownloadManager {
       this.mergeServerJob(updated);
       this.jobs.delete(jobId);
       this.activeJobIds.delete(jobId);
+      this.removeFromQueueOrder(jobId);
       this.progressTracker.clear(jobId);
       this.lastProgressSync.delete(jobId);
       this.persistLocalQueue();
@@ -718,14 +1026,23 @@ export class DownloadManager {
     }
   }
 
-  private async retryJobRemote(jobId: number) {
+  private async dismissJobRemote(jobId: number) {
+    if (!this.transport) return;
+    try {
+      await this.transport.dismissJob(jobId);
+    } catch {
+      /* já removido localmente */
+    }
+  }
+
+  private async retryJobRemote(jobId: number, manualStart = false) {
     if (!this.transport) return;
     try {
       const updated = await this.transport.retryJob(jobId);
       this.mergeServerJob(updated);
       this.persistLocalQueue();
       this.notify();
-      void this.processQueue();
+      void this.processQueue(manualStart);
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Não foi possível reenviar.";
       this.notify();
@@ -735,6 +1052,7 @@ export class DownloadManager {
   private async processQueue(manualStart = false) {
     if (this.globalPaused) return;
     if (!manualStart && !this.autoDownload) return;
+    if (!this.isScheduleAllowingStarts(manualStart)) return;
 
     if (
       !this.running ||
@@ -761,13 +1079,17 @@ export class DownloadManager {
   private startAvailableJobs(manualStart = false) {
     if (this.globalPaused) return;
     if (!manualStart && !this.autoDownload) return;
+    if (!this.isScheduleAllowingStarts(manualStart)) return;
     if (!this.running || this.connectionState === "offline") return;
 
     const availableSlots = this.maxConcurrency - this.activeJobIds.size;
     if (availableSlots <= 0) return;
 
     const jobs = this.pickNextReceivedJobs(availableSlots).filter((job) =>
-      canStartJobDownload(this.diskSpaceAvailable, parseBytes(job.fileSize)),
+      canStartJobDownload(
+        this.diskSpaceAvailable,
+        Math.max(parseBytes(job.fileSize), parseBytes(job.totalBytes)),
+      ),
     );
     for (const job of jobs) {
       void this.startDownload(job);
@@ -786,7 +1108,9 @@ export class DownloadManager {
       this.progressTracker.clear(job.id);
       this.lastProgressSync.delete(job.id);
       this.persistLocalQueue();
-      this.startAvailableJobs();
+      if (this.isScheduleAllowingStarts(false)) {
+        this.startAvailableJobs();
+      }
       this.notify();
       void this.refreshDiskSpace();
     });
@@ -814,7 +1138,13 @@ export class DownloadManager {
     let job = initialJob;
 
     while (true) {
-      if (this.userPausedJobIds.has(job.id)) {
+      if (this.userPausedJobIds.has(job.id) || this.schedulePausedJobIds.has(job.id)) {
+        await this.updateJobStatus(job.id, { status: "PAUSED", error: null });
+        return;
+      }
+
+      if (!this.isScheduleAllowingStarts(false)) {
+        this.schedulePausedJobIds.add(job.id);
         await this.updateJobStatus(job.id, { status: "PAUSED", error: null });
         return;
       }
@@ -878,7 +1208,7 @@ export class DownloadManager {
       } catch (error) {
         const message = error instanceof Error ? error.message : "Falha no download.";
 
-        if (message.includes("cancelado") && this.userPausedJobIds.has(job.id)) {
+        if (message.includes("cancelado") && (this.userPausedJobIds.has(job.id) || this.schedulePausedJobIds.has(job.id))) {
           await this.updateJobStatus(job.id, { status: "PAUSED", error: null });
           return;
         }
@@ -899,6 +1229,11 @@ export class DownloadManager {
           this.notify();
           await sleep(delay);
           if (!this.running) return;
+          if (!this.isScheduleAllowingStarts(false)) {
+            this.schedulePausedJobIds.add(job.id);
+            await this.updateJobStatus(job.id, { status: "PAUSED", error: null });
+            return;
+          }
           job = this.jobs.get(job.id) ?? job;
           continue;
         }

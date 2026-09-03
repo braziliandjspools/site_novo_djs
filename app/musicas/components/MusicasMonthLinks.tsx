@@ -7,6 +7,7 @@ import {
   folderHref,
   parseMonthStatus,
   slugifyFolderName,
+  sortFoldersByMonthDate,
 } from "../../lib/vip-music-slugs";
 
 function statusClass(status: ReturnType<typeof parseMonthStatus>["status"]) {
@@ -23,10 +24,12 @@ type MusicasMonthLinksProps = {
 };
 
 export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }: MusicasMonthLinksProps) {
-  const sorted = [...folders].sort((a, b) => {
+  const byDate = sortFoldersByMonthDate(folders, true);
+  const sorted = [...byDate].sort((a, b) => {
     const aNew = newFolderIds.has(a.id) ? 0 : 1;
     const bNew = newFolderIds.has(b.id) ? 0 : 1;
-    return aNew - bNew;
+    if (aNew !== bNew) return aNew - bNew;
+    return 0;
   });
 
   if (sorted.length === 0) {

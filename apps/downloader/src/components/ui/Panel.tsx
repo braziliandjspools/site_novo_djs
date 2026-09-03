@@ -10,7 +10,7 @@ type PanelProps = {
 export function Panel({ title, description, children, className = "" }: PanelProps) {
   return (
     <section
-      className={`rounded-xl border border-zinc-800 bg-[#1a1a1a] p-5 sm:p-6 ${className}`}
+      className={`rounded-xl border border-white/[0.06] bg-[#1f1f1f] p-5 sm:p-6 ${className}`}
     >
       {title && <h2 className="text-sm font-bold text-white">{title}</h2>}
       {description && <p className="mt-1 text-xs text-zinc-500">{description}</p>}

@@ -77,6 +77,14 @@ pub struct AppPreferences {
     /// Valor em MB/s quando `speed_limit_mode` = Custom.
     #[serde(default = "default_custom_mbps")]
     pub speed_limit_custom_mbps: f64,
+    #[serde(default)]
+    pub schedule_enabled: bool,
+    #[serde(default = "default_schedule_start")]
+    pub schedule_start: String,
+    #[serde(default = "default_schedule_end")]
+    pub schedule_end: String,
+    #[serde(default = "default_true")]
+    pub schedule_allow_manual_override: bool,
 }
 
 fn default_true() -> bool {
@@ -89,6 +97,32 @@ fn default_max_concurrent_downloads() -> u8 {
 
 fn default_custom_mbps() -> f64 {
     3.0
+}
+
+fn default_schedule_start() -> String {
+    "00:00".to_string()
+}
+
+fn default_schedule_end() -> String {
+    "07:00".to_string()
+}
+
+fn normalize_hhmm(value: &str, fallback: &str) -> String {
+    let trimmed = value.trim();
+    let parts: Vec<&str> = trimmed.split(':').collect();
+    if parts.len() != 2 {
+        return fallback.to_string();
+    }
+    let Ok(hours) = parts[0].parse::<u32>() else {
+        return fallback.to_string();
+    };
+    let Ok(minutes) = parts[1].parse::<u32>() else {
+        return fallback.to_string();
+    };
+    if hours > 23 || minutes > 59 {
+        return fallback.to_string();
+    }
+    format!("{hours:02}:{minutes:02}")
 }
 
 impl Default for AppPreferences {
@@ -105,6 +139,10 @@ impl Default for AppPreferences {
             api_base_url: None,
             speed_limit_mode: SpeedLimitMode::Unlimited,
             speed_limit_custom_mbps: default_custom_mbps(),
+            schedule_enabled: false,
+            schedule_start: default_schedule_start(),
+            schedule_end: default_schedule_end(),
+            schedule_allow_manual_override: true,
         }
     }
 }
@@ -134,6 +172,8 @@ impl AppPreferences {
             self.speed_limit_custom_mbps = default_custom_mbps();
         }
         self.speed_limit_custom_mbps = self.speed_limit_custom_mbps.clamp(0.1, 1000.0);
+        self.schedule_start = normalize_hhmm(&self.schedule_start, "00:00");
+        self.schedule_end = normalize_hhmm(&self.schedule_end, "07:00");
     }
 }
 

@@ -49,7 +49,7 @@ export function AppShell({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="flex-shrink-0 border-b border-white/[0.06] bg-black/50 px-7 py-5 backdrop-blur-xl">
+        <header className="flex-shrink-0 border-b border-white/[0.06] bg-[#1a1a1a] px-7 py-5">
           <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>}
         </header>

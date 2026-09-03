@@ -1,11 +1,16 @@
 import { ExternalLink, WifiOff } from "lucide-react";
 import { useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
 import { Button } from "../components/ui/Button";
 import { openPlatform } from "../lib/open-site";
 import { EmptyQueueState } from "../components/downloads/EmptyQueueState";
-import { JobRow } from "../components/downloads/JobRow";
-import { formatDiskSize } from "../lib/download/disk-space-utils";
+import { QueueJobList } from "../components/downloads/QueueJobList";
+import {
+  estimateQueueBytes,
+  formatDiskSize,
+  jobKnownTotalBytes,
+} from "../lib/download/disk-space-utils";
 import type { DownloadJob } from "../lib/api/jobs";
 
 export type JobSection = "downloads" | "queue";
@@ -31,7 +36,23 @@ type JobsSectionPageProps = {
   section: JobSection;
 };
 
+function formatQueueLabel(queueBytes: number, jobs: DownloadJob[]) {
+  if (queueBytes > 0) return formatDiskSize(queueBytes);
+  const eligible = jobs.filter(
+    (job) =>
+      job.status === "PENDING" ||
+      job.status === "RECEIVED" ||
+      job.status === "FAILED" ||
+      job.status === "PAUSED" ||
+      job.status === "DOWNLOADING",
+  );
+  if (eligible.length === 0) return "0 B";
+  const anyKnown = eligible.some((job) => jobKnownTotalBytes(job) > 0);
+  return anyKnown ? "0 B" : "Sem tamanho informado";
+}
+
 export function JobsSectionPage({ section }: JobsSectionPageProps) {
+  const { device } = useAuth();
   const {
     jobs,
     connectionState,
@@ -44,6 +65,13 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     resumeJob,
     cancelJob,
     retryJob,
+    dismissJob,
+    downloadNow,
+    moveJobToTop,
+    moveJobUp,
+    moveJobDown,
+    moveJobToEnd,
+    reorderQueue,
   } = useDownloadManager();
 
   const copy = SECTION_COPY[section];
@@ -52,38 +80,59 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     [activeJobIds, copy, jobs],
   );
   const isOffline = connectionState === "offline";
+  const isQueue = section === "queue";
+
+  const liveQueueBytes = useMemo(
+    () => Math.max(diskSpace.queueBytes, estimateQueueBytes(jobs, device?.deviceId ?? "")),
+    [device?.deviceId, diskSpace.queueBytes, jobs],
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">{copy.eyebrow}</p>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-400">
             {filteredJobs.length === 0
               ? copy.empty
               : `${filteredJobs.length} item(ns) · ${activeJobIds.length}/${maxConcurrency} ativos`}
           </p>
         </div>
-        <Button variant="secondary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
+        <Button variant="primary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
           <ExternalLink className="h-4 w-4" />
           Abrir plataforma
         </Button>
       </div>
 
       {section === "downloads" && (
-        <div className="flex flex-wrap gap-x-8 gap-y-2 text-xs text-zinc-600">
-          <div>
-            <p>Espaço disponível:</p>
-            <p className="mt-0.5 text-sm tabular-nums text-zinc-400">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+              Espaço disponível
+            </p>
+            <p className="mt-1.5 text-lg font-bold tabular-nums text-white">
               {diskSpace.availableBytes != null ? formatDiskSize(diskSpace.availableBytes) : "—"}
             </p>
           </div>
-          <div>
-            <p>Na fila:</p>
-            <p className="mt-0.5 text-sm tabular-nums text-zinc-400">
-              {diskSpace.queueBytes > 0 ? formatDiskSize(diskSpace.queueBytes) : "—"}
+          <div className="rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+              Na fila
+            </p>
+            <p className="mt-1.5 text-lg font-bold tabular-nums text-[#1db954]">
+              {formatQueueLabel(liveQueueBytes, jobs)}
             </p>
           </div>
+        </div>
+      )}
+
+      {section === "queue" && (
+        <div className="rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+            Tamanho estimado na fila
+          </p>
+          <p className="mt-1.5 text-lg font-bold tabular-nums text-[#1db954]">
+            {formatQueueLabel(liveQueueBytes, jobs)}
+          </p>
         </div>
       )}
 
@@ -111,20 +160,24 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
           <EmptyQueueState offline={isOffline} />
         )
       ) : (
-        <div className="space-y-2.5">
-          {filteredJobs.map((job) => (
-            <JobRow
-              key={job.id}
-              job={job}
-              isActive={activeJobIds.includes(job.id)}
-              metrics={jobMetrics[job.id]}
-              onPause={() => pauseJob(job.id)}
-              onResume={() => resumeJob(job.id)}
-              onCancel={() => cancelJob(job.id)}
-              onRetry={() => retryJob(job.id)}
-            />
-          ))}
-        </div>
+        <QueueJobList
+          jobs={filteredJobs}
+          activeJobIds={activeJobIds}
+          jobMetrics={jobMetrics}
+          showQueueActions={isQueue || section === "downloads"}
+          enableDragReorder={isQueue}
+          onPause={pauseJob}
+          onResume={resumeJob}
+          onCancel={cancelJob}
+          onRetry={retryJob}
+          onDismiss={dismissJob}
+          onDownloadNow={downloadNow}
+          onMoveToTop={moveJobToTop}
+          onMoveUp={moveJobUp}
+          onMoveDown={moveJobDown}
+          onMoveToEnd={moveJobToEnd}
+          onReorder={reorderQueue}
+        />
       )}
     </div>
   );

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { BrsLogo } from "../components/Branding/BrsLogo";
 import { openPlatform } from "../lib/open-site";
-import { BP_PRIVACY_DOWNLOADER_URL, DOWNLOADER_NAME, SITE_NAME } from "../lib/site";
+import { BP_PRIVACY_CONDUCT_URL, BP_PRIVACY_COOKIES_URL, BP_PRIVACY_DOWNLOADER_URL, DOWNLOADER_NAME, SITE_NAME } from "../lib/site";
 import { DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "../lib/api/config";
 import { pingApi } from "../lib/api/client";
 import { formatApiError } from "../lib/errors";
@@ -221,13 +221,33 @@ export function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-zinc-600">
+        <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-zinc-600">
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}
             className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
-            Política de Privacidade
+            Privacidade
+          </button>
+          <span className="text-zinc-700" aria-hidden>
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}
+            className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+          >
+            Cookies
+          </button>
+          <span className="text-zinc-700" aria-hidden>
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}
+            className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+          >
+            Conduta
           </button>
         </p>
       </div>

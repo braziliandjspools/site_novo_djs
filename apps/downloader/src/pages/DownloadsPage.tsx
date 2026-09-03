@@ -1,14 +1,9 @@
 import { ExternalLink, WifiOff } from "lucide-react";
-
 import { useDownloadManager } from "../context/DownloadManagerContext";
-
 import { Button } from "../components/ui/Button";
-
 import { openPlatform } from "../lib/open-site";
-
 import { EmptyQueueState } from "../components/downloads/EmptyQueueState";
-
-import { JobRow } from "../components/downloads/JobRow";
+import { QueueJobList } from "../components/downloads/QueueJobList";
 
 export function DownloadsPage() {
   const {
@@ -23,6 +18,13 @@ export function DownloadsPage() {
     resumeJob,
     cancelJob,
     retryJob,
+    dismissJob,
+    downloadNow,
+    moveJobToTop,
+    moveJobUp,
+    moveJobDown,
+    moveJobToEnd,
+    reorderQueue,
   } = useDownloadManager();
 
   const isOffline = connectionState === "offline";
@@ -58,20 +60,22 @@ export function DownloadsPage() {
       {jobs.length === 0 ? (
         <EmptyQueueState offline={isOffline} />
       ) : (
-        <div className="space-y-2">
-          {jobs.map((job) => (
-            <JobRow
-              key={job.id}
-              job={job}
-              isActive={activeJobIds.includes(job.id)}
-              metrics={jobMetrics[job.id]}
-              onPause={() => pauseJob(job.id)}
-              onResume={() => resumeJob(job.id)}
-              onCancel={() => cancelJob(job.id)}
-              onRetry={() => retryJob(job.id)}
-            />
-          ))}
-        </div>
+        <QueueJobList
+          jobs={jobs}
+          activeJobIds={activeJobIds}
+          jobMetrics={jobMetrics}
+          onPause={pauseJob}
+          onResume={resumeJob}
+          onCancel={cancelJob}
+          onRetry={retryJob}
+          onDismiss={dismissJob}
+          onDownloadNow={downloadNow}
+          onMoveToTop={moveJobToTop}
+          onMoveUp={moveJobUp}
+          onMoveDown={moveJobDown}
+          onMoveToEnd={moveJobToEnd}
+          onReorder={reorderQueue}
+        />
       )}
     </div>
   );

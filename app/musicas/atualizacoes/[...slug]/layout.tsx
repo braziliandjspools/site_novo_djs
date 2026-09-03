@@ -3,7 +3,7 @@ import { AtualizacoesSearch, AtualizacoesSearchResults } from "../AtualizacoesSe
 import { AtualizacoesSearchProvider } from "../AtualizacoesSearchContext";
 import { AtualizacoesPlayerLayout } from "../AtualizacoesPlayerLayout";
 
-export default function AtualizacoesMonthLayout({ children }: { children: React.ReactNode }) {
+export default function AtualizacoesSlugLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={null}>
       <AtualizacoesSearchProvider>

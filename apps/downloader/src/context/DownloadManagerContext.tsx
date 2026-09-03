@@ -38,6 +38,13 @@ type DownloadManagerContextValue = {
   resumeJob: (jobId: number) => void;
   cancelJob: (jobId: number) => void;
   retryJob: (jobId: number) => void;
+  dismissJob: (jobId: number) => void;
+  downloadNow: (jobId: number) => void;
+  moveJobToTop: (jobId: number) => void;
+  moveJobUp: (jobId: number) => void;
+  moveJobDown: (jobId: number) => void;
+  moveJobToEnd: (jobId: number) => void;
+  reorderQueue: (orderedIds: number[]) => void;
   setMaxConcurrency: (value: number) => void;
 };
 
@@ -83,6 +90,13 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       resumeJob: (jobId: number) => downloadManager.resumeJob(jobId),
       cancelJob: (jobId: number) => downloadManager.cancelJob(jobId),
       retryJob: (jobId: number) => downloadManager.retryJob(jobId),
+      dismissJob: (jobId: number) => downloadManager.dismissJob(jobId),
+      downloadNow: (jobId: number) => downloadManager.downloadNow(jobId),
+      moveJobToTop: (jobId: number) => downloadManager.moveJobToTop(jobId),
+      moveJobUp: (jobId: number) => downloadManager.moveJobUp(jobId),
+      moveJobDown: (jobId: number) => downloadManager.moveJobDown(jobId),
+      moveJobToEnd: (jobId: number) => downloadManager.moveJobToEnd(jobId),
+      reorderQueue: (orderedIds: number[]) => downloadManager.reorderQueue(orderedIds),
       setMaxConcurrency: (value: number) => {
         void downloadManager.setMaxConcurrency(value);
       },

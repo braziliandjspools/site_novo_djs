@@ -17,5 +17,19 @@ export const BP_PRIVACY_DOWNLOADER_URL = (() => {
   }
 })();
 
+function siteOriginPath(path: string) {
+  try {
+    return `${new URL(DEFAULT_API_BASE_URL).origin}${path}`;
+  } catch {
+    return `${DEFAULT_API_BASE_URL.replace(/\/+$/, "")}${path}`;
+  }
+}
+
+/** Política de Cookies. */
+export const BP_PRIVACY_COOKIES_URL = siteOriginPath("/privacy/cookies");
+
+/** Código de Conduta. */
+export const BP_PRIVACY_CONDUCT_URL = siteOriginPath("/privacy/conduct");
+
 /** @deprecated Use DOWNLOADER_NAME */
 export const APP_NAME = DOWNLOADER_NAME;

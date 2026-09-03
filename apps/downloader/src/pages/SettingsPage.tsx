@@ -4,10 +4,11 @@ import { Panel } from "../components/ui/Panel";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
-import { BP_MUSICAS_URL, BP_PRIVACY_DOWNLOADER_URL, SITE_NAME } from "../lib/site";
 import { APP_VERSION, DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "../lib/api/config";
+import { APP_CHANGELOG, APP_CORE_VERSION, RUSTC_VERSION, WEBUI_VERSION } from "../lib/app-info";
 import { isUpdaterConfigured } from "../lib/updater";
 import { openPlatform } from "../lib/open-site";
+import { BP_MUSICAS_URL, BP_PRIVACY_CONDUCT_URL, BP_PRIVACY_COOKIES_URL, BP_PRIVACY_DOWNLOADER_URL, SITE_NAME } from "../lib/site";
 import { downloadManager } from "../lib/download/download-manager";
 import { notificationManager } from "../lib/notifications/notification-manager";
 import {
@@ -117,6 +118,7 @@ export function SettingsPage() {
       const saved = await setAppPreferences(next);
       setPrefs(saved);
       downloadManager.setAutoDownload(saved.autoDownload);
+      downloadManager.setSchedulePreferences(saved);
       notificationManager.setEnabled(saved.showNotifications);
     } catch (error) {
       setPrefsError(error instanceof Error ? error.message : "Não foi possível salvar.");
@@ -301,6 +303,85 @@ export function SettingsPage() {
       </Panel>
 
       <Panel
+        title="Downloads"
+        description="Agendamento local da fila. Não usa servidor nem Neon."
+      >
+        <div className="space-y-3">
+          <PreferenceToggle
+            label="Baixar somente em determinados horários"
+            description="Fora da janela, novos downloads aguardam. Ao entrar no horário, a fila retoma sozinha."
+            checked={prefs.scheduleEnabled}
+            onChange={(checked) => void updatePreference({ scheduleEnabled: checked })}
+          />
+
+          {prefs.scheduleEnabled && (
+            <div className="rounded-lg border border-zinc-800 bg-black/40 p-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="scheduleStart"
+                    className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500"
+                  >
+                    Iniciar
+                  </label>
+                  <input
+                    id="scheduleStart"
+                    type="time"
+                    value={prefs.scheduleStart}
+                    onChange={(event) => {
+                      const scheduleStart = event.target.value || prefs.scheduleStart;
+                      setPrefs((current) => ({ ...current, scheduleStart }));
+                    }}
+                    onBlur={(event) => {
+                      void updatePreference({
+                        scheduleStart: event.target.value || "00:00",
+                      });
+                    }}
+                    className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1db954]"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="scheduleEnd"
+                    className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500"
+                  >
+                    Parar
+                  </label>
+                  <input
+                    id="scheduleEnd"
+                    type="time"
+                    value={prefs.scheduleEnd}
+                    onChange={(event) => {
+                      const scheduleEnd = event.target.value || prefs.scheduleEnd;
+                      setPrefs((current) => ({ ...current, scheduleEnd }));
+                    }}
+                    onBlur={(event) => {
+                      void updatePreference({
+                        scheduleEnd: event.target.value || "07:00",
+                      });
+                    }}
+                    className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1db954]"
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-zinc-600">
+                Intervalos que atravessam meia-noite são suportados (ex.: 23:00 → 06:00). Ao terminar o horário, os
+                downloads ativos são pausados com retomada — sem cancelar jobs.
+              </p>
+            </div>
+          )}
+
+          <PreferenceToggle
+            label="Downloads iniciados manualmente ignoram o horário"
+            description="Retomar ou tentar novamente pela interface pode iniciar mesmo fora da janela."
+            checked={prefs.scheduleAllowManualOverride}
+            onChange={(checked) => void updatePreference({ scheduleAllowManualOverride: checked })}
+          />
+        </div>
+        {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
+      </Panel>
+
+      <Panel
         title="Downloads simultâneos"
         description="Quantos arquivos baixar ao mesmo tempo. Padrão: 3."
       >
@@ -423,13 +504,73 @@ export function SettingsPage() {
         </div>
       </Panel>
 
-      <Panel title="Sobre" description="Informações legais e links do aplicativo.">
-        <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}>
+      <Panel title="Sobre" description="Informações do app, versões e links legais.">
+        <button
+          type="button"
+          onClick={() => void openPlatform(BP_MUSICAS_URL)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1db954] px-5 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-[#1ed760]"
+        >
           <ExternalLink className="h-4 w-4" />
-          Política de Privacidade
-        </Button>
+          APP ONLINE
+        </button>
+
+        <dl className="mt-4 space-y-2 text-sm">
+          <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
+            <dt className="text-zinc-500">Versão WebUI atual</dt>
+            <dd className="font-mono font-semibold text-white">{WEBUI_VERSION}</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
+            <dt className="text-zinc-500">Versão atual</dt>
+            <dd className="font-mono font-semibold text-white">{APP_CORE_VERSION}</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
+            <dt className="text-zinc-500">Versão do Rust</dt>
+            <dd className="font-mono font-semibold text-white">{RUSTC_VERSION}</dd>
+          </div>
+        </dl>
+
+        <p className="mt-4 text-xs leading-relaxed text-zinc-400">
+          Este app usa a biblioteca Rust, na qual você pode se basear para criar sua própria UI no futuro.
+        </p>
+
+        <div className="mt-5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]">Changelog</p>
+          <div className="mt-3 space-y-4">
+            {APP_CHANGELOG.map((entry) => (
+              <div key={entry.version} className="rounded-xl border border-white/[0.06] bg-[#141414] px-4 py-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="text-sm font-bold text-white">v{entry.version}</p>
+                  <p className="text-[11px] text-zinc-500">{entry.date}</p>
+                </div>
+                <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-zinc-400">
+                  {entry.items.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-[#1db954]" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2">
+          <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}>
+            <ExternalLink className="h-4 w-4" />
+            Política de Privacidade
+          </Button>
+          <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}>
+            <ExternalLink className="h-4 w-4" />
+            Política de Cookies
+          </Button>
+          <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}>
+            <ExternalLink className="h-4 w-4" />
+            Código de Conduta
+          </Button>
+        </div>
         <p className="mt-3 text-xs text-zinc-600">
-          Abre no navegador padrão: {BP_PRIVACY_DOWNLOADER_URL}
+          Políticas abrem no navegador padrão.
         </p>
       </Panel>
 

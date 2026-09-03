@@ -1,3 +1,5 @@
+import { normalizeTimeInput } from "../download/download-schedule";
+
 export type ExistingFileBehavior = "ignore" | "ask" | "replace" | "rename";
 
 /** Presets de limite global (MB/s). `custom` usa `speedLimitCustomMbps`. */
@@ -15,6 +17,14 @@ export type AppPreferences = {
   apiBaseUrl: string | null;
   speedLimitMode: SpeedLimitMode;
   speedLimitCustomMbps: number;
+  /** Baixar somente em determinados horários (local). */
+  scheduleEnabled: boolean;
+  /** Início da janela "HH:MM". */
+  scheduleStart: string;
+  /** Fim da janela "HH:MM" (exclusivo). */
+  scheduleEnd: string;
+  /** Downloads iniciados manualmente ignoram o horário. */
+  scheduleAllowManualOverride: boolean;
 };
 
 export const DEFAULT_PREFERENCES: AppPreferences = {
@@ -29,6 +39,10 @@ export const DEFAULT_PREFERENCES: AppPreferences = {
   apiBaseUrl: null,
   speedLimitMode: "unlimited",
   speedLimitCustomMbps: 3,
+  scheduleEnabled: false,
+  scheduleStart: "00:00",
+  scheduleEnd: "07:00",
+  scheduleAllowManualOverride: true,
 };
 
 const MB = 1024 * 1024;
@@ -66,6 +80,10 @@ function normalizePreferences(raw: Partial<AppPreferences> | null | undefined): 
   }
   const custom = Number(merged.speedLimitCustomMbps);
   merged.speedLimitCustomMbps = Number.isFinite(custom) ? Math.min(1000, Math.max(0.1, custom)) : 3;
+  merged.scheduleEnabled = Boolean(merged.scheduleEnabled);
+  merged.scheduleAllowManualOverride = merged.scheduleAllowManualOverride !== false;
+  merged.scheduleStart = normalizeTimeInput(String(merged.scheduleStart ?? "00:00"), "00:00");
+  merged.scheduleEnd = normalizeTimeInput(String(merged.scheduleEnd ?? "07:00"), "07:00");
   return merged;
 }
 

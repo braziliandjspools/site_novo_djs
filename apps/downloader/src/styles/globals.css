@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #121212;
-  --foreground: #f5f4f7;
-  --bg-elevated: #181818;
-  --bg-card: #282828;
-  --bg-hover: #333333;
-  --text-muted: #b3b3b3;
+  --background: #141414;
+  --foreground: #f2f2f2;
+  --bg-elevated: #1a1a1a;
+  --bg-card: #1f1f1f;
+  --bg-hover: #2a2a2a;
+  --bg-sidebar: #121212;
+  --text-muted: #a3a3a3;
   --accent: #1db954;
   --accent-hover: #1ed760;
-  --accent-dim: rgba(29, 185, 84, 0.12);
+  --accent-dim: rgba(29, 185, 84, 0.14);
   --br-green: #009739;
   --br-yellow: #ffdf00;
   --br-blue: #002776;
-  --line: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.07);
   --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -42,16 +43,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(24, 24, 24, 0.8);
+  background: #1a1a1a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--br-green), var(--accent));
+  background: #3a3a3a;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--accent-hover), var(--br-yellow));
+  background: var(--accent);
 }
 
 .br-stripe-thin {
@@ -65,11 +66,7 @@ body {
 }
 
 .app-mesh {
-  background:
-    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(0, 151, 57, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 10%, rgba(0, 39, 118, 0.22), transparent 50%),
-    radial-gradient(ellipse 50% 35% at 70% 100%, rgba(29, 185, 84, 0.08), transparent 45%),
-    linear-gradient(180deg, #181818 0%, #121212 100%);
+  background: linear-gradient(180deg, #181818 0%, #141414 100%);
 }
 
 .progress-indeterminate {

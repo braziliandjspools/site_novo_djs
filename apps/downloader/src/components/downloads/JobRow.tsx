@@ -1,7 +1,12 @@
-import { memo } from "react";
+import { memo, type DragEvent } from "react";
 import {
+  ArrowDown,
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpToLine,
   CheckCircle2,
   Download,
+  GripVertical,
   Loader2,
   MonitorDown,
   Pause,
@@ -9,6 +14,7 @@ import {
   RotateCcw,
   X,
   XCircle,
+  Zap,
 } from "lucide-react";
 import type { DownloadJob } from "../../lib/api/jobs";
 import type { JobProgressMetrics } from "../../lib/download/types";
@@ -19,10 +25,22 @@ type JobRowProps = {
   job: DownloadJob;
   isActive: boolean;
   metrics?: JobProgressMetrics;
+  showQueueActions?: boolean;
+  draggable?: boolean;
+  onDragStart?: (event: DragEvent) => void;
+  onDragOver?: (event: DragEvent) => void;
+  onDrop?: (event: DragEvent) => void;
+  onDragEnd?: () => void;
+  onDownloadNow?: () => void;
+  onMoveToTop?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onMoveToEnd?: () => void;
   onPause?: () => void;
   onResume?: () => void;
   onCancel?: () => void;
   onRetry?: () => void;
+  onDismiss?: () => void;
 };
 
 function statusLabel(status: string) {
@@ -66,10 +84,22 @@ export const JobRow = memo(function JobRow({
   job,
   isActive,
   metrics,
+  showQueueActions = false,
+  draggable = false,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onDownloadNow,
+  onMoveToTop,
+  onMoveUp,
+  onMoveDown,
+  onMoveToEnd,
   onPause,
   onResume,
   onCancel,
   onRetry,
+  onDismiss,
 }: JobRowProps) {
   const waiting = job.status === "PENDING" || job.status === "RECEIVED";
   const downloading = job.status === "DOWNLOADING" || isActive;
@@ -77,10 +107,28 @@ export const JobRow = memo(function JobRow({
   const failed = job.status === "FAILED";
   const progress = Math.min(100, Math.max(0, Number(job.progress) || 0));
   const indeterminate = downloading && progress <= 0;
+  const canReorder = showQueueActions && !downloading && (waiting || paused || failed);
 
   return (
-    <article className="rounded-2xl border border-white/[0.06] bg-[#111111]/90 px-4 py-3.5">
+    <article
+      className="rounded-2xl border border-white/[0.06] bg-[#1f1f1f] px-4 py-3.5"
+      draggable={draggable && canReorder}
+      onDragStart={draggable && canReorder ? onDragStart : undefined}
+      onDragOver={draggable ? onDragOver : undefined}
+      onDrop={draggable ? onDrop : undefined}
+      onDragEnd={draggable ? onDragEnd : undefined}
+    >
       <div className="flex items-start gap-3">
+        {draggable && canReorder && (
+          <div
+            className="mt-2 cursor-grab text-zinc-600 active:cursor-grabbing"
+            title="Arrastar para reordenar"
+            aria-hidden
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+
         <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#1db954]/10">
           <StatusIcon status={job.status} isActive={isActive} />
         </div>
@@ -138,7 +186,7 @@ export const JobRow = memo(function JobRow({
                 </span>
               </div>
               {downloading && metrics && !indeterminate && (
-                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500">
                   <span>{formatSpeed(metrics.speedBytesPerSec)}</span>
                   <span>{formatEta(metrics.etaSeconds)}</span>
                 </div>
@@ -153,6 +201,32 @@ export const JobRow = memo(function JobRow({
           {failed && job.error && <p className="mt-2 text-xs text-red-400">{job.error}</p>}
 
           <div className="mt-3 flex flex-wrap gap-2">
+            {canReorder && onDownloadNow && (
+              <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onDownloadNow}>
+                <Zap className="h-3.5 w-3.5" />
+                Baixar agora
+              </Button>
+            )}
+            {canReorder && onMoveToTop && (
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveToTop} title="Mover para o topo">
+                <ArrowUpToLine className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {canReorder && onMoveUp && (
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveUp} title="Mover para cima">
+                <ArrowUp className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {canReorder && onMoveDown && (
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveDown} title="Mover para baixo">
+                <ArrowDown className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {canReorder && onMoveToEnd && (
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveToEnd} title="Mover para o final">
+                <ArrowDownToLine className="h-3.5 w-3.5" />
+              </Button>
+            )}
             {downloading && onPause && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onPause}>
                 <Pause className="h-3.5 w-3.5" />
@@ -181,6 +255,17 @@ export const JobRow = memo(function JobRow({
                 Tentar novamente
               </Button>
             )}
+            {failed && onDismiss && (
+              <Button
+                variant="ghost"
+                className="!h-8 !px-3 !text-[11px] text-red-400"
+                onClick={onDismiss}
+                title="Remover da fila"
+              >
+                <X className="h-3.5 w-3.5" />
+                Excluir
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -196,6 +281,8 @@ export const JobRow = memo(function JobRow({
     prev.job.error === next.job.error &&
     prev.job.fileName === next.job.fileName &&
     prev.isActive === next.isActive &&
+    prev.showQueueActions === next.showQueueActions &&
+    prev.draggable === next.draggable &&
     prev.metrics?.speedBytesPerSec === next.metrics?.speedBytesPerSec &&
     prev.metrics?.etaSeconds === next.metrics?.etaSeconds
   );

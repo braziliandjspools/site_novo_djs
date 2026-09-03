@@ -5,6 +5,7 @@ import {
 } from "./vip-music-catalog";
 import { type PreviewTrack } from "./google-drive";
 import {
+  childrenAreWeekFolders,
   displayFolderName,
   folderHref,
   parseMonthStatus,
@@ -16,6 +17,8 @@ export type HomeTrackItem = PreviewTrack & {
   styleName: string;
   monthSlug: string;
   monthName: string;
+  weekSlug?: string;
+  weekName?: string;
   href: string;
   relativePath: string;
 };
@@ -24,6 +27,7 @@ export type HomeGenreItem = {
   name: string;
   slug: string;
   monthSlug: string;
+  weekSlug?: string;
   styleFolderId: string;
   trackCount: number;
   href: string;
@@ -83,43 +87,76 @@ function pickPriorityMonth(months: VipMusicFolder[]) {
   return (
     months.find((m) => parseMonthStatus(m.name).status === "em-atualizacao") ??
     [...months].reverse().find((m) => parseMonthStatus(m.name).status === "completo") ??
-    months[months.length - 1] ??
+    months[0] ??
     null
   );
 }
 
-function stylePageHref(monthSlug: string, styleSlug: string, trackId?: string) {
+function stylePageHref(monthSlug: string, styleSlug: string, weekSlug?: string, trackId?: string) {
   const params = new URLSearchParams({ estilo: styleSlug });
   if (trackId) params.set("faixa", trackId);
-  return `/musicas/atualizacoes/${monthSlug}?${params.toString()}`;
+  const base = weekSlug
+    ? folderHref([monthSlug, weekSlug])
+    : folderHref([monthSlug]);
+  return `${base}?${params.toString()}`;
 }
 
 function toHomeTrack(
   track: PreviewTrack,
   month: VipMusicFolder,
   style: VipMusicFolder,
+  week?: VipMusicFolder,
 ): HomeTrackItem {
   const monthSlug = slugifyFolderName(month.name);
   const styleSlug = slugifyFolderName(style.name);
+  const weekSlug = week ? slugifyFolderName(week.name) : undefined;
   const monthLabel = displayFolderName(month.name);
   const styleLabel = displayFolderName(style.name);
+  const weekLabel = week ? displayFolderName(week.name) : undefined;
   return {
     ...track,
     styleFolderId: style.id,
     styleName: styleLabel,
     monthSlug,
     monthName: monthLabel,
-    href: stylePageHref(monthSlug, styleSlug, track.id),
-    relativePath: `${monthLabel}/${styleLabel}/${track.fileName ?? track.title}`,
+    weekSlug,
+    weekName: weekLabel,
+    href: stylePageHref(monthSlug, styleSlug, weekSlug, track.id),
+    relativePath: weekLabel
+      ? `${monthLabel}/${weekLabel}/${styleLabel}/${track.fileName ?? track.title}`
+      : `${monthLabel}/${styleLabel}/${track.fileName ?? track.title}`,
   };
 }
 
-async function countTracksInStyle(style: VipMusicFolder, month: VipMusicFolder, bucket: HomeTrackItem[]) {
+async function countTracksInStyle(
+  style: VipMusicFolder,
+  month: VipMusicFolder,
+  bucket: HomeTrackItem[],
+  week?: VipMusicFolder,
+) {
   const tracks = await getVipMusicTracks(style.id, style.name);
   for (const track of tracks.slice(-2)) {
-    bucket.push(toHomeTrack(track, month, style));
+    bucket.push(toHomeTrack(track, month, style, week));
   }
   return tracks.length;
+}
+
+/** Filhos do mês: semanas (com estilos) ou estilos direto (legado). */
+async function listStyleContexts(month: VipMusicFolder): Promise<
+  { style: VipMusicFolder; week?: VipMusicFolder }[]
+> {
+  const children = await listVipMusicFolders(month.id);
+  if (childrenAreWeekFolders(children)) {
+    const contexts: { style: VipMusicFolder; week?: VipMusicFolder }[] = [];
+    for (const week of children) {
+      const styles = await listVipMusicFolders(week.id);
+      for (const style of styles) {
+        contexts.push({ style, week });
+      }
+    }
+    return contexts;
+  }
+  return children.map((style) => ({ style }));
 }
 
 export async function buildVipMusicHomeSnapshot(): Promise<VipMusicHomeSnapshot> {
@@ -157,13 +194,14 @@ export async function buildVipMusicHomeSnapshot(): Promise<VipMusicHomeSnapshot>
   const prioritySlug = priorityMonth ? slugifyFolderName(priorityMonth.name) : null;
 
   for (const month of months) {
-    const styles = await listVipMusicFolders(month.id);
-    packCount += styles.length;
+    const styleContexts = await listStyleContexts(month);
+    packCount += styleContexts.length;
 
-    for (const style of styles) {
+    for (const { style, week } of styleContexts) {
       const styleLabel = displayFolderName(style.name);
       const monthSlug = slugifyFolderName(month.name);
       const styleSlug = slugifyFolderName(style.name);
+      const weekSlug = week ? slugifyFolderName(week.name) : undefined;
       const key = styleLabel.toLowerCase();
 
       if (!genreMap.has(key)) {
@@ -171,19 +209,23 @@ export async function buildVipMusicHomeSnapshot(): Promise<VipMusicHomeSnapshot>
           name: styleLabel,
           slug: styleSlug,
           monthSlug,
+          weekSlug,
           styleFolderId: style.id,
           trackCount: 0,
-          href: stylePageHref(monthSlug, styleSlug),
+          href: stylePageHref(monthSlug, styleSlug, weekSlug),
         });
       }
 
       const shouldSample =
-        priorityMonth &&
-        month.id === priorityMonth.id &&
-        latestBucket.length < 40;
+        priorityMonth && month.id === priorityMonth.id && latestBucket.length < 40;
 
       if (shouldSample || (sampledPacks < 24 && allSample.length < 120)) {
-        const count = await countTracksInStyle(style, month, shouldSample ? latestBucket : allSample);
+        const count = await countTracksInStyle(
+          style,
+          month,
+          shouldSample ? latestBucket : allSample,
+          week,
+        );
         sampledTracks += count;
         sampledPacks += 1;
         const genre = genreMap.get(key);
@@ -208,15 +250,12 @@ export async function buildVipMusicHomeSnapshot(): Promise<VipMusicHomeSnapshot>
     ? Math.max(latestTracks.length * 12, Math.round(trackCount * 0.02))
     : 0;
 
-  const periodLinks = months
-    .slice(-3)
-    .reverse()
-    .map((month) => ({
-      id: slugifyFolderName(month.name),
-      label: displayFolderName(month.name),
-      href: folderHref([slugifyFolderName(month.name)]),
-      count: 0,
-    }));
+  const periodLinks = months.slice(0, 3).map((month) => ({
+    id: slugifyFolderName(month.name),
+    label: displayFolderName(month.name),
+    href: folderHref([slugifyFolderName(month.name)]),
+    count: 0,
+  }));
 
   return {
     configured: true,

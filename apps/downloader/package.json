@@ -1,7 +1,7 @@
 {
   "name": "brazilian-packs-downloader",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "downloader:dev": "tauri dev",
-    "test:disk": "npx tsx --test src/lib/download/disk-space-utils.test.ts"
+    "test:disk": "npx tsx --test src/lib/download/disk-space-utils.test.ts",
+    "test:schedule": "npx tsx --test src/lib/download/download-schedule.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

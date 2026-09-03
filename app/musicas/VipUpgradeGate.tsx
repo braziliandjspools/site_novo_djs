@@ -24,7 +24,7 @@ export function MusicasGuestBanner() {
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-zinc-300 sm:text-base">
             Explore o catálogo, veja os títulos e assine o plano VIP para ouvir, baixar e receber atualizações
-            semanais organizadas por mês e estilo.
+            semanais organizadas por mês, semana e estilo.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch">
