@@ -28,6 +28,8 @@ export type DownloadManagerSnapshot = {
 
 export type DownloadManagerListener = (snapshot: DownloadManagerSnapshot) => void;
 
+export type BatchJobTransportAction = "pause" | "resume" | "cancel" | "retry" | "dismiss";
+
 export type QueueTransport = {
   listJobs: () => Promise<DownloadJob[]>;
   claimJob: (jobId: number) => Promise<DownloadJob>;
@@ -44,6 +46,11 @@ export type QueueTransport = {
   cancelJob: (jobId: number) => Promise<DownloadJob>;
   retryJob: (jobId: number) => Promise<DownloadJob>;
   dismissJob: (jobId: number) => Promise<DownloadJob>;
+  /** Uma requisição HTTP para N jobs (quando o backend permitir). */
+  batchActions?: (
+    action: BatchJobTransportAction,
+    jobIds: number[],
+  ) => Promise<{ affected: number }>;
   heartbeat: () => Promise<void>;
 };
 

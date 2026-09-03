@@ -875,3 +875,129 @@ export async function clearDownloadQueue(portalUserId: number) {
 
   return result.count;
 }
+
+export type BatchJobAction = "pause" | "resume" | "cancel" | "retry" | "dismiss";
+
+const BATCH_JOB_ACTIONS: BatchJobAction[] = ["pause", "resume", "cancel", "retry", "dismiss"];
+
+export function parseBatchJobActionsBody(body: unknown): {
+  error?: string;
+  value?: { action: BatchJobAction; jobIds: number[] };
+} {
+  if (!body || typeof body !== "object") return { error: "Requisição inválida." };
+  const data = body as Record<string, unknown>;
+  const actionRaw = typeof data.action === "string" ? data.action.toLowerCase() : "";
+  if (!BATCH_JOB_ACTIONS.includes(actionRaw as BatchJobAction)) {
+    return { error: "action inválida. Use pause, resume, cancel, retry ou dismiss." };
+  }
+
+  const rawIds = data.jobIds;
+  if (!Array.isArray(rawIds) || rawIds.length === 0) {
+    return { error: "Informe ao menos um id em jobIds." };
+  }
+  if (rawIds.length > MAX_BATCH_JOBS) {
+    return { error: `Máximo de ${MAX_BATCH_JOBS} jobs por lote.` };
+  }
+
+  const jobIds: number[] = [];
+  const seen = new Set<number>();
+  for (const item of rawIds) {
+    const id = typeof item === "number" ? item : Number(item);
+    if (!Number.isInteger(id) || id < 1) return { error: "jobIds contém id inválido." };
+    if (seen.has(id)) continue;
+    seen.add(id);
+    jobIds.push(id);
+  }
+
+  return { value: { action: actionRaw as BatchJobAction, jobIds } };
+}
+
+/** Ações em lote (uma requisição) — evita N chamadas HTTP no downloader. */
+export async function batchDownloadJobActions(
+  portalUserId: number,
+  action: BatchJobAction,
+  jobIds: number[],
+) {
+  const now = new Date();
+  const baseWhere = {
+    portalUserId,
+    id: { in: jobIds },
+    dismissedAt: null,
+  };
+
+  if (action === "pause") {
+    const result = await prisma.downloadJob.updateMany({
+      where: {
+        ...baseWhere,
+        status: { in: ["PENDING", "RECEIVED", "DOWNLOADING"] },
+      },
+      data: {
+        status: "PAUSED",
+        error: null,
+      },
+    });
+    return { affected: result.count };
+  }
+
+  if (action === "resume") {
+    const result = await prisma.downloadJob.updateMany({
+      where: {
+        ...baseWhere,
+        status: "PAUSED",
+      },
+      data: {
+        status: "RECEIVED",
+        error: null,
+        completedAt: null,
+      },
+    });
+    return { affected: result.count };
+  }
+
+  if (action === "cancel") {
+    const result = await prisma.downloadJob.updateMany({
+      where: {
+        ...baseWhere,
+        status: { in: CANCELLABLE_STATUSES },
+      },
+      data: {
+        status: "CANCELLED",
+        completedAt: now,
+        error: null,
+      },
+    });
+    return { affected: result.count };
+  }
+
+  if (action === "retry") {
+    const result = await prisma.downloadJob.updateMany({
+      where: {
+        ...baseWhere,
+        status: "FAILED",
+      },
+      data: {
+        status: "PENDING",
+        progress: 0,
+        downloadedBytes: BigInt(0),
+        error: null,
+        downloadDeviceId: null,
+        claimedAt: null,
+        startedAt: null,
+        completedAt: null,
+      },
+    });
+    return { affected: result.count };
+  }
+
+  // dismiss
+  const result = await prisma.downloadJob.updateMany({
+    where: {
+      ...baseWhere,
+      status: { in: ["COMPLETED", "FAILED", "CANCELLED"] },
+    },
+    data: {
+      dismissedAt: now,
+    },
+  });
+  return { affected: result.count };
+}

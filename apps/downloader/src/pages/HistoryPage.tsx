@@ -1,21 +1,70 @@
 import { ExternalLink, FolderOpen, Loader2, RotateCcw, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/Button";
 import { JobRow } from "../components/downloads/JobRow";
+import { DownloadFinderToolbar } from "../components/downloads/DownloadFinderToolbar";
+import { BulkSelectionBar } from "../components/downloads/BulkSelectionBar";
 import { useServerJobs } from "../hooks/useServerJobs";
-import { createJob, dismissJob, retryJob } from "../lib/api/jobs";
+import { createJob, retryJob } from "../lib/api/jobs";
 import { openPlatform } from "../lib/open-site";
 import { openDownloadDir } from "../lib/native/download";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
+import {
+  canBulkDismiss,
+  canBulkRetry,
+  filterFinderJobs,
+  type DownloadFinderFilter,
+} from "../lib/download/job-finder";
 
 export function HistoryPage() {
   const { sessionToken } = useAuth();
-  const { syncNow, dismissJob: dismissQueueJob, retryJob: retryQueueJob } = useDownloadManager();
-  const { jobs, loading, error, refresh } = useServerJobs({ limit: 200, pollMs: 3000 });
+  const {
+    syncNow,
+    dismissJob: dismissQueueJob,
+    retryJob: retryQueueJob,
+    dismissJobs,
+    retryJobs,
+  } = useDownloadManager();
+  const { jobs, loading, error, refresh } = useServerJobs({ limit: 500, pollMs: 3000 });
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const [statusFilter, setStatusFilter] = useState<DownloadFinderFilter>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
 
-  const historyJobs = jobs.filter((job) => job.status === "COMPLETED" || job.status === "FAILED");
+  const historyJobs = useMemo(
+    () => jobs.filter((job) => job.status === "COMPLETED" || job.status === "FAILED"),
+    [jobs],
+  );
+
+  const { visible: filteredJobs, counts } = useMemo(
+    () => filterFinderJobs(historyJobs, { query: deferredQuery, filter: statusFilter }),
+    [deferredQuery, historyJobs, statusFilter],
+  );
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(filteredJobs.map((job) => job.id));
+      let changed = false;
+      const next = new Set<number>();
+      for (const id of prev) {
+        if (visible.has(id)) next.add(id);
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [filteredJobs]);
+
+  const selectedJobs = useMemo(
+    () => filteredJobs.filter((job) => selectedIds.has(job.id)),
+    [filteredJobs, selectedIds],
+  );
+
+  const allVisibleSelected =
+    filteredJobs.length > 0 && filteredJobs.every((job) => selectedIds.has(job.id));
 
   async function handleOpenFolder() {
     await openDownloadDir();
@@ -52,15 +101,23 @@ export function HistoryPage() {
     try {
       const job = historyJobs.find((item) => item.id === jobId);
       if (job?.status === "FAILED") {
-        // Remove da fila local + dismiss no backend (evita chamada duplicada)
         dismissQueueJob(jobId);
       } else {
-        await dismissJob(sessionToken, jobId);
+        dismissJobs([jobId]);
       }
       await refresh();
     } finally {
       setBusyId(null);
     }
+  }
+
+  function toggleSelect(jobId: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) next.delete(jobId);
+      else next.add(jobId);
+      return next;
+    });
   }
 
   return (
@@ -78,23 +135,80 @@ export function HistoryPage() {
         </Button>
       </div>
 
+      <DownloadFinderToolbar
+        query={query}
+        onQueryChange={setQuery}
+        filter={statusFilter}
+        onFilterChange={setStatusFilter}
+        counts={counts}
+      />
+
+      <BulkSelectionBar
+        selectedCount={selectedIds.size}
+        visibleCount={filteredJobs.length}
+        allVisibleSelected={allVisibleSelected}
+        busy={bulkBusy}
+        canPause={false}
+        canResume={false}
+        canCancel={false}
+        canRetry={selectedJobs.some(canBulkRetry)}
+        canDismiss={selectedJobs.some(canBulkDismiss)}
+        onSelectAll={() => setSelectedIds(new Set(filteredJobs.map((job) => job.id)))}
+        onClearSelection={() => setSelectedIds(new Set())}
+        onPause={() => undefined}
+        onResume={() => undefined}
+        onCancel={() => undefined}
+        onRetry={() => {
+          void (async () => {
+            setBulkBusy(true);
+            try {
+              const ids = selectedJobs.filter(canBulkRetry).map((job) => job.id);
+              retryJobs(ids);
+              setSelectedIds(new Set());
+              syncNow();
+              await refresh();
+            } finally {
+              setBulkBusy(false);
+            }
+          })();
+        }}
+        onDismiss={() => {
+          void (async () => {
+            setBulkBusy(true);
+            try {
+              const ids = selectedJobs.filter(canBulkDismiss).map((job) => job.id);
+              dismissJobs(ids);
+              setSelectedIds(new Set());
+              await refresh();
+            } finally {
+              setBulkBusy(false);
+            }
+          })();
+        }}
+      />
+
       {error && <p className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>}
 
       {loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
         </div>
-      ) : historyJobs.length === 0 ? (
+      ) : filteredJobs.length === 0 ? (
         <p className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-8 text-center text-sm text-zinc-500">
-          Nenhum item no histórico.
+          {historyJobs.length === 0
+            ? "Nenhum item no histórico."
+            : "Nenhum download corresponde à busca/filtro."}
         </p>
       ) : (
         <div className="space-y-2">
-          {historyJobs.map((job) => (
+          {filteredJobs.map((job) => (
             <div key={job.id} className="space-y-2">
               <JobRow
                 job={job}
                 isActive={false}
+                selectable
+                selected={selectedIds.has(job.id)}
+                onToggleSelect={() => toggleSelect(job.id)}
                 onRetry={job.status === "FAILED" ? () => void handleRedownload(job.id) : undefined}
                 onDismiss={
                   job.status === "FAILED" || job.status === "COMPLETED"

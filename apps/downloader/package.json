@@ -10,7 +10,8 @@
     "tauri": "tauri",
     "downloader:dev": "tauri dev",
     "test:disk": "npx tsx --test src/lib/download/disk-space-utils.test.ts",
-    "test:schedule": "npx tsx --test src/lib/download/download-schedule.test.ts"
+    "test:schedule": "npx tsx --test src/lib/download/download-schedule.test.ts",
+    "test:finder": "npx tsx --test src/lib/download/job-finder.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

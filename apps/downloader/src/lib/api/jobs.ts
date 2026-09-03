@@ -92,6 +92,25 @@ export async function dismissJob(token: string, jobId: number) {
   });
 }
 
+export type BatchJobAction = "pause" | "resume" | "cancel" | "retry" | "dismiss";
+
+export async function batchJobActions(
+  token: string,
+  action: BatchJobAction,
+  jobIds: number[],
+) {
+  return apiFetch<{
+    ok: true;
+    action: BatchJobAction;
+    requested: number;
+    affected: number;
+  }>("/api/downloader/jobs/actions", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ action, jobIds }),
+  });
+}
+
 export async function createJob(
   token: string,
   payload: {

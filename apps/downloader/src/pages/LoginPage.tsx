@@ -10,7 +10,7 @@ import { pingApi } from "../lib/api/client";
 import { formatApiError } from "../lib/errors";
 import { getAppPreferences, setAppPreferences, isDesktopRuntime } from "../lib/native/app-preferences";
 
-const LOGIN_BG_SRC = "/images/login-bg.jpg";
+const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 
 const inputClassName =
   "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a]/90 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#1db954] focus:ring-1 focus:ring-[#1db954]/30";
@@ -106,7 +106,7 @@ export function LoginPage() {
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
         draggable={false}
       />
-      <div className="pointer-events-none absolute inset-0 bg-black/55" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/75" aria-hidden />
 
       <div className="relative z-10 w-full max-w-md animate-fade-up">
         <div className="mb-8 text-center">

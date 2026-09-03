@@ -26,6 +26,9 @@ type JobRowProps = {
   isActive: boolean;
   metrics?: JobProgressMetrics;
   showQueueActions?: boolean;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
   draggable?: boolean;
   onDragStart?: (event: DragEvent) => void;
   onDragOver?: (event: DragEvent) => void;
@@ -85,6 +88,9 @@ export const JobRow = memo(function JobRow({
   isActive,
   metrics,
   showQueueActions = false,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
   draggable = false,
   onDragStart,
   onDragOver,
@@ -111,7 +117,9 @@ export const JobRow = memo(function JobRow({
 
   return (
     <article
-      className="rounded-2xl border border-white/[0.06] bg-[#1f1f1f] px-4 py-3.5"
+      className={`rounded-2xl border bg-[#1f1f1f] px-4 py-3.5 ${
+        selected ? "border-[#1db954]/40" : "border-white/[0.06]"
+      }`}
       draggable={draggable && canReorder}
       onDragStart={draggable && canReorder ? onDragStart : undefined}
       onDragOver={draggable ? onDragOver : undefined}
@@ -119,6 +127,18 @@ export const JobRow = memo(function JobRow({
       onDragEnd={draggable ? onDragEnd : undefined}
     >
       <div className="flex items-start gap-3">
+        {selectable && (
+          <label className="mt-3 flex cursor-pointer items-center">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => onToggleSelect?.()}
+              className="h-4 w-4 rounded border-zinc-600 bg-[#121212] accent-[#1db954]"
+              aria-label={`Selecionar ${job.fileName}`}
+            />
+          </label>
+        )}
+
         {draggable && canReorder && (
           <div
             className="mt-2 cursor-grab text-zinc-600 active:cursor-grabbing"
@@ -282,6 +302,8 @@ export const JobRow = memo(function JobRow({
     prev.job.fileName === next.job.fileName &&
     prev.isActive === next.isActive &&
     prev.showQueueActions === next.showQueueActions &&
+    prev.selectable === next.selectable &&
+    prev.selected === next.selected &&
     prev.draggable === next.draggable &&
     prev.metrics?.speedBytesPerSec === next.metrics?.speedBytesPerSec &&
     prev.metrics?.etaSeconds === next.metrics?.etaSeconds

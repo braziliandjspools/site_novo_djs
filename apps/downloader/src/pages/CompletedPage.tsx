@@ -6,7 +6,7 @@ import { openPlatform } from "../lib/open-site";
 import { EmptyQueueState } from "../components/downloads/EmptyQueueState";
 
 export function CompletedPage() {
-  const { jobs, loading, error } = useServerJobs({ status: "COMPLETED", limit: 100, pollMs: 5000 });
+  const { jobs, loading, error } = useServerJobs({ status: "COMPLETED", limit: 500, pollMs: 5000 });
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">

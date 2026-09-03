@@ -459,7 +459,7 @@ export class DownloadManager {
 
   pauseJob(jobId: number) {
     const job = this.jobs.get(jobId);
-    if (!job || !["RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status)) return;
+    if (!job || !["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status)) return;
 
     this.userPausedJobIds.add(jobId);
     this.schedulePausedJobIds.delete(jobId);
@@ -625,6 +625,162 @@ export class DownloadManager {
     this.persistLocalQueue();
     this.notify(true);
     void this.dismissJobRemote(jobId);
+  }
+
+  /** Pausar vários jobs — sync com backend em uma requisição quando possível. */
+  pauseJobs(jobIds: number[]) {
+    const ids = [...new Set(jobIds)].filter((id) => {
+      const job = this.jobs.get(id);
+      return Boolean(job && ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status));
+    });
+    if (ids.length === 0) return;
+
+    for (const jobId of ids) {
+      const job = this.jobs.get(jobId);
+      if (!job) continue;
+      this.userPausedJobIds.add(jobId);
+      this.schedulePausedJobIds.delete(jobId);
+      if (this.activeJobIds.has(jobId)) {
+        void cancelNativeDownload({
+          jobId,
+          fileName: job.fileName,
+          relativePath: job.relativePath,
+          deletePart: false,
+        });
+      } else {
+        this.jobs.set(jobId, { ...job, status: "PAUSED", error: null });
+      }
+    }
+    this.persistLocalQueue();
+    this.notify(true);
+    void this.runBatchAction("pause", ids);
+  }
+
+  resumeJobs(jobIds: number[]) {
+    const ids = [...new Set(jobIds)].filter((id) => this.jobs.get(id)?.status === "PAUSED");
+    if (ids.length === 0) return;
+
+    for (const jobId of ids) {
+      const job = this.jobs.get(jobId);
+      if (!job) continue;
+      this.userPausedJobIds.delete(jobId);
+      this.schedulePausedJobIds.delete(jobId);
+      this.jobs.set(jobId, { ...job, status: "RECEIVED", error: null });
+    }
+    this.persistLocalQueue();
+    this.notify(true);
+    void this.runBatchAction("resume", ids).then(() => {
+      void this.processQueue(true);
+    });
+  }
+
+  cancelJobs(jobIds: number[]) {
+    const ids = [...new Set(jobIds)].filter((id) => {
+      const job = this.jobs.get(id);
+      return Boolean(job && ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status));
+    });
+    if (ids.length === 0) return;
+
+    for (const jobId of ids) {
+      const job = this.jobs.get(jobId);
+      if (!job) continue;
+      this.userPausedJobIds.delete(jobId);
+      this.schedulePausedJobIds.delete(jobId);
+      this.retryAttempts.delete(jobId);
+      if (this.activeJobIds.has(jobId)) {
+        void cancelNativeDownload({
+          jobId,
+          fileName: job.fileName,
+          relativePath: job.relativePath,
+          deletePart: true,
+        });
+      }
+      this.jobs.delete(jobId);
+      this.activeJobIds.delete(jobId);
+      this.removeFromQueueOrder(jobId);
+      this.progressTracker.clear(jobId);
+      this.lastProgressSync.delete(jobId);
+    }
+    this.persistLocalQueue();
+    this.notify(true);
+    void this.runBatchAction("cancel", ids).then(() => {
+      void this.processQueue();
+    });
+  }
+
+  retryJobs(jobIds: number[]) {
+    const unique = [...new Set(jobIds)];
+    if (unique.length === 0) return;
+
+    for (const jobId of unique) {
+      const job = this.jobs.get(jobId);
+      if (!job || job.status !== "FAILED") continue;
+      this.retryAttempts.delete(jobId);
+      this.userPausedJobIds.delete(jobId);
+      this.schedulePausedJobIds.delete(jobId);
+      this.jobs.set(jobId, {
+        ...job,
+        status: "PENDING",
+        progress: 0,
+        downloadedBytes: "0",
+        error: null,
+        deviceId: null,
+        deviceName: null,
+        claimedAt: null,
+        startedAt: null,
+        completedAt: null,
+      });
+    }
+    this.persistLocalQueue();
+    this.notify(true);
+    void this.runBatchAction("retry", unique).then(() => {
+      void this.processQueue(true);
+    });
+  }
+
+  dismissJobs(jobIds: number[]) {
+    const unique = [...new Set(jobIds)];
+    if (unique.length === 0) return;
+
+    for (const jobId of unique) {
+      const job = this.jobs.get(jobId);
+      if (!job || !["FAILED", "CANCELLED", "COMPLETED"].includes(job.status)) continue;
+      this.userPausedJobIds.delete(jobId);
+      this.schedulePausedJobIds.delete(jobId);
+      this.retryAttempts.delete(jobId);
+      this.jobs.delete(jobId);
+      this.removeFromQueueOrder(jobId);
+    }
+    this.persistLocalQueue();
+    this.notify(true);
+    void this.runBatchAction("dismiss", unique);
+  }
+
+  private async runBatchAction(
+    action: "pause" | "resume" | "cancel" | "retry" | "dismiss",
+    jobIds: number[],
+  ) {
+    if (!this.transport || jobIds.length === 0) return;
+    try {
+      if (this.transport.batchActions) {
+        await this.transport.batchActions(action, jobIds);
+        return;
+      }
+      // Fallback: ainda evita sequência serial — Promise.all em paralelo.
+      await Promise.all(
+        jobIds.map(async (jobId) => {
+          if (action === "pause") await this.transport!.updateJob(jobId, { status: "PAUSED", error: null });
+          else if (action === "resume") {
+            await this.transport!.updateJob(jobId, { status: "RECEIVED", error: null });
+          } else if (action === "cancel") await this.transport!.cancelJob(jobId);
+          else if (action === "retry") await this.transport!.retryJob(jobId);
+          else await this.transport!.dismissJob(jobId);
+        }),
+      );
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : "Falha na ação em lote.";
+      this.notify();
+    }
   }
 
   private canReorder(jobId: number) {

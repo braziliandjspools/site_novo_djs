@@ -9,6 +9,9 @@ type QueueJobListProps = {
   jobMetrics: Record<number, JobProgressMetrics>;
   showQueueActions?: boolean;
   enableDragReorder?: boolean;
+  selectable?: boolean;
+  selectedIds?: Set<number>;
+  onToggleSelect?: (jobId: number) => void;
   onPause: (jobId: number) => void;
   onResume: (jobId: number) => void;
   onCancel: (jobId: number) => void;
@@ -28,6 +31,9 @@ export function QueueJobList({
   jobMetrics,
   showQueueActions = true,
   enableDragReorder = true,
+  selectable = false,
+  selectedIds,
+  onToggleSelect,
   onPause,
   onResume,
   onCancel,
@@ -72,6 +78,9 @@ export function QueueJobList({
             isActive={activeJobIds.includes(job.id)}
             metrics={jobMetrics[job.id]}
             showQueueActions={showQueueActions}
+            selectable={selectable}
+            selected={selectedIds?.has(job.id) ?? false}
+            onToggleSelect={onToggleSelect ? () => onToggleSelect(job.id) : undefined}
             draggable={enableDragReorder && showQueueActions}
             onDragStart={(event) => {
               dragIdRef.current = job.id;

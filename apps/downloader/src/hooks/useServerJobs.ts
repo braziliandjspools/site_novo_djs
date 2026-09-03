@@ -8,15 +8,17 @@ export function useServerJobs(filters: {
   status?: string;
   limit?: number;
   pollMs?: number;
+  enabled?: boolean;
 }) {
   const { sessionToken, status } = useAuth();
   const [jobs, setJobs] = useState<DownloadJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const lastManagerKey = useRef("");
+  const enabled = filters.enabled !== false;
 
   const refresh = useCallback(async () => {
-    if (!sessionToken || status !== "authenticated") {
+    if (!enabled || !sessionToken || status !== "authenticated") {
       setLoading(false);
       return;
     }
@@ -32,27 +34,27 @@ export function useServerJobs(filters: {
     } finally {
       setLoading(false);
     }
-  }, [filters.limit, filters.status, sessionToken, status]);
+  }, [enabled, filters.limit, filters.status, sessionToken, status]);
 
   useEffect(() => {
     void refresh();
-    if (!filters.pollMs || !sessionToken) return;
+    if (!enabled || !filters.pollMs || !sessionToken) return;
     const timer = setInterval(() => {
       void refresh();
     }, filters.pollMs);
     return () => clearInterval(timer);
-  }, [filters.pollMs, refresh, sessionToken]);
+  }, [enabled, filters.pollMs, refresh, sessionToken]);
 
   /** Atualiza quando a fila local muda de status/contagem (não a cada tick de progresso). */
   useEffect(() => {
-    if (!sessionToken || status !== "authenticated") return;
+    if (!enabled || !sessionToken || status !== "authenticated") return;
     return downloadManager.subscribe((snapshot) => {
       const key = `${snapshot.pendingCount}|${snapshot.jobs.map((job) => `${job.id}:${job.status}`).join(",")}`;
       if (key === lastManagerKey.current) return;
       lastManagerKey.current = key;
       void refresh();
     });
-  }, [refresh, sessionToken, status]);
+  }, [enabled, refresh, sessionToken, status]);
 
   return { jobs, loading, error, refresh };
 }

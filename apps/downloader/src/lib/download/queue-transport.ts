@@ -1,5 +1,6 @@
 import { ApiError } from "../api/client";
 import {
+  batchJobActions as apiBatchJobActions,
   claimJob as apiClaimJob,
   cancelJob as apiCancelJob,
   dismissJob as apiDismissJob,
@@ -52,6 +53,11 @@ export function createRestQueueTransport(token: string, deviceId: string): Queue
     async dismissJob(jobId: number) {
       const response = await apiDismissJob(token, jobId);
       return response.job;
+    },
+
+    async batchActions(action, jobIds) {
+      const response = await apiBatchJobActions(token, action, jobIds);
+      return { affected: response.affected };
     },
 
     async heartbeat(): Promise<void> {

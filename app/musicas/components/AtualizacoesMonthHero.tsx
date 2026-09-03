@@ -29,7 +29,7 @@ export function AtualizacoesMonthHero({
     mode === "weeks" ? "Pack do mês" : mode === "week-styles" ? "Semana" : "Estilos";
   const description =
     mode === "weeks"
-      ? "Semanas organizadas por data. Abra uma semana para ver os estilos."
+      ? "Calendário do mês em tempo real. Cada semana mostra os dias (ex.: Semana 01 = 1–7)."
       : mode === "week-styles"
         ? "Estilos desta semana. Abra uma pasta para ouvir e baixar."
         : "Estilos organizados por pasta. Abra, ouça e baixe as faixas com um clique.";
