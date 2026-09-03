@@ -1,50 +1,29 @@
-# Tauri Updater — Brazilian Packs Downloader
+# Atualizações do BRS Downloader
 
-Estrutura preparada, **desativada por padrão** (`plugins.updater.active: false` em `src-tauri/tauri.conf.json`).
+O app consulta `GET /api/downloader/updates/latest?current=0.2.0` e avisa no **sininho** quando houver versão mais nova.
 
-Não há servidor de updates configurado. Ative somente quando houver endpoint real e chaves de assinatura.
+## Publicar um novo .exe (dev)
 
-## 1. Gerar par de chaves (uma vez)
+1. Gere o instalador (`npm run tauri build` / pipeline de release).
+2. Hospede o `.exe` (R2, S3, Drive público, etc.).
+3. No **Vercel → Environment Variables**, defina:
 
-```powershell
-cd apps/downloader
-npm run tauri signer generate -w "$env:USERPROFILE\.tauri\brazilian-packs-downloader.key"
+```
+DOWNLOADER_LATEST_VERSION=0.3.0
+DOWNLOADER_DOWNLOAD_URL=https://seu-cdn/.../BRS-Downloader_0.3.0_x64-setup.exe
+DOWNLOADER_RELEASE_NOTES=Correção de login e sininho unificado
+DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-03T20:00:00.000Z
 ```
 
-Guarde a chave privada em local seguro. Perder a chave impede publicar updates para usuários já instalados.
+4. Faça redeploy do site.
+5. No app: Configurações → **Verificar atualizações**, ou aguarde a checagem automática (a cada 6h se a opção estiver ligada).
 
-## 2. Configurar `tauri.conf.json`
+O usuário clica **Baixar e atualizar** no sininho → abre o instalador → conclui a instalação.
 
-```json
-{
-  "bundle": {
-    "createUpdaterArtifacts": true
-  },
-  "plugins": {
-    "updater": {
-      "active": true,
-      "pubkey": "<conteúdo de .key.pub>",
-      "endpoints": [
-        "https://SEU_DOMINIO/api/downloader/updates/{{target}}/{{arch}}/{{current_version}}"
-      ]
-    }
-  }
-}
-```
+## Preferência no app
 
-Substitua `SEU_DOMINIO` pelo host real quando o endpoint existir no backend.
+Configurações → Windows → **Verificar atualizações do aplicativo** (padrão: ligado).
 
-## 3. Build com assinatura
+## Updater nativo Tauri (assinado)
 
-```powershell
-$env:TAURI_SIGNING_PRIVATE_KEY = "$env:USERPROFILE\.tauri\brazilian-packs-downloader.key"
-npm run downloader:release
-```
-
-## 4. Formato esperado do endpoint (referência)
-
-O servidor deve responder JSON no formato Tauri v2 quando houver update disponível. Implemente no site antes de ativar `active: true`.
-
-## 5. Cliente (frontend)
-
-`src/lib/updater.ts` expõe `checkForAppUpdates()` — só executa se `VITE_UPDATER_ENABLED=true` no build.
+O fluxo com `tauri-plugin-updater` + pubkey permanece opcional (ver histórico / `plugins.updater` em `tauri.conf.json`). O manifesto via site cobre o caso “dev lança .exe e o app avisa” sem assinatura de update.

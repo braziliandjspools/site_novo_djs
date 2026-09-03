@@ -46,3 +46,5 @@ apps/downloader/node_modules
 apps/downloader/dist
 apps/downloader/src-tauri/target
 apps/downloader/release
+
+.vercel

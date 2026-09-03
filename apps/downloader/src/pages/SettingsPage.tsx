@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, FolderOpen, Info, LogOut, User } from "lucide-react";
+import { Download, ExternalLink, FolderOpen, Info, Loader2, LogOut, User } from "lucide-react";
 import { Panel } from "../components/ui/Panel";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
 import { APP_VERSION, DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "../lib/api/config";
 import { APP_CHANGELOG, APP_CORE_VERSION, RUSTC_VERSION, WEBUI_VERSION } from "../lib/app-info";
-import { isUpdaterConfigured } from "../lib/updater";
+import { checkForAppUpdates, openUpdateDownload } from "../lib/updater";
 import { openPlatform } from "../lib/open-site";
 import { BP_MUSICAS_URL, BP_PRIVACY_CONDUCT_URL, BP_PRIVACY_COOKIES_URL, BP_PRIVACY_DOWNLOADER_URL, SITE_NAME } from "../lib/site";
 import { downloadManager } from "../lib/download/download-manager";
@@ -86,6 +86,9 @@ export function SettingsPage() {
   const [prefs, setPrefs] = useState<AppPreferences>(DEFAULT_PREFERENCES);
   const [prefsError, setPrefsError] = useState<string | null>(null);
   const [customMbpsDraft, setCustomMbpsDraft] = useState("3");
+  const [updateBusy, setUpdateBusy] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null);
+  const [latestDownloadUrl, setLatestDownloadUrl] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -229,9 +232,15 @@ export function SettingsPage() {
           />
           <PreferenceToggle
             label="Mostrar notificações"
-            description="Alertas nativos do Windows para novas músicas, conclusões e falhas."
+            description="Alertas nativos do Windows e entradas no sininho para novas músicas, conclusões e falhas."
             checked={prefs.showNotifications}
             onChange={(checked) => void updatePreference({ showNotifications: checked })}
+          />
+          <PreferenceToggle
+            label="Verificar atualizações do aplicativo"
+            description="O app consulta o site periodicamente e avisa no sininho quando houver um novo instalador (.exe)."
+            checked={prefs.checkAppUpdates}
+            onChange={(checked) => void updatePreference({ checkAppUpdates: checked })}
           />
         </div>
         {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
@@ -481,17 +490,44 @@ export function SettingsPage() {
         {prefsError && <p className="mt-2 text-xs text-red-400">{prefsError}</p>}
       </Panel>
 
-      <Panel title="Aplicativo" description="Versão instalada e conexão com o site.">
+      <Panel title="Aplicativo" description="Versão instalada, atualizações e conexão com o site.">
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
-            <dt className="text-zinc-500">Versão</dt>
+            <dt className="text-zinc-500">Versão instalada</dt>
             <dd className="font-mono font-semibold text-white">{APP_VERSION}</dd>
           </div>
-          <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
-            <dt className="text-zinc-500">Atualizações automáticas</dt>
-            <dd className="text-zinc-300">{isUpdaterConfigured() ? "Configurado" : "Desativado"}</dd>
-          </div>
         </dl>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            disabled={updateBusy}
+            onClick={() => {
+              void (async () => {
+                setUpdateBusy(true);
+                setUpdateMessage(null);
+                try {
+                  const result = await checkForAppUpdates({ silent: false, notifyFeed: true });
+                  setUpdateMessage(result.message);
+                  setLatestDownloadUrl(result.latest?.downloadUrl ?? null);
+                } finally {
+                  setUpdateBusy(false);
+                }
+              })();
+            }}
+          >
+            {updateBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Verificar atualizações
+          </Button>
+          {latestDownloadUrl && (
+            <Button variant="primary" onClick={() => void openUpdateDownload(latestDownloadUrl)}>
+              <Download className="h-4 w-4" />
+              Baixar nova versão
+            </Button>
+          )}
+        </div>
+        {updateMessage && <p className="mt-3 text-xs text-zinc-400">{updateMessage}</p>}
+
         <div className="mt-4">
           <label htmlFor="apiBaseUrl" className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
             URL do site (API)

@@ -88,6 +88,9 @@ pub struct AppPreferences {
     /// Após concluir os downloads de um pack/pasta, criar um ZIP (opcional).
     #[serde(default)]
     pub zip_compress_downloads: bool,
+    /// Verificar novas versões publicadas no site e avisar no sininho.
+    #[serde(default = "default_true")]
+    pub check_app_updates: bool,
 }
 
 fn default_true() -> bool {
@@ -147,6 +150,7 @@ impl Default for AppPreferences {
             schedule_end: default_schedule_end(),
             schedule_allow_manual_override: true,
             zip_compress_downloads: false,
+            check_app_updates: true,
         }
     }
 }

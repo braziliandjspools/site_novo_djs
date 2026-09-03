@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import type { AppRoute } from "./Sidebar";
 import { Sidebar } from "./Sidebar";
-import { PlanBell } from "./PlanBell";
+import { NotificationBell } from "./NotificationBell";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo, PlanBillingInfo } from "../../context/AuthContext";
+import { useAppNotifications } from "../../hooks/useAppNotifications";
 
 type AppShellProps = {
   activeRoute: AppRoute;
@@ -38,6 +39,8 @@ export function AppShell({
   onLogout,
   children,
 }: AppShellProps) {
+  useAppNotifications(billing);
+
   return (
     <div className="flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
       <Sidebar
@@ -57,7 +60,10 @@ export function AppShell({
             <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h1>
             {subtitle && <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>}
           </div>
-          <PlanBell billing={billing} onOpenPortal={() => onNavigate("portal")} />
+          <NotificationBell
+            onOpenPortal={() => onNavigate("portal")}
+            onOpenSettings={() => onNavigate("settings")}
+          />
         </header>
 
         <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-7 py-7">

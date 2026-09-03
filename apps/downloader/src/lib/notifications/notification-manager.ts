@@ -5,6 +5,7 @@ import {
 } from "@tauri-apps/plugin-notification";
 import type { DownloadManagerSnapshot } from "../download/types";
 import { isDesktopRuntime } from "../native/app-preferences";
+import { inAppNotificationFeed } from "./in-app-feed";
 
 const BATCH_MS = 4_000;
 
@@ -74,11 +75,12 @@ export class NotificationManager {
   private queueNewJob(fileName: string) {
     this.enqueueBatch(this.newJobsBatch, fileName, () => {
       if (this.newJobsBatch.count === 1) {
-        void this.notify("Nova música recebida", this.newJobsBatch.lastTitle);
+        void this.notify("Nova música recebida", this.newJobsBatch.lastTitle, "info");
       } else {
         void this.notify(
           "Novas músicas recebidas",
           `${this.newJobsBatch.count} músicas entraram na fila`,
+          "info",
         );
       }
     });
@@ -87,11 +89,12 @@ export class NotificationManager {
   private queueCompleted(fileName: string) {
     this.enqueueBatch(this.completedBatch, fileName, () => {
       if (this.completedBatch.count === 1) {
-        void this.notify("Download concluído", this.completedBatch.lastTitle);
+        void this.notify("Download concluído", this.completedBatch.lastTitle, "success");
       } else {
         void this.notify(
           "Downloads concluídos",
           `${this.completedBatch.count} músicas foram baixadas`,
+          "success",
         );
       }
     });
@@ -100,11 +103,12 @@ export class NotificationManager {
   private queueFailed(fileName: string) {
     this.enqueueBatch(this.failedBatch, fileName, () => {
       if (this.failedBatch.count === 1) {
-        void this.notify("Falha ao baixar arquivo", this.failedBatch.lastTitle);
+        void this.notify("Falha ao baixar arquivo", this.failedBatch.lastTitle, "error");
       } else {
         void this.notify(
           "Falhas no download",
           `${this.failedBatch.count} arquivos falharam`,
+          "error",
         );
       }
     });
@@ -122,12 +126,24 @@ export class NotificationManager {
     }, BATCH_MS);
   }
 
-  private async notify(title: string, body: string) {
+  private async notify(
+    title: string,
+    body: string,
+    severity: "info" | "success" | "warning" | "error",
+  ) {
     if (!this.enabled) return;
+
+    inAppNotificationFeed.push({
+      kind: "download",
+      severity,
+      title,
+      body,
+    });
+
     try {
       sendNotification({ title, body });
     } catch {
-      /* notificações indisponíveis */
+      /* notificações do sistema indisponíveis */
     }
   }
 }
