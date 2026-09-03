@@ -19,20 +19,19 @@ export default async function PackDownloadLandingPage({
 
   const packSlug = segments.join("/");
   const preview = await previewPackBySlug(packSlug);
+  const failed = "error" in preview;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-10">
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Link do Downloader</p>
         <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-          {"error" in preview ? "Pasta não encontrada" : preview.folder.displayName}
+          {failed ? "Pasta não encontrada" : preview.folder.displayName}
         </h1>
-        {"ok" in preview && (
-          <p className="mt-2 text-sm text-zinc-400">{preview.folder.relativePath}</p>
-        )}
+        {!failed && <p className="mt-2 text-sm text-zinc-400">{preview.folder.relativePath}</p>}
       </div>
 
-      {"error" in preview ? (
+      {failed ? (
         <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {preview.error}
         </p>
