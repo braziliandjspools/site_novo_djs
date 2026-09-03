@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib/vip-music-slugs";
 
 export function monthStatusClass(status: MonthStatus) {
@@ -14,6 +15,7 @@ type AtualizacoesMonthHeroProps = {
   styleCount: number;
   hasVip: boolean;
   mode?: HeroMode;
+  actions?: ReactNode;
 };
 
 export function AtualizacoesMonthHero({
@@ -21,6 +23,7 @@ export function AtualizacoesMonthHero({
   styleCount,
   hasVip,
   mode = "styles",
+  actions,
 }: AtualizacoesMonthHeroProps) {
   const title = displayFolderName(folderName);
   const { label, status } = parseMonthStatus(folderName);
@@ -56,6 +59,7 @@ export function AtualizacoesMonthHero({
             )}
           </div>
           <p className="mt-3 max-w-2xl text-sm text-zinc-400">{description}</p>
+          {actions ? <div className="mt-4 flex flex-wrap gap-2">{actions}</div> : null}
         </div>
 
         <div className="flex flex-shrink-0 flex-wrap gap-2">

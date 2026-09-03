@@ -2,12 +2,25 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Home } from "lucide-react";
-import { displayFolderName, folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
+import {
+  displayFolderName,
+  folderHref,
+  slugifyFolderName,
+  sortFoldersByWeek,
+} from "../../lib/vip-music-slugs";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
+
+type NavItem = {
+  href: string;
+  label: string;
+};
 
 type AtualizacoesMonthFooterNavProps = {
   monthSlug: string;
   months: VipMusicFolder[];
+  /** Semanas do mês atual (quando estamos dentro de uma semana). */
+  weeks?: VipMusicFolder[];
+  weekSlug?: string;
 };
 
 function navButtonClass(enabled: boolean) {
@@ -18,23 +31,90 @@ function navButtonClass(enabled: boolean) {
   }`;
 }
 
-export function AtualizacoesMonthFooterNav({ monthSlug, months }: AtualizacoesMonthFooterNavProps) {
-  const slugs = months.map((folder) => ({
+function toMonthItems(months: VipMusicFolder[]) {
+  return months.map((folder) => ({
     slug: slugifyFolderName(folder.name),
     label: displayFolderName(folder.name),
   }));
+}
 
-  const currentIndex = slugs.findIndex((month) => month.slug === monthSlug);
-  const previous = currentIndex > 0 ? slugs[currentIndex - 1] : null;
-  const next = currentIndex >= 0 && currentIndex < slugs.length - 1 ? slugs[currentIndex + 1] : null;
+function toWeekItems(monthSlug: string, weeks: VipMusicFolder[]) {
+  return sortFoldersByWeek(weeks).map((folder) => ({
+    slug: slugifyFolderName(folder.name),
+    label: displayFolderName(folder.name),
+    href: folderHref([monthSlug, slugifyFolderName(folder.name)]),
+  }));
+}
+
+export function AtualizacoesMonthFooterNav({
+  monthSlug,
+  months,
+  weeks = [],
+  weekSlug,
+}: AtualizacoesMonthFooterNavProps) {
+  const monthItems = toMonthItems(months);
+  const currentMonthIndex = monthItems.findIndex((month) => month.slug === monthSlug);
+  const previousMonth =
+    currentMonthIndex > 0 ? monthItems[currentMonthIndex - 1] : null;
+  const nextMonth =
+    currentMonthIndex >= 0 && currentMonthIndex < monthItems.length - 1
+      ? monthItems[currentMonthIndex + 1]
+      : null;
+
+  const weekItems = weekSlug && weeks.length > 0 ? toWeekItems(monthSlug, weeks) : [];
+  const currentWeekIndex = weekItems.findIndex((week) => week.slug === weekSlug);
+
+  let previous: NavItem | null = null;
+  let next: NavItem | null = null;
+  let ariaLabel = "Navegação entre meses";
+
+  if (weekItems.length > 0 && currentWeekIndex >= 0) {
+    ariaLabel = "Navegação entre semanas e meses";
+    if (currentWeekIndex > 0) {
+      previous = {
+        href: weekItems[currentWeekIndex - 1].href,
+        label: weekItems[currentWeekIndex - 1].label,
+      };
+    } else if (previousMonth) {
+      previous = {
+        href: folderHref([previousMonth.slug]),
+        label: previousMonth.label,
+      };
+    }
+
+    if (currentWeekIndex < weekItems.length - 1) {
+      next = {
+        href: weekItems[currentWeekIndex + 1].href,
+        label: weekItems[currentWeekIndex + 1].label,
+      };
+    } else if (nextMonth) {
+      next = {
+        href: folderHref([nextMonth.slug]),
+        label: nextMonth.label,
+      };
+    }
+  } else {
+    if (previousMonth) {
+      previous = {
+        href: folderHref([previousMonth.slug]),
+        label: previousMonth.label,
+      };
+    }
+    if (nextMonth) {
+      next = {
+        href: folderHref([nextMonth.slug]),
+        label: nextMonth.label,
+      };
+    }
+  }
 
   return (
     <nav
       className="mt-8 flex flex-wrap items-center justify-center gap-2 border-t border-zinc-800/90 pt-6 sm:gap-3"
-      aria-label="Navegação entre meses"
+      aria-label={ariaLabel}
     >
       {previous ? (
-        <Link href={folderHref([previous.slug])} className={navButtonClass(true)}>
+        <Link href={previous.href} className={navButtonClass(true)}>
           <ChevronLeft className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{previous.label}</span>
         </Link>
@@ -55,7 +135,7 @@ export function AtualizacoesMonthFooterNav({ monthSlug, months }: AtualizacoesMo
       </Link>
 
       {next ? (
-        <Link href={folderHref([next.slug])} className={navButtonClass(true)}>
+        <Link href={next.href} className={navButtonClass(true)}>
           <span className="truncate">{next.label}</span>
           <ChevronRight className="h-4 w-4 flex-shrink-0" />
         </Link>

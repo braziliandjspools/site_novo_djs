@@ -19,6 +19,7 @@ import {
 import type { DownloadJob } from "../../lib/api/jobs";
 import type { JobProgressMetrics } from "../../lib/download/types";
 import { formatBytes, formatEta, formatSpeed } from "../../lib/download/progress-tracker";
+import { extractJobOrgMeta } from "../../lib/download/job-organization";
 import { Button } from "../ui/Button";
 
 type JobRowProps = {
@@ -114,6 +115,14 @@ export const JobRow = memo(function JobRow({
   const progress = Math.min(100, Math.max(0, Number(job.progress) || 0));
   const indeterminate = downloading && progress <= 0;
   const canReorder = showQueueActions && !downloading && (waiting || paused || failed);
+  const org = extractJobOrgMeta(job);
+  const orgChips = [
+    org.genre,
+    org.week,
+    org.month,
+    org.pool,
+    org.editType,
+  ].filter((value, index, list): value is string => Boolean(value) && list.indexOf(value) === index);
 
   return (
     <article
@@ -180,6 +189,19 @@ export const JobRow = memo(function JobRow({
 
           {job.relativePath && (
             <p className="mt-1 truncate text-xs text-zinc-600">{job.relativePath}</p>
+          )}
+
+          {orgChips.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {orgChips.map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-md bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
           )}
 
           {(downloading || paused) && (
@@ -300,6 +322,7 @@ export const JobRow = memo(function JobRow({
     prev.job.totalBytes === next.job.totalBytes &&
     prev.job.error === next.job.error &&
     prev.job.fileName === next.job.fileName &&
+    prev.job.relativePath === next.job.relativePath &&
     prev.isActive === next.isActive &&
     prev.showQueueActions === next.showQueueActions &&
     prev.selectable === next.selectable &&

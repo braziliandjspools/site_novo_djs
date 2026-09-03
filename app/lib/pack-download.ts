@@ -114,7 +114,11 @@ export async function previewPackBySlug(slug: string) {
   };
 }
 
-export async function importPackJobsBySlug(portalUserId: number, slug: string) {
+export async function importPackJobsBySlug(
+  portalUserId: number,
+  slug: string,
+  options?: { targetDeviceId?: string | null },
+) {
   const folder = await resolvePackFolderBySlug(slug);
   if (!folder) {
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
@@ -125,13 +129,16 @@ export async function importPackJobsBySlug(portalUserId: number, slug: string) {
     return { error: "Esta pasta não possui faixas para baixar." as const };
   }
 
+  const targetDeviceId = options?.targetDeviceId?.trim() || null;
   const inputs: DownloadJobInput[] = tracks.map((track) => ({
     fileId: track.fileId,
     fileName: track.fileName,
     relativePath: track.relativePath,
     provider: "GOOGLE_DRIVE",
+    ...(targetDeviceId ? { targetDeviceId } : {}),
   }));
 
+  // createDownloadJobsBatch já parte em chunks no Prisma; evita limite HTTP de 500.
   const jobs = await createDownloadJobsBatch(portalUserId, inputs);
   return {
     ok: true as const,

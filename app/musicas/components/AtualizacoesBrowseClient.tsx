@@ -16,6 +16,7 @@ import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { StyleFolderAccordion } from "./StyleFolderAccordion";
 import { WeekFolderGrid } from "./WeekFolderGrid";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { pushRecentFolder } from "../lib/music-library-storage";
@@ -45,6 +46,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [error, setError] = useState<string | null>(null);
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
+  const [siblingWeeks, setSiblingWeeks] = useState<VipMusicFolder[]>([]);
 
   const slugPath = slugSegments.join("/");
   const monthSlug = slugSegments[0] ?? "";
@@ -58,6 +60,31 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       })
       .catch(() => setMonths([]));
   }, []);
+
+  /** Semanas irmãs para o rodapé navegar 01→02→03… antes do próximo mês. */
+  useEffect(() => {
+    if (!monthSlug || !weekSlug) {
+      setSiblingWeeks([]);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/musicas/resolve?slug=${encodeURIComponent(monthSlug)}`, { cache: "no-store" })
+      .then(async (res) => {
+        const body = (await res.json()) as ResolveResponse & { error?: string };
+        if (!res.ok || cancelled) return;
+        if (body.level === "folders" && childrenAreWeekFolders(body.items)) {
+          setSiblingWeeks(body.items);
+        } else {
+          setSiblingWeeks([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSiblingWeeks([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [monthSlug, weekSlug]);
 
   useEffect(() => {
     setLoading(true);
@@ -160,6 +187,19 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           styleCount={data.items.length}
           hasVip={playbackEnabled}
           mode={showingWeeks ? "weeks" : weekSlug ? "week-styles" : "styles"}
+          actions={
+            slugSegments.length === 1 ? (
+              <SendPackToDownloaderButton
+                slug={monthSlug}
+                label="Enviar mês inteiro ao Downloader"
+              />
+            ) : weekSlug && slugSegments.length === 2 ? (
+              <SendPackToDownloaderButton
+                slug={`${monthSlug}/${weekSlug}`}
+                label="Enviar semana ao Downloader"
+              />
+            ) : null
+          }
         />
       )}
 
@@ -185,7 +225,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             weeks={data.items}
             newWeekIds={newChildIds}
           />
-          <AtualizacoesMonthFooterNav monthSlug={monthSlug} months={months} />
+          <AtualizacoesMonthFooterNav
+            monthSlug={monthSlug}
+            months={months}
+            weeks={showingWeeks ? data.items : siblingWeeks}
+            weekSlug={weekSlug}
+          />
         </>
       )}
 
@@ -222,7 +267,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               ))
             )}
           </div>
-          <AtualizacoesMonthFooterNav monthSlug={monthSlug} months={months} />
+          <AtualizacoesMonthFooterNav
+            monthSlug={monthSlug}
+            months={months}
+            weeks={siblingWeeks}
+            weekSlug={weekSlug}
+          />
         </>
       )}
     </div>

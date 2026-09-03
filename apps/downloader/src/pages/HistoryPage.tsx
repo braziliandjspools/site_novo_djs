@@ -16,6 +16,15 @@ import {
   filterFinderJobs,
   type DownloadFinderFilter,
 } from "../lib/download/job-finder";
+import {
+  EMPTY_ORG_FILTERS,
+  collectOrgFacets,
+  filterJobsByOrgMeta,
+  groupJobsByOrg,
+  type OrgGroupBy,
+  type OrgMetaFilters,
+} from "../lib/download/job-organization";
+import { DownloadOrgToolbar } from "../components/downloads/DownloadOrgToolbar";
 
 export function HistoryPage() {
   const { sessionToken } = useAuth();
@@ -33,16 +42,27 @@ export function HistoryPage() {
   const deferredQuery = useDeferredValue(query);
   const [statusFilter, setStatusFilter] = useState<DownloadFinderFilter>("all");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
+  const [orgFilters, setOrgFilters] = useState<OrgMetaFilters>({ ...EMPTY_ORG_FILTERS });
+  const [groupBy, setGroupBy] = useState<OrgGroupBy>("none");
 
   const historyJobs = useMemo(
     () => jobs.filter((job) => job.status === "COMPLETED" || job.status === "FAILED"),
     [jobs],
   );
 
-  const { visible: filteredJobs, counts } = useMemo(
+  const orgFacets = useMemo(() => collectOrgFacets(historyJobs), [historyJobs]);
+
+  const { visible: statusFiltered, counts } = useMemo(
     () => filterFinderJobs(historyJobs, { query: deferredQuery, filter: statusFilter }),
     [deferredQuery, historyJobs, statusFilter],
   );
+
+  const filteredJobs = useMemo(
+    () => filterJobsByOrgMeta(statusFiltered, orgFilters),
+    [orgFilters, statusFiltered],
+  );
+
+  const jobGroups = useMemo(() => groupJobsByOrg(filteredJobs, groupBy), [filteredJobs, groupBy]);
 
   useEffect(() => {
     setSelectedIds((prev) => {
@@ -143,6 +163,14 @@ export function HistoryPage() {
         counts={counts}
       />
 
+      <DownloadOrgToolbar
+        facets={orgFacets}
+        filters={orgFilters}
+        groupBy={groupBy}
+        onFiltersChange={setOrgFilters}
+        onGroupByChange={setGroupBy}
+      />
+
       <BulkSelectionBar
         selectedCount={selectedIds.size}
         visibleCount={filteredJobs.length}
@@ -200,51 +228,63 @@ export function HistoryPage() {
             : "Nenhum download corresponde à busca/filtro."}
         </p>
       ) : (
-        <div className="space-y-2">
-          {filteredJobs.map((job) => (
-            <div key={job.id} className="space-y-2">
-              <JobRow
-                job={job}
-                isActive={false}
-                selectable
-                selected={selectedIds.has(job.id)}
-                onToggleSelect={() => toggleSelect(job.id)}
-                onRetry={job.status === "FAILED" ? () => void handleRedownload(job.id) : undefined}
-                onDismiss={
-                  job.status === "FAILED" || job.status === "COMPLETED"
-                    ? () => void handleDismiss(job.id)
-                    : undefined
-                }
-              />
-              <div className="flex flex-wrap gap-2 px-1">
-                <Button
-                  variant="secondary"
-                  className="!h-8 !px-3 !text-[11px]"
-                  disabled={busyId === job.id}
-                  onClick={() => void handleOpenFolder()}
-                >
-                  <FolderOpen className="h-3.5 w-3.5" />
-                  Abrir pasta
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="!h-8 !px-3 !text-[11px]"
-                  disabled={busyId === job.id}
-                  onClick={() => void handleRedownload(job.id)}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Baixar novamente
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="!h-8 !px-3 !text-[11px] text-zinc-400"
-                  disabled={busyId === job.id}
-                  onClick={() => void handleDismiss(job.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Remover do histórico
-                </Button>
-              </div>
+        <div className="space-y-5">
+          {jobGroups.map((group) => (
+            <div key={group.key} className="space-y-2">
+              {groupBy !== "none" && (
+                <div className="flex items-center justify-between gap-2 px-0.5">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">
+                    {group.label}
+                  </p>
+                  <span className="text-[11px] tabular-nums text-zinc-600">{group.jobs.length}</span>
+                </div>
+              )}
+              {group.jobs.map((job) => (
+                <div key={job.id} className="space-y-2">
+                  <JobRow
+                    job={job}
+                    isActive={false}
+                    selectable
+                    selected={selectedIds.has(job.id)}
+                    onToggleSelect={() => toggleSelect(job.id)}
+                    onRetry={job.status === "FAILED" ? () => void handleRedownload(job.id) : undefined}
+                    onDismiss={
+                      job.status === "FAILED" || job.status === "COMPLETED"
+                        ? () => void handleDismiss(job.id)
+                        : undefined
+                    }
+                  />
+                  <div className="flex flex-wrap gap-2 px-1">
+                    <Button
+                      variant="secondary"
+                      className="!h-8 !px-3 !text-[11px]"
+                      disabled={busyId === job.id}
+                      onClick={() => void handleOpenFolder()}
+                    >
+                      <FolderOpen className="h-3.5 w-3.5" />
+                      Abrir pasta
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="!h-8 !px-3 !text-[11px]"
+                      disabled={busyId === job.id}
+                      onClick={() => void handleRedownload(job.id)}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Baixar novamente
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="!h-8 !px-3 !text-[11px] text-zinc-400"
+                      disabled={busyId === job.id}
+                      onClick={() => void handleDismiss(job.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remover do histórico
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>

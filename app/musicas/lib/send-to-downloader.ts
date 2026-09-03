@@ -175,3 +175,50 @@ export async function sendFolderToDownloader(input: {
   }
   return sendTracksToDownloaderBatch(tracks, input);
 }
+
+/**
+ * Envia pasta recursiva (mês/semana/estilo) preservando relativePath
+ * via /api/downloader/pack/import — adequado para mês inteiro.
+ */
+export async function sendPackSlugToDownloader(
+  slug: string,
+  options: Omit<SendOptions, "relativePath"> = {},
+) {
+  const normalized = slug.replace(/^\/+|\/+$/g, "").trim();
+  if (!normalized) {
+    throw new Error("Slug da pasta inválido.");
+  }
+
+  const targetDeviceIds = resolveTargetDeviceIds(options.target, options.devices ?? []);
+  const targets = targetDeviceIds.length > 0 ? targetDeviceIds : [null];
+
+  let totalCount = 0;
+  let folderName: string | undefined;
+  let relativePath: string | undefined;
+
+  for (const targetDeviceId of targets) {
+    const response = await fetch("/api/downloader/pack/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        slug: normalized,
+        ...(targetDeviceId ? { targetDeviceId } : {}),
+      }),
+    });
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      count?: number;
+      folderName?: string;
+      relativePath?: string;
+    };
+    if (!response.ok) {
+      throw new Error(data.error ?? "Não foi possível enviar a pasta para o Downloader.");
+    }
+    totalCount += data.count ?? 0;
+    folderName = data.folderName ?? folderName;
+    relativePath = data.relativePath ?? relativePath;
+  }
+
+  return { count: totalCount, folderName, relativePath };
+}

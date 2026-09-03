@@ -20,6 +20,7 @@ import {
   type CalendarDay,
 } from "../../lib/week-calendar";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 
 type WeekFolderGridProps = {
   monthSlug: string;
@@ -172,6 +173,11 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   <WeekDayStrip days={days} />
                 </Link>
 
+                <SendPackToDownloaderButton
+                  slug={`${monthSlug}/${weekSlug}`}
+                  compact
+                  label="Enviar semana ao Downloader"
+                />
                 <CopyPackLinkButton
                   slugSegments={[monthSlug, weekSlug]}
                   className="!h-8 !w-8"

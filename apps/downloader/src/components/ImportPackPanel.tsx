@@ -69,7 +69,7 @@ export function ImportPackPanel() {
   return (
     <Panel
       title="Importar link do site"
-      description="Cole o link copiado ao lado de uma pasta no acervo VIP. O app valida e enfileira todas as faixas."
+      description="Cole o link do mês, semana ou estilo copiado no acervo VIP. O app valida e enfileira todas as faixas mantendo a estrutura de pastas."
     >
       <div className="space-y-3">
         <label htmlFor="pack-link" className="mb-1 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
@@ -94,7 +94,7 @@ export function ImportPackPanel() {
                   void handleValidate();
                 }
               }}
-              placeholder="https://…/musicas/dl/julho-2024/semana-01/funk"
+              placeholder="https://…/musicas/dl/julho-2024  (mês inteiro) ou …/semana-01/funk"
               className="w-full rounded-lg border border-zinc-800 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-[#1db954]"
             />
           </div>

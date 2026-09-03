@@ -10,6 +10,7 @@ import {
   sortFoldersByMonthDate,
 } from "../../lib/vip-music-slugs";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 
 function statusClass(status: ReturnType<typeof parseMonthStatus>["status"]) {
   if (status === "completo") return "border-[#1ed760]/40 text-[#1ed760]";
@@ -67,6 +68,12 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                   <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200/80">{label}</span>
                 ) : null}
               </Link>
+              <SendPackToDownloaderButton
+                slug={slug}
+                compact
+                label="Enviar mês inteiro ao Downloader"
+                className="text-orange-100/80 hover:text-white"
+              />
               <CopyPackLinkButton
                 slugSegments={[slug]}
                 className="!h-8 !w-8 text-orange-100/80 hover:text-white"
@@ -105,6 +112,11 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
               ) : null}
             </Link>
+            <SendPackToDownloaderButton
+              slug={slug}
+              compact
+              label="Enviar mês inteiro ao Downloader"
+            />
             <CopyPackLinkButton slugSegments={[slug]} label="Copiar link do mês para o Downloader" />
           </div>
         );
