@@ -460,7 +460,11 @@ export async function listDownloadJobs(
   },
 ) {
   if (filters.queueForDevice && filters.deviceId) {
-    await reclaimStaleQueueJobs(portalUserId, filters.deviceId);
+    try {
+      await reclaimStaleQueueJobs(portalUserId, filters.deviceId);
+    } catch {
+      /* listagem não pode falhar por causa do reclaim */
+    }
 
     const jobs = await prisma.downloadJob.findMany({
       where: {
@@ -473,15 +477,7 @@ export async function listDownloadJobs(
             OR: [{ targetDeviceId: null }, { targetDeviceId: filters.deviceId }],
           },
           {
-            status: { in: ACTIVE_QUEUE_STATUSES.filter((value) => value !== "PENDING") },
-            downloadDevice: { deviceId: filters.deviceId },
-          },
-          {
-            status: "FAILED",
-            downloadDevice: { deviceId: filters.deviceId },
-          },
-          {
-            status: "COMPLETED",
+            status: { in: ["RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"] },
             downloadDevice: { deviceId: filters.deviceId },
           },
         ],
@@ -705,16 +701,23 @@ async function countDeviceQueue(portalUserId: number, externalDeviceId: string) 
 /** Devolve jobs presos em dispositivos offline para PENDING, liberando a fila no PC atual. */
 export async function reclaimStaleQueueJobs(portalUserId: number, currentDeviceId: string) {
   const offlineBefore = new Date(Date.now() - DEVICE_ONLINE_MS);
+  const staleDevices = await prisma.downloadDevice.findMany({
+    where: {
+      portalUserId,
+      deviceId: { not: currentDeviceId },
+      OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: offlineBefore } }],
+    },
+    select: { id: true },
+  });
+
+  if (staleDevices.length === 0) return;
 
   await prisma.downloadJob.updateMany({
     where: {
       portalUserId,
       dismissedAt: null,
       status: { in: ["RECEIVED", "DOWNLOADING", "PAUSED"] },
-      downloadDevice: {
-        deviceId: { not: currentDeviceId },
-        OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: offlineBefore } }],
-      },
+      downloadDeviceId: { in: staleDevices.map((device) => device.id) },
     },
     data: {
       status: "PENDING",

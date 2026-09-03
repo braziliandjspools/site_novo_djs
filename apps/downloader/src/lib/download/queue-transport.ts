@@ -20,8 +20,8 @@ export function createRestQueueTransport(token: string, deviceId: string): Queue
         const response = await listJobs(token, { deviceId, queue: true, limit: QUEUE_LIST_LIMIT });
         return response.jobs;
       } catch (error) {
-        if (error instanceof ApiError && error.status === 400) {
-          const fallback = await listJobs(token, { deviceId, queue: true, limit: 50 });
+        if (error instanceof ApiError && (error.status === 400 || error.status === 500)) {
+          const fallback = await listJobs(token, { deviceId, limit: 50 });
           return fallback.jobs;
         }
         throw error;

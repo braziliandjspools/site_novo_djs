@@ -26,8 +26,13 @@ export async function GET(request: Request) {
     return withDownloaderCorsJson(request, { error: parsed.error }, { status: 400 });
   }
 
-  const jobs = await listDownloadJobs(access.user.id, parsed.value!);
-  return withDownloaderCorsJson(request, { ok: true, jobs });
+  try {
+    const jobs = await listDownloadJobs(access.user.id, parsed.value!);
+    return withDownloaderCorsJson(request, { ok: true, jobs });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro ao listar a fila.";
+    return withDownloaderCorsJson(request, { error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

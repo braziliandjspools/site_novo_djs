@@ -249,6 +249,7 @@ export class DownloadManager {
 
     void this.bindProgressListener();
     void this.refreshDiskSpace();
+    void this.sendHeartbeat();
     this.schedulePoll(POLL_MS.IMMEDIATE);
     this.heartbeatTimer = setInterval(() => {
       void this.sendHeartbeat();
