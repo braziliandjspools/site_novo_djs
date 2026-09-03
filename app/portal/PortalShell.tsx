@@ -225,14 +225,14 @@ export function PortalCard({
 }) {
   return (
     <div
-      className={`overflow-hidden rounded-xl border border-zinc-800 bg-[#1a1a1a] shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${className}`}
+      className={`overflow-hidden rounded-2xl border border-zinc-800 bg-[#1a1a1a] shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${className}`}
     >
       {title && (
-        <div className="border-b border-zinc-800 bg-[#222] px-5 py-3">
-          <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-300">{title}</h2>
+        <div className="border-b border-zinc-800 bg-[#222] px-5 py-3.5 lg:px-7 lg:py-4">
+          <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-300 lg:text-sm">{title}</h2>
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-5 lg:p-7">{children}</div>
     </div>
   );
 }
@@ -280,15 +280,19 @@ export function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="group rounded-xl border border-zinc-800 bg-[#1a1a1a] p-5 transition-colors hover:border-[#009739]/40 hover:bg-[#222]">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">{label}</p>
-          <p className="mt-2 text-2xl font-black text-white">{value}</p>
-          {hint && <p className="mt-1 text-xs text-zinc-600">{hint}</p>}
+    <div className="group rounded-2xl border border-zinc-800 bg-[#1a1a1a] p-5 transition-colors hover:border-[#009739]/40 hover:bg-[#222] lg:min-h-[148px] lg:p-7">
+      <div className="flex h-full items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 lg:text-xs lg:tracking-[0.12em]">
+            {label}
+          </p>
+          <p className="mt-2 truncate text-2xl font-black leading-tight text-white lg:mt-3 lg:text-[1.75rem]">
+            {value}
+          </p>
+          {hint && <p className="mt-1.5 text-xs leading-snug text-zinc-500 lg:mt-2 lg:text-sm">{hint}</p>}
         </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#009739]/15 ring-1 ring-[#009739]/30 transition-all group-hover:bg-[#009739]/25">
-          <Icon className="h-5 w-5 text-[#00ff9d]" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#009739]/15 ring-1 ring-[#009739]/30 transition-all group-hover:bg-[#009739]/25 lg:h-14 lg:w-14">
+          <Icon className="h-6 w-6 text-[#00ff9d] lg:h-7 lg:w-7" strokeWidth={2} />
         </div>
       </div>
     </div>

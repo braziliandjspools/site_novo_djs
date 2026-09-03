@@ -33,7 +33,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
         <div className="mt-3 h-0.5 w-20 rounded-full bg-gradient-to-r from-[#009739] to-[#FFDF00]" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
         <StatCard icon={LayoutGrid} label="Serviços ativos" value={String(services)} hint="Licenças no seu plano" />
         <StatCard
           icon={Calendar}
