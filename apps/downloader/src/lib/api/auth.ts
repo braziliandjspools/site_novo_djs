@@ -1,17 +1,25 @@
 import { apiFetch } from "./client";
+import type { PlanBillingInfo } from "../plan-status";
 
 type LoginResponse = {
   ok: boolean;
   token?: string;
   expiresIn?: number;
   error?: string;
+  planExpired?: boolean;
 };
 
 type SessionResponse = {
   authenticated: boolean;
   canPlay: boolean;
   hasVip: boolean;
-  user: { name: string; plan: string } | null;
+  planExpired?: boolean;
+  user: {
+    name: string;
+    plan: string;
+    email?: string;
+    billing?: PlanBillingInfo;
+  } | null;
 };
 
 export async function loginWithPassword(email: string, password: string, apiBaseUrl?: string) {

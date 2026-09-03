@@ -1,5 +1,6 @@
 import {
   CheckCircle2,
+  CreditCard,
   Download,
   History,
   Home,
@@ -14,7 +15,14 @@ import { DOWNLOADER_NAME } from "../../lib/site";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo } from "../../context/AuthContext";
 
-export type AppRoute = "home" | "downloads" | "queue" | "completed" | "history" | "settings";
+export type AppRoute =
+  | "home"
+  | "downloads"
+  | "queue"
+  | "completed"
+  | "history"
+  | "portal"
+  | "settings";
 
 type SidebarProps = {
   activeRoute: AppRoute;
@@ -42,6 +50,7 @@ const NAV_ITEMS: {
   { id: "queue", label: "Fila", icon: ListOrdered, countKey: "queue" },
   { id: "completed", label: "Concluídos", icon: CheckCircle2, countKey: "completed" },
   { id: "history", label: "Histórico", icon: History },
+  { id: "portal", label: "Portal", icon: CreditCard },
   { id: "settings", label: "Configurações", icon: Settings },
 ];
 

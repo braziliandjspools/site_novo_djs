@@ -67,7 +67,7 @@ export function SendPackToDownloaderButton({
         disabled={sending}
         title={label}
         aria-label={label}
-        className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[#1ed760] transition-colors hover:bg-[#1ed760]/15 disabled:opacity-50 ${className}`}
+        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50 ${className}`}
       >
         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
       </button>

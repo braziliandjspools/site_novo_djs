@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { AppRoute } from "./Sidebar";
 import { Sidebar } from "./Sidebar";
+import { PlanBell } from "./PlanBell";
 import type { ConnectionState } from "../../lib/download/types";
-import type { DeviceInfo } from "../../context/AuthContext";
+import type { DeviceInfo, PlanBillingInfo } from "../../context/AuthContext";
 
 type AppShellProps = {
   activeRoute: AppRoute;
@@ -13,6 +14,7 @@ type AppShellProps = {
   device: DeviceInfo;
   connectionState: ConnectionState;
   syncError?: string | null;
+  billing?: PlanBillingInfo | null;
   counts?: {
     downloads: number;
     queue: number;
@@ -31,6 +33,7 @@ export function AppShell({
   device,
   connectionState,
   syncError,
+  billing,
   counts,
   onLogout,
   children,
@@ -49,9 +52,12 @@ export function AppShell({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="flex-shrink-0 border-b border-white/[0.06] bg-[#1a1a1a] px-7 py-5">
-          <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>}
+        <header className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-white/[0.06] bg-[#1a1a1a] px-7 py-5">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h1>
+            {subtitle && <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>}
+          </div>
+          <PlanBell billing={billing} onOpenPortal={() => onNavigate("portal")} />
         </header>
 
         <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-7 py-7">

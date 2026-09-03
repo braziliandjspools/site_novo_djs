@@ -1,4 +1,5 @@
 import { getAuthenticatedPortalUser } from "./portal";
+import { isDownloaderPlanExpired } from "./plan-billing";
 import { userHasPools } from "./portal-users";
 
 export async function requireDownloaderAccess() {
@@ -8,6 +9,13 @@ export async function requireDownloaderAccess() {
   }
   if (!userHasPools(user)) {
     return { ok: false as const, status: 403, error: "Plano VIP necessário para usar o downloader." };
+  }
+  if (isDownloaderPlanExpired(user)) {
+    return {
+      ok: false as const,
+      status: 403,
+      error: "Seu plano VIP está vencido. Renove no Portal para continuar usando o Downloader.",
+    };
   }
   return { ok: true as const, user };
 }

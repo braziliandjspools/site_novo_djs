@@ -173,16 +173,17 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   <WeekDayStrip days={days} />
                 </Link>
 
-                <SendPackToDownloaderButton
-                  slug={`${monthSlug}/${weekSlug}`}
-                  compact
-                  label="Enviar semana ao Downloader"
-                />
-                <CopyPackLinkButton
-                  slugSegments={[monthSlug, weekSlug]}
-                  className="!h-8 !w-8"
-                  label="Copiar link da semana para o Downloader"
-                />
+                <div className="flex flex-shrink-0 items-center gap-1">
+                  <SendPackToDownloaderButton
+                    slug={`${monthSlug}/${weekSlug}`}
+                    compact
+                    label="Enviar semana ao Downloader"
+                  />
+                  <CopyPackLinkButton
+                    slugSegments={[monthSlug, weekSlug]}
+                    label="Copiar link da semana para o Downloader"
+                  />
+                </div>
               </div>
             </div>
           );

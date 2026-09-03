@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import {
   createPortalToken,
   PORTAL_COOKIE,
+  PORTAL_DESKTOP_CLIENT_HEADER,
+  PORTAL_DESKTOP_CLIENT_ID,
   portalCookieOptions,
 } from "../../../lib/portal";
 import { handleDownloaderCorsPreflight, withDownloaderCors } from "../../../lib/downloader-cors";
+import { isDownloaderPlanExpired } from "../../../lib/plan-billing";
 import { verifyUserPassword } from "../../../lib/portal-users";
 
 function loginJson(request: Request, body: unknown, init?: ResponseInit) {
@@ -51,6 +54,20 @@ export async function POST(request: Request) {
     return loginJson(
       request,
       { error: "Seu acesso está inativo. Entre em contato com o suporte." },
+      { status: 403 },
+    );
+  }
+
+  const isDownloaderClient =
+    request.headers.get(PORTAL_DESKTOP_CLIENT_HEADER) === PORTAL_DESKTOP_CLIENT_ID;
+  if (isDownloaderClient && isDownloaderPlanExpired(user)) {
+    return loginJson(
+      request,
+      {
+        error:
+          "Seu plano VIP está vencido. Acesse o Portal no site para renovar e depois tente entrar no Downloader.",
+        planExpired: true,
+      },
       { status: 403 },
     );
   }

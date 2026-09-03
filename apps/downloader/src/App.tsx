@@ -13,6 +13,7 @@ import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
 import { JobsSectionPage } from "./pages/JobsSectionPage";
 import { LoginPage } from "./pages/LoginPage";
+import { PortalPage } from "./pages/PortalPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { useWindowsIntegration } from "./hooks/useWindowsIntegration";
 import { DesktopRequiredNotice } from "./components/DesktopRequiredNotice";
@@ -38,6 +39,10 @@ const PAGE_META: Record<AppRoute, { title: string; subtitle: string }> = {
   history: {
     title: "Histórico",
     subtitle: "Revise conclusões, falhas e reenvie quando necessário.",
+  },
+  portal: {
+    title: "Portal",
+    subtitle: "Gerencie seu plano, renovação e serviços VIP.",
   },
   settings: {
     title: "Configurações",
@@ -134,6 +139,7 @@ function AuthenticatedApp() {
       device={device}
       connectionState={connectionState}
       syncError={workerError}
+      billing={user.billing}
       counts={counts}
       onLogout={() => void logout()}
     >
@@ -142,6 +148,7 @@ function AuthenticatedApp() {
       {route === "queue" && <JobsSectionPage section="queue" />}
       {route === "completed" && <CompletedPage />}
       {route === "history" && <HistoryPage />}
+      {route === "portal" && <PortalPage />}
       {route === "settings" && <SettingsPage />}
     </AppShell>
   );

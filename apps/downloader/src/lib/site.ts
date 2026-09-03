@@ -31,5 +31,8 @@ export const BP_PRIVACY_COOKIES_URL = siteOriginPath("/privacy/cookies");
 /** Código de Conduta. */
 export const BP_PRIVACY_CONDUCT_URL = siteOriginPath("/privacy/conduct");
 
+/** URL do portal do assinante (plano, renovação). */
+export const BP_PORTAL_URL = siteOriginPath("/portal");
+
 /** @deprecated Use DOWNLOADER_NAME */
 export const APP_NAME = DOWNLOADER_NAME;

@@ -3,6 +3,7 @@ import { ApiError } from "../lib/api/client";
 import { fetchSession, loginWithPassword } from "../lib/api/auth";
 import { registerDevice } from "../lib/api/devices";
 import { formatApiError } from "../lib/errors";
+import type { AuthUser, PlanBillingInfo } from "../lib/plan-status";
 import {
   clearSessionToken,
   formatPlatformLabel,
@@ -21,10 +22,7 @@ export type DeviceInfo = {
   platformLabel: string;
 };
 
-export type AuthUser = {
-  name: string;
-  plan: string;
-};
+export type { AuthUser, PlanBillingInfo };
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -79,6 +77,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         401,
       );
     }
+    if (session.planExpired || session.user.billing?.expired) {
+      throw new ApiError(
+        "Seu plano VIP está vencido. Acesse o Portal no site para renovar e depois tente entrar no Downloader.",
+        403,
+      );
+    }
     if (!session.hasVip) {
       throw new ApiError("Plano VIP necessário para usar o Downloader.", 403);
     }
@@ -93,7 +97,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
     }
 
-    setUser({ name: session.user.name, plan: session.user.plan });
+    setUser({
+      name: session.user.name,
+      plan: session.user.plan,
+      email: session.user.email,
+      billing: session.user.billing ?? null,
+    });
     setDevice(deviceInfo);
     setSessionToken(token);
     setStatus("authenticated");
@@ -124,6 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSessionToken(null);
       if (err instanceof ApiError && err.status === 401) {
         setError("Sessão expirada. Faça login novamente.");
+      } else if (err instanceof ApiError && err.status === 403) {
+        setError(err.message);
       }
       return false;
     }
@@ -141,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setDevice(null);
         setSessionToken(null);
+        await clearSessionToken().catch(() => undefined);
         const message = formatApiError(err);
         setError(message);
         throw new Error(message);
@@ -191,4 +203,3 @@ export function useAuth() {
   }
   return context;
 }
-
