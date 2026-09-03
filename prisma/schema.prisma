@@ -21,6 +21,10 @@ model PortalUser {
   passwordHash                   String     @map("password_hash")
   whatsapp                       String
   plan                           PortalPlan
+  servicePoolsVip                Boolean    @default(false) @map("service_pools_vip")
+  serviceDeemix                  Boolean    @default(false) @map("service_deemix")
+  serviceAllavsoft               Boolean    @default(false) @map("service_allavsoft")
+  monthlyValue                   Decimal    @default(0) @map("monthly_value") @db.Decimal(10, 2)
   dueDay                         Int        @map("due_day")
   nextDueAt                      DateTime   @map("next_due_at")
   active                         Boolean    @default(true)
@@ -82,6 +86,7 @@ model DownloadJob {
   fileId           String              @map("file_id")
   fileName         String              @map("file_name")
   relativePath     String?             @map("relative_path")
+  targetDeviceId   String?             @map("target_device_id")
   fileSize         BigInt?             @map("file_size")
   mimeType         String?             @map("mime_type")
   status           DownloadJobStatus   @default(PENDING)
@@ -92,6 +97,7 @@ model DownloadJob {
   claimedAt        DateTime?           @map("claimed_at")
   startedAt        DateTime?           @map("started_at")
   completedAt      DateTime?           @map("completed_at")
+  dismissedAt      DateTime?           @map("dismissed_at")
   createdAt        DateTime            @default(now()) @map("created_at")
   updatedAt        DateTime            @updatedAt @map("updated_at")
 
@@ -99,6 +105,8 @@ model DownloadJob {
   @@index([downloadDeviceId, status])
   @@index([status, createdAt])
   @@index([portalUserId, createdAt])
+  @@index([portalUserId, fileId])
+  @@index([portalUserId, dismissedAt])
   @@map("download_jobs")
 }
 

@@ -11,8 +11,13 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "portal:create-user": "node scripts/create-portal-user.mjs",
+    "test:downloader-batch": "node scripts/test-downloader-batch-queue.mjs",
+    "test:downloader-two-devices": "node scripts/test-downloader-two-devices.mjs",
     "downloader:dev": "npm run tauri dev --prefix apps/downloader",
     "downloader:build": "npm run tauri build --prefix apps/downloader",
+    "downloader:release": "node scripts/build-downloader-installer.mjs",
+    "downloader:audit": "node scripts/audit-downloader-secrets.mjs",
+    "downloader:test-install": "node scripts/test-downloader-install.mjs",
     "downloader:web:dev": "npm run dev --prefix apps/downloader",
     "downloader:web:build": "npm run build --prefix apps/downloader"
   },

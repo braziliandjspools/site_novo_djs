@@ -4,15 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, LogOut, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { daysUntilDue, getDueUrgency, toDateInputValue } from "../lib/due-queue";
 
-type PortalPlan = "NONE" | "VIP" | "DEEMIX" | "ALLAVSOFT";
+import { ServiceSelector, emptyServices, type ServiceDraft } from "./ServiceSelector";
 
 type AdminUser = {
   id: number;
   name: string;
   email: string;
   whatsapp: string;
-  plan: PortalPlan;
-  planLabel: string;
+  services: ServiceDraft;
+  servicesLabel: string;
+  monthlyValue: number;
+  monthlyValueLabel: string;
   dueDay: number;
   nextDueAt: string;
   active: boolean;
@@ -35,7 +37,8 @@ type AdminUsersTableProps = {
 type DraftRow = {
   name: string;
   whatsapp: string;
-  plan: PortalPlan;
+  services: ServiceDraft;
+  monthlyValue: string;
   dueDay: string;
   nextDueAt: string;
   active: boolean;
@@ -45,7 +48,8 @@ type DraftRow = {
 const emptyDraft = (): DraftRow => ({
   name: "",
   whatsapp: "",
-  plan: "VIP",
+  services: emptyServices(),
+  monthlyValue: "0",
   dueDay: "15",
   nextDueAt: "",
   active: true,
@@ -86,7 +90,8 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     email: "",
     password: "",
     whatsapp: "",
-    plan: "VIP" as PortalPlan,
+    services: emptyServices(),
+    monthlyValue: "0",
     dueDay: "15",
     nextDueAt: "",
     notes: "",
@@ -115,7 +120,8 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           nextDrafts[user.id] = {
             name: user.name,
             whatsapp: user.whatsapp,
-            plan: user.plan,
+            services: user.services,
+            monthlyValue: String(user.monthlyValue),
             dueDay: String(user.dueDay),
             nextDueAt: toDateInputValue(user.nextDueAt),
             active: user.active,
@@ -171,7 +177,8 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         body: JSON.stringify({
           name: draft.name,
           whatsapp: draft.whatsapp,
-          plan: draft.plan,
+          services: draft.services,
+          monthlyValue: Number(draft.monthlyValue),
           dueDay,
           nextDueAt: draft.nextDueAt,
           active: draft.active,
@@ -215,6 +222,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newUser,
+          monthlyValue: Number(newUser.monthlyValue),
           dueDay: Number(newUser.dueDay),
           nextDueAt: newUser.nextDueAt || undefined,
         }),
@@ -227,7 +235,8 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         email: "",
         password: "",
         whatsapp: "",
-        plan: "VIP",
+        services: emptyServices(),
+        monthlyValue: "0",
         dueDay: "15",
         nextDueAt: "",
         notes: "",
@@ -342,24 +351,32 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                 <input
                   type={key === "password" ? "password" : key === "nextDueAt" ? "date" : "text"}
                   required={key !== "notes" && key !== "nextDueAt"}
-                  value={newUser[key as keyof typeof newUser]}
+                  value={newUser[key as "name" | "email" | "password" | "whatsapp" | "dueDay" | "nextDueAt" | "notes"]}
                   onChange={(e) => setNewUser((prev) => ({ ...prev, [key]: e.target.value }))}
                   className={`${inputClass} mt-1`}
                 />
               </label>
             ))}
+            <label className="block text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
+              Serviços contratados
+              <div className="mt-2 rounded-md border border-white/10 bg-black/20 p-3">
+                <ServiceSelector
+                  value={newUser.services}
+                  onChange={(services) => setNewUser((prev) => ({ ...prev, services }))}
+                />
+              </div>
+            </label>
             <label className="block text-xs text-gray-400">
-              Plano
-              <select
-                value={newUser.plan}
-                onChange={(e) => setNewUser((prev) => ({ ...prev, plan: e.target.value as PortalPlan }))}
+              Valor mensal (R$)
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                required
+                value={newUser.monthlyValue}
+                onChange={(e) => setNewUser((prev) => ({ ...prev, monthlyValue: e.target.value }))}
                 className={`${inputClass} mt-1`}
-              >
-                <option value="NONE">Sem plano</option>
-                <option value="VIP">VIP</option>
-                <option value="DEEMIX">Deemix</option>
-                <option value="ALLAVSOFT">Allavsoft</option>
-              </select>
+              />
             </label>
           </div>
           <button
@@ -393,7 +410,8 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                     <th className="px-3 py-3">Nome</th>
                     <th className="px-3 py-3">E-mail</th>
                     <th className="px-3 py-3">WhatsApp</th>
-                    <th className="px-3 py-3">Plano</th>
+                    <th className="px-3 py-3">Serviços</th>
+                    <th className="px-3 py-3">Valor/mês</th>
                     <th className="px-3 py-3">Dia venc.</th>
                     <th className="px-3 py-3">Próx. vencimento</th>
                     <th className="px-3 py-3">Ativo</th>
@@ -433,17 +451,22 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                             className={inputClass}
                           />
                         </td>
+                        <td className="px-3 py-2 min-w-[180px]">
+                          <ServiceSelector
+                            compact
+                            value={draft.services}
+                            onChange={(services) => updateDraft(user.id, { services })}
+                          />
+                        </td>
                         <td className="px-3 py-2">
-                          <select
-                            value={draft.plan}
-                            onChange={(e) => updateDraft(user.id, { plan: e.target.value as PortalPlan })}
-                            className={inputClass}
-                          >
-                            <option value="NONE">Sem plano</option>
-                <option value="VIP">VIP</option>
-                            <option value="DEEMIX">Deemix</option>
-                            <option value="ALLAVSOFT">Allavsoft</option>
-                          </select>
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={draft.monthlyValue}
+                            onChange={(e) => updateDraft(user.id, { monthlyValue: e.target.value })}
+                            className={`${inputClass} w-24 font-mono`}
+                          />
                         </td>
                         <td className="px-3 py-2">
                           <input

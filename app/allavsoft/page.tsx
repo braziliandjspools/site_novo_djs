@@ -149,7 +149,7 @@ const formats = [
 
 const faqs = [
   {
-    q: "O Allavsoft está incluso na assinatura do Brazilian Packs?",
+    q: "O Allavsoft está incluso na assinatura do Brazilian Remix Service?",
     a: "Sim. Assinantes com acesso às ferramentas inclusas podem utilizar o Allavsoft conforme as condições do plano contratado, com instruções enviadas após a confirmação.",
   },
   {

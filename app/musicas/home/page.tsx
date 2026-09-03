@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Crown, Headphones } from "lucide-react";
+import { Crown, Headphones, Loader2 } from "lucide-react";
+import { BrsLogo } from "../../components/BrsLogo";
 import { checkoutUrl } from "../../lib/site";
 import { SITE_NAV_LINKS } from "../../lib/site-nav";
 import { MusicasPageHeader } from "../MusicasShell";
 import { MusicasFaqSection } from "../components/MusicasFaqSection";
+import { MusicasLibraryDashboard } from "../components/MusicasLibraryDashboard";
+import { MusicasMonthLinks } from "../components/MusicasMonthLinks";
 import { useMusicasSession } from "../components/MusicasSessionContext";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
+import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
 
 type CardTheme = {
   gradient: string;
@@ -64,7 +68,7 @@ const CARD_THEMES = {
 
 const SITE_CARD_COPY: Record<string, { description: string; theme: keyof typeof CARD_THEMES }> = {
   "/": {
-    description: "Página principal do Brazilian Packs — pools, serviços e novidades.",
+    description: "Página principal do Brazilian Remix Service — pools, serviços e novidades.",
     theme: "cyan",
   },
   "/deemix": {
@@ -125,9 +129,14 @@ function QuickCard({
 
 export default function MusicasHomePage() {
   const { authenticated, hasVip } = useMusicasSession();
+  const { folders, home, loadingTree, loadingHome, error, newFolderIds } = useMusicasLibraryHome();
 
   return (
     <div>
+      <div className="mb-8 flex justify-center">
+        <BrsLogo href={null} priority className="h-14 w-auto max-w-[320px] object-contain sm:h-16 sm:max-w-[380px] md:h-20 md:max-w-[440px]" />
+      </div>
+
       <MusicasPageHeader
         title={authenticated ? "Bem-vindo de volta" : "Ouça sem limites"}
         subtitle="Atualizações semanais, pools curados e downloads diretos — tudo em um só lugar."
@@ -135,7 +144,26 @@ export default function MusicasHomePage() {
 
       {authenticated && !hasVip && <VipUpgradeBanner />}
 
-      <section className="mb-10">
+      <MusicasLibraryDashboard home={home} loading={loadingHome} />
+
+      {loadingTree && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
+      )}
+
+      {!loadingTree && !error && folders.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-4 text-center text-2xl font-black tracking-tight text-white">Packs por mês</h2>
+          <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} />
+        </section>
+      )}
+
+      <section className="mb-10 mt-10">
         <h2 className="mb-4 text-xl font-bold text-white">Plataforma</h2>
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <QuickCard

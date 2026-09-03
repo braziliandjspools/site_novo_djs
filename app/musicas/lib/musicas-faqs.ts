@@ -38,7 +38,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Como faço login na plataforma de músicas?",
-    a: "Use o mesmo e-mail e senha do Portal Brazilian Packs. Se ainda não tem conta, assine o plano VIP no site e crie seu acesso pelo portal de clientes.",
+    a: "Use o mesmo e-mail e senha do Portal Brazilian Remix Service. Se ainda não tem conta, assine o plano VIP no site e crie seu acesso pelo portal de clientes.",
   },
   {
     q: "Encontrei um erro ou arquivo faltando. O que faço?",

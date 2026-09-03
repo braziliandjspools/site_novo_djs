@@ -5,14 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../../lib/vip-music-catalog";
-import { displayFolderName } from "../../../lib/vip-music-slugs";
+import { displayFolderName, slugifyFolderName } from "../../../lib/vip-music-slugs";
 import { matchStyleSlug } from "../AtualizacoesSearch";
 import { AtualizacoesMonthFooterNav } from "../../components/AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "../../components/AtualizacoesMonthHero";
 import { StyleFolderAccordion } from "../../components/StyleFolderAccordion";
-import { VipMusicPlayerProvider } from "../../components/VipMusicPlayerContext";
 import { VipUpgradeBanner } from "../../VipUpgradeGate";
 import { useMusicasSession } from "../../components/MusicasSessionContext";
+import { pushRecentFolder } from "../../lib/music-library-storage";
 import { stylesReadKey } from "../../lib/read-state";
 import { useNewFolderHighlights } from "../../lib/use-new-folder-highlights";
 
@@ -67,6 +67,24 @@ export function AtualizacoesMonthClient({ monthSlug }: { monthSlug: string }) {
     if (match) setOpenFolderId(match.id);
   }, [data, estiloSlug]);
 
+  useEffect(() => {
+    if (!data) return;
+    pushRecentFolder({
+      name: displayFolderName(data.folderName),
+      href: `/musicas/atualizacoes/${monthSlug}`,
+    });
+  }, [data, monthSlug]);
+
+  useEffect(() => {
+    if (!data || !openFolderId) return;
+    const folder = data.items.find((item) => item.id === openFolderId);
+    if (!folder) return;
+    pushRecentFolder({
+      name: `${displayFolderName(data.folderName)} · ${displayFolderName(folder.name)}`,
+      href: `/musicas/atualizacoes/${monthSlug}?estilo=${encodeURIComponent(slugifyFolderName(folder.name))}`,
+    });
+  }, [data, monthSlug, openFolderId]);
+
   const { authenticated } = useMusicasSession();
   const playbackEnabled = Boolean(data?.canPlay);
   const title = data ? displayFolderName(data.folderName) : monthSlug.replace(/-/g, " ");
@@ -107,7 +125,7 @@ export function AtualizacoesMonthClient({ monthSlug }: { monthSlug: string }) {
       )}
 
       {!loading && !error && data && (
-        <VipMusicPlayerProvider canPlay={playbackEnabled}>
+        <>
           <div className="space-y-3">
             {data.items.length === 0 ? (
               <p className="rounded-xl border border-zinc-800 bg-[#1a1a1a] px-4 py-8 text-center text-sm text-zinc-500">
@@ -121,6 +139,8 @@ export function AtualizacoesMonthClient({ monthSlug }: { monthSlug: string }) {
                   canPlay={playbackEnabled}
                   canDownload={playbackEnabled}
                   relativePath={`${title}/${displayFolderName(folder.name)}`}
+                  monthSlug={monthSlug}
+                  monthName={title}
                   isNew={newStyleIds.has(folder.id)}
                   isOpen={openFolderId === folder.id}
                   highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}
@@ -134,7 +154,7 @@ export function AtualizacoesMonthClient({ monthSlug }: { monthSlug: string }) {
             )}
           </div>
           <AtualizacoesMonthFooterNav monthSlug={monthSlug} months={months} />
-        </VipMusicPlayerProvider>
+        </>
       )}
     </div>
   );

@@ -5,6 +5,7 @@ mod s3;
 
 pub use context::{DownloadContext, DownloadResultPayload};
 pub use google_drive::GoogleDriveProvider;
+pub use google_drive::cleanup_part_file;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DownloadProviderKind {

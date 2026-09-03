@@ -13,6 +13,7 @@ export type FileDownloadResult = {
   path: string;
   downloadedBytes: number;
   totalBytes: number | null;
+  skipped?: boolean;
 };
 
 /** Contrato comum — implementações delegam ao Rust/Tauri. */

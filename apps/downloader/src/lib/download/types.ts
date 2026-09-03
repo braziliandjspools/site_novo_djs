@@ -5,12 +5,21 @@ export type ConnectionState = "online" | "offline" | "connecting";
 /** Estados exibidos na fila local (aguardando download). */
 export const QUEUE_STATUSES = new Set(["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"]);
 
+export type JobProgressMetrics = {
+  speedBytesPerSec: number;
+  etaSeconds: number | null;
+};
+
 export type DownloadManagerSnapshot = {
   jobs: DownloadJob[];
   connectionState: ConnectionState;
   error: string | null;
   pendingCount: number;
-  activeJobId: number | null;
+  activeJobIds: number[];
+  maxConcurrency: number;
+  globalPaused: boolean;
+  autoDownload: boolean;
+  jobMetrics: Record<number, JobProgressMetrics>;
 };
 
 export type DownloadManagerListener = (snapshot: DownloadManagerSnapshot) => void;
@@ -28,7 +37,10 @@ export type QueueTransport = {
       error?: string | null;
     },
   ) => Promise<DownloadJob>;
+  cancelJob: (jobId: number) => Promise<DownloadJob>;
+  retryJob: (jobId: number) => Promise<DownloadJob>;
   heartbeat: () => Promise<void>;
 };
 
-export const PROGRESS_SYNC_MS = 12_000;
+export const PROGRESS_SYNC_MS = 1_500;
+export const DEFAULT_MAX_CONCURRENCY = 3;

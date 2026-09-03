@@ -1,9 +1,16 @@
 import bcrypt from "bcryptjs";
+import { Decimal } from "@prisma/client/runtime/library";
 import type { PortalPlan, PortalUser as PrismaPortalUser } from "@prisma/client";
 import { computeNextDueAt, groupUsersByDueQueue, parseDateInputValue } from "./due-queue";
 import { prisma } from "./prisma";
 
 export type { PortalPlan };
+
+export type PortalServices = {
+  poolsVip: boolean;
+  deemix: boolean;
+  allavsoft: boolean;
+};
 
 export type PortalUser = {
   id: number;
@@ -11,6 +18,8 @@ export type PortalUser = {
   email: string;
   whatsapp: string;
   plan: PortalPlan;
+  services: PortalServices;
+  monthlyValue: number;
   dueDay: number;
   nextDueAt: Date;
   active: boolean;
@@ -20,36 +29,49 @@ export type PortalUser = {
   updatedAt: Date;
 };
 
+export type PortalServicesInput = {
+  poolsVip?: boolean;
+  deemix?: boolean;
+  allavsoft?: boolean;
+};
+
 export type CreatePortalUserInput = {
   name: string;
   email: string;
   password: string;
   whatsapp: string;
-  plan: PortalPlan;
+  services?: PortalServicesInput;
+  monthlyValue?: number;
   dueDay: number;
   nextDueAt?: string;
   active?: boolean;
   notes?: string;
+  /** @deprecated use services */
+  plan?: PortalPlan;
 };
 
 export type UpdatePortalUserInput = {
   name?: string;
   whatsapp?: string;
-  plan?: PortalPlan;
+  services?: PortalServicesInput;
+  monthlyValue?: number;
   dueDay?: number;
   nextDueAt?: string;
   active?: boolean;
   notes?: string | null;
   musicProducerDeliveriesEnabled?: boolean;
   password?: string;
+  /** @deprecated use services */
+  plan?: PortalPlan;
 };
 
-const PLAN_LABELS: Record<PortalPlan, string> = {
-  NONE: "Sem plano ativo",
-  VIP: "VIP — Pools + Deemix + Allavsoft",
-  DEEMIX: "Deemix",
-  ALLAVSOFT: "Allavsoft",
-};
+function mapServices(user: PrismaPortalUser): PortalServices {
+  return {
+    poolsVip: user.servicePoolsVip,
+    deemix: user.serviceDeemix,
+    allavsoft: user.serviceAllavsoft,
+  };
+}
 
 function mapUser(user: PrismaPortalUser): PortalUser {
   return {
@@ -58,6 +80,8 @@ function mapUser(user: PrismaPortalUser): PortalUser {
     email: user.email,
     whatsapp: user.whatsapp,
     plan: user.plan,
+    services: mapServices(user),
+    monthlyValue: Number(user.monthlyValue),
     dueDay: user.dueDay,
     nextDueAt: user.nextDueAt,
     active: user.active,
@@ -68,24 +92,79 @@ function mapUser(user: PrismaPortalUser): PortalUser {
   };
 }
 
+export function normalizeServices(input?: PortalServicesInput, legacyPlan?: PortalPlan): PortalServices {
+  if (input) {
+    return {
+      poolsVip: Boolean(input.poolsVip),
+      deemix: Boolean(input.deemix),
+      allavsoft: Boolean(input.allavsoft),
+    };
+  }
+
+  if (legacyPlan === "VIP") return { poolsVip: true, deemix: false, allavsoft: false };
+  if (legacyPlan === "DEEMIX") return { poolsVip: false, deemix: true, allavsoft: false };
+  if (legacyPlan === "ALLAVSOFT") return { poolsVip: false, deemix: false, allavsoft: true };
+  return { poolsVip: false, deemix: false, allavsoft: false };
+}
+
+export function deriveLegacyPlan(services: PortalServices): PortalPlan {
+  const count = Number(services.poolsVip) + Number(services.deemix) + Number(services.allavsoft);
+  if (count === 0) return "NONE";
+  if (services.poolsVip && !services.deemix && !services.allavsoft) return "VIP";
+  if (!services.poolsVip && services.deemix && !services.allavsoft) return "DEEMIX";
+  if (!services.poolsVip && !services.deemix && services.allavsoft) return "ALLAVSOFT";
+  return "NONE";
+}
+
+export function getServicesLabel(services: PortalServices) {
+  const labels: string[] = [];
+  if (services.poolsVip) labels.push("Pools VIP");
+  if (services.deemix) labels.push("Deemix");
+  if (services.allavsoft) labels.push("Allavsoft");
+  return labels.length ? labels.join(" · ") : "Sem serviços";
+}
+
+/** @deprecated use getServicesLabel */
 export function getPlanLabel(plan: PortalPlan) {
-  return PLAN_LABELS[plan];
+  const labels: Record<PortalPlan, string> = {
+    NONE: "Sem serviços",
+    VIP: "Pools VIP",
+    DEEMIX: "Deemix",
+    ALLAVSOFT: "Allavsoft",
+  };
+  return labels[plan];
 }
 
-export function userHasDeemix(plan: PortalPlan) {
-  return plan === "VIP" || plan === "DEEMIX";
+export function userHasDeemix(user: Pick<PortalUser, "services">) {
+  return user.services.deemix;
 }
 
-export function userHasAllavsoft(plan: PortalPlan) {
-  return plan === "VIP" || plan === "ALLAVSOFT";
+export function userHasAllavsoft(user: Pick<PortalUser, "services">) {
+  return user.services.allavsoft;
 }
 
-export function userHasPools(plan: PortalPlan) {
-  return plan === "VIP";
+export function userHasPools(user: Pick<PortalUser, "services">) {
+  return user.services.poolsVip;
 }
 
-export function userHasSubscriptionPlan(plan: PortalPlan) {
-  return plan !== "NONE";
+export function userHasSubscriptionPlan(user: Pick<PortalUser, "services">) {
+  return user.services.poolsVip || user.services.deemix || user.services.allavsoft;
+}
+
+export function formatMonthlyValue(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
+
+function parseMonthlyValue(value: unknown) {
+  if (value === undefined || value === null || value === "") return 0;
+  const parsed = typeof value === "number" ? value : Number(String(value).replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error("Valor mensal inválido.");
+  }
+  return Math.round(parsed * 100) / 100;
 }
 
 export async function findUserByEmail(email: string) {
@@ -123,6 +202,8 @@ export async function createPortalUser(input: CreatePortalUserInput) {
   const nextDueAt = input.nextDueAt
     ? parseDateInputValue(input.nextDueAt)
     : computeNextDueAt(input.dueDay);
+  const services = normalizeServices(input.services, input.plan);
+  const monthlyValue = parseMonthlyValue(input.monthlyValue);
 
   const user = await prisma.portalUser.create({
     data: {
@@ -130,7 +211,11 @@ export async function createPortalUser(input: CreatePortalUserInput) {
       email: input.email.trim().toLowerCase(),
       passwordHash,
       whatsapp: input.whatsapp.trim(),
-      plan: input.plan,
+      plan: deriveLegacyPlan(services),
+      servicePoolsVip: services.poolsVip,
+      serviceDeemix: services.deemix,
+      serviceAllavsoft: services.allavsoft,
+      monthlyValue: new Decimal(monthlyValue),
       dueDay: input.dueDay,
       nextDueAt,
       active: input.active !== false,
@@ -160,10 +245,9 @@ export async function registerPortalUser(input: RegisterPortalUserInput) {
     email,
     whatsapp: input.whatsapp,
     password: input.password,
-    plan: "NONE",
     dueDay: 1,
     active: true,
-    notes: "Cadastro via portal — sem plano",
+    notes: "Cadastro via portal — sem serviços",
   });
 }
 
@@ -183,6 +267,10 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
     name?: string;
     whatsapp?: string;
     plan?: PortalPlan;
+    servicePoolsVip?: boolean;
+    serviceDeemix?: boolean;
+    serviceAllavsoft?: boolean;
+    monthlyValue?: Decimal;
     dueDay?: number;
     nextDueAt?: Date;
     active?: boolean;
@@ -193,7 +281,26 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
 
   if (input.name !== undefined) data.name = input.name.trim();
   if (input.whatsapp !== undefined) data.whatsapp = input.whatsapp.trim();
-  if (input.plan !== undefined) data.plan = input.plan;
+
+  if (input.services !== undefined || input.plan !== undefined) {
+    const services = normalizeServices(
+      input.services ?? {
+        poolsVip: current.servicePoolsVip,
+        deemix: current.serviceDeemix,
+        allavsoft: current.serviceAllavsoft,
+      },
+      input.plan,
+    );
+    data.servicePoolsVip = services.poolsVip;
+    data.serviceDeemix = services.deemix;
+    data.serviceAllavsoft = services.allavsoft;
+    data.plan = deriveLegacyPlan(services);
+  }
+
+  if (input.monthlyValue !== undefined) {
+    data.monthlyValue = new Decimal(parseMonthlyValue(input.monthlyValue));
+  }
+
   if (input.dueDay !== undefined) data.dueDay = input.dueDay;
   if (input.nextDueAt !== undefined) {
     data.nextDueAt = parseDateInputValue(input.nextDueAt);
@@ -237,7 +344,11 @@ export function serializePortalUser(user: PortalUser) {
     email: user.email,
     whatsapp: user.whatsapp,
     plan: user.plan,
-    planLabel: getPlanLabel(user.plan),
+    planLabel: getServicesLabel(user.services),
+    services: user.services,
+    servicesLabel: getServicesLabel(user.services),
+    monthlyValue: user.monthlyValue,
+    monthlyValueLabel: formatMonthlyValue(user.monthlyValue),
     dueDay: user.dueDay,
     nextDueAt: user.nextDueAt.toISOString(),
     active: user.active,

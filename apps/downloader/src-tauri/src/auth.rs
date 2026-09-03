@@ -9,19 +9,33 @@ use uuid::Uuid;
 const KEYRING_SERVICE: &str = "com.brazilianpacks.downloader";
 const KEYRING_SESSION_USER: &str = "portal_session";
 const DEVICE_ID_FILE: &str = "device-id.json";
+const SESSION_FILE: &str = "session-token.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct DeviceIdFile {
     device_id: String,
 }
 
-fn device_id_path(app: &AppHandle) -> Result<PathBuf, String> {
+#[derive(Debug, Serialize, Deserialize)]
+struct SessionFile {
+    token: String,
+}
+
+fn config_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
         .app_config_dir()
         .map_err(|error| error.to_string())?;
     fs::create_dir_all(&dir).map_err(|error| error.to_string())?;
-    Ok(dir.join(DEVICE_ID_FILE))
+    Ok(dir)
+}
+
+fn device_id_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(config_dir(app)?.join(DEVICE_ID_FILE))
+}
+
+fn session_file_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(config_dir(app)?.join(SESSION_FILE))
 }
 
 fn read_device_id_file(path: &PathBuf) -> Option<String> {
@@ -40,6 +54,59 @@ fn write_device_id_file(path: &PathBuf, device_id: &str) -> Result<(), String> {
     };
     let json = serde_json::to_string_pretty(&payload).map_err(|error| error.to_string())?;
     fs::write(path, json).map_err(|error| error.to_string())
+}
+
+fn write_session_file(path: &PathBuf, token: &str) -> Result<(), String> {
+    let payload = SessionFile {
+        token: token.to_string(),
+    };
+    let json = serde_json::to_string_pretty(&payload).map_err(|error| error.to_string())?;
+    fs::write(path, json).map_err(|error| error.to_string())
+}
+
+fn read_session_file(path: &PathBuf) -> Result<Option<String>, String> {
+    let content = match fs::read_to_string(path) {
+        Ok(value) => value,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(error.to_string()),
+    };
+
+    let parsed = serde_json::from_str::<SessionFile>(&content).map_err(|error| error.to_string())?;
+    if parsed.token.trim().is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(parsed.token))
+    }
+}
+
+fn clear_session_file(path: &PathBuf) -> Result<(), String> {
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+fn load_keyring_token() -> Option<String> {
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).ok()?;
+    match entry.get_password() {
+        Ok(token) if !token.trim().is_empty() => Some(token),
+        Ok(_) | Err(keyring::Error::NoEntry) => None,
+        Err(_) => None,
+    }
+}
+
+fn save_keyring_token(token: &str) -> Result<(), String> {
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).map_err(|error| error.to_string())?;
+    entry.set_password(token).map_err(|error| error.to_string())
+}
+
+fn clear_keyring_token() -> Result<(), String> {
+    let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).map_err(|error| error.to_string())?;
+    match entry.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 fn generate_device_id() -> String {
@@ -83,32 +150,31 @@ pub fn get_platform_name() -> String {
 }
 
 #[tauri::command]
-pub fn save_session_token(token: String) -> Result<(), String> {
+pub fn save_session_token(app: AppHandle, token: String) -> Result<(), String> {
     let trimmed = token.trim();
     if trimmed.is_empty() {
         return Err("Token de sessão inválido.".to_string());
     }
 
-    let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).map_err(|error| error.to_string())?;
-    entry.set_password(trimmed).map_err(|error| error.to_string())
+    if save_keyring_token(trimmed).is_ok() {
+        let _ = clear_session_file(&session_file_path(&app)?);
+        return Ok(());
+    }
+
+    write_session_file(&session_file_path(&app)?, trimmed)
 }
 
 #[tauri::command]
-pub fn load_session_token() -> Result<Option<String>, String> {
-    let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).map_err(|error| error.to_string())?;
-    match entry.get_password() {
-        Ok(token) if !token.trim().is_empty() => Ok(Some(token)),
-        Ok(_) => Ok(None),
-        Err(keyring::Error::NoEntry) => Ok(None),
-        Err(error) => Err(error.to_string()),
+pub fn load_session_token(app: AppHandle) -> Result<Option<String>, String> {
+    if let Some(token) = load_keyring_token() {
+        return Ok(Some(token));
     }
+
+    read_session_file(&session_file_path(&app)?)
 }
 
 #[tauri::command]
-pub fn clear_session_token() -> Result<(), String> {
-    let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).map_err(|error| error.to_string())?;
-    match entry.delete_credential() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-        Err(error) => Err(error.to_string()),
-    }
+pub fn clear_session_token(app: AppHandle) -> Result<(), String> {
+    let _ = clear_keyring_token();
+    clear_session_file(&session_file_path(&app)?)
 }

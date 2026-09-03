@@ -4,7 +4,8 @@ import { sanitizeDriveFilename } from "./google-drive";
 
 const DRIVE_FILE_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
 const DEVICE_ID_REGEX = /^[a-zA-Z0-9._-]{8,128}$/;
-const MAX_BATCH_JOBS = 100;
+const MAX_BATCH_JOBS = 500;
+const BATCH_CHUNK_SIZE = 100;
 const MAX_LIST_JOBS = 200;
 const MAX_FILE_NAME_LENGTH = 512;
 const MAX_RELATIVE_PATH_LENGTH = 1024;
@@ -24,11 +25,14 @@ const JOB_STATUSES: DownloadJobStatus[] = [
 ];
 
 const CANCELLABLE_STATUSES: DownloadJobStatus[] = ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED"];
+const ACTIVE_QUEUE_STATUSES: DownloadJobStatus[] = ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED"];
+export const DEVICE_ONLINE_MS = 120_000;
 
 export type DownloadJobInput = {
   fileId: string;
   fileName: string;
   relativePath?: string | null;
+  targetDeviceId?: string | null;
   fileSize?: string | number | bigint | null;
   mimeType?: string | null;
   provider?: DownloadJobProvider;
@@ -141,6 +145,7 @@ export function parseCreateJobBody(body: unknown) {
   const fileId = parseDriveFileId(data.fileId);
   const fileName = parseFileName(data.fileName);
   const relativePath = parseOptionalString(data.relativePath, MAX_RELATIVE_PATH_LENGTH);
+  const targetDeviceId = parseExternalDeviceId(data.targetDeviceId ?? null);
   const fileSize = parseBigIntInput(data.fileSize);
   const mimeType = parseOptionalString(data.mimeType, 128);
   const provider = parseProvider(data.provider);
@@ -149,6 +154,9 @@ export function parseCreateJobBody(body: unknown) {
   if (!fileName) return { error: "fileName inválido." };
   if (data.relativePath !== undefined && data.relativePath !== null && !relativePath) {
     return { error: "relativePath inválido." };
+  }
+  if (data.targetDeviceId !== undefined && data.targetDeviceId !== null && !targetDeviceId) {
+    return { error: "targetDeviceId inválido." };
   }
   if (data.fileSize !== undefined && data.fileSize !== null && fileSize === null) {
     return { error: "fileSize inválido." };
@@ -163,6 +171,7 @@ export function parseCreateJobBody(body: unknown) {
       fileId,
       fileName,
       relativePath,
+      targetDeviceId,
       fileSize,
       mimeType,
       provider,
@@ -251,6 +260,20 @@ export function parseListJobsQuery(searchParams: URLSearchParams) {
   const deviceId = deviceIdParam ? parseExternalDeviceId(deviceIdParam) : null;
   if (deviceIdParam && !deviceId) return { error: "deviceId inválido." };
 
+  const fileIdsParam = searchParams.get("fileIds");
+  const fileIds = fileIdsParam
+    ? fileIdsParam
+        .split(",")
+        .map((value) => parseDriveFileId(value.trim()))
+        .filter((value): value is string => Boolean(value))
+    : null;
+  if (fileIdsParam && (!fileIds || fileIds.length === 0)) {
+    return { error: "fileIds inválido." };
+  }
+
+  const includeDismissed = searchParams.get("includeDismissed") === "1";
+  const queueForDevice = searchParams.get("queue") === "1";
+
   const limitParam = searchParams.get("limit");
   let limit = 50;
   if (limitParam) {
@@ -261,7 +284,11 @@ export function parseListJobsQuery(searchParams: URLSearchParams) {
     limit = parsed;
   }
 
-  return { value: { status, deviceId, limit } };
+  if (queueForDevice && !deviceId) {
+    return { error: "deviceId é obrigatório quando queue=1." };
+  }
+
+  return { value: { status, deviceId, fileIds, includeDismissed, limit, queueForDevice } };
 }
 
 export function serializeDownloadDevice(device: DownloadDevice) {
@@ -272,9 +299,15 @@ export function serializeDownloadDevice(device: DownloadDevice) {
     platform: device.platform,
     appVersion: device.appVersion,
     lastSeenAt: device.lastSeenAt?.toISOString() ?? null,
+    isOnline: isDeviceOnline(device.lastSeenAt),
     createdAt: device.createdAt.toISOString(),
     updatedAt: device.updatedAt.toISOString(),
   };
+}
+
+export function isDeviceOnline(lastSeenAt: Date | null | undefined) {
+  if (!lastSeenAt) return false;
+  return Date.now() - lastSeenAt.getTime() < DEVICE_ONLINE_MS;
 }
 
 export function serializeDownloadJob(job: DownloadJob & { downloadDevice?: DownloadDevice | null }) {
@@ -284,6 +317,7 @@ export function serializeDownloadJob(job: DownloadJob & { downloadDevice?: Downl
     fileId: job.fileId,
     fileName: job.fileName,
     relativePath: job.relativePath,
+    targetDeviceId: job.targetDeviceId,
     fileSize: job.fileSize?.toString() ?? null,
     mimeType: job.mimeType,
     status: job.status,
@@ -292,10 +326,12 @@ export function serializeDownloadJob(job: DownloadJob & { downloadDevice?: Downl
     totalBytes: job.totalBytes?.toString() ?? null,
     error: job.error,
     deviceId: job.downloadDevice?.deviceId ?? null,
+    deviceName: job.downloadDevice?.deviceName ?? null,
     downloadDeviceId: job.downloadDeviceId,
     claimedAt: job.claimedAt?.toISOString() ?? null,
     startedAt: job.startedAt?.toISOString() ?? null,
     completedAt: job.completedAt?.toISOString() ?? null,
+    dismissedAt: job.dismissedAt?.toISOString() ?? null,
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
   };
@@ -331,6 +367,7 @@ function buildJobCreateData(portalUserId: number, input: DownloadJobInput) {
     fileId: input.fileId,
     fileName: input.fileName,
     relativePath: input.relativePath ?? null,
+    targetDeviceId: input.targetDeviceId ?? null,
     fileSize: toStoredBigInt(input.fileSize),
     mimeType: input.mimeType ?? null,
   };
@@ -396,28 +433,76 @@ export async function createDownloadJob(portalUserId: number, input: DownloadJob
 }
 
 export async function createDownloadJobsBatch(portalUserId: number, inputs: DownloadJobInput[]) {
-  const jobs = await prisma.$transaction(
-    inputs.map((input) =>
-      prisma.downloadJob.create({
-        data: buildJobCreateData(portalUserId, input),
-        include: { downloadDevice: true },
-      }),
-    ),
-  );
+  const data = inputs.map((input) => buildJobCreateData(portalUserId, input));
+  const jobs = [];
+
+  for (let offset = 0; offset < data.length; offset += BATCH_CHUNK_SIZE) {
+    const chunk = data.slice(offset, offset + BATCH_CHUNK_SIZE);
+    const created = await prisma.downloadJob.createManyAndReturn({
+      data: chunk,
+      include: { downloadDevice: true },
+    });
+    jobs.push(...created);
+  }
+
   return jobs.map(serializeDownloadJob);
 }
 
 export async function listDownloadJobs(
   portalUserId: number,
-  filters: { status: DownloadJobStatus | null; deviceId: string | null; limit: number },
+  filters: {
+    status: DownloadJobStatus | null;
+    deviceId: string | null;
+    fileIds: string[] | null;
+    includeDismissed: boolean;
+    limit: number;
+    queueForDevice?: boolean;
+  },
 ) {
+  if (filters.queueForDevice && filters.deviceId) {
+    const jobs = await prisma.downloadJob.findMany({
+      where: {
+        portalUserId,
+        dismissedAt: null,
+        OR: [
+          {
+            status: "PENDING",
+            downloadDeviceId: null,
+            OR: [{ targetDeviceId: null }, { targetDeviceId: filters.deviceId }],
+          },
+          {
+            status: { in: ACTIVE_QUEUE_STATUSES.filter((value) => value !== "PENDING") },
+            downloadDevice: { deviceId: filters.deviceId },
+          },
+          {
+            status: "FAILED",
+            downloadDevice: { deviceId: filters.deviceId },
+          },
+          {
+            status: "COMPLETED",
+            downloadDevice: { deviceId: filters.deviceId },
+          },
+        ],
+      },
+      include: { downloadDevice: true },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      take: filters.limit,
+    });
+
+    return jobs.map(serializeDownloadJob);
+  }
+
   const where: {
     portalUserId: number;
     status?: DownloadJobStatus;
+    dismissedAt?: null;
+    fileId?: { in: string[] };
     downloadDevice?: { deviceId: string };
   } = { portalUserId };
 
   if (filters.status) where.status = filters.status;
+  if (!filters.includeDismissed) where.dismissedAt = null;
+  if (filters.fileIds?.length) where.fileId = { in: filters.fileIds };
   if (filters.deviceId) {
     where.downloadDevice = { deviceId: filters.deviceId };
   }
@@ -569,6 +654,8 @@ export async function claimDownloadJob(portalUserId: number, jobId: number, exte
         portalUserId,
         status: "PENDING",
         downloadDeviceId: null,
+        dismissedAt: null,
+        OR: [{ targetDeviceId: null }, { targetDeviceId: externalDeviceId }],
       },
       data: {
         status: "RECEIVED",
@@ -592,4 +679,86 @@ export async function claimDownloadJob(portalUserId: number, jobId: number, exte
   }
 
   return { kind: "claimed" as const, job: serializeDownloadJob(claimed) };
+}
+
+async function countDeviceQueue(portalUserId: number, externalDeviceId: string) {
+  return prisma.downloadJob.count({
+    where: {
+      portalUserId,
+      dismissedAt: null,
+      status: { in: ACTIVE_QUEUE_STATUSES },
+      OR: [
+        { targetDeviceId: externalDeviceId },
+        { downloadDevice: { deviceId: externalDeviceId } },
+        {
+          status: "PENDING",
+          targetDeviceId: null,
+          downloadDeviceId: null,
+        },
+      ],
+    },
+  });
+}
+
+export async function getDownloaderSync(portalUserId: number) {
+  const devices = await prisma.downloadDevice.findMany({
+    where: { portalUserId },
+    orderBy: [{ lastSeenAt: "desc" }, { updatedAt: "desc" }],
+  });
+
+  const serializedDevices = await Promise.all(
+    devices.map(async (device) => ({
+      ...serializeDownloadDevice(device),
+      queueCount: await countDeviceQueue(portalUserId, device.deviceId),
+    })),
+  );
+
+  const totalQueueCount = await prisma.downloadJob.count({
+    where: {
+      portalUserId,
+      dismissedAt: null,
+      status: { in: ACTIVE_QUEUE_STATUSES },
+    },
+  });
+
+  const recentJobs = await prisma.downloadJob.findMany({
+    where: {
+      portalUserId,
+      dismissedAt: null,
+      status: { not: "CANCELLED" },
+    },
+    include: { downloadDevice: true },
+    orderBy: [{ updatedAt: "desc" }],
+    take: MAX_LIST_JOBS,
+  });
+
+  const jobsByFileId: Record<string, ReturnType<typeof serializeDownloadJob>> = {};
+  for (const job of recentJobs) {
+    if (!jobsByFileId[job.fileId]) {
+      jobsByFileId[job.fileId] = serializeDownloadJob(job);
+    }
+  }
+
+  return {
+    devices: serializedDevices,
+    totalQueueCount,
+    jobsByFileId,
+  };
+}
+
+export async function dismissDownloadJob(portalUserId: number, jobId: number) {
+  const job = await getOwnedJob(portalUserId, jobId);
+  if (!job) return null;
+
+  if (!["COMPLETED", "FAILED", "CANCELLED"].includes(job.status)) {
+    throw new Error("Somente jobs finalizados podem ser removidos do histórico.");
+  }
+
+  const updated = await prisma.downloadJob.update({
+    where: { id: job.id },
+    data: { dismissedAt: new Date() },
+    include: { downloadDevice: true },
+  });
+
+  return serializeDownloadJob(updated);
 }

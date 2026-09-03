@@ -6,6 +6,7 @@ export type DownloadJob = {
   fileId: string;
   fileName: string;
   relativePath: string | null;
+  targetDeviceId: string | null;
   fileSize: string | null;
   mimeType: string | null;
   status: string;
@@ -14,9 +15,11 @@ export type DownloadJob = {
   totalBytes: string | null;
   error: string | null;
   deviceId: string | null;
+  deviceName: string | null;
   claimedAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
+  dismissedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -26,11 +29,12 @@ type JobResponse = { ok: true; job: DownloadJob };
 
 export async function listJobs(
   token: string,
-  filters: { status?: string; deviceId?: string; limit?: number } = {},
+  filters: { status?: string; deviceId?: string; queue?: boolean; limit?: number } = {},
 ) {
   const params = new URLSearchParams();
   if (filters.status) params.set("status", filters.status);
   if (filters.deviceId) params.set("deviceId", filters.deviceId);
+  if (filters.queue) params.set("queue", "1");
   if (filters.limit) params.set("limit", String(filters.limit));
 
   const query = params.toString();
@@ -71,6 +75,37 @@ export async function cancelJob(token: string, jobId: number) {
   return apiFetch<JobResponse>(`/api/downloader/jobs/${jobId}/cancel`, {
     method: "POST",
     token,
+  });
+}
+
+export async function retryJob(token: string, jobId: number) {
+  return apiFetch<JobResponse>(`/api/downloader/jobs/${jobId}/retry`, {
+    method: "POST",
+    token,
+  });
+}
+
+export async function dismissJob(token: string, jobId: number) {
+  return apiFetch<JobResponse>(`/api/downloader/jobs/${jobId}/dismiss`, {
+    method: "POST",
+    token,
+  });
+}
+
+export async function createJob(
+  token: string,
+  payload: {
+    fileId: string;
+    fileName: string;
+    relativePath?: string | null;
+    targetDeviceId?: string | null;
+    provider?: string;
+  },
+) {
+  return apiFetch<JobResponse>("/api/downloader/jobs", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
   });
 }
 

@@ -212,7 +212,7 @@ async function main() {
 
   const prisma = new PrismaClient();
   const user = await prisma.portalUser.findFirst({
-    where: { active: true, plan: "VIP" },
+    where: { active: true, servicePoolsVip: true },
     orderBy: { id: "asc" },
   });
   if (!user) throw new Error("Nenhum usuário VIP ativo.");

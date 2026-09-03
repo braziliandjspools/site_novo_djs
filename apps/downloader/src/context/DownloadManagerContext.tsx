@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { downloadManager } from "../lib/download/download-manager";
 import { createRestQueueTransport } from "../lib/download/queue-transport";
-import type { DownloadManagerSnapshot } from "../lib/download/types";
+import type { DownloadManagerSnapshot, JobProgressMetrics } from "../lib/download/types";
 import { loadSessionToken } from "../lib/native/secure-store";
 import type { DownloadJob } from "../lib/api/jobs";
 import type { ConnectionState } from "../lib/download/types";
@@ -12,7 +12,11 @@ const EMPTY_SNAPSHOT: DownloadManagerSnapshot = {
   connectionState: "connecting",
   error: null,
   pendingCount: 0,
-  activeJobId: null,
+  activeJobIds: [],
+  maxConcurrency: 3,
+  globalPaused: false,
+  autoDownload: true,
+  jobMetrics: {},
 };
 
 type DownloadManagerContextValue = {
@@ -20,8 +24,15 @@ type DownloadManagerContextValue = {
   connectionState: ConnectionState;
   workerError: string | null;
   pendingCount: number;
-  activeJobId: number | null;
+  activeJobIds: number[];
+  maxConcurrency: number;
+  jobMetrics: Record<number, JobProgressMetrics>;
   syncNow: () => void;
+  pauseJob: (jobId: number) => void;
+  resumeJob: (jobId: number) => void;
+  cancelJob: (jobId: number) => void;
+  retryJob: (jobId: number) => void;
+  setMaxConcurrency: (value: number) => void;
 };
 
 const DownloadManagerContext = createContext<DownloadManagerContextValue | null>(null);
@@ -40,10 +51,10 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
 
-    void loadSessionToken().then((token) => {
+    void loadSessionToken().then(async (token) => {
       if (cancelled || !token) return;
 
-      downloadManager.setTransport(createRestQueueTransport(token, device.deviceId), device.deviceId);
+      await downloadManager.setTransport(createRestQueueTransport(token, device.deviceId), device.deviceId);
       downloadManager.start();
       unsubscribe = downloadManager.subscribe((next) => {
         if (!cancelled) setSnapshot(next);
@@ -63,8 +74,17 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       connectionState: snapshot.connectionState,
       workerError: snapshot.error,
       pendingCount: snapshot.pendingCount,
-      activeJobId: snapshot.activeJobId,
+      activeJobIds: snapshot.activeJobIds,
+      maxConcurrency: snapshot.maxConcurrency,
+      jobMetrics: snapshot.jobMetrics,
       syncNow: () => downloadManager.syncNow(),
+      pauseJob: (jobId) => downloadManager.pauseJob(jobId),
+      resumeJob: (jobId) => downloadManager.resumeJob(jobId),
+      cancelJob: (jobId) => downloadManager.cancelJob(jobId),
+      retryJob: (jobId) => downloadManager.retryJob(jobId),
+      setMaxConcurrency: (value) => {
+        void downloadManager.setMaxConcurrency(value);
+      },
     }),
     [snapshot],
   );

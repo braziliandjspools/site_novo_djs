@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
+use crate::app_prefs::ExistingFileBehavior;
+
 const PART_SUFFIX: &str = ".part";
 const MAX_SEGMENT_LEN: usize = 200;
 const MAX_RELATIVE_DEPTH: usize = 32;
@@ -15,12 +17,12 @@ pub fn suggested_download_dir() -> PathBuf {
     if let Ok(user_profile) = std::env::var("USERPROFILE") {
         return PathBuf::from(user_profile)
             .join("Music")
-            .join("Brazilian Packs");
+            .join("Brazilian Remix Service");
     }
     if let Some(home) = dirs::home_dir() {
-        return home.join("Music").join("Brazilian Packs");
+        return home.join("Music").join("Brazilian Remix Service");
     }
-    PathBuf::from("Brazilian Packs")
+    PathBuf::from("Brazilian Remix Service")
 }
 
 pub fn part_path_for(final_path: &Path) -> PathBuf {
@@ -150,6 +152,83 @@ pub fn build_destination_path(
     Ok(dest)
 }
 
+pub struct ResolvedDestination {
+    pub final_path: PathBuf,
+    pub skipped: bool,
+}
+
+pub fn resolve_destination_path(
+    base_dir: &Path,
+    relative_path: Option<&str>,
+    file_name: &str,
+    preserve_folder_structure: bool,
+    existing_file_behavior: ExistingFileBehavior,
+) -> Result<ResolvedDestination, String> {
+    let effective_relative = if preserve_folder_structure {
+        relative_path
+    } else {
+        None
+    };
+
+    let final_path = build_destination_path(base_dir, effective_relative, file_name)?;
+
+    if !final_path.exists() {
+        return Ok(ResolvedDestination {
+            final_path,
+            skipped: false,
+        });
+    }
+
+    match existing_file_behavior {
+        ExistingFileBehavior::Ignore => Ok(ResolvedDestination {
+            final_path,
+            skipped: true,
+        }),
+        ExistingFileBehavior::Replace => Ok(ResolvedDestination {
+            final_path,
+            skipped: false,
+        }),
+        ExistingFileBehavior::Rename => Ok(ResolvedDestination {
+            final_path: find_unique_path(&final_path)?,
+            skipped: false,
+        }),
+    }
+}
+
+fn find_unique_path(path: &Path) -> Result<PathBuf, String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| "Destino inválido.".to_string())?;
+    let file_name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| "Nome de arquivo inválido.".to_string())?;
+
+    let (stem, extension) = split_file_name(file_name);
+
+    for index in 1..=9999 {
+        let candidate_name = if extension.is_empty() {
+            format!("{stem} ({index})")
+        } else {
+            format!("{stem} ({index}).{extension}")
+        };
+
+        let candidate = parent.join(&candidate_name);
+        if !candidate.exists() {
+            return Ok(candidate);
+        }
+    }
+
+    Err("Não foi possível gerar um nome único para o arquivo.".to_string())
+}
+
+fn split_file_name(file_name: &str) -> (&str, &str) {
+    match file_name.rsplit_once('.') {
+        Some((stem, ext)) if !stem.is_empty() && !ext.is_empty() && !ext.contains('\\') => (stem, ext),
+        _ => (file_name, ""),
+    }
+}
+
 pub fn validate_download_root(path: &str) -> Result<PathBuf, String> {
     let trimmed = path.trim();
     if trimmed.is_empty() {
@@ -161,7 +240,7 @@ pub fn validate_download_root(path: &str) -> Result<PathBuf, String> {
 
     let dir = PathBuf::from(trimmed);
     if !dir.is_absolute() {
-        return Err("Selecione um caminho absoluto (ex.: D:\\Brazilian Packs).".to_string());
+        return Err("Selecione um caminho absoluto (ex.: D:\\Brazilian Remix Service).".to_string());
     }
 
     fs::create_dir_all(&dir).map_err(|e| format!("Sem permissão para usar esta pasta: {e}"))?;
@@ -234,8 +313,97 @@ mod tests {
 
     #[test]
     fn part_suffix_is_appended_to_final_name() {
-        let final_path = PathBuf::from(r"D:\Brazilian Packs\musica.mp3");
+        let final_path = PathBuf::from(r"D:\Brazilian Remix Service\musica.mp3");
         let part = part_path_for(&final_path);
-        assert_eq!(part.to_string_lossy(), r"D:\Brazilian Packs\musica.mp3.part");
+        assert_eq!(part.to_string_lossy(), r"D:\Brazilian Remix Service\musica.mp3.part");
+    }
+
+    #[test]
+    fn flat_download_when_preserve_disabled() {
+        let base = temp_base("flat");
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        let dest = resolve_destination_path(
+            &base,
+            Some("Funk/Setembro 2026"),
+            "musica.mp3",
+            false,
+            ExistingFileBehavior::Rename,
+        )
+        .unwrap();
+        assert!(dest.final_path.to_string_lossy().ends_with("musica.mp3"));
+        assert!(!dest.final_path.to_string_lossy().contains("Funk"));
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn nested_download_when_preserve_enabled() {
+        let base = temp_base("preserve");
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        let dest = resolve_destination_path(
+            &base,
+            Some("Funk/Setembro 2026"),
+            "musica.mp3",
+            true,
+            ExistingFileBehavior::Rename,
+        )
+        .unwrap();
+        let path = dest.final_path.to_string_lossy();
+        assert!(path.contains("Funk"));
+        assert!(path.contains("Setembro 2026"));
+        assert!(path.ends_with("musica.mp3"));
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn renames_existing_file_with_counter() {
+        let base = temp_base("rename");
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        let first = build_destination_path(&base, None, "musica.mp3").unwrap();
+        fs::write(&first, b"1").unwrap();
+
+        let dest = resolve_destination_path(
+            &base,
+            None,
+            "musica.mp3",
+            true,
+            ExistingFileBehavior::Rename,
+        )
+        .unwrap();
+        assert_eq!(dest.final_path.file_name().unwrap().to_string_lossy(), "musica (1).mp3");
+
+        fs::write(&dest.final_path, b"2").unwrap();
+        let third = resolve_destination_path(
+            &base,
+            None,
+            "musica.mp3",
+            true,
+            ExistingFileBehavior::Rename,
+        )
+        .unwrap();
+        assert_eq!(third.final_path.file_name().unwrap().to_string_lossy(), "musica (2).mp3");
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn skips_when_ignore_behavior() {
+        let base = temp_base("ignore");
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        let first = build_destination_path(&base, None, "musica.mp3").unwrap();
+        fs::write(&first, b"1").unwrap();
+
+        let dest = resolve_destination_path(
+            &base,
+            None,
+            "musica.mp3",
+            true,
+            ExistingFileBehavior::Ignore,
+        )
+        .unwrap();
+        assert!(dest.skipped);
+        let _ = fs::remove_dir_all(&base);
     }
 }

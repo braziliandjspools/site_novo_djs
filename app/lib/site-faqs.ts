@@ -5,7 +5,7 @@ export type SiteFaq = {
 
 export const SITE_FAQS: SiteFaq[] = [
   {
-    q: "O que é o Brazilian Packs?",
+    q: "O que é o Brazilian Remix Service?",
     a: "É um acervo curado para DJs com mais de 400 pools, remix services, edits, extended versions e materiais organizados por gênero, pool e data. Tudo pensado para facilitar a preparação dos seus sets com repertório atualizado para a pista brasileira.",
   },
   {

@@ -31,15 +31,21 @@ export async function GET(request: Request, context: RouteContext) {
   const filename = ensureAudioExtension(requestedName ?? driveName ?? "faixa.mp3");
 
   try {
+    const rangeHeader = request.headers.get("Range");
+    const upstreamHeaders: Record<string, string> = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    };
+    if (rangeHeader) {
+      upstreamHeaders.Range = rangeHeader;
+    }
+
     const upstream = await fetch(getAudioSourceUrl(fileId), {
       redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
+      headers: upstreamHeaders,
     });
 
-    if (!upstream.ok || !upstream.body) {
+    if ((!upstream.ok && upstream.status !== 206) || !upstream.body) {
       return NextResponse.json({ error: "Download indisponível." }, { status: upstream.status });
     }
 
@@ -56,11 +62,15 @@ export async function GET(request: Request, context: RouteContext) {
     headers.set("Content-Type", contentTypeForFilename(filename));
     headers.set("Content-Disposition", contentDispositionAttachment(filename));
     headers.set("Cache-Control", "private, no-store, no-cache");
+    headers.set("Accept-Ranges", upstream.headers.get("Accept-Ranges") ?? "bytes");
 
     const length = upstream.headers.get("Content-Length");
     if (length) headers.set("Content-Length", length);
 
-    return new NextResponse(upstream.body, { status: 200, headers });
+    const contentRange = upstream.headers.get("Content-Range");
+    if (contentRange) headers.set("Content-Range", contentRange);
+
+    return new NextResponse(upstream.body, { status: upstream.status, headers });
   } catch {
     return NextResponse.json({ error: "Falha ao baixar." }, { status: 502 });
   }

@@ -3,7 +3,12 @@ import type { NextRequest } from "next/server";
 import { handleDownloaderCorsPreflight, withDownloaderCors } from "./app/lib/downloader-cors";
 
 function isDownloaderApiPath(pathname: string) {
-  return pathname.startsWith("/api/downloader") || pathname.startsWith("/api/musicas/download");
+  return (
+    pathname.startsWith("/api/downloader") ||
+    pathname.startsWith("/api/musicas/download") ||
+    pathname === "/api/portal/login" ||
+    pathname === "/api/musicas/session"
+  );
 }
 
 export function middleware(request: NextRequest) {
@@ -19,5 +24,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/downloader/:path*", "/api/musicas/download/:path*"],
+  matcher: [
+    "/api/downloader/:path*",
+    "/api/musicas/download/:path*",
+    "/api/portal/login",
+    "/api/musicas/session",
+  ],
 };

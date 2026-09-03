@@ -29,7 +29,7 @@ export const PLACEHOLDER = {
   deemix: "/images/deemix.png",
   allavsoft: "/images/allavsoft.png",
   trackCover: "/images/folder.jpg",
-  logo: "/images/logo.png",
+  logo: "/images/brs-logo.jpg",
   musicProducerHero: "/images/music-producer.png",
   musicasPortal: "/images/musicas-portal.png",
   demoCover: "/images/logo.png",

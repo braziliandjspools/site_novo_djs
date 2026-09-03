@@ -93,7 +93,7 @@ const accessMethods = [
   {
     icon: Music2,
     title: "Plataforma VIP",
-    text: "Navegue, ouça e baixe as atualizações direto no navegador. Mês a mês, por estilo, com busca integrada — o portal online do Brazilian Packs, sem instalar nada além do login.",
+    text: "Navegue, ouça e baixe as atualizações direto no navegador. Mês a mês, por estilo, com busca integrada — o portal online do Brazilian Remix Service, sem instalar nada além do login.",
     bgImage: PLACEHOLDER.musicasPortal,
   },
 ];
@@ -103,7 +103,7 @@ const testimonials = [
     name: "DJ Rafael Martins",
     role: "DJ Open Format",
     quote:
-      "Com o Brazilian Packs ficou muito mais fácil preparar meus sets. Encontro edits, versões extended e remixes organizados sem perder horas pesquisando antes de cada evento.",
+      "Com o Brazilian Remix Service ficou muito mais fácil preparar meus sets. Encontro edits, versões extended e remixes organizados sem perder horas pesquisando antes de cada evento.",
   },
   {
     name: "DJ Bruno Almeida",
@@ -223,7 +223,7 @@ export default async function Home() {
             <div className="overflow-hidden rounded-2xl border border-[#009739]/40 bg-white/[0.03] p-2 shadow-2xl shadow-[#002776]/40">
               <SiteImage
                 src={PLACEHOLDER.curadoria}
-                alt="Curadoria Brazilian Packs"
+                alt="Curadoria Brazilian Remix Service"
                 width={960}
                 height={720}
                 className="h-auto w-full rounded-xl object-cover"
@@ -300,7 +300,7 @@ export default async function Home() {
         title="Portal de atualizações online"
         description="Acesse o acervo pelo navegador: navegue por mês e estilo, ouça previews, baixe faixas e acompanhe as novidades sem depender só do Drive ou FTP. Tudo organizado na plataforma que criamos para assinantes VIP."
         image={PLACEHOLDER.musicasPortal}
-        imageAlt="Portal de atualizações Brazilian Packs"
+        imageAlt="Portal de atualizações Brazilian Remix Service"
         href="/musicas/atualizacoes"
         buttonLabel="Acessar atualizações"
         accent="green"
@@ -312,7 +312,7 @@ export default async function Home() {
           <SectionHeading
             badge="Catálogo"
             title="Pools & remix services disponíveis"
-            subtitle="Explore centenas de pools, remix services e fontes de conteúdo reunidos no acervo Brazilian Packs. Encontre edits, remixes, extended versions e materiais de diferentes estilos, tudo organizado para facilitar sua busca e a preparação dos seus sets."
+            subtitle="Explore centenas de pools, remix services e fontes de conteúdo reunidos no acervo Brazilian Remix Service. Encontre edits, remixes, extended versions e materiais de diferentes estilos, tudo organizado para facilitar sua busca e a preparação dos seus sets."
           />
           <div className="mt-12">
             <DriveCatalog />
@@ -326,7 +326,7 @@ export default async function Home() {
           <SectionHeading
             badge="Preview"
             title="Ouça algumas faixas do acervo"
-            subtitle="Confira uma seleção de faixas disponíveis no Brazilian Packs e conheça um pouco da variedade do nosso acervo. Ouça exemplos de remixes, edits, extended versions e outras versões pensadas para DJs e diferentes tipos de pista."
+            subtitle="Confira uma seleção de faixas disponíveis no Brazilian Remix Service e conheça um pouco da variedade do nosso acervo. Ouça exemplos de remixes, edits, extended versions e outras versões pensadas para DJs e diferentes tipos de pista."
           />
           <div className="mt-12">
             <TrackShowcase initialPlaylists={previewPlaylists} />
@@ -371,7 +371,7 @@ export default async function Home() {
         descriptionClassName="max-w-3xl text-justify"
         imageMaxWidth="max-w-md"
         image={PLACEHOLDER.musicProducerHero}
-        imageAlt="DJ Jéssika Luana — Produção Musical Brazilian Packs"
+        imageAlt="DJ Jéssika Luana — Produção Musical Brazilian Remix Service"
         href="/musicproducer"
         buttonLabel="Conhecer a produção musical"
         accent="green"
@@ -422,7 +422,7 @@ export default async function Home() {
           <SectionHeading
             badge="Depoimentos"
             title="O que dizem os DJs assinantes"
-            subtitle="Veja a experiência de quem já usa o Brazilian Packs no dia a dia. Relatos de DJs que economizam tempo na pesquisa, encontram versões certas com mais facilidade e mantêm o repertório sempre pronto para a pista."
+            subtitle="Veja a experiência de quem já usa o Brazilian Remix Service no dia a dia. Relatos de DJs que economizam tempo na pesquisa, encontram versões certas com mais facilidade e mantêm o repertório sempre pronto para a pista."
           />
           <div className="mt-12">
             <TestimonialsCarousel testimonials={testimonials} />
@@ -436,7 +436,7 @@ export default async function Home() {
           <SectionHeading
             badge="Acesso"
             title="Escolha seu acesso"
-            subtitle="Escolha o plano que melhor combina com a sua rotina e tenha acesso ao acervo Brazilian Packs, ferramentas inclusas e atualizações frequentes. Compare as opções e encontre a melhor forma de manter seu repertório sempre completo e organizado."
+            subtitle="Escolha o plano que melhor combina com a sua rotina e tenha acesso ao acervo Brazilian Remix Service, ferramentas inclusas e atualizações frequentes. Compare as opções e encontre a melhor forma de manter seu repertório sempre completo e organizado."
           />
           <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12 sm:max-w-none sm:grid-cols-2 md:grid-cols-3 md:gap-6">
             {plans.map((plan) => (
@@ -512,7 +512,7 @@ export default async function Home() {
           <SectionHeading
             badge="FAQ"
             title="Perguntas frequentes"
-            subtitle="Tire suas dúvidas sobre o acervo, formas de acesso, atualizações, Deemix e como começar no Brazilian Packs."
+            subtitle="Tire suas dúvidas sobre o acervo, formas de acesso, atualizações, Deemix e como começar no Brazilian Remix Service."
           />
           <div className="mt-12 space-y-3">
             {SITE_FAQS.map((faq) => (

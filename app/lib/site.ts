@@ -1,3 +1,5 @@
+import { SITE_NAME } from "./branding";
+
 export const PLATFORM_URL = "https://plataformavip.netlify.app/";
 export const WHATSAPP_NUMBER = "5551935052274";
 
@@ -48,17 +50,17 @@ export function whatsappUrl(message?: string) {
 }
 
 export function checkoutUrl(planName: string) {
-  return whatsappUrl(`Olá! Quero assinar o plano ${planName} da Brazilian Packs.`);
+  return whatsappUrl(`Olá! Quero assinar o plano ${planName} da ${SITE_NAME}.`);
 }
 
 export function deemixCheckoutUrl(product: "Deemix" | "Deemix Server") {
   return whatsappUrl(
-    `Olá! Quero comprar acesso ao ${product} sem assinar o plano de pools do Brazilian Packs.`,
+    `Olá! Quero comprar acesso ao ${product} sem assinar o plano de pools do ${SITE_NAME}.`,
   );
 }
 
 export function allavsoftCheckoutUrl() {
   return whatsappUrl(
-    "Olá! Quero comprar acesso ao Allavsoft sem assinar o plano de pools do Brazilian Packs.",
+    "Olá! Quero comprar acesso ao Allavsoft sem assinar o plano de pools do Brazilian Remix Service.",
   );
 }

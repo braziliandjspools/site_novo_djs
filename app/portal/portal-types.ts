@@ -1,5 +1,11 @@
 export type PortalPlan = "NONE" | "VIP" | "DEEMIX" | "ALLAVSOFT";
 
+export type PortalServices = {
+  poolsVip: boolean;
+  deemix: boolean;
+  allavsoft: boolean;
+};
+
 export type PortalData = {
   user: {
     name: string;
@@ -7,6 +13,10 @@ export type PortalData = {
     whatsapp: string;
     plan: PortalPlan;
     planLabel: string;
+    services: PortalServices;
+    servicesLabel: string;
+    monthlyValue: number;
+    monthlyValueLabel: string;
     dueDay: number;
     nextDueAt: string;
     createdAt: string;

@@ -2,7 +2,8 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies, headers } from "next/headers";
 import {
   findUserById,
-  getPlanLabel,
+  formatMonthlyValue,
+  getServicesLabel,
   userHasAllavsoft,
   userHasDeemix,
   userHasPools,
@@ -165,7 +166,11 @@ export function getPortalDataForUser(user: PortalUser) {
       email: user.email,
       whatsapp: user.whatsapp,
       plan: user.plan,
-      planLabel: getPlanLabel(user.plan),
+      planLabel: getServicesLabel(user.services),
+      services: user.services,
+      servicesLabel: getServicesLabel(user.services),
+      monthlyValue: user.monthlyValue,
+      monthlyValueLabel: formatMonthlyValue(user.monthlyValue),
       dueDay: user.dueDay,
       nextDueAt: user.nextDueAt.toISOString(),
       createdAt: user.createdAt.toISOString(),
@@ -174,16 +179,16 @@ export function getPortalDataForUser(user: PortalUser) {
     musicProducerDeliveries: {
       enabled: user.musicProducerDeliveriesEnabled,
     },
-    hasSubscriptionPlan: userHasSubscriptionPlan(user.plan),
+    hasSubscriptionPlan: userHasSubscriptionPlan(user),
     greeting,
     datetime: formatPortalDateTime(now),
-    deemix: userHasDeemix(user.plan)
+    deemix: userHasDeemix(user)
       ? {
           status: "active" as const,
           ...config.deemix,
         }
       : null,
-    allavsoft: userHasAllavsoft(user.plan) ? config.allavsoft : null,
-    pools: userHasPools(user.plan) ? config.pools : null,
+    allavsoft: userHasAllavsoft(user) ? config.allavsoft : null,
+    pools: userHasPools(user) ? config.pools : null,
   };
 }

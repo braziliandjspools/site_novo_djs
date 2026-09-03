@@ -13,6 +13,8 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { BrsLogo } from "../components/BrsLogo";
+import { MusicasUserMenu } from "../musicas/components/MusicasUserMenu";
 
 export type PortalView =
   | "dashboard"
@@ -32,6 +34,7 @@ type PortalShellProps = {
   hasPools: boolean;
   hasDeemix: boolean;
   hasAllavsoft: boolean;
+  hasVip?: boolean;
   children: React.ReactNode;
 };
 
@@ -82,10 +85,12 @@ export function PortalShell({
   hasPools,
   hasDeemix,
   hasAllavsoft,
+  hasVip,
   children,
 }: PortalShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const firstName = userName.split(" ")[0];
+  const vipActive = hasVip ?? hasPools;
 
   const serviceViews: PortalView[] = [];
   if (hasPools) serviceViews.push("service-pools");
@@ -102,11 +107,8 @@ export function PortalShell({
         }`}
       >
         <div className="border-b border-zinc-800 px-5 py-5">
-          <div className="h-1 w-12 rounded-full bg-gradient-to-r from-[#009739] via-[#00ff9d] to-[#FFDF00]" />
-          <Link href="/" className="mt-3 block font-display text-xl tracking-wide text-white">
-            BRAZILIAN<span className="text-[#00ff9d]"> PACKS</span>
-          </Link>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Client Area</p>
+          <BrsLogo href="/" className="h-10 w-auto max-w-[220px] object-contain object-left" />
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Client Area</p>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -197,9 +199,7 @@ export function PortalShell({
               <span className="hidden rounded border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#00ff9d] sm:inline">
                 Online
               </span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#009739] to-[#00ff9d] text-sm font-black text-black">
-                {firstName.charAt(0).toUpperCase()}
-              </div>
+              <MusicasUserMenu userName={userName} hasVip={vipActive} onLogout={() => void onLogout()} />
             </div>
           </div>
         </header>
@@ -207,7 +207,7 @@ export function PortalShell({
         <main className="flex-1 bg-[#121212] p-4 sm:p-6 lg:p-8">{children}</main>
 
         <footer className="border-t border-zinc-800 bg-[#0a0a0a] px-6 py-3 text-center text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">
-          Brazilian Packs · Client Area
+          Brazilian Remix Service · Client Area
         </footer>
       </div>
     </div>

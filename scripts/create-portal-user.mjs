@@ -43,6 +43,19 @@ function computeNextDueAt(dueDay, reference = new Date()) {
   return new Date(Date.UTC(nextYear, nextMonth - 1, nextMonthDay, 12, 0, 0));
 }
 
+function parseServices(raw) {
+  const value = String(raw ?? "")
+    .split(",")
+    .map((part) => part.trim().toUpperCase())
+    .filter(Boolean);
+
+  return {
+    servicePoolsVip: value.includes("POOLS") || value.includes("VIP") || value.includes("POOLS_VIP"),
+    serviceDeemix: value.includes("DEEMIX"),
+    serviceAllavsoft: value.includes("ALLAVSOFT"),
+  };
+}
+
 function parseArgs() {
   const args = process.argv.slice(2);
   const parsed = {};
@@ -73,6 +86,17 @@ async function promptMissing(fields, parsed) {
   return result;
 }
 
+function deriveLegacyPlan(services) {
+  const active = [
+    services.servicePoolsVip && "VIP",
+    services.serviceDeemix && "DEEMIX",
+    services.serviceAllavsoft && "ALLAVSOFT",
+  ].filter(Boolean);
+
+  if (active.length === 1) return active[0];
+  return "NONE";
+}
+
 async function main() {
   const parsed = parseArgs();
   const data = await promptMissing(
@@ -81,23 +105,30 @@ async function main() {
       ["email", "E-mail"],
       ["password", "Senha (mín. 8 caracteres)"],
       ["whatsapp", "WhatsApp (com DDD)"],
-      ["plan", "Plano (VIP, DEEMIX ou ALLAVSOFT)"],
+      ["services", "Serviços (pools,deemix,allavsoft — separados por vírgula)"],
+      ["monthlyValue", "Valor mensal (R$)"],
       ["dueDay", "Dia do vencimento (1-31)"],
       ["notes", "Observações (opcional)"],
     ],
     parsed,
   );
 
-  const plan = String(data.plan ?? "").trim().toUpperCase();
+  const services = parseServices(data.services);
   const dueDay = Number(data.dueDay);
+  const monthlyValue = Number(data.monthlyValue ?? 0);
 
-  if (!["VIP", "DEEMIX", "ALLAVSOFT"].includes(plan)) {
-    console.error("Plano inválido. Use VIP, DEEMIX ou ALLAVSOFT.");
+  if (!services.servicePoolsVip && !services.serviceDeemix && !services.serviceAllavsoft) {
+    console.error("Informe ao menos um serviço: pools, deemix ou allavsoft.");
     process.exit(1);
   }
 
   if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
     console.error("dueDay inválido. Use um número entre 1 e 31.");
+    process.exit(1);
+  }
+
+  if (!Number.isFinite(monthlyValue) || monthlyValue < 0) {
+    console.error("monthlyValue inválido.");
     process.exit(1);
   }
 
@@ -115,7 +146,9 @@ async function main() {
         email: String(data.email).trim().toLowerCase(),
         passwordHash,
         whatsapp: String(data.whatsapp).trim(),
-        plan,
+        plan: deriveLegacyPlan(services),
+        ...services,
+        monthlyValue,
         dueDay,
         nextDueAt: computeNextDueAt(dueDay),
         active: true,
@@ -126,7 +159,10 @@ async function main() {
     console.log("Usuário criado com sucesso!");
     console.log(`ID: ${user.id}`);
     console.log(`E-mail: ${user.email}`);
-    console.log(`Plano: ${user.plan}`);
+    console.log(`Pools VIP: ${user.servicePoolsVip ? "sim" : "não"}`);
+    console.log(`Deemix: ${user.serviceDeemix ? "sim" : "não"}`);
+    console.log(`Allavsoft: ${user.serviceAllavsoft ? "sim" : "não"}`);
+    console.log(`Valor mensal: R$ ${Number(user.monthlyValue).toFixed(2)}`);
     console.log(`Próximo vencimento: ${user.nextDueAt.toISOString()}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

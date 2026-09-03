@@ -3,20 +3,29 @@ import { NextResponse } from "next/server";
 const DOWNLOADER_CORS_ORIGINS = new Set([
   "http://localhost:1420",
   "http://127.0.0.1:1420",
-  "tauri://localhost",
+  "http://tauri.localhost",
   "https://tauri.localhost",
+  "tauri://localhost",
 ]);
 
 const DOWNLOADER_CORS_HEADERS = "Authorization, Content-Type, X-BP-Client";
 
 function resolveCorsOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  if (!origin) return null;
-  if (DOWNLOADER_CORS_ORIGINS.has(origin)) return origin;
-  if (process.env.NODE_ENV !== "production" && origin.startsWith("http://localhost:")) {
-    return origin;
+  const desktopClient = request.headers.get("X-BP-Client") === "downloader";
+
+  if (origin) {
+    if (DOWNLOADER_CORS_ORIGINS.has(origin)) return origin;
+    if (origin.includes("tauri.localhost") || origin.startsWith("tauri://")) return origin;
+    if (process.env.NODE_ENV !== "production" && origin.startsWith("http://localhost:")) {
+      return origin;
+    }
+    if (process.env.DOWNLOADER_CORS_ORIGIN) return process.env.DOWNLOADER_CORS_ORIGIN;
   }
-  return process.env.DOWNLOADER_CORS_ORIGIN ?? null;
+
+  if (desktopClient) return "https://tauri.localhost";
+
+  return null;
 }
 
 export function withDownloaderCors(request: Request, response: NextResponse) {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, LogIn, Sparkles, UserPlus } from "lucide-react";
+import { BrsLogo } from "../components/BrsLogo";
 
 type PortalLoginProps = {
   onSuccess: () => void;
@@ -185,10 +186,10 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link href="/" className="font-display text-3xl tracking-wide text-white">
-            BRAZILIAN<span className="text-[#00ff9d]"> PACKS</span>
-          </Link>
-          <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-600">Client Area</p>
+          <div className="flex justify-center">
+            <BrsLogo href="/" className="h-12 w-auto max-w-[280px] object-contain" />
+          </div>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-600">Client Area</p>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.6)]">

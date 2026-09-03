@@ -231,7 +231,7 @@ const localHighlights = [
   {
     icon: Check,
     title: "Incluso na assinatura",
-    description: "Assinantes do Brazilian Packs recebem acesso ao Deemix junto com instruções de instalação e configuração.",
+    description: "Assinantes do Brazilian Remix Service recebem acesso ao Deemix junto com instruções de instalação e configuração.",
     color: "blue" as const,
   },
 ];
@@ -239,7 +239,7 @@ const localHighlights = [
 const localSteps = [
   {
     title: "Assine um plano",
-    text: "Escolha o período de acesso e conclua sua assinatura do Brazilian Packs.",
+    text: "Escolha o período de acesso e conclua sua assinatura do Brazilian Remix Service.",
     icon: Check,
   },
   {
@@ -288,11 +288,11 @@ const faqs = [
   },
   {
     q: "O Deemix está incluso na assinatura?",
-    a: "Sim. Assinantes do Brazilian Packs têm acesso ao Deemix com instruções de instalação e configuração enviadas após a confirmação do pagamento.",
+    a: "Sim. Assinantes do Brazilian Remix Service têm acesso ao Deemix com instruções de instalação e configuração enviadas após a confirmação do pagamento.",
   },
   {
     q: "O Deemix Server está incluso na assinatura?",
-    a: "Sim. Assinantes do Brazilian Packs têm acesso ao Deemix Server conforme as condições do plano contratado, com instruções enviadas após a confirmação do pagamento.",
+    a: "Sim. Assinantes do Brazilian Remix Service têm acesso ao Deemix Server conforme as condições do plano contratado, com instruções enviadas após a confirmação do pagamento.",
   },
   {
     q: "Quais formatos de áudio posso baixar?",

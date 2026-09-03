@@ -4,13 +4,26 @@ import {
   deletePortalUser,
   serializePortalUser,
   updatePortalUser,
-  type PortalPlan,
+  type PortalServicesInput,
   type UpdatePortalUserInput,
 } from "../../../../lib/portal-users";
 
-function parsePlan(value: unknown): PortalPlan | null {
-  if (value === "NONE" || value === "VIP" || value === "DEEMIX" || value === "ALLAVSOFT") return value;
-  return null;
+function parseServices(value: unknown): PortalServicesInput | null {
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  return {
+    poolsVip: Boolean(data.poolsVip),
+    deemix: Boolean(data.deemix),
+    allavsoft: Boolean(data.allavsoft),
+  };
+}
+
+function parseMonthlyValue(value: unknown) {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return 0;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
 }
 
 function unauthorized() {
@@ -32,15 +45,23 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
 
-  let body: UpdatePortalUserInput = {};
+  let body: UpdatePortalUserInput & { services?: PortalServicesInput } = {};
   try {
-    body = (await request.json()) as UpdatePortalUserInput;
+    body = (await request.json()) as UpdatePortalUserInput & { services?: PortalServicesInput };
   } catch {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 400 });
   }
 
-  if (body.plan !== undefined && !parsePlan(body.plan)) {
-    return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
+  if (body.services !== undefined && !parseServices(body.services)) {
+    return NextResponse.json({ error: "services inválido." }, { status: 400 });
+  }
+
+  if (body.monthlyValue !== undefined) {
+    const monthlyValue = parseMonthlyValue(body.monthlyValue);
+    if (monthlyValue === null) {
+      return NextResponse.json({ error: "monthlyValue inválido." }, { status: 400 });
+    }
+    body.monthlyValue = monthlyValue;
   }
 
   if (body.dueDay !== undefined && (!Number.isInteger(body.dueDay) || body.dueDay < 1 || body.dueDay > 31)) {

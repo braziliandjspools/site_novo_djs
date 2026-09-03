@@ -53,6 +53,14 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
     <div className="space-y-6">
       <PortalPageHeader title="Meus Serviços" subtitle="Gerencie suas licenças e produtos contratados." />
 
+      {data.hasSubscriptionPlan && (
+        <p className="text-sm text-zinc-400">
+          <span className="font-medium text-white">{user.servicesLabel}</span>
+          {" · "}
+          Valor mensal: <span className="font-medium text-[#FFDF00]">{user.monthlyValueLabel}</span>
+        </p>
+      )}
+
       {!data.hasSubscriptionPlan && (
         <PortalCard>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -88,7 +96,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
             <thead>
               <tr className="border-b border-zinc-800 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
                 <th className="pb-3 pr-4">Produto / Serviço</th>
-                <th className="pb-3 pr-4">Plano</th>
+                <th className="pb-3 pr-4">Licença</th>
                 <th className="pb-3 pr-4">Status</th>
                 <th className="pb-3 pr-4">Próx. vencimento</th>
                 <th className="pb-3">Ações</th>
@@ -98,7 +106,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
               {rows.map((row) => (
                 <tr key={row.name} className="transition-colors hover:bg-zinc-800/30">
                   <td className="py-4 pr-4 font-medium text-white">{row.name}</td>
-                  <td className="py-4 pr-4 text-zinc-400">{user.planLabel}</td>
+                  <td className="py-4 pr-4 text-zinc-400">{row.name.split(" — ")[0]}</td>
                   <td className="py-4 pr-4">{row.badge}</td>
                   <td className="py-4 pr-4 text-zinc-400">{row.due}</td>
                   <td className="py-4">

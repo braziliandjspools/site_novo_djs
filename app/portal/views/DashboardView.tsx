@@ -33,7 +33,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
         <div className="mt-3 h-0.5 w-20 rounded-full bg-gradient-to-r from-[#009739] to-[#FFDF00]" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard icon={LayoutGrid} label="Serviços ativos" value={String(services)} hint="Licenças no seu plano" />
         <StatCard
           icon={Calendar}
@@ -41,7 +41,18 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
           value={data.hasSubscriptionPlan ? formatDateBr(user.nextDueAt) : "—"}
           hint={data.hasSubscriptionPlan ? `Todo dia ${user.dueDay} de cada mês` : "Sem plano contratado"}
         />
-        <StatCard icon={Package} label="Plano" value={data.hasSubscriptionPlan ? user.plan : "—"} hint={user.planLabel} />
+        <StatCard
+          icon={Package}
+          label="Serviços"
+          value={data.hasSubscriptionPlan ? user.servicesLabel : "—"}
+          hint={data.hasSubscriptionPlan ? "Licenças contratadas" : "Sem serviços ativos"}
+        />
+        <StatCard
+          icon={Calendar}
+          label="Valor mensal"
+          value={data.hasSubscriptionPlan ? user.monthlyValueLabel : "—"}
+          hint={data.hasSubscriptionPlan ? "Valor da assinatura" : "Sem plano contratado"}
+        />
         <StatCard
           icon={Calendar}
           label="Cliente desde"
@@ -183,8 +194,12 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               <dd className="font-medium text-white">{user.email}</dd>
             </div>
             <div className="flex justify-between border-b border-zinc-800 pb-2">
-              <dt className="text-zinc-500">Plano</dt>
-              <dd className="font-medium text-[#FFDF00]">{user.planLabel}</dd>
+              <dt className="text-zinc-500">Serviços</dt>
+              <dd className="font-medium text-[#FFDF00]">{user.servicesLabel}</dd>
+            </div>
+            <div className="flex justify-between border-b border-zinc-800 pb-2">
+              <dt className="text-zinc-500">Valor mensal</dt>
+              <dd className="font-medium text-white">{user.monthlyValueLabel}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-zinc-500">WhatsApp</dt>

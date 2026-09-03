@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Layers, LogIn, LogOut, Menu, RefreshCw } from "lucide-react";
+import { BrsLogo } from "../components/BrsLogo";
+import { DownloaderDevicePanel } from "./components/DownloaderDevicePanel";
 import { SITE_NAV_LINKS } from "../lib/site-nav";
 
 type MusicasSidebarProps = {
@@ -36,10 +38,8 @@ export function MusicasSidebar({
   const sidebarContent = (
     <>
       <div className="px-5 py-6">
-        <Link href="/musicas/home" className="block text-2xl font-black tracking-tight text-white">
-          Brazilian<span className="text-[#1ed760]">Packs</span>
-        </Link>
-        <p className="mt-1 text-xs text-zinc-500">Sua biblioteca de músicas</p>
+        <BrsLogo href="/musicas/home" className="h-10 w-auto max-w-[220px] object-contain object-left" />
+        <p className="mt-2 text-xs text-zinc-500">Sua biblioteca de músicas</p>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3">
@@ -79,6 +79,8 @@ export function MusicasSidebar({
           );
         })}
       </nav>
+
+      {hasVip && authenticated && <DownloaderDevicePanel />}
 
       <div className="border-t border-zinc-800/80 p-3">
         <p className="mb-2 truncate px-2 text-xs text-zinc-500">

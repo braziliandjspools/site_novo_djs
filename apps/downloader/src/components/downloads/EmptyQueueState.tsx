@@ -1,6 +1,7 @@
 import { ExternalLink, MonitorDown } from "lucide-react";
 import { Button } from "../ui/Button";
-import { openBrazilianPacks } from "../../lib/open-site";
+import { openPlatform } from "../../lib/open-site";
+import { SITE_NAME } from "../../lib/site";
 
 type EmptyQueueStateProps = {
   offline?: boolean;
@@ -18,12 +19,12 @@ export function EmptyQueueState({ offline = false }: EmptyQueueStateProps) {
       <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-500">
         {offline
           ? "Sem internet no momento. Quando a conexão voltar, a fila será sincronizada automaticamente."
-          : "Adicione músicas pelo Brazilian Packs e elas aparecerão aqui em poucos segundos."}
+          : `Adicione músicas pelo ${SITE_NAME} e elas aparecerão aqui em poucos segundos.`}
       </p>
       {!offline && (
-        <Button className="mt-8" onClick={() => void openBrazilianPacks()}>
+        <Button className="mt-8" onClick={() => void openPlatform()}>
           <ExternalLink className="h-4 w-4" />
-          Abrir Brazilian Packs
+          Abrir plataforma
         </Button>
       )}
     </div>

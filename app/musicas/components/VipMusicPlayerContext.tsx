@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useProtectedPlayer } from "../../hooks/useProtectedPlayer";
 import type { PreviewTrack } from "../../lib/google-drive";
 
@@ -19,8 +19,13 @@ type VipMusicPlayerContextValue = {
   progress: number;
   error: string | null;
   canPlay: boolean;
+  currentTrack: PreviewTrack | null;
+  isPlaying: boolean;
   setFolderPlayback: (folderId: string, state: FolderPlaybackState) => void;
+  registerTrackMeta: (track: PreviewTrack) => void;
   toggleTrack: (folderId: string, trackId: string) => Promise<void>;
+  playQueue: (folderId: string, trackId: string, tracks: PreviewTrack[]) => Promise<void>;
+  pause: () => void;
   seek: (ratio: number) => Promise<void>;
   isFolderPlaying: (folderId: string) => boolean;
 };
@@ -37,7 +42,9 @@ export function VipMusicPlayerProvider({
   canPlay,
 }: VipMusicPlayerProviderProps) {
   const foldersRef = useRef<Map<string, FolderPlaybackState>>(new Map());
+  const trackMetaRef = useRef<Map<string, PreviewTrack>>(new Map());
   const [playingFolderId, setPlayingFolderId] = useState<string | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<PreviewTrack | null>(null);
   const playingFolderIdRef = useRef<string | null>(null);
   const playRef = useRef<(trackId: string) => Promise<void>>(async () => {});
 
@@ -93,7 +100,37 @@ export function VipMusicPlayerProvider({
 
   const setFolderPlayback = useCallback((folderId: string, state: FolderPlaybackState) => {
     foldersRef.current.set(folderId, state);
+    for (const track of state.tracks) {
+      trackMetaRef.current.set(track.id, track);
+    }
   }, []);
+
+  const registerTrackMeta = useCallback((track: PreviewTrack) => {
+    trackMetaRef.current.set(track.id, track);
+  }, []);
+
+  const playQueue = useCallback(
+    async (folderId: string, trackId: string, tracks: PreviewTrack[]) => {
+      if (!canPlay) return;
+      for (const track of tracks) {
+        trackMetaRef.current.set(track.id, track);
+      }
+      foldersRef.current.set(folderId, {
+        tracks,
+        hasMore: false,
+        loadMore: async () => {},
+      });
+      playingFolderIdRef.current = folderId;
+      setPlayingFolderId(folderId);
+      setCurrentTrack(tracks.find((track) => track.id === trackId) ?? null);
+      try {
+        await player.play(trackId);
+      } catch {
+        /* erro registrado no state do player */
+      }
+    },
+    [canPlay, player],
+  );
 
   const toggleTrack = useCallback(
     async (folderId: string, trackId: string) => {
@@ -104,6 +141,7 @@ export function VipMusicPlayerProvider({
       }
       playingFolderIdRef.current = folderId;
       setPlayingFolderId(folderId);
+      setCurrentTrack(trackMetaRef.current.get(trackId) ?? null);
       try {
         await player.play(trackId);
       } catch {
@@ -119,6 +157,12 @@ export function VipMusicPlayerProvider({
     [playingFolderId, player.playingId, player.loadingId],
   );
 
+  useEffect(() => {
+    if (player.playingId) {
+      setCurrentTrack(trackMetaRef.current.get(player.playingId) ?? null);
+    }
+  }, [player.playingId]);
+
   const value = useMemo(
     () => ({
       playingFolderId,
@@ -129,8 +173,13 @@ export function VipMusicPlayerProvider({
       progress: player.progress,
       error: player.error,
       canPlay,
+      currentTrack,
+      isPlaying: player.playingId !== null && player.loadingId === null,
       setFolderPlayback,
+      registerTrackMeta,
       toggleTrack,
+      playQueue,
+      pause: player.pause,
       seek: player.seek,
       isFolderPlaying,
     }),
@@ -138,14 +187,17 @@ export function VipMusicPlayerProvider({
       playingFolderId,
       player.playingId,
       player.loadingId,
-      player.currentTime,
       player.duration,
       player.progress,
       player.error,
+      player.pause,
       player.seek,
       canPlay,
+      currentTrack,
       setFolderPlayback,
+      registerTrackMeta,
       toggleTrack,
+      playQueue,
       isFolderPlaying,
     ],
   );

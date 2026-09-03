@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Termos de Serviço | Brazilian Packs",
-  description: "Lorem ipsum dolor sit amet — termos de uso da plataforma Brazilian Packs.",
+  title: "Termos de Serviço | Brazilian Remix Service",
+  description: "Lorem ipsum dolor sit amet — termos de uso da plataforma Brazilian Remix Service.",
 };
 
 export default function TermosPage() {
@@ -15,7 +15,7 @@ export default function TermosPage() {
       <p className="mt-4 text-sm text-gray-400">Última atualização: 29 de agosto de 2026.</p>
       <div className="mt-8 space-y-6 text-sm leading-relaxed text-gray-300">
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ao assinar a Brazilian Packs, você recebe acesso
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ao assinar a Brazilian Remix Service, você recebe acesso
           temporário ao acervo e aos bônus descritos no plano contratado. O conteúdo é para uso profissional em sets,
           eventos e preparação de repertório.
         </p>
@@ -28,7 +28,7 @@ export default function TermosPage() {
           pode cancelar quando quiser; o acesso permanece ativo até o fim do ciclo já pago.
         </p>
         <p>
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore. A Brazilian Packs não se
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore. A Brazilian Remix Service não se
           responsabiliza por uso indevido do material, equipamentos do assinante ou falhas de conexão de internet.
         </p>
       </div>

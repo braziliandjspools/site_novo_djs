@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Brazilian Packs Downloader",
+  "productName": "BRS Downloader",
   "version": "0.1.0",
   "identifier": "com.brazilianpacks.downloader",
   "build": {
@@ -13,28 +13,56 @@
     "windows": [
       {
         "label": "main",
-        "title": "Brazilian Packs Downloader",
+        "title": "BRS Downloader",
         "width": 1100,
         "height": 720,
         "minWidth": 900,
         "minHeight": 600,
+        "center": true,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "visible": true,
+        "focus": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": false,
+    "publisher": "Brazilian Remix Service",
+    "copyright": "Copyright © Brazilian Remix Service",
+    "category": "Utility",
+    "shortDescription": "Downloader oficial da plataforma VIP Brazilian Remix Service.",
+    "longDescription": "Aplicativo desktop para baixar músicas enfileiradas na plataforma VIP Brazilian Remix Service. Requer conta ativa com serviço Pools VIP.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "installMode": "perMachine",
+        "languages": ["PortugueseBR", "English"],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": false,
+      "dialog": true,
+      "pubkey": "",
+      "endpoints": []
+    }
   }
 }

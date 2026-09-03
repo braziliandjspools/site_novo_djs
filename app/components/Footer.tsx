@@ -1,5 +1,6 @@
-import { Music4 } from "lucide-react";
+import { BrsLogo } from "./BrsLogo";
 import { whatsappUrl } from "../lib/site";
+import { SITE_NAME } from "../lib/branding";
 
 export function Footer() {
   return (
@@ -7,12 +8,9 @@ export function Footer() {
       <div className="br-stripe-thin mx-auto mb-8 max-w-6xl sm:mb-10" />
       <div className="mx-auto grid max-w-6xl gap-8 text-center sm:grid-cols-3 sm:gap-10 sm:text-left">
         <div className="flex flex-col items-center sm:items-start">
-          <div className="flex items-center gap-2 font-display text-lg tracking-wide text-white">
-            <Music4 size={18} className="text-[#FFDF00]" /> BRAZILIAN PACKS
-          </div>
+          <BrsLogo href="/" className="h-10 w-auto max-w-[220px] object-contain" />
           <p className="mt-3 max-w-xs text-xs leading-relaxed text-gray-500 sm:max-w-none">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
-            dolore magna aliqua. Feito com orgulho no Brasil.
+            Pools, curadoria e remix services para DJs. Feito com orgulho no Brasil.
           </p>
         </div>
         <div>
@@ -40,7 +38,7 @@ export function Footer() {
         </div>
       </div>
       <div className="mx-auto mt-8 flex max-w-6xl flex-col items-center gap-3 border-t border-white/5 pt-6 text-center text-xs text-gray-500 sm:mt-10 sm:flex-row sm:justify-between">
-        <p>&copy; {new Date().getFullYear()} Brazilian Packs. Todos os direitos reservados.</p>
+        <p>&copy; {new Date().getFullYear()} {SITE_NAME}. Todos os direitos reservados.</p>
         <p className="flex items-center gap-2 uppercase tracking-wider">
           <span className="inline-block h-2 w-2 rounded-full bg-[#009739]" />
           <span className="inline-block h-2 w-2 rounded-full bg-[#FFDF00]" />

@@ -123,6 +123,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
       hasPools={Boolean(portalData.pools)}
       hasDeemix={Boolean(portalData.deemix)}
       hasAllavsoft={Boolean(portalData.allavsoft)}
+      hasVip={Boolean(portalData.pools)}
     >
       {renderView()}
     </PortalShell>

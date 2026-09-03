@@ -3,14 +3,27 @@ import { isAuthorizedAdminRequest } from "../../../lib/admin-auth";
 import {
   createPortalUser,
   listPortalUsersGrouped,
+  normalizeServices,
   serializePortalUser,
   type CreatePortalUserInput,
-  type PortalPlan,
+  type PortalServicesInput,
 } from "../../../lib/portal-users";
 
-function parsePlan(value: unknown): PortalPlan | null {
-  if (value === "NONE" || value === "VIP" || value === "DEEMIX" || value === "ALLAVSOFT") return value;
-  return null;
+function parseServices(value: unknown): PortalServicesInput | null {
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  return {
+    poolsVip: Boolean(data.poolsVip),
+    deemix: Boolean(data.deemix),
+    allavsoft: Boolean(data.allavsoft),
+  };
+}
+
+function parseMonthlyValue(value: unknown) {
+  if (value === undefined || value === null || value === "") return 0;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
 }
 
 function unauthorized() {
@@ -42,9 +55,9 @@ export async function POST(request: Request) {
   }
   if (!isAuthorizedAdminRequest(request)) return unauthorized();
 
-  let body: Partial<CreatePortalUserInput> = {};
+  let body: Partial<CreatePortalUserInput & { services?: PortalServicesInput }> = {};
   try {
-    body = (await request.json()) as Partial<CreatePortalUserInput>;
+    body = (await request.json()) as Partial<CreatePortalUserInput & { services?: PortalServicesInput }>;
   } catch {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 400 });
   }
@@ -53,18 +66,23 @@ export async function POST(request: Request) {
   const email = body.email?.trim() ?? "";
   const password = body.password ?? "";
   const whatsapp = body.whatsapp?.trim() ?? "";
-  const plan = parsePlan(body.plan);
+  const services = parseServices(body.services);
   const dueDay = Number(body.dueDay);
+  const monthlyValue = parseMonthlyValue(body.monthlyValue);
 
-  if (!name || !email || !password || !whatsapp || !plan) {
+  if (!name || !email || !password || !whatsapp || !services) {
     return NextResponse.json(
-      { error: "Campos obrigatórios: name, email, password, whatsapp, plan." },
+      { error: "Campos obrigatórios: name, email, password, whatsapp, services." },
       { status: 400 },
     );
   }
 
   if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
     return NextResponse.json({ error: "dueDay deve ser um número entre 1 e 31." }, { status: 400 });
+  }
+
+  if (monthlyValue === null) {
+    return NextResponse.json({ error: "monthlyValue inválido." }, { status: 400 });
   }
 
   if (password.length < 8) {
@@ -81,7 +99,8 @@ export async function POST(request: Request) {
       email,
       password,
       whatsapp,
-      plan,
+      services,
+      monthlyValue,
       dueDay,
       nextDueAt: body.nextDueAt,
       active: body.active,

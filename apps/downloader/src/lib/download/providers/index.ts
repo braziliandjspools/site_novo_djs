@@ -15,6 +15,7 @@ async function invokeProviderDownload(request: FileDownloadRequest): Promise<Fil
     path: string;
     downloadedBytes: number;
     totalBytes: number | null;
+    skipped?: boolean;
   }>("download_job_file", {
     apiBaseUrl: API_BASE_URL,
     provider: request.provider,
@@ -29,6 +30,7 @@ async function invokeProviderDownload(request: FileDownloadRequest): Promise<Fil
     path: result.path,
     downloadedBytes: result.downloadedBytes,
     totalBytes: result.totalBytes,
+    skipped: result.skipped,
   };
 }
 

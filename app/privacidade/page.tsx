@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidade | Brazilian Packs",
-  description: "Lorem ipsum dolor sit amet — política de privacidade da Brazilian Packs.",
+  title: "Política de Privacidade | Brazilian Remix Service",
+  description: "Lorem ipsum dolor sit amet — política de privacidade da Brazilian Remix Service.",
 };
 
 export default function PrivacidadePage() {

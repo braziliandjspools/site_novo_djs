@@ -19,7 +19,7 @@ export async function hasDownloadDirConfigured() {
 
 export async function getDownloadDir() {
   if (!isTauriRuntime()) {
-    return "Downloads/Brazilian Packs";
+    return "Downloads/Brazilian Remix Service";
   }
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<string>("get_download_dir");
@@ -27,10 +27,16 @@ export async function getDownloadDir() {
 
 export async function getDefaultDownloadDir() {
   if (!isTauriRuntime()) {
-    return "Downloads/Brazilian Packs";
+    return "Downloads/Brazilian Remix Service";
   }
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<string>("get_default_download_dir_path");
+}
+
+export async function setDownloadDir(path: string) {
+  if (!isTauriRuntime()) return path;
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<string>("set_download_dir", { path });
 }
 
 export async function pickDownloadDir() {
@@ -63,4 +69,32 @@ export function onDownloadProgress(listener: (event: DownloadProgressEvent) => v
 
 export function isDesktopRuntime() {
   return isTauriRuntime();
+}
+
+export async function getMaxConcurrentDownloads() {
+  if (!isTauriRuntime()) return 3;
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<number>("get_max_concurrent_downloads");
+}
+
+export async function setMaxConcurrentDownloads(value: number) {
+  if (!isTauriRuntime()) return value;
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<number>("set_max_concurrent_downloads", { value });
+}
+
+export async function cancelNativeDownload(input: {
+  jobId: number;
+  fileName: string;
+  relativePath: string | null;
+  deletePart: boolean;
+}) {
+  if (!isTauriRuntime()) return;
+  const { invoke } = await import("@tauri-apps/api/core");
+  await invoke("cancel_download_job", {
+    jobId: input.jobId,
+    fileName: input.fileName,
+    relativePath: input.relativePath,
+    deletePart: input.deletePart,
+  });
 }

@@ -11,7 +11,7 @@ export async function getVipMusicSession(): Promise<VipMusicSession> {
   if (!user) {
     return { authenticated: false, canPlay: false, canDownload: false };
   }
-  const canPlay = userHasPools(user.plan);
+  const canPlay = userHasPools(user);
   return { authenticated: true, user, canPlay, canDownload: canPlay };
 }
 
@@ -20,7 +20,7 @@ export async function requireAuthenticatedUser() {
   if (!user) {
     return { ok: false as const, status: 401, error: "Faça login para acessar o acervo." };
   }
-  return { ok: true as const, user, canPlay: userHasPools(user.plan) };
+  return { ok: true as const, user, canPlay: userHasPools(user) };
 }
 
 export async function requireVipMusicAccess() {

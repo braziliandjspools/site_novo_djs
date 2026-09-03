@@ -15,10 +15,10 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
       <PortalCard title="Detalhes do serviço">
         <div className="mb-4 flex items-center gap-2">
           <PortalBadge>Ativo</PortalBadge>
-          <span className="text-xs text-zinc-500">Plano: {data.user.planLabel}</span>
+          <span className="text-xs text-zinc-500">Serviços: {data.user.servicesLabel}</span>
         </div>
         <p className="text-sm leading-relaxed text-zinc-400">
-          Acesso completo ao acervo de pools, remix services e curadoria do Brazilian Packs — mais de 400 fontes
+          Acesso completo ao acervo de pools, remix services e curadoria do Brazilian Remix Service — mais de 400 fontes
           organizadas para DJs.
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -124,13 +124,13 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
         </ul>
       </PortalCard>
 
-      {user.plan === "VIP" && (
-        <PortalCard title="Benefício VIP">
+      {user.services.poolsVip && (
+        <PortalCard title="Benefício Pools VIP">
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-[#FFDF00]" />
             <div>
               <p className="text-sm text-zinc-400">
-                Como cliente VIP, você terá acesso prioritário com desconto ao Allavsoft no lançamento.
+                Como cliente Pools VIP, você terá acesso prioritário com desconto ao Allavsoft no lançamento.
               </p>
               <p className="mt-1 text-sm font-semibold text-amber-400">Lançamento: {allavsoft.launchLabel}</p>
             </div>
@@ -154,7 +154,8 @@ export function AccountView({ data }: { data: PortalData }) {
             ["Nome completo", user.name],
             ["E-mail", user.email],
             ["WhatsApp", user.whatsapp],
-            ["Plano", user.planLabel],
+            ["Serviços", user.servicesLabel],
+            ["Valor mensal", user.monthlyValueLabel],
             ["Dia do vencimento", `Todo dia ${user.dueDay} de cada mês`],
             ["Próximo vencimento", formatDateBr(user.nextDueAt)],
             ["Cliente desde", formatDateBr(user.createdAt)],

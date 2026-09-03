@@ -25,7 +25,7 @@ export default function ColecoesPage() {
         <h2 className="text-2xl font-bold text-white sm:text-3xl">Página em criação</h2>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-400 sm:text-base">
           Estamos preparando coleções exclusivas com seleções temáticas, packs especiais e curadoria da equipe
-          Brazilian Packs. Volte em breve.
+          Brazilian Remix Service. Volte em breve.
         </p>
 
         <Link

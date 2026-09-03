@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { MusicasLoginModal } from "./components/MusicasLoginModal";
 import { MusicasSessionProvider } from "./components/MusicasSessionContext";
 import { MusicasToastProvider } from "./components/MusicasToast";
+import { DownloaderSyncProvider } from "./components/DownloaderSyncContext";
 import { MusicasMobileMenuButton, MusicasSidebar } from "./MusicasSidebar";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
@@ -77,6 +78,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
 
   return (
     <MusicasSessionProvider value={sessionValue}>
+      <DownloaderSyncProvider>
       <MusicasToastProvider>
       <div className="flex min-h-screen bg-black text-zinc-100">
         <MusicasSidebar
@@ -100,7 +102,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                       Olá, <span className="text-[#1ed760]">{firstName}</span>
                     </>
                   ) : (
-                    "Brazilian Packs Music"
+                    "BRS Music"
                   )}
                 </p>
                 <p className="truncate text-xs text-zinc-500">
@@ -148,6 +150,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
 
       {loginOpen && <MusicasLoginModal onClose={() => setLoginOpen(false)} onSuccess={() => void checkAccess()} />}
       </MusicasToastProvider>
+      </DownloaderSyncProvider>
     </MusicasSessionProvider>
   );
 }

@@ -4,7 +4,7 @@ import { whatsappUrl } from "../lib/site";
 export function WhatsAppFloat() {
   return (
     <a
-      href={whatsappUrl("Olá! Vim pelo site da Brazilian Packs e quero saber mais sobre o acervo.")}
+      href={whatsappUrl("Olá! Vim pelo site da Brazilian Remix Service e quero saber mais sobre o acervo.")}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Falar no WhatsApp"

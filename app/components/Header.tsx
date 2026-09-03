@@ -13,8 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { PLATFORM_URL } from "../lib/site";
-import { PLACEHOLDER } from "../lib/theme";
-import { SiteImage } from "./SiteImage";
+import { BrsLogo } from "./BrsLogo";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -32,17 +31,9 @@ export function Header() {
       <div className="br-stripe" />
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#121212]/95 backdrop-blur-md">
         <div className="relative mx-auto flex h-16 max-w-6xl items-center px-4 md:h-[72px] md:px-6">
-          <a href="/" className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 lg:static lg:translate-x-0 lg:mr-auto">
-            <SiteImage
-              src={PLACEHOLDER.logo}
-              alt="Brazilian Packs"
-              width={360}
-              height={88}
-              priority
-              className="h-9 w-auto max-w-[160px] object-contain sm:h-10 md:h-11 md:max-w-[180px]"
-              sizes="180px"
-            />
-          </a>
+          <div className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 lg:static lg:translate-x-0 lg:mr-auto">
+            <BrsLogo href="/" priority className="h-9 w-auto max-w-[200px] object-contain sm:h-10 sm:max-w-[240px] md:h-11 md:max-w-[260px]" />
+          </div>
 
           <nav className="ml-auto hidden items-center lg:flex">
             <ul className="flex items-center">

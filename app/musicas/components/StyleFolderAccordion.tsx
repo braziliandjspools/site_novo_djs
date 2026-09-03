@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, FolderOpen, Loader2, Volume2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { ChevronDown, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { displayFolderName } from "../../lib/vip-music-slugs";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
+import { sendFolderToDownloader } from "../lib/send-to-downloader";
+import { useDownloaderSync } from "./DownloaderSyncContext";
+import { useMusicasSession } from "./MusicasSessionContext";
+import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 type StyleFolderAccordionProps = {
@@ -12,6 +16,8 @@ type StyleFolderAccordionProps = {
   canPlay: boolean;
   canDownload: boolean;
   relativePath?: string;
+  monthSlug?: string;
+  monthName?: string;
   isNew?: boolean;
   isOpen: boolean;
   onToggle: () => void;
@@ -34,6 +40,8 @@ export function StyleFolderAccordion({
   canPlay,
   canDownload,
   relativePath,
+  monthSlug,
+  monthName,
   isNew = false,
   isOpen,
   onToggle,
@@ -41,6 +49,9 @@ export function StyleFolderAccordion({
   autoPlayTrackId,
   scrollIntoView = false,
 }: StyleFolderAccordionProps) {
+  const { authenticated, openLogin } = useMusicasSession();
+  const sync = useDownloaderSync();
+  const { showToast } = useMusicasToast();
   const { isFolderPlaying, setFolderPlayback } = useVipMusicPlayer();
   const isPlayingFolder = isFolderPlaying(folder.id);
   const [tracks, setTracks] = useState<PreviewTrack[]>([]);
@@ -50,6 +61,7 @@ export function StyleFolderAccordion({
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sendingFolder, setSendingFolder] = useState(false);
 
   const loadPage = useCallback(
     async (nextPage: number, append: boolean) => {
@@ -134,6 +146,41 @@ export function StyleFolderAccordion({
     onToggle();
   }
 
+  async function handleSendFolderToDownloader(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    if (sendingFolder) return;
+
+    if (!authenticated) {
+      openLogin();
+      return;
+    }
+    if (!canDownload) {
+      showToast("Plano VIP necessário para usar o Downloader.", "error");
+      return;
+    }
+
+    setSendingFolder(true);
+    try {
+      const result = await sendFolderToDownloader({
+        folderId: folder.id,
+        folderName: folder.name,
+        relativePath,
+        target: sync?.selectedTarget,
+        devices: sync?.devices,
+      });
+      showToast(
+        result.count === 1
+          ? "1 faixa adicionada ao BRS Downloader"
+          : `${result.count} faixas adicionadas ao BRS Downloader`,
+      );
+      await sync?.refresh();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");
+    } finally {
+      setSendingFolder(false);
+    }
+  }
+
   const label = displayFolderName(folder.name);
 
   return (
@@ -143,11 +190,8 @@ export function StyleFolderAccordion({
         isNew ? "border-[#1ed760]/50 shadow-[0_0_0_1px_rgba(30,215,96,0.15)]" : "border-zinc-800/90"
       }`}
     >
-      <button
-        type="button"
-        onClick={handleToggle}
-        aria-expanded={isOpen}
-        className={`group flex w-full items-center gap-2 border-l-2 px-2.5 py-2 text-left transition-colors sm:px-3 ${
+      <div
+        className={`group flex w-full items-center gap-2 border-l-2 px-2.5 py-2 transition-colors sm:px-3 ${
           isPlayingFolder
             ? "border-l-[#00ff9d] bg-zinc-950"
             : isOpen
@@ -157,38 +201,61 @@ export function StyleFolderAccordion({
                 : "border-l-transparent bg-black hover:border-l-[#00ff9d]/60 hover:bg-zinc-950/50"
         }`}
       >
-        <ChevronDown
-          className={`h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] transition-transform duration-150 ${
-            isOpen ? "rotate-0" : "-rotate-90"
-          }`}
-        />
-        {isPlayingFolder ? (
-          <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] animate-pulse" />
-        ) : (
-          <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d]/80 group-hover:text-[#00ff9d]" />
-        )}
-        <span
-          className={`min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-[0.12em] ${
-            isPlayingFolder || isOpen ? "text-[#00ff9d]" : "text-zinc-200"
-          }`}
+        <button
+          type="button"
+          onClick={handleToggle}
+          aria-expanded={isOpen}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          {label}
-        </span>
-        {isNew && !isPlayingFolder && (
-          <span className="flex-shrink-0 rounded-sm bg-[#1ed760] px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-black">
-            Novo
+          <ChevronDown
+            className={`h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] transition-transform duration-150 ${
+              isOpen ? "rotate-0" : "-rotate-90"
+            }`}
+          />
+          {isPlayingFolder ? (
+            <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] animate-pulse" />
+          ) : (
+            <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d]/80 group-hover:text-[#00ff9d]" />
+          )}
+          <span
+            className={`min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-[0.12em] ${
+              isPlayingFolder || isOpen ? "text-[#00ff9d]" : "text-zinc-200"
+            }`}
+          >
+            {label}
           </span>
+          {isNew && !isPlayingFolder && (
+            <span className="flex-shrink-0 rounded-sm bg-[#1ed760] px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-black">
+              Novo
+            </span>
+          )}
+          {isPlayingFolder && (
+            <span className="flex-shrink-0 border border-[#00ff9d]/50 px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-[#00ff9d]">
+              ON
+            </span>
+          )}
+          {loaded && (
+            <span className="flex-shrink-0 text-[10px] font-semibold tabular-nums text-zinc-500">{total}</span>
+          )}
+          {loading && !loaded && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#00ff9d]" />}
+        </button>
+        {canDownload && (
+          <button
+            type="button"
+            onClick={(event) => void handleSendFolderToDownloader(event)}
+            disabled={sendingFolder}
+            title="Enviar pasta inteira para o Downloader"
+            aria-label={`Enviar pasta ${label} para o Downloader`}
+            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
+          >
+            {sendingFolder ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <MonitorDown className="h-3.5 w-3.5" />
+            )}
+          </button>
         )}
-        {isPlayingFolder && (
-          <span className="flex-shrink-0 border border-[#00ff9d]/50 px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-[#00ff9d]">
-            ON
-          </span>
-        )}
-        {loaded && (
-          <span className="flex-shrink-0 text-[10px] font-semibold tabular-nums text-zinc-500">{total}</span>
-        )}
-        {loading && !loaded && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#00ff9d]" />}
-      </button>
+      </div>
 
       <div
         className={`grid transition-[grid-template-rows] duration-200 ease-out ${
@@ -218,6 +285,15 @@ export function StyleFolderAccordion({
                 relativePath={relativePath}
                 highlightTrackId={highlightTrackId}
                 autoPlayTrackId={autoPlayTrackId}
+                continueContext={
+                  monthSlug && monthName
+                    ? {
+                        monthSlug,
+                        monthName,
+                        styleName: displayFolderName(folder.name),
+                      }
+                    : undefined
+                }
               />
             )}
             {hasMore && (

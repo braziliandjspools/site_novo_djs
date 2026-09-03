@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use futures_util::StreamExt;
-use reqwest::header::{AUTHORIZATION, HeaderValue, USER_AGENT};
+use reqwest::header::{AUTHORIZATION, HeaderValue, RANGE, USER_AGENT};
 use tauri::Emitter;
 use tokio::io::AsyncWriteExt;
 
@@ -12,7 +12,10 @@ pub struct GoogleDriveProvider;
 
 impl GoogleDriveProvider {
     pub async fn download(ctx: DownloadContext) -> Result<DownloadResultPayload, String> {
-        cleanup_part_file(&ctx.part_path).await;
+        let resume_from = existing_part_bytes(&ctx.part_path).await;
+        if resume_from == 0 {
+            cleanup_part_file(&ctx.part_path).await;
+        }
 
         let mut url = reqwest::Url::parse(ctx.api_base_url.trim_end_matches('/'))
             .map_err(|e| e.to_string())?;
@@ -32,26 +35,39 @@ impl GoogleDriveProvider {
             .build()
             .map_err(|e| e.to_string())?;
 
-        let response = client
+        let mut request = client
             .get(url)
             .header(USER_AGENT, "BrazilianPacksDownloader/0.1")
             .header(
                 AUTHORIZATION,
                 HeaderValue::from_str(&format!("Bearer {}", ctx.auth_token.trim()))
                     .map_err(|e| e.to_string())?,
-            )
-            .send()
-            .await
-            .map_err(|e| e.to_string())?;
+            );
 
-        if !response.status().is_success() {
-            return Err(format!(
-                "Download indisponível (HTTP {}).",
-                response.status()
-            ));
+        if resume_from > 0 {
+            request = request.header(RANGE, format!("bytes={resume_from}-"));
         }
 
-        let total_bytes = response.content_length();
+        let response = request.send().await.map_err(|e| e.to_string())?;
+
+        if ctx.cancel_token.is_cancelled() {
+            return Err("Download cancelado.".to_string());
+        }
+
+        let status = response.status();
+        if !status.is_success() && status.as_u16() != 206 {
+            return Err(format!("Download indisponível (HTTP {}).", status));
+        }
+
+        let supports_range = status.as_u16() == 206 || resume_from == 0;
+        if resume_from > 0 && status.as_u16() != 206 {
+            cleanup_part_file(&ctx.part_path).await;
+            return Err("Retomada indisponível (servidor não suporta Range).".to_string());
+        }
+
+        let content_length = response.content_length();
+        let total_bytes = parse_total_bytes(response.headers(), resume_from, content_length);
+
         let content_type = response
             .headers()
             .get(reqwest::header::CONTENT_TYPE)
@@ -66,15 +82,32 @@ impl GoogleDriveProvider {
         }
 
         let mut stream = response.bytes_stream();
-        let mut file = tokio::fs::File::create(&ctx.part_path)
-            .await
-            .map_err(|e| format!("Não foi possível criar arquivo temporário: {e}"))?;
+        let mut file = if resume_from > 0 && supports_range {
+            tokio::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&ctx.part_path)
+                .await
+                .map_err(|e| format!("Não foi possível retomar arquivo temporário: {e}"))?
+        } else {
+            tokio::fs::File::create(&ctx.part_path)
+                .await
+                .map_err(|e| format!("Não foi possível criar arquivo temporário: {e}"))?
+        };
 
-        let mut downloaded_bytes = 0u64;
-        let mut last_emit = 0u64;
+        let mut downloaded_bytes = resume_from;
+        let mut last_emit = downloaded_bytes;
+
+        if resume_from > 0 {
+            emit_progress(&ctx, downloaded_bytes, total_bytes, false);
+        }
 
         let result = async {
             while let Some(chunk) = stream.next().await {
+                if ctx.cancel_token.is_cancelled() {
+                    return Err("Download cancelado.".to_string());
+                }
+
                 let chunk = chunk.map_err(|e| e.to_string())?;
                 file.write_all(&chunk).await.map_err(|e| e.to_string())?;
                 downloaded_bytes += chunk.len() as u64;
@@ -89,6 +122,10 @@ impl GoogleDriveProvider {
 
             file.flush().await.map_err(|e| e.to_string())?;
             drop(file);
+
+            if ctx.cancel_token.is_cancelled() {
+                return Err("Download cancelado.".to_string());
+            }
 
             let disk_bytes = tokio::fs::metadata(&ctx.part_path)
                 .await
@@ -107,27 +144,54 @@ impl GoogleDriveProvider {
                 }
             }
 
-            finalize_download(&ctx.final_path, &ctx.part_path).await?;
+            finalize_download(&ctx.final_path, &ctx.part_path, ctx.replace_existing).await?;
             emit_progress(&ctx, disk_bytes, total_bytes.or(Some(disk_bytes)), true);
 
             Ok(DownloadResultPayload {
                 path: ctx.final_path.to_string_lossy().to_string(),
                 downloaded_bytes: disk_bytes,
                 total_bytes: total_bytes.or(Some(disk_bytes)),
+                skipped: false,
             })
         }
         .await;
 
-        if result.is_err() {
-            cleanup_part_file(&ctx.part_path).await;
+        if result.is_err() && !ctx.cancel_token.is_cancelled() {
+            // Mantém .part para retomada em falhas de rede; cancelamento explícito remove depois.
         }
 
         result
     }
 }
 
-async fn finalize_download(final_path: &Path, part_path: &Path) -> Result<(), String> {
-    if final_path.exists() {
+fn parse_total_bytes(
+    headers: &reqwest::header::HeaderMap,
+    resume_from: u64,
+    content_length: Option<u64>,
+) -> Option<u64> {
+    if let Some(value) = headers.get("content-range").and_then(|v| v.to_str().ok()) {
+        // bytes 0-1023/5000
+        if let Some(total) = value.split('/').nth(1).and_then(|t| t.parse::<u64>().ok()) {
+            return Some(total);
+        }
+    }
+
+    content_length.map(|len| resume_from.saturating_add(len))
+}
+
+async fn existing_part_bytes(part_path: &Path) -> u64 {
+    tokio::fs::metadata(part_path)
+        .await
+        .map(|meta| meta.len())
+        .unwrap_or(0)
+}
+
+async fn finalize_download(
+    final_path: &Path,
+    part_path: &Path,
+    replace_existing: bool,
+) -> Result<(), String> {
+    if final_path.exists() && replace_existing {
         tokio::fs::remove_file(final_path)
             .await
             .map_err(|e| format!("Não foi possível substituir arquivo existente: {e}"))?;
@@ -138,7 +202,7 @@ async fn finalize_download(final_path: &Path, part_path: &Path) -> Result<(), St
         .map_err(|e| format!("Não foi possível finalizar o download: {e}"))
 }
 
-async fn cleanup_part_file(part_path: &Path) {
+pub async fn cleanup_part_file(part_path: &Path) {
     if part_path.exists() {
         let _ = tokio::fs::remove_file(part_path).await;
     }
