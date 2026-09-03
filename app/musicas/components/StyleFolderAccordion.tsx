@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronDown, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
-import { displayFolderName } from "../../lib/vip-music-slugs";
+import { displayFolderName, slugifyFolderName } from "../../lib/vip-music-slugs";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import { sendFolderToDownloader } from "../lib/send-to-downloader";
+import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
@@ -19,6 +20,7 @@ type StyleFolderAccordionProps = {
   monthSlug?: string;
   monthName?: string;
   weekSlug?: string;
+  slugSegments?: string[];
   isNew?: boolean;
   isOpen: boolean;
   onToggle: () => void;
@@ -44,6 +46,7 @@ export function StyleFolderAccordion({
   monthSlug,
   monthName,
   weekSlug,
+  slugSegments,
   isNew = false,
   isOpen,
   onToggle,
@@ -184,6 +187,12 @@ export function StyleFolderAccordion({
   }
 
   const label = displayFolderName(folder.name);
+  const packSlugSegments =
+    slugSegments && slugSegments.length > 0
+      ? slugSegments
+      : [monthSlug, weekSlug, slugifyFolderName(folder.name)].filter(
+          (part): part is string => Boolean(part),
+        );
 
   return (
     <div
@@ -241,6 +250,9 @@ export function StyleFolderAccordion({
           )}
           {loading && !loaded && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#00ff9d]" />}
         </button>
+        {packSlugSegments.length > 0 && (
+          <CopyPackLinkButton slugSegments={packSlugSegments} />
+        )}
         {canDownload && (
           <button
             type="button"

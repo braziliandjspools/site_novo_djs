@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarDays, ChevronRight } from "lucide-react";
 import { displayFolderName, folderHref, parseWeekNumber, slugifyFolderName } from "../../lib/vip-music-slugs";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
+import { CopyPackLinkButton } from "./CopyPackLinkButton";
 
 type WeekFolderGridProps = {
   monthSlug: string;
@@ -31,31 +32,37 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
         const isNew = newWeekIds?.has(week.id);
 
         return (
-          <Link
+          <div
             key={week.id}
-            href={href}
-            className="group flex items-center gap-4 rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-4 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1f1f1f]"
+            className="group flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-4 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1f1f1f]"
           >
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[#1ed760]/12 text-[#1ed760]">
-              <CalendarDays className="h-5 w-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate text-sm font-bold text-white group-hover:text-[#1ed760]">
-                  {weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : label}
-                </p>
-                {isNew && (
-                  <span className="rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                    Novo
-                  </span>
-                )}
+            <Link href={href} className="flex min-w-0 flex-1 items-center gap-4">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[#1ed760]/12 text-[#1ed760]">
+                <CalendarDays className="h-5 w-5" />
               </div>
-              <p className="mt-0.5 truncate text-xs text-zinc-500">
-                {monthName} · estilos e faixas
-              </p>
-            </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760]" />
-          </Link>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate text-sm font-bold text-white group-hover:text-[#1ed760]">
+                    {weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : label}
+                  </p>
+                  {isNew && (
+                    <span className="rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      Novo
+                    </span>
+                  )}
+                </div>
+                <p className="mt-0.5 truncate text-xs text-zinc-500">
+                  {monthName} · estilos e faixas
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760]" />
+            </Link>
+            <CopyPackLinkButton
+              slugSegments={[monthSlug, weekSlug]}
+              className="!h-8 !w-8"
+              label="Copiar link da semana para o Downloader"
+            />
+          </div>
         );
       })}
     </div>

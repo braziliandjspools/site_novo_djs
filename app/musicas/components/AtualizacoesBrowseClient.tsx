@@ -207,6 +207,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   monthSlug={monthSlug}
                   monthName={monthTitle}
                   weekSlug={weekSlug}
+                  slugSegments={[monthSlug, weekSlug, slugifyFolderName(folder.name)].filter(
+                    (part): part is string => Boolean(part),
+                  )}
                   isNew={newChildIds.has(folder.id)}
                   isOpen={openFolderId === folder.id}
                   highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}

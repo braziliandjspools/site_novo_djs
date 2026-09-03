@@ -10,8 +10,10 @@ import { pingApi } from "../lib/api/client";
 import { formatApiError } from "../lib/errors";
 import { getAppPreferences, setAppPreferences, isDesktopRuntime } from "../lib/native/app-preferences";
 
+const LOGIN_BG_SRC = "/images/login-bg.jpg";
+
 const inputClassName =
-  "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#1db954] focus:ring-1 focus:ring-[#1db954]/30";
+  "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a]/90 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#1db954] focus:ring-1 focus:ring-[#1db954]/30";
 
 const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500";
 
@@ -97,18 +99,26 @@ export function LoginPage() {
   const displayError = error ?? authError;
 
   return (
-    <div className="app-mesh flex h-full min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md animate-fade-up">
+    <div className="relative flex h-full min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      <img
+        src={LOGIN_BG_SRC}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+        draggable={false}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-black/55" aria-hidden />
+
+      <div className="relative z-10 w-full max-w-md animate-fade-up">
         <div className="mb-8 text-center">
           <div className="flex justify-center">
-            <BrsLogo className="h-14 w-auto max-w-[300px] object-contain" />
+            <BrsLogo className="h-14 w-auto max-w-[300px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]" />
           </div>
-          <p className="mt-3 text-sm text-zinc-500">{DOWNLOADER_NAME}</p>
+          <p className="mt-3 text-sm text-zinc-300 drop-shadow">{DOWNLOADER_NAME}</p>
         </div>
 
         <form
           onSubmit={(event) => void handleSubmit(event)}
-          className="rounded-3xl border border-white/[0.06] bg-[#111111]/90 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+          className="rounded-3xl border border-white/[0.08] bg-[#111111]/88 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md"
         >
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Conta VIP</p>
           <h1 className="text-xl font-bold text-white">Entrar na sua conta</h1>
@@ -221,31 +231,31 @@ export function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-zinc-600">
+        <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-zinc-400 drop-shadow">
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}
-            className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
             Privacidade
           </button>
-          <span className="text-zinc-700" aria-hidden>
+          <span className="text-zinc-600" aria-hidden>
             ·
           </span>
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}
-            className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
             Cookies
           </button>
-          <span className="text-zinc-700" aria-hidden>
+          <span className="text-zinc-600" aria-hidden>
             ·
           </span>
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}
-            className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
             Conduta
           </button>

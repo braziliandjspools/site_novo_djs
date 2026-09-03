@@ -9,6 +9,7 @@ import {
   slugifyFolderName,
   sortFoldersByMonthDate,
 } from "../../lib/vip-music-slugs";
+import { CopyPackLinkButton } from "./CopyPackLinkButton";
 
 function statusClass(status: ReturnType<typeof parseMonthStatus>["status"]) {
   if (status === "completo") return "border-[#1ed760]/40 text-[#1ed760]";
@@ -46,23 +47,32 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
           const name = displayFolderName(folder.name);
 
           return (
-            <Link
+            <div
               key={folder.id}
-              href={folderHref([slug])}
-              className={`flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600/20 px-4 py-2.5 text-sm font-semibold text-orange-50 transition-all hover:bg-orange-500/35 hover:text-white ${
+              className={`flex w-full items-center gap-2 rounded-lg bg-orange-600/20 px-2 py-1.5 transition-all hover:bg-orange-500/35 ${
                 isNew ? "ring-1 ring-orange-400/50" : ""
               }`}
             >
-              <span>{name}</span>
-              {isNew && (
-                <span className="rounded-full bg-orange-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
-                  Novas
-                </span>
-              )}
-              {!isNew && label ? (
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200/80">{label}</span>
-              ) : null}
-            </Link>
+              <Link
+                href={folderHref([slug])}
+                className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-1 text-sm font-semibold text-orange-50 hover:text-white"
+              >
+                <span>{name}</span>
+                {isNew && (
+                  <span className="rounded-full bg-orange-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
+                    Novas
+                  </span>
+                )}
+                {!isNew && label ? (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200/80">{label}</span>
+                ) : null}
+              </Link>
+              <CopyPackLinkButton
+                slugSegments={[slug]}
+                className="!h-8 !w-8 text-orange-100/80 hover:text-white"
+                label="Copiar link do mês para o Downloader"
+              />
+            </div>
           );
         })}
       </div>
@@ -78,23 +88,25 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
         const name = displayFolderName(folder.name);
 
         return (
-          <Link
+          <div
             key={folder.id}
-            href={folderHref([slug])}
-            className={`inline-flex items-center gap-2 rounded-full border bg-[#1a1a1a] px-4 py-2.5 text-sm font-semibold transition-colors hover:border-[#1ed760]/50 hover:bg-[#1ed760]/10 hover:text-white ${
+            className={`inline-flex items-center gap-1 rounded-full border bg-[#1a1a1a] py-1 pl-4 pr-1.5 text-sm font-semibold transition-colors hover:border-[#1ed760]/50 hover:bg-[#1ed760]/10 ${
               isNew ? "border-[#1ed760]/60 text-white" : statusClass(status)
             }`}
           >
-            <span>{name}</span>
-            {isNew && (
-              <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
-                Novas
-              </span>
-            )}
-            {!isNew && label ? (
-              <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
-            ) : null}
-          </Link>
+            <Link href={folderHref([slug])} className="inline-flex items-center gap-2 py-1.5 hover:text-white">
+              <span>{name}</span>
+              {isNew && (
+                <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
+                  Novas
+                </span>
+              )}
+              {!isNew && label ? (
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
+              ) : null}
+            </Link>
+            <CopyPackLinkButton slugSegments={[slug]} label="Copiar link do mês para o Downloader" />
+          </div>
         );
       })}
     </div>
