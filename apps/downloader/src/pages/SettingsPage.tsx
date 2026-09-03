@@ -32,11 +32,22 @@ const DEFAULT_PREFS: AppPreferences = {
   downloadDir: null,
   maxConcurrentDownloads: 3,
   preserveFolderStructure: true,
-  existingFileBehavior: "rename",
+  existingFileBehavior: "ignore",
   apiBaseUrl: null,
 };
 
 const EXISTING_FILE_OPTIONS: { value: ExistingFileBehavior; label: string; description: string }[] = [
+  {
+    value: "ignore",
+    label: "Ignorar automaticamente",
+    description:
+      "Pula o download quando o arquivo já existe. Arquivos comprovadamente iguais (mesmo ID e tamanho) são sempre ignorados.",
+  },
+  {
+    value: "ask",
+    label: "Perguntar",
+    description: "Exibe um diálogo para substituir, renomear ou ignorar quando houver conflito.",
+  },
   {
     value: "rename",
     label: "Renomear automaticamente",
@@ -46,11 +57,6 @@ const EXISTING_FILE_OPTIONS: { value: ExistingFileBehavior; label: string; descr
     value: "replace",
     label: "Substituir",
     description: "Sobrescreve o arquivo existente na pasta de destino.",
-  },
-  {
-    value: "ignore",
-    label: "Ignorar",
-    description: "Marca como concluído sem baixar se o arquivo já existir.",
   },
 ];
 
@@ -130,7 +136,10 @@ export function SettingsPage() {
     setDirError(null);
     try {
       const picked = await pickDownloadDir();
-      if (picked) setDownloadDir(picked);
+      if (picked) {
+        setDownloadDir(picked);
+        void downloadManager.refreshDiskSpace();
+      }
     } catch (error) {
       setDirError(error instanceof Error ? error.message : "Não foi possível alterar a pasta.");
     }
@@ -214,9 +223,9 @@ export function SettingsPage() {
             onChange={(checked) => void updatePreference({ preserveFolderStructure: checked })}
           />
           <div className="rounded-lg border border-zinc-800 bg-black/40 p-4">
-            <p className="text-sm font-semibold text-white">Arquivo já existente</p>
+            <p className="text-sm font-semibold text-white">Arquivos duplicados</p>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-              O que fazer quando o destino já contém um arquivo com o mesmo nome.
+              Como tratar arquivos que já existem na pasta de destino (análise local, sem consulta ao servidor).
             </p>
             <div className="mt-3 space-y-2">
               {EXISTING_FILE_OPTIONS.map((option) => (

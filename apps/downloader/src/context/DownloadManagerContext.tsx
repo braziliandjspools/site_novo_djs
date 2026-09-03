@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { downloadManager } from "../lib/download/download-manager";
 import { createRestQueueTransport } from "../lib/download/queue-transport";
-import type { DownloadManagerSnapshot, JobProgressMetrics } from "../lib/download/types";
+import type { DownloadManagerSnapshot, JobProgressMetrics, DiskSpaceSnapshot } from "../lib/download/types";
 import { loadSessionToken } from "../lib/native/secure-store";
 import type { DownloadJob } from "../lib/api/jobs";
 import type { ConnectionState } from "../lib/download/types";
@@ -17,6 +17,12 @@ const EMPTY_SNAPSHOT: DownloadManagerSnapshot = {
   globalPaused: false,
   autoDownload: true,
   jobMetrics: {},
+  diskSpace: {
+    availableBytes: null,
+    queueBytes: 0,
+    driveRoot: null,
+    insufficientSpace: null,
+  },
 };
 
 type DownloadManagerContextValue = {
@@ -27,6 +33,7 @@ type DownloadManagerContextValue = {
   activeJobIds: number[];
   maxConcurrency: number;
   jobMetrics: Record<number, JobProgressMetrics>;
+  diskSpace: DiskSpaceSnapshot;
   syncNow: () => void;
   pauseJob: (jobId: number) => void;
   resumeJob: (jobId: number) => void;
@@ -55,10 +62,10 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       if (cancelled || !token) return;
 
       await downloadManager.setTransport(createRestQueueTransport(token, device.deviceId), device.deviceId);
-      downloadManager.start();
       unsubscribe = downloadManager.subscribe((next) => {
         if (!cancelled) setSnapshot(next);
       });
+      downloadManager.start();
     });
 
     return () => {
@@ -66,7 +73,7 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       unsubscribe?.();
       downloadManager.stop();
     };
-  }, [status, device]);
+  }, [status, device?.deviceId]);
 
   const value = useMemo<DownloadManagerContextValue>(
     () => ({
@@ -77,6 +84,7 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       activeJobIds: snapshot.activeJobIds,
       maxConcurrency: snapshot.maxConcurrency,
       jobMetrics: snapshot.jobMetrics,
+      diskSpace: snapshot.diskSpace,
       syncNow: () => downloadManager.syncNow(),
       pauseJob: (jobId) => downloadManager.pauseJob(jobId),
       resumeJob: (jobId) => downloadManager.resumeJob(jobId),

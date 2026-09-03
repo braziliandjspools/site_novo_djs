@@ -15,6 +15,7 @@ type AppShellProps = {
   userName: string;
   device: DeviceInfo;
   connectionState: ConnectionState;
+  syncError?: string | null;
   counts?: {
     downloads: number;
     queue: number;
@@ -32,6 +33,7 @@ export function AppShell({
   userName,
   device,
   connectionState,
+  syncError,
   counts,
   onLogout,
   children,
@@ -43,6 +45,7 @@ export function AppShell({
         onNavigate={onNavigate}
         device={device}
         connectionState={connectionState}
+        syncError={syncError}
         userName={userName}
         counts={counts}
         onLogout={onLogout}

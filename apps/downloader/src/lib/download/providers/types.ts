@@ -7,6 +7,7 @@ export type FileDownloadRequest = {
   relativePath: string | null;
   authToken: string;
   jobId: number;
+  fileSize: number | null;
 };
 
 export type FileDownloadResult = {

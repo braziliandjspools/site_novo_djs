@@ -2,15 +2,19 @@ mod paths;
 mod providers;
 mod settings;
 mod cancel;
+mod duplicates;
+mod disk_space;
 
 use tauri::AppHandle;
 
 use crate::app_prefs::{read_preferences, ExistingFileBehavior};
 
+use duplicates::{analyze_duplicate, register_completed_download, resolve_duplicate_behavior, DuplicateAnalysis};
 use paths::{part_path_for, resolve_destination_path};
 use providers::{resolve_provider, DownloadContext, DownloadResultPayload};
 use providers::cleanup_part_file;
 use settings::resolve_download_dir;
+use disk_space::DiskSpaceInfo;
 use cancel::{
     cancel as cancel_token, part_path_for as registered_part_path, register as register_cancel_token,
     unregister as unregister_cancel_token,
@@ -47,6 +51,12 @@ pub fn open_download_dir(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn get_download_disk_space(app: AppHandle) -> Result<DiskSpaceInfo, String> {
+    let base_dir = resolve_download_dir(&app)?;
+    disk_space::query_disk_space(&base_dir)
+}
+
+#[tauri::command]
 pub async fn download_job_file(
     app: AppHandle,
     api_base_url: String,
@@ -56,38 +66,62 @@ pub async fn download_job_file(
     relative_path: Option<String>,
     auth_token: String,
     job_id: u32,
+    file_size: Option<u64>,
 ) -> Result<DownloadResultPayload, String> {
     let prefs = read_preferences(&app)?;
     let base_dir = resolve_download_dir(&app)?;
+    let effective_relative = if prefs.preserve_folder_structure {
+        relative_path.as_deref()
+    } else {
+        None
+    };
+
+    let candidate = paths::build_destination_path(&base_dir, effective_relative, &file_name)?;
+
+    let analysis = analyze_duplicate(&base_dir, &file_id, &candidate, file_size);
+    if analysis == DuplicateAnalysis::ProvablySame {
+        return Ok(DownloadResultPayload {
+            path: candidate.to_string_lossy().to_string(),
+            downloaded_bytes: 0,
+            total_bytes: file_size,
+            skipped: true,
+        });
+    }
+
+    let behavior = if analysis == DuplicateAnalysis::Conflict {
+        resolve_duplicate_behavior(&app, &file_name, prefs.existing_file_behavior).await
+    } else {
+        prefs.existing_file_behavior
+    };
+
     let resolved = resolve_destination_path(
         &base_dir,
-        relative_path.as_deref(),
+        effective_relative,
         &file_name,
-        prefs.preserve_folder_structure,
-        prefs.existing_file_behavior,
+        behavior,
     )?;
 
     if resolved.skipped {
         return Ok(DownloadResultPayload {
             path: resolved.final_path.to_string_lossy().to_string(),
             downloaded_bytes: 0,
-            total_bytes: None,
+            total_bytes: file_size,
             skipped: true,
         });
     }
 
     let final_path = resolved.final_path;
     let part_path = part_path_for(&final_path);
-    let replace_existing = prefs.existing_file_behavior == ExistingFileBehavior::Replace;
+    let replace_existing = behavior == ExistingFileBehavior::Replace;
 
     let cancel_token = register_cancel_token(job_id, part_path.clone());
 
     let ctx = DownloadContext {
-        app,
+        app: app.clone(),
         api_base_url,
         auth_token,
-        file_id,
-        file_name,
+        file_id: file_id.clone(),
+        file_name: file_name.clone(),
         final_path: final_path.clone(),
         part_path: part_path.clone(),
         job_id,
@@ -98,6 +132,20 @@ pub async fn download_job_file(
     let kind = resolve_provider(&provider)?;
     let result = kind.download(ctx).await;
     unregister_cancel_token(job_id);
+
+    if let Ok(ref payload) = result {
+        if !payload.skipped && payload.downloaded_bytes > 0 {
+            let size = payload.total_bytes.unwrap_or(payload.downloaded_bytes);
+            let _ = register_completed_download(
+                &base_dir,
+                &file_id,
+                &file_name,
+                effective_relative,
+                &final_path,
+                size,
+            );
+        }
+    }
 
     result
 }
@@ -120,9 +168,12 @@ pub async fn cancel_download_job(
             let base_dir = resolve_download_dir(&app)?;
             let resolved = resolve_destination_path(
                 &base_dir,
-                relative_path.as_deref(),
+                if prefs.preserve_folder_structure {
+                    relative_path.as_deref()
+                } else {
+                    None
+                },
                 &file_name,
-                prefs.preserve_folder_structure,
                 prefs.existing_file_behavior,
             )?;
             if !resolved.skipped {

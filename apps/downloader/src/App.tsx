@@ -5,6 +5,7 @@ import type { AppRoute } from "./components/layout/Sidebar";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DownloadManagerProvider, useDownloadManager } from "./context/DownloadManagerContext";
 import { hasDownloadDirConfigured, isDesktopRuntime } from "./lib/native/download";
+import { downloadManager } from "./lib/download/download-manager";
 import { ChooseDownloadFolderPage } from "./pages/ChooseDownloadFolderPage";
 import { CompletedPage } from "./pages/CompletedPage";
 import { HistoryPage } from "./pages/HistoryPage";
@@ -13,6 +14,7 @@ import { JobsSectionPage } from "./pages/JobsSectionPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { useWindowsIntegration } from "./hooks/useWindowsIntegration";
+import { DesktopRequiredNotice } from "./components/DesktopRequiredNotice";
 import type { DownloadJob } from "./lib/api/jobs";
 
 const PAGE_META: Record<AppRoute, { title: string; subtitle: string }> = {
@@ -42,24 +44,41 @@ const PAGE_META: Record<AppRoute, { title: string; subtitle: string }> = {
   },
 };
 
-function countJobs(jobs: DownloadJob[], activeJobIds: number[]) {
+function isQueueJobForDevice(job: DownloadJob, deviceId: string) {
+  if (job.status === "PENDING") {
+    return !job.targetDeviceId || job.targetDeviceId === deviceId;
+  }
+  if (job.status === "FAILED") {
+    return !job.deviceId || job.deviceId === deviceId;
+  }
+  return job.deviceId === deviceId;
+}
+
+function countJobs(jobs: DownloadJob[], activeJobIds: number[], deviceId: string) {
   return {
     downloads: jobs.filter(
-      (job) => job.status === "DOWNLOADING" || job.status === "PAUSED" || activeJobIds.includes(job.id),
+      (job) =>
+        job.deviceId === deviceId &&
+        (job.status === "DOWNLOADING" || job.status === "PAUSED" || activeJobIds.includes(job.id)),
     ).length,
     queue: jobs.filter(
-      (job) => job.status === "PENDING" || job.status === "RECEIVED" || job.status === "FAILED",
+      (job) =>
+        isQueueJobForDevice(job, deviceId) &&
+        (job.status === "PENDING" || job.status === "RECEIVED" || job.status === "FAILED"),
     ).length,
-    completed: jobs.filter((job) => job.status === "COMPLETED").length,
+    completed: jobs.filter((job) => job.status === "COMPLETED" && job.deviceId === deviceId).length,
   };
 }
 
 function AuthenticatedApp() {
   const { user, device, logout } = useAuth();
-  const { connectionState, jobs, activeJobIds } = useDownloadManager();
+  const { connectionState, jobs, activeJobIds, workerError } = useDownloadManager();
   const [route, setRoute] = useState<AppRoute>("home");
   const [folderConfigured, setFolderConfigured] = useState<boolean | null>(null);
-  const counts = useMemo(() => countJobs(jobs, activeJobIds), [activeJobIds, jobs]);
+  const counts = useMemo(
+    () => countJobs(jobs, activeJobIds, device?.deviceId ?? ""),
+    [activeJobIds, device?.deviceId, jobs],
+  );
 
   useWindowsIntegration(Boolean(user && device && folderConfigured));
 
@@ -71,7 +90,17 @@ function AuthenticatedApp() {
     void hasDownloadDirConfigured().then(setFolderConfigured);
   }, []);
 
+  useEffect(() => {
+    if (folderConfigured) {
+      downloadManager.notifyFolderReady();
+    }
+  }, [folderConfigured]);
+
   if (!user || !device) return null;
+
+  if (!isDesktopRuntime()) {
+    return <DesktopRequiredNotice />;
+  }
 
   if (folderConfigured === null) {
     return (
@@ -82,7 +111,10 @@ function AuthenticatedApp() {
   }
 
   if (!folderConfigured) {
-    return <ChooseDownloadFolderPage onConfigured={() => setFolderConfigured(true)} />;
+    return <ChooseDownloadFolderPage onConfigured={() => {
+      setFolderConfigured(true);
+      downloadManager.notifyFolderReady();
+    }} />;
   }
 
   const meta = PAGE_META[route];
@@ -96,6 +128,7 @@ function AuthenticatedApp() {
       userName={user.name}
       device={device}
       connectionState={connectionState}
+      syncError={workerError}
       counts={counts}
       onLogout={() => void logout()}
     >
@@ -111,6 +144,10 @@ function AuthenticatedApp() {
 
 function AppContent() {
   const { status } = useAuth();
+
+  if (!isDesktopRuntime()) {
+    return <DesktopRequiredNotice />;
+  }
 
   if (status === "loading") {
     return (

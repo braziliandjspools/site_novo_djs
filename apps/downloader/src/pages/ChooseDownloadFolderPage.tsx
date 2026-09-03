@@ -46,16 +46,8 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
     setSubmitting(true);
     setError(null);
     try {
-      const configured = await hasDownloadDirConfigured();
-      if (!configured) {
-        throw new Error("A pasta não foi salva. Tente novamente.");
-      }
       const saved = await getDownloadDir();
-      if (saved !== path) {
-        setSelectedPath(saved);
-      } else {
-        setSelectedPath(path);
-      }
+      setSelectedPath(saved || path);
       syncNow();
       onConfigured();
     } catch (err) {

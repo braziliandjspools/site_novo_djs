@@ -11,6 +11,7 @@ const SETTINGS_FILE: &str = "settings.json";
 #[serde(rename_all = "camelCase")]
 pub enum ExistingFileBehavior {
     Ignore,
+    Ask,
     Replace,
     #[serde(alias = "rename")]
     Rename,
@@ -18,7 +19,7 @@ pub enum ExistingFileBehavior {
 
 impl Default for ExistingFileBehavior {
     fn default() -> Self {
-        Self::Rename
+        Self::Ignore
     }
 }
 
@@ -62,7 +63,7 @@ impl Default for AppPreferences {
             download_dir: None,
             max_concurrent_downloads: default_max_concurrent_downloads(),
             preserve_folder_structure: true,
-            existing_file_behavior: ExistingFileBehavior::Rename,
+            existing_file_behavior: ExistingFileBehavior::Ignore,
             api_base_url: None,
         }
     }
@@ -87,6 +88,11 @@ fn write_preferences(app: &AppHandle, prefs: &AppPreferences) -> Result<(), Stri
     let path = settings_path(app)?;
     let json = serde_json::to_string_pretty(prefs).map_err(|e| e.to_string())?;
     fs::write(path, json).map_err(|e| e.to_string())
+}
+
+/// Persiste preferências sem tocar no autostart (ex.: pasta de downloads).
+pub fn save_preferences(app: &AppHandle, prefs: &AppPreferences) -> Result<(), String> {
+    write_preferences(app, prefs)
 }
 
 pub fn sync_autostart(app: &AppHandle, enabled: bool) -> Result<(), String> {

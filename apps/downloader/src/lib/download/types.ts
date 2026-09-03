@@ -1,4 +1,7 @@
 import type { DownloadJob } from "../api/jobs";
+import type { DiskSpaceSnapshot } from "./disk-space-utils";
+
+export type { DiskSpaceSnapshot };
 
 export type ConnectionState = "online" | "offline" | "connecting";
 
@@ -10,8 +13,7 @@ export type JobProgressMetrics = {
   etaSeconds: number | null;
 };
 
-export type DownloadManagerSnapshot = {
-  jobs: DownloadJob[];
+export type DownloadManagerSnapshot = {  jobs: DownloadJob[];
   connectionState: ConnectionState;
   error: string | null;
   pendingCount: number;
@@ -20,6 +22,7 @@ export type DownloadManagerSnapshot = {
   globalPaused: boolean;
   autoDownload: boolean;
   jobMetrics: Record<number, JobProgressMetrics>;
+  diskSpace: DiskSpaceSnapshot;
 };
 
 export type DownloadManagerListener = (snapshot: DownloadManagerSnapshot) => void;

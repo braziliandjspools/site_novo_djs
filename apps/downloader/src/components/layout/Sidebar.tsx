@@ -21,6 +21,7 @@ type SidebarProps = {
   onNavigate: (route: AppRoute) => void;
   device: DeviceInfo;
   connectionState: ConnectionState;
+  syncError?: string | null;
   userName: string;
   onLogout: () => void;
   counts?: {
@@ -44,6 +45,7 @@ export function Sidebar({
   onNavigate,
   device,
   connectionState,
+  syncError,
   userName,
   onLogout,
   counts,
@@ -59,7 +61,7 @@ export function Sidebar({
       </div>
 
       <div className="px-3">
-        <ConnectionStatus device={device} connectionState={connectionState} />
+        <ConnectionStatus device={device} connectionState={connectionState} error={syncError} />
       </div>
 
       <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-3">

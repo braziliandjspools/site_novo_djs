@@ -33,8 +33,12 @@ export function LoginPage() {
         const prefs = await getAppPreferences();
         const url = prefs.apiBaseUrl?.trim() || DEFAULT_API_BASE_URL;
         const normalized = normalizeApiBaseUrl(url);
-        setApiBaseUrl(normalized);
-        setCachedApiBaseUrl(normalized);
+        const useDefault =
+          /localhost|127\.0\.0\.1/i.test(normalized) &&
+          !/localhost|127\.0\.0\.1/i.test(DEFAULT_API_BASE_URL);
+        const next = useDefault ? DEFAULT_API_BASE_URL : normalized;
+        setApiBaseUrl(next);
+        setCachedApiBaseUrl(next);
       } catch {
         setCachedApiBaseUrl(DEFAULT_API_BASE_URL);
       }

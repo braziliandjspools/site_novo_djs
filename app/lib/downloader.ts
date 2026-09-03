@@ -6,7 +6,7 @@ const DRIVE_FILE_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
 const DEVICE_ID_REGEX = /^[a-zA-Z0-9._-]{8,128}$/;
 const MAX_BATCH_JOBS = 500;
 const BATCH_CHUNK_SIZE = 100;
-const MAX_LIST_JOBS = 200;
+const MAX_LIST_JOBS = 500;
 const MAX_FILE_NAME_LENGTH = 512;
 const MAX_RELATIVE_PATH_LENGTH = 1024;
 const MAX_DEVICE_NAME_LENGTH = 120;
@@ -460,6 +460,8 @@ export async function listDownloadJobs(
   },
 ) {
   if (filters.queueForDevice && filters.deviceId) {
+    await reclaimStaleQueueJobs(portalUserId, filters.deviceId);
+
     const jobs = await prisma.downloadJob.findMany({
       where: {
         portalUserId,
@@ -485,7 +487,7 @@ export async function listDownloadJobs(
         ],
       },
       include: { downloadDevice: true },
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: filters.limit,
     });
 
@@ -696,6 +698,30 @@ async function countDeviceQueue(portalUserId: number, externalDeviceId: string) 
           downloadDeviceId: null,
         },
       ],
+    },
+  });
+}
+
+/** Devolve jobs presos em dispositivos offline para PENDING, liberando a fila no PC atual. */
+export async function reclaimStaleQueueJobs(portalUserId: number, currentDeviceId: string) {
+  const offlineBefore = new Date(Date.now() - DEVICE_ONLINE_MS);
+
+  await prisma.downloadJob.updateMany({
+    where: {
+      portalUserId,
+      dismissedAt: null,
+      status: { in: ["RECEIVED", "DOWNLOADING", "PAUSED"] },
+      downloadDevice: {
+        deviceId: { not: currentDeviceId },
+        OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: offlineBefore } }],
+      },
+    },
+    data: {
+      status: "PENDING",
+      downloadDeviceId: null,
+      claimedAt: null,
+      startedAt: null,
+      error: null,
     },
   });
 }

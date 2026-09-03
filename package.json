@@ -14,6 +14,7 @@
     "test:downloader-batch": "node scripts/test-downloader-batch-queue.mjs",
     "test:downloader-two-devices": "node scripts/test-downloader-two-devices.mjs",
     "downloader:dev": "npm run tauri dev --prefix apps/downloader",
+    "tauri:dev": "npm run downloader:dev",
     "downloader:build": "npm run tauri build --prefix apps/downloader",
     "downloader:release": "node scripts/build-downloader-installer.mjs",
     "downloader:audit": "node scripts/audit-downloader-secrets.mjs",

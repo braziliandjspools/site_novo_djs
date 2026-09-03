@@ -161,16 +161,9 @@ pub fn resolve_destination_path(
     base_dir: &Path,
     relative_path: Option<&str>,
     file_name: &str,
-    preserve_folder_structure: bool,
     existing_file_behavior: ExistingFileBehavior,
 ) -> Result<ResolvedDestination, String> {
-    let effective_relative = if preserve_folder_structure {
-        relative_path
-    } else {
-        None
-    };
-
-    let final_path = build_destination_path(base_dir, effective_relative, file_name)?;
+    let final_path = build_destination_path(base_dir, relative_path, file_name)?;
 
     if !final_path.exists() {
         return Ok(ResolvedDestination {
@@ -180,7 +173,7 @@ pub fn resolve_destination_path(
     }
 
     match existing_file_behavior {
-        ExistingFileBehavior::Ignore => Ok(ResolvedDestination {
+        ExistingFileBehavior::Ignore | ExistingFileBehavior::Ask => Ok(ResolvedDestination {
             final_path,
             skipped: true,
         }),
@@ -249,8 +242,7 @@ pub fn validate_download_root(path: &str) -> Result<PathBuf, String> {
     fs::write(&probe, b"ok").map_err(|e| format!("Sem permissão de escrita nesta pasta: {e}"))?;
     let _ = fs::remove_file(probe);
 
-    dir.canonicalize()
-        .map_err(|e| format!("Não foi possível resolver a pasta: {e}"))
+    dir.canonicalize().or(Ok(dir))
 }
 
 #[cfg(test)]
@@ -323,14 +315,8 @@ mod tests {
         let base = temp_base("flat");
         let _ = fs::remove_dir_all(&base);
         fs::create_dir_all(&base).unwrap();
-        let dest = resolve_destination_path(
-            &base,
-            Some("Funk/Setembro 2026"),
-            "musica.mp3",
-            false,
-            ExistingFileBehavior::Rename,
-        )
-        .unwrap();
+        let dest = resolve_destination_path(&base, None, "musica.mp3", ExistingFileBehavior::Rename)
+            .unwrap();
         assert!(dest.final_path.to_string_lossy().ends_with("musica.mp3"));
         assert!(!dest.final_path.to_string_lossy().contains("Funk"));
         let _ = fs::remove_dir_all(&base);
@@ -345,7 +331,6 @@ mod tests {
             &base,
             Some("Funk/Setembro 2026"),
             "musica.mp3",
-            true,
             ExistingFileBehavior::Rename,
         )
         .unwrap();
@@ -364,24 +349,12 @@ mod tests {
         let first = build_destination_path(&base, None, "musica.mp3").unwrap();
         fs::write(&first, b"1").unwrap();
 
-        let dest = resolve_destination_path(
-            &base,
-            None,
-            "musica.mp3",
-            true,
-            ExistingFileBehavior::Rename,
-        )
+        let dest = resolve_destination_path(&base, None, "musica.mp3", ExistingFileBehavior::Rename)
         .unwrap();
         assert_eq!(dest.final_path.file_name().unwrap().to_string_lossy(), "musica (1).mp3");
 
         fs::write(&dest.final_path, b"2").unwrap();
-        let third = resolve_destination_path(
-            &base,
-            None,
-            "musica.mp3",
-            true,
-            ExistingFileBehavior::Rename,
-        )
+        let third = resolve_destination_path(&base, None, "musica.mp3", ExistingFileBehavior::Rename)
         .unwrap();
         assert_eq!(third.final_path.file_name().unwrap().to_string_lossy(), "musica (2).mp3");
         let _ = fs::remove_dir_all(&base);
@@ -395,15 +368,24 @@ mod tests {
         let first = build_destination_path(&base, None, "musica.mp3").unwrap();
         fs::write(&first, b"1").unwrap();
 
-        let dest = resolve_destination_path(
-            &base,
-            None,
-            "musica.mp3",
-            true,
-            ExistingFileBehavior::Ignore,
-        )
+        let dest = resolve_destination_path(&base, None, "musica.mp3", ExistingFileBehavior::Ignore)
         .unwrap();
         assert!(dest.skipped);
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn replaces_when_replace_behavior() {
+        let base = temp_base("replace");
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        let first = build_destination_path(&base, None, "musica.mp3").unwrap();
+        fs::write(&first, b"1").unwrap();
+
+        let dest = resolve_destination_path(&base, None, "musica.mp3", ExistingFileBehavior::Replace)
+            .unwrap();
+        assert!(!dest.skipped);
+        assert_eq!(dest.final_path, first);
         let _ = fs::remove_dir_all(&base);
     }
 }

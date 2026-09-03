@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { API_BASE_URL } from "../../api/config";
+import { resolveApiBaseUrl } from "../../api/config";
 import type { DownloadProvider, FileDownloadRequest, FileDownloadResult } from "./types";
 
 function isTauriRuntime() {
@@ -17,13 +17,14 @@ async function invokeProviderDownload(request: FileDownloadRequest): Promise<Fil
     totalBytes: number | null;
     skipped?: boolean;
   }>("download_job_file", {
-    apiBaseUrl: API_BASE_URL,
+    apiBaseUrl: await resolveApiBaseUrl(),
     provider: request.provider,
     fileId: request.fileId,
     fileName: request.fileName,
     relativePath: request.relativePath,
     authToken: request.authToken,
     jobId: request.jobId,
+    fileSize: request.fileSize,
   });
 
   return {

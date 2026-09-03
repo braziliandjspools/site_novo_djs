@@ -5,16 +5,17 @@ import type { DeviceInfo } from "../../context/AuthContext";
 type ConnectionStatusProps = {
   device: DeviceInfo;
   connectionState: ConnectionState;
+  error?: string | null;
 };
 
-export function ConnectionStatus({ device, connectionState }: ConnectionStatusProps) {
+export function ConnectionStatus({ device, connectionState, error }: ConnectionStatusProps) {
   const isOffline = connectionState === "offline";
   const isConnecting = connectionState === "connecting";
 
   return (
     <div
       className={`rounded-lg border px-3 py-3 ${
-        isOffline
+        isOffline || error
           ? "border-red-500/20 bg-red-500/5"
           : "border-[#1ed760]/20 bg-[#1ed760]/5"
       }`}
@@ -39,6 +40,7 @@ export function ConnectionStatus({ device, connectionState }: ConnectionStatusPr
         {device.deviceName}
       </p>
       <p className="text-xs text-zinc-500">{device.platformLabel}</p>
+      {error && <p className="mt-2 text-[11px] leading-relaxed text-red-400">{error}</p>}
     </div>
   );
 }

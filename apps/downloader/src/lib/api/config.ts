@@ -36,6 +36,10 @@ export function setCachedApiBaseUrl(value: string | null) {
   resolvedApiBaseUrl = value ? normalizeApiBaseUrl(value) : null;
 }
 
+function isLocalhostUrl(value: string) {
+  return /localhost|127\.0\.0\.1/i.test(value);
+}
+
 export async function resolveApiBaseUrl(): Promise<string> {
   if (resolvedApiBaseUrl) return resolvedApiBaseUrl;
 
@@ -43,7 +47,14 @@ export async function resolveApiBaseUrl(): Promise<string> {
     const { getAppPreferences } = await import("../native/app-preferences");
     const prefs = await getAppPreferences();
     const override = prefs.apiBaseUrl?.trim();
-    resolvedApiBaseUrl = override ? normalizeApiBaseUrl(override) : DEFAULT_API_BASE_URL;
+    const normalizedOverride = override ? normalizeApiBaseUrl(override) : null;
+    const savedLocal =
+      normalizedOverride &&
+      isLocalhostUrl(normalizedOverride) &&
+      !isLocalhostUrl(DEFAULT_API_BASE_URL);
+
+    resolvedApiBaseUrl =
+      normalizedOverride && !savedLocal ? normalizedOverride : DEFAULT_API_BASE_URL;
   } catch {
     resolvedApiBaseUrl = DEFAULT_API_BASE_URL;
   }

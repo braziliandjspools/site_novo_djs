@@ -25,7 +25,11 @@ pub async fn desktop_api_fetch(request: DesktopApiRequest) -> Result<DesktopApiR
         .parse::<Method>()
         .map_err(|_| format!("Método HTTP inválido: {}", request.method))?;
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(20))
+        .connect_timeout(std::time::Duration::from_secs(8))
+        .build()
+        .map_err(|e| e.to_string())?;
     let mut builder = client.request(method, &request.url);
 
     if let Some(headers) = request.headers {

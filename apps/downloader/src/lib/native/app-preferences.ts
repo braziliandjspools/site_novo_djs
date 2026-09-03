@@ -1,4 +1,4 @@
-export type ExistingFileBehavior = "ignore" | "replace" | "rename";
+export type ExistingFileBehavior = "ignore" | "ask" | "replace" | "rename";
 
 export type AppPreferences = {
   startWithWindows: boolean;
@@ -20,7 +20,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   downloadDir: null,
   maxConcurrentDownloads: 3,
   preserveFolderStructure: true,
-  existingFileBehavior: "rename",
+  existingFileBehavior: "ignore",
   apiBaseUrl: null,
 };
 function isTauriRuntime() {

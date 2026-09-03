@@ -35,7 +35,12 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
             <span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#1ed760]" />
             {onlineDevices[0]!.deviceName} conectado
           </p>
-          <p className="text-[11px] text-zinc-500">Fila: {totalQueueCount}</p>
+          <p className="text-[11px] text-zinc-500">
+            Fila neste PC: {onlineDevices[0]!.queueCount}
+            {totalQueueCount !== onlineDevices[0]!.queueCount ? (
+              <span className="text-zinc-600"> · total na conta: {totalQueueCount}</span>
+            ) : null}
+          </p>
         </div>
       ) : (
         <div className="mt-2 space-y-2">

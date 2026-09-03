@@ -1,4 +1,4 @@
-import { NetworkError } from "../api/client";
+import { NetworkError, ApiError } from "../api/client";
 import { executeFileDownload } from "./file-download-executor";
 import { loadPersistedQueue, persistQueue } from "./local-queue-store";
 import {
@@ -20,7 +20,14 @@ import {
 } from "./polling-schedule";
 import { ProgressTracker } from "./progress-tracker";
 import { nextRetryDelay, shouldAutoRetry, sleep } from "./retry-policy";
-import { isClaimConflict } from "./queue-transport";
+import { isClaimConflict, getClaimConflictJob } from "./queue-transport";
+import {
+  canStartJobDownload,
+  estimateQueueBytes,
+  isJobEligibleForQueueEstimate,
+  resolveDiskSpaceError,
+} from "./disk-space-utils";
+import { getDownloadDiskSpace } from "../native/disk-space";
 import type {
   ConnectionState,
   DownloadManagerListener,
@@ -84,6 +91,10 @@ export class DownloadManager {
   private slotPromises = new Map<number, Promise<void>>();
   private globalPaused = false;
   private autoDownload = true;
+  private diskSpaceAvailable: number | null = null;
+  private diskSpaceDriveRoot: string | null = null;
+  private diskSpaceError: string | null = null;
+  private diskSpaceRefreshInFlight = false;
 
   subscribe(listener: DownloadManagerListener) {
     this.listeners.add(listener);
@@ -118,7 +129,50 @@ export class DownloadManager {
       globalPaused: this.globalPaused,
       autoDownload: this.autoDownload,
       jobMetrics,
+      diskSpace: {
+        availableBytes: this.diskSpaceAvailable,
+        queueBytes: estimateQueueBytes(jobs, this.deviceId ?? ""),
+        driveRoot: this.diskSpaceDriveRoot,
+        insufficientSpace: this.diskSpaceError,
+      },
     };
+  }
+
+  async refreshDiskSpace() {
+    if (!isDesktopRuntime()) return;
+
+    if (this.diskSpaceRefreshInFlight) return;
+    this.diskSpaceRefreshInFlight = true;
+
+    try {
+      const configured = await hasDownloadDirConfigured();
+      if (!configured) {
+        this.diskSpaceAvailable = null;
+        this.diskSpaceDriveRoot = null;
+        this.diskSpaceError = null;
+        this.notify();
+        return;
+      }
+
+      const info = await getDownloadDiskSpace();
+      this.diskSpaceAvailable = info.availableBytes;
+      this.diskSpaceDriveRoot = info.driveRoot;
+      this.syncDiskSpaceError();
+      this.notify();
+    } catch (error) {
+      this.diskSpaceAvailable = null;
+      this.diskSpaceDriveRoot = null;
+      this.diskSpaceError =
+        error instanceof Error ? error.message : "Não foi possível ler o espaço em disco.";
+      this.notify();
+    } finally {
+      this.diskSpaceRefreshInFlight = false;
+    }
+  }
+
+  private syncDiskSpaceError() {
+    const queueBytes = estimateQueueBytes(this.jobs.values(), this.deviceId ?? "");
+    this.diskSpaceError = resolveDiskSpaceError(this.diskSpaceAvailable, queueBytes);
   }
 
   isGlobalPaused() {
@@ -194,6 +248,7 @@ export class DownloadManager {
     this.notify();
 
     void this.bindProgressListener();
+    void this.refreshDiskSpace();
     this.schedulePoll(POLL_MS.IMMEDIATE);
     this.heartbeatTimer = setInterval(() => {
       void this.sendHeartbeat();
@@ -208,6 +263,7 @@ export class DownloadManager {
 
   stop() {
     this.running = false;
+    this.pollInFlight = false;
     if (this.pollTimer) {
       clearTimeout(this.pollTimer);
       this.pollTimer = null;
@@ -228,6 +284,14 @@ export class DownloadManager {
   syncNow() {
     if (!this.running) return;
     this.schedulePoll(POLL_MS.IMMEDIATE);
+  }
+
+  /** Dispara sincronização e downloads após a pasta de destino ser configurada. */
+  notifyFolderReady() {
+    void this.refreshDiskSpace().then(() => {
+      void this.processQueue(true);
+    });
+    this.syncNow();
   }
 
   pauseJob(jobId: number) {
@@ -396,6 +460,15 @@ export class DownloadManager {
   }
 
   private mergeServerJob(job: DownloadJob) {
+    if (
+      job.deviceId &&
+      job.deviceId !== this.deviceId &&
+      ["RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status)
+    ) {
+      this.jobs.delete(job.id);
+      return;
+    }
+
     const isNew = !this.knownJobIds.has(job.id);
     this.knownJobIds.add(job.id);
 
@@ -409,6 +482,48 @@ export class DownloadManager {
     }
 
     this.jobs.delete(job.id);
+  }
+
+  private isClaimablePending(job: DownloadJob) {
+    return (
+      job.status === "PENDING" &&
+      (!job.targetDeviceId || job.targetDeviceId === this.deviceId)
+    );
+  }
+
+  private async claimPendingJobs(serverJobs: DownloadJob[]) {
+    if (!this.transport) return;
+
+    const MAX_CLAIMS_PER_POLL = 15;
+    const pendingIds = new Set<number>();
+    for (const job of serverJobs) {
+      if (this.isClaimablePending(job)) pendingIds.add(job.id);
+    }
+    for (const job of this.jobs.values()) {
+      if (this.isClaimablePending(job)) pendingIds.add(job.id);
+    }
+
+    let claimed = 0;
+    for (const jobId of pendingIds) {
+      if (claimed >= MAX_CLAIMS_PER_POLL) break;
+      try {
+        const next = await this.transport.claimJob(jobId);
+        this.mergeServerJob(next);
+        claimed += 1;
+      } catch (error) {
+        const conflictJob = getClaimConflictJob(error);
+        if (conflictJob) {
+          this.mergeServerJob(conflictJob);
+          continue;
+        }
+        if (isClaimConflict(error)) continue;
+        if (error instanceof ApiError && error.status === 404) {
+          this.jobs.delete(jobId);
+          continue;
+        }
+        continue;
+      }
+    }
   }
 
   private persistLocalQueue() {
@@ -514,10 +629,23 @@ export class DownloadManager {
     const folderReady = await hasDownloadDirConfigured();
     if (!folderReady) return;
 
+    if (this.diskSpaceAvailable === null) {
+      await this.refreshDiskSpace();
+    } else {
+      this.syncDiskSpaceError();
+    }
+
+    if (this.diskSpaceError) {
+      this.notify();
+      return;
+    }
+
     const availableSlots = this.maxConcurrency - this.activeJobIds.size;
     if (availableSlots <= 0) return;
 
-    const jobs = this.pickNextReceivedJobs(availableSlots);
+    const jobs = this.pickNextReceivedJobs(availableSlots).filter((job) =>
+      canStartJobDownload(this.diskSpaceAvailable, parseBytes(job.fileSize)),
+    );
     for (const job of jobs) {
       void this.startDownload(job);
     }
@@ -536,7 +664,9 @@ export class DownloadManager {
       this.lastProgressSync.delete(job.id);
       this.persistLocalQueue();
       this.notify();
-      void this.processQueue();
+      void this.refreshDiskSpace().then(() => {
+        void this.processQueue();
+      });
     });
 
     this.slotPromises.set(job.id, promise);
@@ -578,6 +708,7 @@ export class DownloadManager {
           relativePath: job.relativePath,
           authToken: token,
           jobId: job.id,
+          fileSize: job.fileSize ? Number(job.fileSize) : null,
         });
 
         this.retryAttempts.delete(job.id);
@@ -667,23 +798,34 @@ export class DownloadManager {
       const serverJobs = await this.transport.listJobs();
       this.setOnline();
 
+      let addedSizedJobs = 0;
       for (const job of serverJobs) {
+        const isNew = !this.knownJobIds.has(job.id);
         this.mergeServerJob(job);
+        if (
+          isNew &&
+          this.deviceId &&
+          parseBytes(job.fileSize) > 0 &&
+          isJobEligibleForQueueEstimate(job, this.deviceId)
+        ) {
+          addedSizedJobs += 1;
+        }
+      }
+      this.notify();
+
+      await this.claimPendingJobs(serverJobs);
+
+      const hasUnclaimedPending = Array.from(this.jobs.values()).some((job) =>
+        this.isClaimablePending(job),
+      );
+      if (hasUnclaimedPending) {
+        this.extendBurst();
       }
 
-      const pendingJobs = serverJobs.filter(
-        (job) =>
-          job.status === "PENDING" &&
-          (!job.targetDeviceId || job.targetDeviceId === this.deviceId),
-      );
-      for (const pending of pendingJobs) {
-        try {
-          const claimed = await this.transport.claimJob(pending.id);
-          this.mergeServerJob(claimed);
-        } catch (error) {
-          if (isClaimConflict(error)) continue;
-          throw error;
-        }
+      if (addedSizedJobs > 0) {
+        void this.refreshDiskSpace();
+      } else {
+        this.syncDiskSpaceError();
       }
 
       this.persistLocalQueue();
@@ -691,11 +833,11 @@ export class DownloadManager {
       this.notify();
       void this.processQueue();
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao sincronizar a fila.";
+      this.error = message;
       if (error instanceof NetworkError) {
         this.setOffline();
       } else {
-        const message = error instanceof Error ? error.message : "Erro ao sincronizar a fila.";
-        this.error = message;
         this.notify();
       }
     } finally {

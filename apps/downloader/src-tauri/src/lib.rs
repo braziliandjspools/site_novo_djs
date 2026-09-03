@@ -31,6 +31,7 @@ pub fn run() {
             download::set_download_dir,
             download::pick_download_dir,
             download::open_download_dir,
+            download::get_download_disk_space,
             download::download_job_file,
             download::cancel_download_job,
             download::get_max_concurrent_downloads,
