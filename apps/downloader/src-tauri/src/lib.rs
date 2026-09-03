@@ -1,5 +1,7 @@
 #![cfg_attr(mobile, tauri::mobile_entry_point)]
 
+use std::sync::Arc;
+
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -10,6 +12,9 @@ mod download;
 mod tray;
 
 pub fn run() {
+    let initial_limit = 0u64;
+    let speed_limiter = Arc::new(download::speed_limit::GlobalSpeedLimiter::new(initial_limit));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -18,6 +23,7 @@ pub fn run() {
             MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
         ))
+        .manage(speed_limiter)
         .invoke_handler(tauri::generate_handler![
             auth::get_or_create_device_id,
             auth::get_device_name,
@@ -36,6 +42,8 @@ pub fn run() {
             download::cancel_download_job,
             download::get_max_concurrent_downloads,
             download::set_max_concurrent_downloads,
+            download::get_download_speed_limit_bps,
+            download::set_download_speed_limit_bps,
             app_prefs::get_app_preferences,
             app_prefs::set_app_preferences,
             tray::show_main_window_command,
@@ -44,6 +52,10 @@ pub fn run() {
         ])
         .setup(|app| {
             tray::setup_tray(app.handle())?;
+
+            if let Ok(prefs) = app_prefs::read_preferences(app.handle()) {
+                app_prefs::sync_speed_limiter(app.handle(), &prefs);
+            }
 
             let args: Vec<String> = std::env::args().collect();
             if args.iter().any(|arg| arg == "--background") {

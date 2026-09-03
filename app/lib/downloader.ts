@@ -684,7 +684,7 @@ async function countDeviceQueue(portalUserId: number, externalDeviceId: string) 
     where: {
       portalUserId,
       dismissedAt: null,
-      status: { in: ACTIVE_QUEUE_STATUSES },
+      status: { in: ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"] },
       OR: [
         { targetDeviceId: externalDeviceId },
         { downloadDevice: { deviceId: externalDeviceId } },
@@ -701,32 +701,80 @@ async function countDeviceQueue(portalUserId: number, externalDeviceId: string) 
 /** Devolve jobs presos em dispositivos offline para PENDING, liberando a fila no PC atual. */
 export async function reclaimStaleQueueJobs(portalUserId: number, currentDeviceId: string) {
   const offlineBefore = new Date(Date.now() - DEVICE_ONLINE_MS);
-  const staleDevices = await prisma.downloadDevice.findMany({
-    where: {
-      portalUserId,
-      deviceId: { not: currentDeviceId },
-      OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: offlineBefore } }],
-    },
-    select: { id: true },
+  const devices = await prisma.downloadDevice.findMany({
+    where: { portalUserId },
+    select: { id: true, deviceId: true, lastSeenAt: true },
   });
 
-  if (staleDevices.length === 0) return;
+  const knownExternalIds = new Set(devices.map((device) => device.deviceId));
+  const staleDevices = devices.filter(
+    (device) =>
+      device.deviceId !== currentDeviceId &&
+      (!device.lastSeenAt || device.lastSeenAt < offlineBefore),
+  );
 
-  await prisma.downloadJob.updateMany({
+  const staleInternalIds = staleDevices.map((device) => device.id);
+  const staleExternalIds = staleDevices.map((device) => device.deviceId);
+
+  if (staleInternalIds.length > 0) {
+    // Jobs já atribuídos a PCs offline voltam para a fila livre.
+    await prisma.downloadJob.updateMany({
+      where: {
+        portalUserId,
+        dismissedAt: null,
+        status: { in: ["RECEIVED", "DOWNLOADING", "PAUSED"] },
+        downloadDeviceId: { in: staleInternalIds },
+      },
+      data: {
+        status: "PENDING",
+        downloadDeviceId: null,
+        claimedAt: null,
+        startedAt: null,
+        error: null,
+        targetDeviceId: null,
+      },
+    });
+  }
+
+  // PENDING mirados em dispositivo offline (ex.: app reinstalado) ficam disponíveis.
+  if (staleExternalIds.length > 0) {
+    await prisma.downloadJob.updateMany({
+      where: {
+        portalUserId,
+        dismissedAt: null,
+        status: "PENDING",
+        downloadDeviceId: null,
+        targetDeviceId: { in: staleExternalIds },
+      },
+      data: {
+        targetDeviceId: null,
+      },
+    });
+  }
+
+  // Targets órfãos (deviceId que não existe mais na conta).
+  const orphanTargets = await prisma.downloadJob.findMany({
     where: {
       portalUserId,
       dismissedAt: null,
-      status: { in: ["RECEIVED", "DOWNLOADING", "PAUSED"] },
-      downloadDeviceId: { in: staleDevices.map((device) => device.id) },
-    },
-    data: {
       status: "PENDING",
       downloadDeviceId: null,
-      claimedAt: null,
-      startedAt: null,
-      error: null,
+      targetDeviceId: { not: null },
     },
+    select: { id: true, targetDeviceId: true },
+    take: 500,
   });
+
+  const orphanIds = orphanTargets
+    .filter((job) => job.targetDeviceId && !knownExternalIds.has(job.targetDeviceId))
+    .map((job) => job.id);
+
+  if (orphanIds.length > 0) {
+    await prisma.downloadJob.updateMany({
+      where: { id: { in: orphanIds } },
+      data: { targetDeviceId: null },
+    });
+  }
 }
 
 export async function getDownloaderSync(portalUserId: number) {
@@ -734,6 +782,19 @@ export async function getDownloaderSync(portalUserId: number) {
     where: { portalUserId },
     orderBy: [{ lastSeenAt: "desc" }, { updatedAt: "desc" }],
   });
+
+  const onlineDevice = devices.find((device) => {
+    if (!device.lastSeenAt) return false;
+    return Date.now() - device.lastSeenAt.getTime() <= DEVICE_ONLINE_MS;
+  });
+
+  if (onlineDevice) {
+    try {
+      await reclaimStaleQueueJobs(portalUserId, onlineDevice.deviceId);
+    } catch {
+      /* sync não pode falhar por causa do reclaim */
+    }
+  }
 
   const serializedDevices = await Promise.all(
     devices.map(async (device) => ({

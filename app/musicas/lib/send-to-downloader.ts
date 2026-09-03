@@ -37,12 +37,18 @@ export function resolveTargetDeviceIds(
   devices: DownloaderDeviceSummary[],
 ): string[] {
   const online = devices.filter((device) => device.isOnline);
+
+  // Um único PC online: não fixa targetDeviceId — qualquer sessão desse app pode puxar a fila.
   if (!target || target === "all") {
-    if (online.length <= 1) {
-      return online[0] ? [online[0].deviceId] : [];
-    }
+    if (online.length <= 1) return [];
     return online.map((device) => device.deviceId);
   }
+
+  // Seleção explícita do único PC online também fica sem target fixo (evita fila órfã se o deviceId mudar).
+  if (online.length === 1 && online[0]?.deviceId === target) {
+    return [];
+  }
+
   return [target];
 }
 

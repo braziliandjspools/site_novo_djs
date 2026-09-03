@@ -71,6 +71,7 @@ function parseBytes(value: string | null | undefined) {
 export class DownloadManager {
   private transport: QueueTransport | null = null;
   private deviceId: string | null = null;
+  private authToken: string | null = null;
   private jobs = new Map<number, DownloadJob>();
   private knownJobIds = new Set<number>();
   private listeners = new Set<DownloadManagerListener>();
@@ -211,9 +212,10 @@ export class DownloadManager {
     void this.processQueue(true);
   }
 
-  async setTransport(transport: QueueTransport, deviceId: string) {
+  async setTransport(transport: QueueTransport, deviceId: string, authToken?: string | null) {
     this.transport = transport;
     this.deviceId = deviceId;
+    this.authToken = authToken?.trim() || null;
 
     for (const job of loadPersistedQueue(deviceId)) {
       if (this.activeJobIds.has(job.id)) continue;
@@ -303,6 +305,7 @@ export class DownloadManager {
   private halt() {
     this.running = false;
     this.pollInFlight = false;
+    this.authToken = null;
     if (this.pollTimer) {
       clearTimeout(this.pollTimer);
       this.pollTimer = null;
@@ -611,7 +614,7 @@ export class DownloadManager {
   private async claimPendingJobs(serverJobs: DownloadJob[]) {
     if (!this.transport) return;
 
-    const MAX_CLAIMS_PER_POLL = 15;
+    const MAX_CLAIMS_PER_POLL = 40;
     const pendingIds = new Set<number>();
     for (const job of serverJobs) {
       if (this.isClaimablePending(job)) pendingIds.add(job.id);
@@ -794,8 +797,19 @@ export class DownloadManager {
   private async runDownload(initialJob: DownloadJob) {
     if (!this.transport) return;
 
-    const token = await loadSessionToken();
-    if (!token) return;
+    // Preferir token em memória (AuthContext). Keyring pode falhar e marcar o job como "sessão expirada".
+    let token = this.authToken?.trim() || null;
+    if (!token) {
+      token = (await loadSessionToken())?.trim() || null;
+      if (token) this.authToken = token;
+    }
+    if (!token) {
+      await this.updateJobStatus(initialJob.id, {
+        status: "FAILED",
+        error: "Sessão expirada. Entre novamente.",
+      });
+      return;
+    }
 
     let job = initialJob;
 

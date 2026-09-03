@@ -1,11 +1,15 @@
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 
+use crate::download::speed_limit::GlobalSpeedLimiter;
+
 const SETTINGS_FILE: &str = "settings.json";
+const MB: u64 = 1024 * 1024;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -20,6 +24,31 @@ pub enum ExistingFileBehavior {
 impl Default for ExistingFileBehavior {
     fn default() -> Self {
         Self::Ignore
+    }
+}
+
+/// Preset de limite de velocidade (MB/s). `custom` usa `speed_limit_custom_mbps`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum SpeedLimitMode {
+    #[serde(alias = "unlimited", alias = "none")]
+    Unlimited,
+    #[serde(rename = "1")]
+    Mb1,
+    #[serde(rename = "2")]
+    Mb2,
+    #[serde(rename = "5")]
+    Mb5,
+    #[serde(rename = "10")]
+    Mb10,
+    #[serde(rename = "20")]
+    Mb20,
+    Custom,
+}
+
+impl Default for SpeedLimitMode {
+    fn default() -> Self {
+        Self::Unlimited
     }
 }
 
@@ -43,6 +72,11 @@ pub struct AppPreferences {
     pub existing_file_behavior: ExistingFileBehavior,
     /// Override da URL da API Next.js (ex.: http://localhost:3000)
     pub api_base_url: Option<String>,
+    #[serde(default)]
+    pub speed_limit_mode: SpeedLimitMode,
+    /// Valor em MB/s quando `speed_limit_mode` = Custom.
+    #[serde(default = "default_custom_mbps")]
+    pub speed_limit_custom_mbps: f64,
 }
 
 fn default_true() -> bool {
@@ -51,6 +85,10 @@ fn default_true() -> bool {
 
 fn default_max_concurrent_downloads() -> u8 {
     3
+}
+
+fn default_custom_mbps() -> f64 {
+    3.0
 }
 
 impl Default for AppPreferences {
@@ -65,8 +103,60 @@ impl Default for AppPreferences {
             preserve_folder_structure: true,
             existing_file_behavior: ExistingFileBehavior::Ignore,
             api_base_url: None,
+            speed_limit_mode: SpeedLimitMode::Unlimited,
+            speed_limit_custom_mbps: default_custom_mbps(),
         }
     }
+}
+
+impl AppPreferences {
+    pub fn resolved_speed_limit_bps(&self) -> u64 {
+        match self.speed_limit_mode {
+            SpeedLimitMode::Unlimited => 0,
+            SpeedLimitMode::Mb1 => MB,
+            SpeedLimitMode::Mb2 => 2 * MB,
+            SpeedLimitMode::Mb5 => 5 * MB,
+            SpeedLimitMode::Mb10 => 10 * MB,
+            SpeedLimitMode::Mb20 => 20 * MB,
+            SpeedLimitMode::Custom => {
+                let mbps = self.speed_limit_custom_mbps;
+                if !mbps.is_finite() || mbps <= 0.0 {
+                    0
+                } else {
+                    (mbps * MB as f64).round() as u64
+                }
+            }
+        }
+    }
+
+    pub fn normalize_speed_limit(&mut self) {
+        if self.speed_limit_custom_mbps.is_nan() || self.speed_limit_custom_mbps.is_infinite() {
+            self.speed_limit_custom_mbps = default_custom_mbps();
+        }
+        self.speed_limit_custom_mbps = self.speed_limit_custom_mbps.clamp(0.1, 1000.0);
+    }
+}
+
+/// Atualiza mode/custom a partir de um valor bruto em bytes/s (0 = sem limite).
+pub fn apply_speed_limit_bps(prefs: &mut AppPreferences, bytes_per_second: u64) {
+    if bytes_per_second == 0 {
+        prefs.speed_limit_mode = SpeedLimitMode::Unlimited;
+        return;
+    }
+
+    let mbps = bytes_per_second as f64 / MB as f64;
+    let nearest = mbps.round() as u64;
+    prefs.speed_limit_mode = match nearest {
+        1 if (mbps - 1.0).abs() < 0.05 => SpeedLimitMode::Mb1,
+        2 if (mbps - 2.0).abs() < 0.05 => SpeedLimitMode::Mb2,
+        5 if (mbps - 5.0).abs() < 0.05 => SpeedLimitMode::Mb5,
+        10 if (mbps - 10.0).abs() < 0.05 => SpeedLimitMode::Mb10,
+        20 if (mbps - 20.0).abs() < 0.05 => SpeedLimitMode::Mb20,
+        _ => {
+            prefs.speed_limit_custom_mbps = mbps.clamp(0.1, 1000.0);
+            SpeedLimitMode::Custom
+        }
+    };
 }
 
 fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -105,17 +195,29 @@ pub fn sync_autostart(app: &AppHandle, enabled: bool) -> Result<(), String> {
     Ok(())
 }
 
+pub fn sync_speed_limiter(app: &AppHandle, prefs: &AppPreferences) {
+    if let Some(limiter) = app.try_state::<Arc<GlobalSpeedLimiter>>() {
+        limiter.set_limit_bps(prefs.resolved_speed_limit_bps());
+    }
+}
+
 #[tauri::command]
 pub fn get_app_preferences(app: AppHandle) -> Result<AppPreferences, String> {
     read_preferences(&app)
 }
 
 #[tauri::command]
-pub fn set_app_preferences(app: AppHandle, prefs: AppPreferences) -> Result<AppPreferences, String> {
+pub fn set_app_preferences(
+    app: AppHandle,
+    prefs: AppPreferences,
+    limiter: State<'_, Arc<GlobalSpeedLimiter>>,
+) -> Result<AppPreferences, String> {
     let mut prefs = prefs;
     prefs.max_concurrent_downloads = prefs.max_concurrent_downloads.clamp(1, 5);
+    prefs.normalize_speed_limit();
     sync_autostart(&app, prefs.start_with_windows)?;
     write_preferences(&app, &prefs)?;
+    limiter.set_limit_bps(prefs.resolved_speed_limit_bps());
     Ok(prefs)
 }
 

@@ -398,12 +398,12 @@ export function VipMusicTrackList({
       try {
         await triggerDownload(track);
       } catch {
-        window.alert("Não foi possível baixar a faixa. Tente novamente.");
+        showToast("Não foi possível baixar a faixa. Tente novamente.", "error");
       } finally {
         setDownloadingId(null);
       }
     },
-    [downloadingId],
+    [downloadingId, showToast],
   );
 
   const ensureDownloaderAccess = useCallback(() => {

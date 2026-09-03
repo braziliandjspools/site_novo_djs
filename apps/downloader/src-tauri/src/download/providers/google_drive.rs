@@ -254,6 +254,10 @@ async fn download_from_url(
                 continue;
             }
 
+            ctx.speed_limiter
+                .acquire(chunk.len(), &ctx.cancel_token)
+                .await?;
+
             file.write_all(&chunk).await.map_err(|e| e.to_string())?;
             downloaded_bytes += chunk.len() as u64;
 

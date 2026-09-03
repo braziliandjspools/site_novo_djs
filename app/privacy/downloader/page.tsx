@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { DownloaderPrivacyPage } from "./DownloaderPrivacyPage";
+import { LegalDocumentPage } from "../LegalDocumentPage";
+import { downloaderPrivacyDocument } from "./policy-content";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade — Brazilian Packs Downloader | Brazilian Remix Service",
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyDownloaderRoute() {
-  return <DownloaderPrivacyPage />;
+  return <LegalDocumentPage document={downloaderPrivacyDocument} />;
 }

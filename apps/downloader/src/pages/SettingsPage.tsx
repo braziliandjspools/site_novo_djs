@@ -13,8 +13,10 @@ import { notificationManager } from "../lib/notifications/notification-manager";
 import {
   getAppPreferences,
   setAppPreferences,
+  DEFAULT_PREFERENCES,
   type AppPreferences,
   type ExistingFileBehavior,
+  type SpeedLimitMode,
 } from "../lib/native/app-preferences";
 import {
   getDownloadDir,
@@ -22,18 +24,6 @@ import {
   openDownloadDir,
   pickDownloadDir,
 } from "../lib/native/download";
-
-const DEFAULT_PREFS: AppPreferences = {
-  startWithWindows: false,
-  minimizeToTray: true,
-  autoDownload: true,
-  showNotifications: true,
-  downloadDir: null,
-  maxConcurrentDownloads: 3,
-  preserveFolderStructure: true,
-  existingFileBehavior: "ignore",
-  apiBaseUrl: null,
-};
 
 const EXISTING_FILE_OPTIONS: { value: ExistingFileBehavior; label: string; description: string }[] = [
   {
@@ -92,8 +82,9 @@ export function SettingsPage() {
   const [downloadDir, setDownloadDir] = useState<string>("");
   const [loadingDir, setLoadingDir] = useState(true);
   const [dirError, setDirError] = useState<string | null>(null);
-  const [prefs, setPrefs] = useState<AppPreferences>(DEFAULT_PREFS);
+  const [prefs, setPrefs] = useState<AppPreferences>(DEFAULT_PREFERENCES);
   const [prefsError, setPrefsError] = useState<string | null>(null);
+  const [customMbpsDraft, setCustomMbpsDraft] = useState("3");
 
   useEffect(() => {
     void (async () => {
@@ -103,6 +94,7 @@ export function SettingsPage() {
           getAppPreferences(),
         ]);
         setPrefs(loadedPrefs);
+        setCustomMbpsDraft(String(loadedPrefs.speedLimitCustomMbps ?? 3));
         if (!configured) {
           setDownloadDir("");
           return;
@@ -152,6 +144,38 @@ export function SettingsPage() {
       setDirError(error instanceof Error ? error.message : "Não foi possível abrir a pasta.");
     }
   }
+
+  async function handleSpeedLimitMode(mode: SpeedLimitMode) {
+    if (mode === "custom") {
+      const parsed = Number(customMbpsDraft.replace(",", "."));
+      const speedLimitCustomMbps = Number.isFinite(parsed) && parsed > 0 ? parsed : prefs.speedLimitCustomMbps;
+      setCustomMbpsDraft(String(speedLimitCustomMbps));
+      await updatePreference({ speedLimitMode: "custom", speedLimitCustomMbps });
+      return;
+    }
+    await updatePreference({ speedLimitMode: mode });
+  }
+
+  async function commitCustomMbps() {
+    const parsed = Number(customMbpsDraft.replace(",", "."));
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setCustomMbpsDraft(String(prefs.speedLimitCustomMbps));
+      return;
+    }
+    const speedLimitCustomMbps = Math.min(1000, Math.max(0.1, parsed));
+    setCustomMbpsDraft(String(speedLimitCustomMbps));
+    await updatePreference({ speedLimitMode: "custom", speedLimitCustomMbps });
+  }
+
+  const speedLimitOptions: { value: SpeedLimitMode; label: string }[] = [
+    { value: "unlimited", label: "Sem limite" },
+    { value: "1", label: "1 MB/s" },
+    { value: "2", label: "2 MB/s" },
+    { value: "5", label: "5 MB/s" },
+    { value: "10", label: "10 MB/s" },
+    { value: "20", label: "20 MB/s" },
+    { value: "custom", label: "Personalizado" },
+  ];
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
@@ -296,6 +320,68 @@ export function SettingsPage() {
             </button>
           ))}
         </div>
+      </Panel>
+
+      <Panel
+        title="Rede"
+        description="Limite total de velocidade compartilhado entre todos os downloads ativos."
+      >
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
+          Limite de velocidade
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {speedLimitOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => void handleSpeedLimitMode(option.value)}
+              className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                prefs.speedLimitMode === option.value
+                  ? "border-[#1db954] bg-[#1db954]/10 text-[#1db954]"
+                  : "border-zinc-800 bg-black/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        {prefs.speedLimitMode === "custom" && (
+          <div className="mt-4">
+            <label
+              htmlFor="speedLimitCustomMbps"
+              className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500"
+            >
+              Velocidade personalizada (MB/s)
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="speedLimitCustomMbps"
+                type="number"
+                min={0.1}
+                max={1000}
+                step={0.1}
+                inputMode="decimal"
+                value={customMbpsDraft}
+                onChange={(event) => setCustomMbpsDraft(event.target.value)}
+                onBlur={() => void commitCustomMbps()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.currentTarget.blur();
+                  }
+                }}
+                className="w-32 rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1db954]"
+              />
+              <span className="text-xs text-zinc-500">MB/s</span>
+            </div>
+          </div>
+        )}
+
+        <p className="mt-3 text-xs leading-relaxed text-zinc-600">
+          O limite vale para o conjunto dos downloads (não por arquivo). Alterações valem na hora, inclusive durante
+          transferências em andamento.
+        </p>
+        {prefsError && <p className="mt-2 text-xs text-red-400">{prefsError}</p>}
       </Panel>
 
       <Panel title="Aplicativo" description="Versão instalada e conexão com o site.">

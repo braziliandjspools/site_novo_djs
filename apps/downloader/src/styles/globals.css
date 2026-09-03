@@ -14,13 +14,11 @@
   --br-yellow: #ffdf00;
   --br-blue: #002776;
   --line: rgba(255, 255, 255, 0.06);
-  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  --font-sans: var(--font-serif);
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
-  --font-sans: var(--font-serif);
-  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
 }
 
 html,
@@ -33,7 +31,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

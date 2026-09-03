@@ -39,6 +39,16 @@ export function Footer() {
                 Privacidade — Downloader
               </a>
             </li>
+            <li>
+              <a href="/privacy/cookies" className="transition-colors hover:text-[#1DB954]">
+                Política de Cookies
+              </a>
+            </li>
+            <li>
+              <a href="/privacy/conduct" className="transition-colors hover:text-[#1DB954]">
+                Código de Conduta
+              </a>
+            </li>
           </ul>
         </div>
       </div>

@@ -61,6 +61,7 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       await downloadManager.setTransport(
         createRestQueueTransport(sessionToken, device.deviceId),
         device.deviceId,
+        sessionToken,
       );
       if (cancelled) return;
       unsubscribe = downloadManager.subscribe((next) => {

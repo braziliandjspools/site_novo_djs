@@ -48,11 +48,18 @@ export function DownloaderSyncProvider({ children }: { children: React.ReactNode
       setSelectedTarget((current) => {
         if (current && current !== "all") {
           const stillExists = next.devices.some((device) => device.deviceId === current);
-          if (stillExists) return current;
+          if (!stillExists) {
+            // cai no fallback abaixo
+          } else {
+            const online = next.devices.filter((device) => device.isOnline);
+            // Com um PC só, não força targetDeviceId nos envios.
+            if (online.length === 1) return null;
+            return current;
+          }
         }
         const online = next.devices.filter((device) => device.isOnline);
-        if (online.length === 1) return online[0]!.deviceId;
-        if (online.length > 1) return current ?? "all";
+        if (online.length === 1) return null;
+        if (online.length > 1) return current === "all" || current ? current : "all";
         return null;
       });
     } catch (err) {

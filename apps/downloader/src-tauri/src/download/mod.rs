@@ -4,8 +4,11 @@ mod settings;
 mod cancel;
 mod duplicates;
 mod disk_space;
+pub mod speed_limit;
 
-use tauri::AppHandle;
+use std::sync::Arc;
+
+use tauri::{AppHandle, Manager, State};
 
 use crate::app_prefs::{read_preferences, ExistingFileBehavior};
 
@@ -15,6 +18,7 @@ use providers::{resolve_provider, DownloadContext, DownloadResultPayload};
 use providers::cleanup_part_file;
 use settings::resolve_download_dir;
 use disk_space::DiskSpaceInfo;
+use speed_limit::GlobalSpeedLimiter;
 use cancel::{
     cancel as cancel_token, part_path_for as registered_part_path, register as register_cancel_token,
     unregister as unregister_cancel_token,
@@ -116,6 +120,11 @@ pub async fn download_job_file(
 
     let cancel_token = register_cancel_token(job_id, part_path.clone());
 
+    let speed_limiter = app
+        .try_state::<Arc<GlobalSpeedLimiter>>()
+        .map(|state| state.inner().clone())
+        .unwrap_or_else(|| Arc::new(GlobalSpeedLimiter::new(0)));
+
     let ctx = DownloadContext {
         app: app.clone(),
         api_base_url,
@@ -128,6 +137,7 @@ pub async fn download_job_file(
         expected_total: file_size,
         cancel_token,
         replace_existing,
+        speed_limiter,
     };
 
     let kind = resolve_provider(&provider)?;
@@ -194,4 +204,22 @@ pub fn get_max_concurrent_downloads(app: AppHandle) -> Result<u8, String> {
 #[tauri::command]
 pub fn set_max_concurrent_downloads(app: AppHandle, value: u8) -> Result<u8, String> {
     settings::set_max_concurrent_downloads(&app, value)
+}
+
+#[tauri::command]
+pub fn get_download_speed_limit_bps(limiter: State<'_, Arc<GlobalSpeedLimiter>>) -> u64 {
+    limiter.limit_bps()
+}
+
+#[tauri::command]
+pub fn set_download_speed_limit_bps(
+    app: AppHandle,
+    limiter: State<'_, Arc<GlobalSpeedLimiter>>,
+    bytes_per_second: u64,
+) -> Result<u64, String> {
+    let mut prefs = read_preferences(&app)?;
+    crate::app_prefs::apply_speed_limit_bps(&mut prefs, bytes_per_second);
+    crate::app_prefs::save_preferences(&app, &prefs)?;
+    limiter.set_limit_bps(prefs.resolved_speed_limit_bps());
+    Ok(limiter.limit_bps())
 }
