@@ -22,12 +22,12 @@ export async function GET(request: Request) {
   }
 
   const account = buildDownloaderAccountPayload(session.user);
-  const hasVip = session.canPlay && !account.billing.expired;
 
   return withDownloaderCorsJson(request, {
     authenticated: true,
-    canPlay: hasVip,
-    hasVip,
+    // hasVip = tem Pools VIP (serviço). Vencimento vai em planExpired separadamente.
+    canPlay: session.canPlay && !account.billing.expired,
+    hasVip: session.canPlay,
     planExpired: account.billing.expired,
     user: account,
   });

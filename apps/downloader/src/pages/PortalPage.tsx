@@ -1,5 +1,4 @@
 import { CreditCard, ExternalLink, ShieldCheck } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Panel } from "../components/ui/Panel";
@@ -7,17 +6,10 @@ import { openPlatform } from "../lib/open-site";
 import { BP_PORTAL_URL, SITE_NAME } from "../lib/site";
 
 export function PortalPage() {
-  const { user, refreshSession } = useAuth();
+  const { user } = useAuth();
   const billing = user?.billing;
   const planLabel = user?.planLabel || user?.servicesLabel || "—";
   const services = user?.services;
-  const refreshedOnce = useRef(false);
-
-  useEffect(() => {
-    if (refreshedOnce.current) return;
-    refreshedOnce.current = true;
-    void refreshSession();
-  }, [refreshSession]);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">

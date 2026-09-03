@@ -62,56 +62,34 @@ async function registerCurrentDevice(token: string, device: DeviceInfo) {
   });
 }
 
+function isPlanExpiredSession(session: {
+  planExpired?: boolean;
+  user: { billing?: { expired?: boolean } | null } | null;
+}) {
+  return Boolean(session.planExpired || session.user?.billing?.expired);
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  /** Impede que um refreshSession antigo limpe o login que acabou de completar. */
-  const authOpId = useRef(0);
+  const bootstrapped = useRef(false);
+  const loginInFlight = useRef(false);
+  const statusRef = useRef(status);
+  statusRef.current = status;
 
-  const establishSession = useCallback(async (token: string, opId: number) => {
-    const session = await fetchSession(token);
-    if (opId !== authOpId.current) return false;
-
-    if (!session.authenticated || !session.user) {
-      throw new ApiError(
-        "Sessão não reconhecida pelo servidor. Faça login novamente ou confira a URL em Configurar servidor.",
-        401,
-      );
-    }
-    if (session.planExpired || session.user.billing?.expired) {
-      throw new ApiError(
-        "Seu plano VIP está vencido. Acesse o Portal no site para renovar e depois tente entrar no Downloader.",
-        403,
-      );
-    }
-    if (!session.hasVip) {
-      throw new ApiError("Plano VIP necessário para usar o Downloader.", 403);
-    }
-
-    const deviceInfo = await buildDeviceInfo();
-    if (opId !== authOpId.current) return false;
-
-    try {
-      await registerCurrentDevice(token, deviceInfo);
-    } catch (registerError) {
-      throw new ApiError(
-        `Login OK, mas não foi possível registrar este PC: ${formatApiError(registerError)}`,
-        registerError instanceof ApiError ? registerError.status : 500,
-      );
-    }
-
-    if (opId !== authOpId.current) return false;
-
-    setUser(mapSessionUser(session.user));
-    setDevice(deviceInfo);
-    setSessionToken(token);
-    setStatus("authenticated");
-    setError(null);
-    return true;
-  }, []);
+  const applyAuthenticated = useCallback(
+    (token: string, nextUser: AuthUser, nextDevice: DeviceInfo) => {
+      setUser(nextUser);
+      setDevice(nextDevice);
+      setSessionToken(token);
+      setStatus("authenticated");
+      setError(null);
+    },
+    [],
+  );
 
   const clearLocalSession = useCallback(() => {
     downloadManager.stop(true);
@@ -121,21 +99,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionToken(null);
   }, []);
 
-  const refreshSession = useCallback(async () => {
-    const opId = ++authOpId.current;
-    const token = await loadSessionToken();
-    if (opId !== authOpId.current) return false;
+  const establishSession = useCallback(
+    async (token: string, options?: { requireDeviceRegistration?: boolean }) => {
+      const requireDeviceRegistration = options?.requireDeviceRegistration ?? true;
+      const session = await fetchSession(token);
 
+      if (!session.authenticated || !session.user) {
+        throw new ApiError(
+          "Sessão não reconhecida pelo servidor. Faça login novamente ou confira a URL em Configurar servidor.",
+          401,
+        );
+      }
+
+      if (isPlanExpiredSession(session)) {
+        throw new ApiError(
+          "Seu plano VIP está vencido. Acesse o Portal no site para renovar e depois tente entrar no Downloader.",
+          403,
+        );
+      }
+
+      if (!session.hasVip) {
+        throw new ApiError("Plano VIP necessário para usar o Downloader.", 403);
+      }
+
+      const deviceInfo = await buildDeviceInfo();
+      const mappedUser = mapSessionUser(session.user);
+
+      // Autentica antes do registro do device — falha de device não pode deslogar.
+      applyAuthenticated(token, mappedUser, deviceInfo);
+
+      try {
+        await registerCurrentDevice(token, deviceInfo);
+      } catch (registerError) {
+        if (requireDeviceRegistration) {
+          // Mantém logado, mas avisa. Downloads podem falhar até o registro funcionar.
+          setError(
+            `Conta conectada, mas o registro deste PC falhou: ${formatApiError(registerError)}`,
+          );
+        }
+      }
+
+      return true;
+    },
+    [applyAuthenticated],
+  );
+
+  const refreshSession = useCallback(async () => {
+    const token = await loadSessionToken();
     if (!token) {
-      if (opId !== authOpId.current) return false;
+      if (loginInFlight.current || statusRef.current === "authenticated") {
+        return statusRef.current === "authenticated";
+      }
       clearLocalSession();
       return false;
     }
 
     try {
-      return await establishSession(token, opId);
+      return await establishSession(token, { requireDeviceRegistration: false });
     } catch (err) {
-      if (opId !== authOpId.current) return false;
+      if (loginInFlight.current) return false;
+
+      // Se já está autenticado, não derruba a sessão por falha transitória de rede.
+      if (
+        statusRef.current === "authenticated" &&
+        !(err instanceof ApiError && (err.status === 401 || err.status === 403))
+      ) {
+        setError(formatApiError(err));
+        return false;
+      }
+
       await clearSessionToken().catch(() => undefined);
       clearLocalSession();
       if (err instanceof ApiError && err.status === 401) {
@@ -151,48 +183,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const opId = ++authOpId.current;
+      loginInFlight.current = true;
       setError(null);
       try {
         const token = await loginWithPassword(email.trim().toLowerCase(), password);
-        if (opId !== authOpId.current) return;
         await saveSessionToken(token);
-        if (opId !== authOpId.current) return;
-        const ok = await establishSession(token, opId);
-        if (!ok && opId === authOpId.current) {
-          throw new ApiError("Não foi possível concluir o login. Tente novamente.", 500);
-        }
+        await establishSession(token, { requireDeviceRegistration: true });
       } catch (err) {
-        if (opId !== authOpId.current) return;
         clearLocalSession();
         await clearSessionToken().catch(() => undefined);
         const message = formatApiError(err);
         setError(message);
         throw new Error(message);
+      } finally {
+        loginInFlight.current = false;
       }
     },
     [clearLocalSession, establishSession],
   );
 
   const logout = useCallback(async () => {
-    authOpId.current += 1;
     await clearSessionToken();
     clearLocalSession();
     setError(null);
   }, [clearLocalSession]);
 
   useEffect(() => {
-    let cancelled = false;
+    if (bootstrapped.current) return;
+    bootstrapped.current = true;
     void (async () => {
       const { resolveApiBaseUrl } = await import("../lib/api/config");
       await resolveApiBaseUrl();
-      if (cancelled) return;
       await refreshSession();
     })();
-    return () => {
-      cancelled = true;
-      authOpId.current += 1;
-    };
   }, [refreshSession]);
 
   const value = useMemo(
