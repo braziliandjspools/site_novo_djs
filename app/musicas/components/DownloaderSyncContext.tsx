@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
+  clearDownloaderQueue,
   fetchDownloaderSync,
   type DownloaderJobSummary,
   type DownloaderSyncState,
@@ -18,6 +19,7 @@ type DownloaderSyncContextValue = {
   selectedTarget: SendTarget | null;
   setSelectedTarget: (target: SendTarget | null) => void;
   refresh: () => Promise<void>;
+  clearQueue: () => Promise<number>;
   getJobForTrack: (fileId: string) => DownloaderJobSummary | undefined;
 };
 
@@ -60,6 +62,13 @@ export function DownloaderSyncProvider({ children }: { children: React.ReactNode
     }
   }, [enabled]);
 
+  const clearQueue = useCallback(async () => {
+    if (!enabled) return 0;
+    const cleared = await clearDownloaderQueue();
+    await refresh();
+    return cleared;
+  }, [enabled, refresh]);
+
   useEffect(() => {
     if (!enabled) {
       setSync({ devices: [], totalQueueCount: 0, jobsByFileId: {} });
@@ -86,9 +95,10 @@ export function DownloaderSyncProvider({ children }: { children: React.ReactNode
       selectedTarget,
       setSelectedTarget,
       refresh,
+      clearQueue,
       getJobForTrack: (fileId) => sync.jobsByFileId[fileId],
     }),
-    [loading, error, refresh, selectedTarget, sync],
+    [loading, error, refresh, clearQueue, selectedTarget, sync],
   );
 
   return <DownloaderSyncContext.Provider value={value}>{children}</DownloaderSyncContext.Provider>;

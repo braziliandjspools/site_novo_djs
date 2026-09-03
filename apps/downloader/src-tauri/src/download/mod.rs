@@ -125,6 +125,7 @@ pub async fn download_job_file(
         final_path: final_path.clone(),
         part_path: part_path.clone(),
         job_id,
+        expected_total: file_size,
         cancel_token,
         replace_existing,
     };

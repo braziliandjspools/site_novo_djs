@@ -9,6 +9,8 @@ import {
 import { requireVipMusicAccess } from "../../../../lib/vip-music-access";
 
 export const dynamic = "force-dynamic";
+/** Permite streams longos no Vercel (fallback do app desktop). */
+export const maxDuration = 300;
 
 type RouteContext = {
   params: Promise<{ fileId: string }>;

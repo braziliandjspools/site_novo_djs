@@ -34,6 +34,11 @@ export function Footer() {
             <li><a href="#faq" className="transition-colors hover:text-[#1DB954]">Central de ajuda</a></li>
             <li><a href="/termos" className="transition-colors hover:text-[#1DB954]">Termos de Serviço</a></li>
             <li><a href="/privacidade" className="transition-colors hover:text-[#1DB954]">Política de Privacidade</a></li>
+            <li>
+              <a href="/privacy/downloader" className="transition-colors hover:text-[#1DB954]">
+                Privacidade — Downloader
+              </a>
+            </li>
           </ul>
         </div>
       </div>

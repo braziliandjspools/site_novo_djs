@@ -746,7 +746,7 @@ export async function getDownloaderSync(portalUserId: number) {
     where: {
       portalUserId,
       dismissedAt: null,
-      status: { in: ACTIVE_QUEUE_STATUSES },
+      status: { in: ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"] },
     },
   });
 
@@ -790,4 +790,27 @@ export async function dismissDownloadJob(portalUserId: number, jobId: number) {
   });
 
   return serializeDownloadJob(updated);
+}
+
+/** Cancela toda a fila ativa (pendente, recebida, baixando, pausada, falha) para reenvio. */
+export async function clearDownloadQueue(portalUserId: number) {
+  const result = await prisma.downloadJob.updateMany({
+    where: {
+      portalUserId,
+      dismissedAt: null,
+      status: { in: ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"] },
+    },
+    data: {
+      status: "CANCELLED",
+      completedAt: new Date(),
+      error: null,
+      downloadDeviceId: null,
+      claimedAt: null,
+      startedAt: null,
+      progress: 0,
+      downloadedBytes: BigInt(0),
+    },
+  });
+
+  return result.count;
 }

@@ -12,7 +12,7 @@ export function CompletedPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Concluídos</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Concluídos</p>
           <p className="mt-1 text-sm text-zinc-500">
             {jobs.length === 0 ? "Nenhum download concluído recentemente." : `${jobs.length} download(s) concluído(s)`}
           </p>
@@ -27,7 +27,7 @@ export function CompletedPage() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
         </div>
       ) : jobs.length === 0 ? (
         <EmptyQueueState offline={false} />

@@ -57,7 +57,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">{copy.eyebrow}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">{copy.eyebrow}</p>
           <p className="mt-1 text-sm text-zinc-500">
             {filteredJobs.length === 0
               ? copy.empty
@@ -105,9 +105,13 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
       )}
 
       {filteredJobs.length === 0 ? (
-        <EmptyQueueState offline={isOffline} />
+        section === "downloads" && activeJobIds.length > 0 ? (
+          <p className="text-sm text-zinc-500">Preparando próximo arquivo…</p>
+        ) : (
+          <EmptyQueueState offline={isOffline} />
+        )
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {filteredJobs.map((job) => (
             <JobRow
               key={job.id}

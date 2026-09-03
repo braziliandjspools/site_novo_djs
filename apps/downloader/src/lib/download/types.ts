@@ -13,7 +13,8 @@ export type JobProgressMetrics = {
   etaSeconds: number | null;
 };
 
-export type DownloadManagerSnapshot = {  jobs: DownloadJob[];
+export type DownloadManagerSnapshot = {
+  jobs: DownloadJob[];
   connectionState: ConnectionState;
   error: string | null;
   pendingCount: number;
@@ -46,4 +47,5 @@ export type QueueTransport = {
 };
 
 export const PROGRESS_SYNC_MS = 1_500;
+export const PROGRESS_UI_MS = 500;
 export const DEFAULT_MAX_CONCURRENCY = 3;

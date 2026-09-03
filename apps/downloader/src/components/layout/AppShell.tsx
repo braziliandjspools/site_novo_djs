@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
-
 import type { AppRoute } from "./Sidebar";
-
 import { Sidebar } from "./Sidebar";
-
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo } from "../../context/AuthContext";
 
@@ -39,7 +36,7 @@ export function AppShell({
   children,
 }: AppShellProps) {
   return (
-    <div className="flex h-full min-h-0 bg-black text-zinc-100">
+    <div className="flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
       <Sidebar
         activeRoute={activeRoute}
         onNavigate={onNavigate}
@@ -52,13 +49,13 @@ export function AppShell({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="flex-shrink-0 border-b border-zinc-800/80 bg-black/80 px-6 py-4 backdrop-blur-md">
-          <h1 className="text-base font-bold text-white sm:text-lg">{title}</h1>
-          {subtitle && <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>}
+        <header className="flex-shrink-0 border-b border-white/[0.06] bg-black/50 px-7 py-5 backdrop-blur-xl">
+          <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h1>
+          {subtitle && <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>}
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-6 py-6">
-          {children}
+        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-7 py-7">
+          <div className="animate-fade-up">{children}</div>
         </main>
       </div>
     </div>

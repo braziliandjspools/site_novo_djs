@@ -9,11 +9,11 @@ type EmptyQueueStateProps = {
 
 export function EmptyQueueState({ offline = false }: EmptyQueueStateProps) {
   return (
-    <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 bg-[#181818]/60 px-6 py-12 text-center">
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#1ed760]/10 text-[#1ed760]">
+    <div className="flex min-h-[380px] flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-[#111111]/70 px-6 py-14 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1db954]/12 text-[#1db954]">
         <MonitorDown className="h-8 w-8" strokeWidth={1.75} />
       </div>
-      <h2 className="text-lg font-bold text-white">
+      <h2 className="text-xl font-bold text-white">
         {offline ? "Fila salva localmente" : "Sua fila está vazia"}
       </h2>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-500">

@@ -9,13 +9,18 @@
   --text-muted: #b3b3b3;
   --accent: #1db954;
   --accent-hover: #1ed760;
+  --accent-dim: rgba(29, 185, 84, 0.12);
   --br-green: #009739;
   --br-yellow: #ffdf00;
   --br-blue: #002776;
+  --line: rgba(255, 255, 255, 0.06);
+  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: var(--font-serif);
 }
 
 @theme inline {
-  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-serif);
+  --font-serif: var(--font-serif);
 }
 
 html,
@@ -28,7 +33,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -59,4 +64,50 @@ body {
     var(--br-yellow) 33.33% 66.66%,
     var(--br-blue) 66.66%
   );
+}
+
+.app-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(0, 151, 57, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 10%, rgba(0, 39, 118, 0.22), transparent 50%),
+    radial-gradient(ellipse 50% 35% at 70% 100%, rgba(29, 185, 84, 0.08), transparent 45%),
+    linear-gradient(180deg, #181818 0%, #121212 100%);
+}
+
+.progress-indeterminate {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-indeterminate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: progress-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.45s ease-out both;
 }

@@ -34,7 +34,7 @@ import type {
   DownloadManagerSnapshot,
   QueueTransport,
 } from "./types";
-import { DEFAULT_MAX_CONCURRENCY, PROGRESS_SYNC_MS, QUEUE_STATUSES } from "./types";
+import { DEFAULT_MAX_CONCURRENCY, PROGRESS_SYNC_MS, PROGRESS_UI_MS, QUEUE_STATUSES } from "./types";
 import type { DownloadJob } from "../api/jobs";
 
 function sortQueueJobs(jobs: DownloadJob[]) {
@@ -84,6 +84,8 @@ export class DownloadManager {
   private running = false;
   private pollInFlight = false;
   private lastProgressSync = new Map<number, number>();
+  private lastProgressUi = 0;
+  private progressUiTimer: ReturnType<typeof setTimeout> | null = null;
   private progressCleanup: (() => void) | undefined;
   private progressTracker = new ProgressTracker();
   private retryAttempts = new Map<number, number>();
@@ -95,6 +97,8 @@ export class DownloadManager {
   private diskSpaceDriveRoot: string | null = null;
   private diskSpaceError: string | null = null;
   private diskSpaceRefreshInFlight = false;
+  private stopTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastNotifyKey = "";
 
   subscribe(listener: DownloadManagerListener) {
     this.listeners.add(listener);
@@ -212,6 +216,7 @@ export class DownloadManager {
     this.deviceId = deviceId;
 
     for (const job of loadPersistedQueue(deviceId)) {
+      if (this.activeJobIds.has(job.id)) continue;
       this.jobs.set(job.id, job);
       this.knownJobIds.add(job.id);
       if (job.status === "PAUSED") {
@@ -241,16 +246,33 @@ export class DownloadManager {
   }
 
   start() {
-    if (this.running || !this.transport || !this.deviceId) return;
-    this.running = true;
-    this.connectionState = "connecting";
-    this.burstUntil = Date.now() + CONNECT_BURST_MS;
-    this.notify();
+    if (!this.transport || !this.deviceId) return;
 
-    void this.bindProgressListener();
-    void this.refreshDiskSpace();
-    void this.sendHeartbeat();
-    this.schedulePoll(POLL_MS.IMMEDIATE);
+    if (this.stopTimer) {
+      clearTimeout(this.stopTimer);
+      this.stopTimer = null;
+    }
+
+    if (this.running) {
+      void this.sendHeartbeat();
+      this.schedulePoll(POLL_MS.IMMEDIATE);
+      return;
+    }
+
+    this.running = true;
+    this.connectionState = "online";
+    this.error = null;
+    this.burstUntil = Date.now() + CONNECT_BURST_MS;
+    this.notify(true);
+
+    void (async () => {
+      await this.bindProgressListener();
+      if (!this.running) return;
+      void this.refreshDiskSpace();
+      void this.sendHeartbeat();
+      this.schedulePoll(POLL_MS.IMMEDIATE);
+    })();
+
     this.heartbeatTimer = setInterval(() => {
       void this.sendHeartbeat();
     }, HEARTBEAT_MS);
@@ -262,7 +284,23 @@ export class DownloadManager {
     }
   }
 
-  stop() {
+  /** `immediate` no logout; caso contrário adia o halt (Strict Mode / HMR não mata o download). */
+  stop(immediate = false) {
+    if (this.stopTimer) {
+      clearTimeout(this.stopTimer);
+      this.stopTimer = null;
+    }
+    if (!immediate) {
+      this.stopTimer = setTimeout(() => {
+        this.stopTimer = null;
+        this.halt();
+      }, 0);
+      return;
+    }
+    this.halt();
+  }
+
+  private halt() {
     this.running = false;
     this.pollInFlight = false;
     if (this.pollTimer) {
@@ -275,6 +313,10 @@ export class DownloadManager {
     }
     this.progressCleanup?.();
     this.progressCleanup = undefined;
+    if (this.progressUiTimer) {
+      clearTimeout(this.progressUiTimer);
+      this.progressUiTimer = null;
+    }
     if (typeof window !== "undefined") {
       window.removeEventListener("online", this.handleOnline);
       window.removeEventListener("offline", this.handleOffline);
@@ -363,10 +405,28 @@ export class DownloadManager {
       ...current,
       progress: event.progress,
       downloadedBytes: String(event.downloadedBytes),
-      totalBytes: event.totalBytes ? String(event.totalBytes) : current.totalBytes,
+      totalBytes: event.totalBytes
+        ? String(event.totalBytes)
+        : current.totalBytes ?? current.fileSize,
       status: "DOWNLOADING",
     });
-    this.notify();
+    this.notifyProgressUi();
+  }
+
+  private notifyProgressUi() {
+    const now = Date.now();
+    const elapsed = now - this.lastProgressUi;
+    if (elapsed >= PROGRESS_UI_MS) {
+      this.lastProgressUi = now;
+      this.notify();
+      return;
+    }
+    if (this.progressUiTimer) return;
+    this.progressUiTimer = setTimeout(() => {
+      this.progressUiTimer = null;
+      this.lastProgressUi = Date.now();
+      this.notify();
+    }, PROGRESS_UI_MS - elapsed);
   }
 
   private async syncProgressThrottled(jobId: number, event: DownloadProgressEvent) {
@@ -377,24 +437,24 @@ export class DownloadManager {
     this.lastProgressSync.set(jobId, now);
 
     try {
-      const updated = await this.transport.updateJob(jobId, {
+      await this.transport.updateJob(jobId, {
         progress: event.progress,
         downloadedBytes: String(event.downloadedBytes),
         totalBytes: event.totalBytes ? String(event.totalBytes) : null,
       });
-      this.mergeServerJob(updated);
       this.persistLocalQueue();
-      this.notify();
     } catch {
       /* progresso permanece local */
     }
   }
 
   private handleOnline = () => {
-    this.connectionState = "connecting";
     this.error = null;
     this.burstUntil = Date.now() + CONNECT_BURST_MS;
-    this.notify();
+    if (this.connectionState === "offline") {
+      this.connectionState = "connecting";
+      this.notify();
+    }
     this.schedulePoll(POLL_MS.IMMEDIATE);
   };
 
@@ -421,11 +481,31 @@ export class DownloadManager {
     }
   }
 
-  private notify() {
+  private notify(force = false) {
     const snapshot = this.getSnapshot();
+    const key = this.snapshotKey(snapshot);
+    if (!force && key === this.lastNotifyKey) return;
+    this.lastNotifyKey = key;
     for (const listener of this.listeners) {
       listener(snapshot);
     }
+  }
+
+  private snapshotKey(snapshot: DownloadManagerSnapshot) {
+    const jobs = snapshot.jobs
+      .map(
+        (job) =>
+          `${job.id}:${job.status}:${job.progress}:${job.downloadedBytes}:${job.error ?? ""}`,
+      )
+      .join("|");
+    return [
+      snapshot.connectionState,
+      snapshot.error ?? "",
+      snapshot.activeJobIds.join(","),
+      snapshot.diskSpace.insufficientSpace ?? "",
+      snapshot.pendingCount,
+      jobs,
+    ].join("/");
   }
 
   private schedulePoll(delayMs: number) {
@@ -461,17 +541,53 @@ export class DownloadManager {
   }
 
   private mergeServerJob(job: DownloadJob) {
+    const local = this.jobs.get(job.id);
+    const inFlight = this.activeJobIds.has(job.id);
+
+    if (inFlight && local) {
+      this.jobs.set(job.id, {
+        ...job,
+        deviceId: local.deviceId ?? job.deviceId ?? this.deviceId,
+        status:
+          local.status === "DOWNLOADING" || local.status === "PAUSED" ? local.status : job.status,
+        progress: Math.max(Number(local.progress) || 0, Number(job.progress) || 0),
+        downloadedBytes:
+          parseBytes(local.downloadedBytes) >= parseBytes(job.downloadedBytes)
+            ? local.downloadedBytes
+            : job.downloadedBytes,
+        totalBytes: local.totalBytes || job.totalBytes,
+        error: local.error,
+      });
+      return;
+    }
+
     if (
       job.deviceId &&
       job.deviceId !== this.deviceId &&
       ["RECEIVED", "DOWNLOADING", "PAUSED"].includes(job.status)
     ) {
-      this.jobs.delete(job.id);
+      if (!inFlight) this.jobs.delete(job.id);
       return;
     }
 
     const isNew = !this.knownJobIds.has(job.id);
     this.knownJobIds.add(job.id);
+
+    if (local && local.status === "DOWNLOADING" && !["COMPLETED", "FAILED", "CANCELLED"].includes(job.status)) {
+      this.jobs.set(job.id, {
+        ...job,
+        status: "DOWNLOADING",
+        progress: Math.max(Number(local.progress) || 0, Number(job.progress) || 0),
+        downloadedBytes:
+          parseBytes(local.downloadedBytes) >= parseBytes(job.downloadedBytes)
+            ? local.downloadedBytes
+            : job.downloadedBytes,
+        totalBytes: local.totalBytes || job.totalBytes,
+        error: local.error,
+      });
+      if (isNew) this.extendBurst();
+      return;
+    }
 
     if (isQueueJob(job)) {
       this.jobs.set(job.id, job);
@@ -548,7 +664,7 @@ export class DownloadManager {
     return sortQueueJobs(Array.from(this.jobs.values()))
       .filter(
         (job) =>
-          job.status === "RECEIVED" &&
+          (job.status === "RECEIVED" || job.status === "DOWNLOADING") &&
           job.deviceId === this.deviceId &&
           !this.userPausedJobIds.has(job.id) &&
           !this.activeJobIds.has(job.id),
@@ -636,10 +752,13 @@ export class DownloadManager {
       this.syncDiskSpaceError();
     }
 
-    if (this.diskSpaceError) {
-      this.notify();
-      return;
-    }
+    this.startAvailableJobs(manualStart);
+  }
+
+  private startAvailableJobs(manualStart = false) {
+    if (this.globalPaused) return;
+    if (!manualStart && !this.autoDownload) return;
+    if (!this.running || this.connectionState === "offline") return;
 
     const availableSlots = this.maxConcurrency - this.activeJobIds.size;
     if (availableSlots <= 0) return;
@@ -664,10 +783,9 @@ export class DownloadManager {
       this.progressTracker.clear(job.id);
       this.lastProgressSync.delete(job.id);
       this.persistLocalQueue();
+      this.startAvailableJobs();
       this.notify();
-      void this.refreshDiskSpace().then(() => {
-        void this.processQueue();
-      });
+      void this.refreshDiskSpace();
     });
 
     this.slotPromises.set(job.id, promise);
@@ -681,7 +799,7 @@ export class DownloadManager {
 
     let job = initialJob;
 
-    while (this.running) {
+    while (true) {
       if (this.userPausedJobIds.has(job.id)) {
         await this.updateJobStatus(job.id, { status: "PAUSED", error: null });
         return;
@@ -700,6 +818,10 @@ export class DownloadManager {
         });
         this.mergeServerJob(downloading);
         job = this.jobs.get(job.id) ?? downloading;
+        if (!job.totalBytes && job.fileSize) {
+          job = { ...job, totalBytes: job.fileSize };
+          this.jobs.set(job.id, job);
+        }
         this.notify();
 
         const result = await executeFileDownload({
@@ -751,7 +873,7 @@ export class DownloadManager {
           return;
         }
 
-        if (shouldAutoRetry(attempt)) {
+        if (this.running && shouldAutoRetry(attempt)) {
           const delay = nextRetryDelay(attempt)!;
           this.retryAttempts.set(job.id, attempt + 1);
           job = {
@@ -762,6 +884,7 @@ export class DownloadManager {
           this.jobs.set(job.id, job);
           this.notify();
           await sleep(delay);
+          if (!this.running) return;
           job = this.jobs.get(job.id) ?? job;
           continue;
         }
@@ -812,7 +935,6 @@ export class DownloadManager {
           addedSizedJobs += 1;
         }
       }
-      this.notify();
 
       await this.claimPendingJobs(serverJobs);
 

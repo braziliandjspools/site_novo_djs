@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   CheckCircle2,
   Download,
@@ -28,7 +29,7 @@ function statusLabel(status: string) {
   switch (status) {
     case "PENDING":
     case "RECEIVED":
-      return "Enviado para PC";
+      return "Na fila";
     case "DOWNLOADING":
       return "Baixando";
     case "PAUSED":
@@ -44,10 +45,10 @@ function statusLabel(status: string) {
 
 function StatusIcon({ status, isActive }: { status: string; isActive: boolean }) {
   if (isActive || status === "DOWNLOADING") {
-    return <Loader2 className="h-4 w-4 animate-spin text-[#1ed760]" />;
+    return <Loader2 className="h-4 w-4 animate-spin text-[#1db954]" />;
   }
   if (status === "COMPLETED") {
-    return <CheckCircle2 className="h-4 w-4 text-[#1ed760]" />;
+    return <CheckCircle2 className="h-4 w-4 text-[#1db954]" />;
   }
   if (status === "FAILED") {
     return <XCircle className="h-4 w-4 text-red-400" />;
@@ -61,40 +62,53 @@ function StatusIcon({ status, isActive }: { status: string; isActive: boolean })
   return <Download className="h-4 w-4 text-zinc-500" />;
 }
 
-export function JobRow({ job, isActive, metrics, onPause, onResume, onCancel, onRetry }: JobRowProps) {
+export const JobRow = memo(function JobRow({
+  job,
+  isActive,
+  metrics,
+  onPause,
+  onResume,
+  onCancel,
+  onRetry,
+}: JobRowProps) {
   const waiting = job.status === "PENDING" || job.status === "RECEIVED";
   const downloading = job.status === "DOWNLOADING" || isActive;
   const paused = job.status === "PAUSED";
   const failed = job.status === "FAILED";
-  const progress = Math.max(job.progress, downloading ? 3 : 0);
+  const progress = Math.min(100, Math.max(0, Number(job.progress) || 0));
+  const indeterminate = downloading && progress <= 0;
 
   return (
-    <article className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-3">
+    <article className="rounded-2xl border border-white/[0.06] bg-[#111111]/90 px-4 py-3.5">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-black/50">
+        <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#1db954]/10">
           <StatusIcon status={job.status} isActive={isActive} />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-semibold text-white">{job.fileName}</p>
+            <p className="truncate text-sm font-bold text-white">{job.fileName}</p>
             <span
-              className={`rounded-sm px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] ${
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
                 job.status === "COMPLETED"
-                  ? "bg-[#1ed760]/10 text-[#1ed760]"
+                  ? "bg-[#1db954]/15 text-[#1db954]"
                   : job.status === "FAILED"
-                    ? "bg-red-500/10 text-red-400"
+                    ? "bg-red-500/15 text-red-400"
                     : job.status === "PAUSED"
-                      ? "bg-amber-500/10 text-amber-400"
-                      : "bg-zinc-800 text-zinc-400"
+                      ? "bg-amber-500/15 text-amber-300"
+                      : downloading
+                        ? "bg-[#1db954]/10 text-[#1db954]"
+                        : "bg-white/5 text-zinc-400"
               }`}
             >
               {statusLabel(job.status)}
             </span>
           </div>
 
-          {waiting && <p className="mt-1 text-xs text-zinc-500">Aguardando download</p>}
-          {paused && <p className="mt-1 text-xs text-amber-400">Download pausado</p>}
+          {waiting && !isActive && (
+            <p className="mt-1 text-xs text-zinc-500">Aguardando slot de download</p>
+          )}
+          {paused && <p className="mt-1 text-xs text-amber-300">Download pausado</p>}
 
           {job.relativePath && (
             <p className="mt-1 truncate text-xs text-zinc-600">{job.relativePath}</p>
@@ -102,20 +116,28 @@ export function JobRow({ job, isActive, metrics, onPause, onResume, onCancel, on
 
           {(downloading || paused) && (
             <div className="mt-3 space-y-2">
-              <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                <div
-                  className="h-full rounded-full bg-[#1ed760] transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
+              <div
+                className={`h-1.5 overflow-hidden rounded-full bg-white/10 ${
+                  indeterminate ? "progress-indeterminate" : ""
+                }`}
+              >
+                {!indeterminate && (
+                  <div
+                    className="h-full rounded-full bg-[#1db954] transition-[width] duration-300 ease-out"
+                    style={{ width: `${Math.max(progress, paused ? 0 : 1)}%` }}
+                  />
+                )}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-400">
-                <span className="font-semibold text-zinc-300">{progress}%</span>
+                <span className="font-semibold text-zinc-200">
+                  {indeterminate ? "Iniciando…" : `${progress}%`}
+                </span>
                 <span>
                   {formatBytes(job.downloadedBytes)}
                   {job.totalBytes ? ` / ${formatBytes(job.totalBytes)}` : ""}
                 </span>
               </div>
-              {downloading && metrics && (
+              {downloading && metrics && !indeterminate && (
                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-500">
                   <span>{formatSpeed(metrics.speedBytesPerSec)}</span>
                   <span>{formatEta(metrics.etaSeconds)}</span>
@@ -144,7 +166,11 @@ export function JobRow({ job, isActive, metrics, onPause, onResume, onCancel, on
               </Button>
             )}
             {!failed && job.status !== "COMPLETED" && onCancel && (
-              <Button variant="ghost" className="!h-8 !px-3 !text-[11px] text-zinc-400" onClick={onCancel}>
+              <Button
+                variant="ghost"
+                className="!h-8 !px-3 !text-[11px] text-zinc-400"
+                onClick={onCancel}
+              >
                 <X className="h-3.5 w-3.5" />
                 Cancelar
               </Button>
@@ -160,4 +186,17 @@ export function JobRow({ job, isActive, metrics, onPause, onResume, onCancel, on
       </div>
     </article>
   );
-}
+}, (prev, next) => {
+  return (
+    prev.job.id === next.job.id &&
+    prev.job.status === next.job.status &&
+    prev.job.progress === next.job.progress &&
+    prev.job.downloadedBytes === next.job.downloadedBytes &&
+    prev.job.totalBytes === next.job.totalBytes &&
+    prev.job.error === next.job.error &&
+    prev.job.fileName === next.job.fileName &&
+    prev.isActive === next.isActive &&
+    prev.metrics?.speedBytesPerSec === next.metrics?.speedBytesPerSec &&
+    prev.metrics?.etaSeconds === next.metrics?.etaSeconds
+  );
+});

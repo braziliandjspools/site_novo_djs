@@ -105,7 +105,7 @@ function AuthenticatedApp() {
   if (folderConfigured === null) {
     return (
       <div className="flex h-screen items-center justify-center bg-black">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
       </div>
     );
   }
@@ -152,7 +152,7 @@ function AppContent() {
   if (status === "loading") {
     return (
       <div className="flex h-screen items-center justify-center bg-black">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
       </div>
     );
   }

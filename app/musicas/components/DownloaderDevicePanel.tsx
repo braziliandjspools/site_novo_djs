@@ -1,14 +1,44 @@
 "use client";
 
-import { MonitorDown } from "lucide-react";
+import { useState } from "react";
+import { Loader2, MonitorDown, Trash2 } from "lucide-react";
 import { useDownloaderSync } from "./DownloaderSyncContext";
+import { useMusicasToast } from "./MusicasToast";
 
 export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?: string }) {
   const sync = useDownloaderSync();
+  const { showToast } = useMusicasToast();
+  const [clearing, setClearing] = useState(false);
+
   if (!sync) return null;
 
-  const { loading, devices, totalQueueCount, selectedTarget, setSelectedTarget } = sync;
+  const { loading, devices, totalQueueCount, selectedTarget, setSelectedTarget, clearQueue } = sync;
   const onlineDevices = devices.filter((device) => device.isOnline);
+
+  async function handleClearQueue() {
+    if (totalQueueCount <= 0 || clearing) return;
+    const confirmed = window.confirm(
+      `Zerar a fila do Downloader?\n\nIsso cancela ${totalQueueCount} item(ns) pendente(s) ou em andamento. Depois você pode reenviar as músicas que quiser pela plataforma.`,
+    );
+    if (!confirmed) return;
+
+    setClearing(true);
+    try {
+      const cleared = await clearQueue();
+      showToast(
+        cleared === 0
+          ? "Fila já estava vazia."
+          : cleared === 1
+            ? "1 item removido da fila. Pode reenviar o que quiser."
+            : `${cleared} itens removidos da fila. Pode reenviar o que quiser.`,
+        "success",
+      );
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Não foi possível zerar a fila.", "error");
+    } finally {
+      setClearing(false);
+    }
+  }
 
   return (
     <div id="downloader-panel" className={`rounded-lg border border-zinc-800 bg-[#121212] p-3 ${className}`}>
@@ -68,6 +98,18 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
           </select>
           <p className="text-[11px] text-zinc-500">Fila total: {totalQueueCount}</p>
         </div>
+      )}
+
+      {totalQueueCount > 0 && (
+        <button
+          type="button"
+          onClick={() => void handleClearQueue()}
+          disabled={clearing}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-700 bg-black/40 px-2 py-1.5 text-[11px] font-semibold text-zinc-300 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
+        >
+          {clearing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+          Zerar fila
+        </button>
       )}
     </div>
   );

@@ -4,11 +4,10 @@ import { Panel } from "../components/ui/Panel";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
-import { BP_MUSICAS_URL } from "../lib/site";
+import { BP_MUSICAS_URL, BP_PRIVACY_DOWNLOADER_URL, SITE_NAME } from "../lib/site";
 import { APP_VERSION, DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "../lib/api/config";
 import { isUpdaterConfigured } from "../lib/updater";
 import { openPlatform } from "../lib/open-site";
-import { SITE_NAME } from "../lib/site";
 import { downloadManager } from "../lib/download/download-manager";
 import { notificationManager } from "../lib/notifications/notification-manager";
 import {
@@ -77,7 +76,7 @@ function PreferenceToggle({
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="mt-1 h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-[#1ed760] focus:ring-[#1ed760]"
+        className="mt-1 h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-[#1db954] focus:ring-[#1db954]"
       />
       <span>
         <span className="block text-sm font-semibold text-white">{label}</span>
@@ -158,7 +157,7 @@ export function SettingsPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <Panel title="Conta" description={`Sua sessão VIP conectada ao ${SITE_NAME}.`}>
         <div className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1ed760]/10 text-[#1ed760]">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1db954]/10 text-[#1db954]">
             <User className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
@@ -238,7 +237,7 @@ export function SettingsPage() {
                     name="existingFileBehavior"
                     checked={prefs.existingFileBehavior === option.value}
                     onChange={() => void updatePreference({ existingFileBehavior: option.value })}
-                    className="mt-1 h-4 w-4 border-zinc-600 bg-zinc-900 text-[#1ed760] focus:ring-[#1ed760]"
+                    className="mt-1 h-4 w-4 border-zinc-600 bg-zinc-900 text-[#1db954] focus:ring-[#1db954]"
                   />
                   <span>
                     <span className="block text-sm text-white">{option.label}</span>
@@ -289,7 +288,7 @@ export function SettingsPage() {
               onClick={() => setMaxConcurrency(value)}
               className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
                 maxConcurrency === value
-                  ? "border-[#1ed760] bg-[#1ed760]/10 text-[#1ed760]"
+                  ? "border-[#1db954] bg-[#1db954]/10 text-[#1db954]"
                   : "border-zinc-800 bg-black/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
               }`}
             >
@@ -330,12 +329,22 @@ export function SettingsPage() {
                 setCachedApiBaseUrl(value || DEFAULT_API_BASE_URL);
               });
             }}
-            className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1ed760]"
+            className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1db954]"
           />
           <p className="mt-2 text-xs text-zinc-600">
             Padrão do build: {DEFAULT_API_BASE_URL}. Use http://localhost:3000 em desenvolvimento.
           </p>
         </div>
+      </Panel>
+
+      <Panel title="Sobre" description="Informações legais e links do aplicativo.">
+        <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}>
+          <ExternalLink className="h-4 w-4" />
+          Política de Privacidade
+        </Button>
+        <p className="mt-3 text-xs text-zinc-600">
+          Abre no navegador padrão: {BP_PRIVACY_DOWNLOADER_URL}
+        </p>
       </Panel>
 
       <Panel title="Plataforma" description="Acesse o catálogo VIP para enviar músicas ao Downloader.">

@@ -28,8 +28,18 @@ export function useWindowsIntegration(enabled: boolean) {
   useEffect(() => {
     if (!enabled || !isDesktopRuntime()) return;
 
+    let lastActive = -1;
+    let lastPaused: boolean | null = null;
+
     return downloadManager.subscribe((snapshot) => {
-      void updateTrayState(snapshot.activeJobIds.length, snapshot.globalPaused);
+      if (
+        snapshot.activeJobIds.length !== lastActive ||
+        snapshot.globalPaused !== lastPaused
+      ) {
+        lastActive = snapshot.activeJobIds.length;
+        lastPaused = snapshot.globalPaused;
+        void updateTrayState(lastActive, lastPaused);
+      }
       notificationManager.handleSnapshot(snapshot);
     });
   }, [enabled]);

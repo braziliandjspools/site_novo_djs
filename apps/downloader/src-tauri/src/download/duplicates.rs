@@ -34,7 +34,7 @@ struct IndexEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-struct DownloadIndex {
+pub(crate) struct DownloadIndex {
     #[serde(default = "default_index_version")]
     version: u8,
     #[serde(default)]

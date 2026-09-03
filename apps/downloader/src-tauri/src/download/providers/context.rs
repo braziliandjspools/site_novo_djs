@@ -13,6 +13,7 @@ pub struct DownloadContext {
     pub final_path: PathBuf,
     pub part_path: PathBuf,
     pub job_id: u32,
+    pub expected_total: Option<u64>,
     pub cancel_token: CancellationToken,
     pub replace_existing: bool,
 }

@@ -16,16 +16,17 @@ fn registry() -> &'static Mutex<HashMap<u32, ActiveDownload>> {
 
 pub fn register(job_id: u32, part_path: PathBuf) -> CancellationToken {
     let token = CancellationToken::new();
-    registry()
-        .lock()
-        .expect("cancel registry lock")
-        .insert(
-            job_id,
-            ActiveDownload {
-                token: token.clone(),
-                part_path,
-            },
-        );
+    let mut registry = registry().lock().expect("cancel registry lock");
+    if let Some(previous) = registry.remove(&job_id) {
+        previous.token.cancel();
+    }
+    registry.insert(
+        job_id,
+        ActiveDownload {
+            token: token.clone(),
+            part_path,
+        },
+    );
     token
 }
 

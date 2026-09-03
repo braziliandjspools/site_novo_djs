@@ -8,10 +8,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-[#1ed760] text-black hover:bg-[#1fdf64] hover:scale-[1.02] disabled:hover:scale-100",
+  primary: "bg-[#1db954] text-black hover:bg-[#1ed760] disabled:hover:bg-[#1db954]",
   secondary:
-    "border border-zinc-700 bg-[#282828] text-white hover:bg-[#333333] disabled:opacity-50",
+    "border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] disabled:opacity-50",
   ghost: "text-zinc-300 hover:bg-white/5 hover:text-white disabled:opacity-50",
 };
 
@@ -25,7 +24,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

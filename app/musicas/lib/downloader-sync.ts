@@ -81,3 +81,15 @@ export async function fetchDownloaderSync(): Promise<DownloaderSyncState> {
     jobsByFileId: data.jobsByFileId ?? {},
   };
 }
+
+export async function clearDownloaderQueue(): Promise<number> {
+  const response = await fetch("/api/downloader/jobs/clear", {
+    method: "POST",
+    credentials: "same-origin",
+  });
+  const data = (await response.json()) as { ok?: boolean; cleared?: number; error?: string };
+  if (!response.ok) {
+    throw new Error(data.error ?? "Não foi possível zerar a fila.");
+  }
+  return data.cleared ?? 0;
+}

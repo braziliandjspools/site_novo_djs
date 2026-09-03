@@ -38,7 +38,7 @@ export function DesktopRequiredNotice({ variant = "full" }: DesktopRequiredNotic
           <Terminal className="h-3.5 w-3.5" />
           PowerShell — pasta do projeto
         </p>
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-black px-4 py-3 text-sm text-[#1ed760]">
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-black px-4 py-3 text-sm text-[#1db954]">
           cd D:\Downloads\brazilian-packs-landing{"\n"}npm run downloader:dev
         </pre>
       </div>

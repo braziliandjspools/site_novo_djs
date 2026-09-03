@@ -3,14 +3,15 @@ import { Eye, EyeOff, Loader2, LogIn, Server } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { BrsLogo } from "../components/Branding/BrsLogo";
-import { DOWNLOADER_NAME, SITE_NAME } from "../lib/site";
+import { openPlatform } from "../lib/open-site";
+import { BP_PRIVACY_DOWNLOADER_URL, DOWNLOADER_NAME, SITE_NAME } from "../lib/site";
 import { DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "../lib/api/config";
 import { pingApi } from "../lib/api/client";
 import { formatApiError } from "../lib/errors";
 import { getAppPreferences, setAppPreferences, isDesktopRuntime } from "../lib/native/app-preferences";
 
 const inputClassName =
-  "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#1ed760] focus:ring-1 focus:ring-[#1ed760]/30";
+  "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#1db954] focus:ring-1 focus:ring-[#1db954]/30";
 
 const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500";
 
@@ -96,8 +97,8 @@ export function LoginPage() {
   const displayError = error ?? authError;
 
   return (
-    <div className="flex h-full min-h-screen items-center justify-center bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-4 py-10">
-      <div className="w-full max-w-md">
+    <div className="app-mesh flex h-full min-h-screen items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md animate-fade-up">
         <div className="mb-8 text-center">
           <div className="flex justify-center">
             <BrsLogo className="h-14 w-auto max-w-[300px] object-contain" />
@@ -107,9 +108,9 @@ export function LoginPage() {
 
         <form
           onSubmit={(event) => void handleSubmit(event)}
-          className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-6 shadow-2xl shadow-black/40"
+          className="rounded-3xl border border-white/[0.06] bg-[#111111]/90 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
         >
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Conta VIP</p>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Conta VIP</p>
           <h1 className="text-xl font-bold text-white">Entrar na sua conta</h1>
           <p className="mt-2 text-sm text-zinc-500">
             Use o mesmo e-mail e senha do portal {SITE_NAME}.
@@ -202,7 +203,7 @@ export function LoginPage() {
                   Testar conexão
                 </Button>
                 {serverStatus && (
-                  <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[#1ed760]" : "text-zinc-400"}`}>
+                  <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[#1db954]" : "text-zinc-400"}`}>
                     {serverStatus}
                   </p>
                 )}
@@ -219,6 +220,16 @@ export function LoginPage() {
             Entrar
           </Button>
         </form>
+
+        <p className="mt-6 text-center text-xs text-zinc-600">
+          <button
+            type="button"
+            onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}
+            className="text-zinc-400 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+          >
+            Política de Privacidade
+          </button>
+        </p>
       </div>
     </div>
   );
