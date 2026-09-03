@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError } from "../lib/api/client";
 import { fetchSession, loginWithPassword, mapSessionUser } from "../lib/api/auth";
 import { registerDevice } from "../lib/api/devices";
@@ -68,9 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Impede que um refreshSession antigo limpe o login que acabou de completar. */
+  const authOpId = useRef(0);
 
-  const establishSession = useCallback(async (token: string) => {
+  const establishSession = useCallback(async (token: string, opId: number) => {
     const session = await fetchSession(token);
+    if (opId !== authOpId.current) return false;
+
     if (!session.authenticated || !session.user) {
       throw new ApiError(
         "Sessão não reconhecida pelo servidor. Faça login novamente ou confira a URL em Configurar servidor.",
@@ -88,6 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const deviceInfo = await buildDeviceInfo();
+    if (opId !== authOpId.current) return false;
+
     try {
       await registerCurrentDevice(token, deviceInfo);
     } catch (registerError) {
@@ -97,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
     }
 
+    if (opId !== authOpId.current) return false;
+
     setUser(mapSessionUser(session.user));
     setDevice(deviceInfo);
     setSessionToken(token);
@@ -105,73 +113,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, []);
 
+  const clearLocalSession = useCallback(() => {
+    downloadManager.stop(true);
+    setStatus("unauthenticated");
+    setUser(null);
+    setDevice(null);
+    setSessionToken(null);
+  }, []);
+
   const refreshSession = useCallback(async () => {
+    const opId = ++authOpId.current;
     const token = await loadSessionToken();
+    if (opId !== authOpId.current) return false;
+
     if (!token) {
-      downloadManager.stop(true);
-      setStatus("unauthenticated");
-      setUser(null);
-      setDevice(null);
-      setSessionToken(null);
+      if (opId !== authOpId.current) return false;
+      clearLocalSession();
       return false;
     }
 
     try {
-      await establishSession(token);
-      return true;
+      return await establishSession(token, opId);
     } catch (err) {
-      downloadManager.stop(true);
-      await clearSessionToken();
-      setStatus("unauthenticated");
-      setUser(null);
-      setDevice(null);
-      setSessionToken(null);
+      if (opId !== authOpId.current) return false;
+      await clearSessionToken().catch(() => undefined);
+      clearLocalSession();
       if (err instanceof ApiError && err.status === 401) {
         setError("Sessão expirada. Faça login novamente.");
       } else if (err instanceof ApiError && err.status === 403) {
         setError(err.message);
+      } else {
+        setError(formatApiError(err));
       }
       return false;
     }
-  }, [establishSession]);
+  }, [clearLocalSession, establishSession]);
 
   const login = useCallback(
     async (email: string, password: string) => {
+      const opId = ++authOpId.current;
       setError(null);
       try {
         const token = await loginWithPassword(email.trim().toLowerCase(), password);
+        if (opId !== authOpId.current) return;
         await saveSessionToken(token);
-        await establishSession(token);
+        if (opId !== authOpId.current) return;
+        const ok = await establishSession(token, opId);
+        if (!ok && opId === authOpId.current) {
+          throw new ApiError("Não foi possível concluir o login. Tente novamente.", 500);
+        }
       } catch (err) {
-        setStatus("unauthenticated");
-        setUser(null);
-        setDevice(null);
-        setSessionToken(null);
+        if (opId !== authOpId.current) return;
+        clearLocalSession();
         await clearSessionToken().catch(() => undefined);
         const message = formatApiError(err);
         setError(message);
         throw new Error(message);
       }
     },
-    [establishSession],
+    [clearLocalSession, establishSession],
   );
 
   const logout = useCallback(async () => {
-    downloadManager.stop(true);
+    authOpId.current += 1;
     await clearSessionToken();
-    setStatus("unauthenticated");
-    setUser(null);
-    setDevice(null);
-    setSessionToken(null);
+    clearLocalSession();
     setError(null);
-  }, []);
+  }, [clearLocalSession]);
 
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       const { resolveApiBaseUrl } = await import("../lib/api/config");
       await resolveApiBaseUrl();
+      if (cancelled) return;
       await refreshSession();
     })();
+    return () => {
+      cancelled = true;
+      authOpId.current += 1;
+    };
   }, [refreshSession]);
 
   const value = useMemo(

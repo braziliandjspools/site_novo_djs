@@ -1,5 +1,5 @@
 import { CreditCard, ExternalLink, ShieldCheck } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Panel } from "../components/ui/Panel";
@@ -11,8 +11,11 @@ export function PortalPage() {
   const billing = user?.billing;
   const planLabel = user?.planLabel || user?.servicesLabel || "—";
   const services = user?.services;
+  const refreshedOnce = useRef(false);
 
   useEffect(() => {
+    if (refreshedOnce.current) return;
+    refreshedOnce.current = true;
     void refreshSession();
   }, [refreshSession]);
 
