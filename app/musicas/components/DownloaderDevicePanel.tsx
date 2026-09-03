@@ -3,7 +3,7 @@
 import { MonitorDown } from "lucide-react";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 
-export function DownloaderDevicePanel() {
+export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?: string }) {
   const sync = useDownloaderSync();
   if (!sync) return null;
 
@@ -11,7 +11,7 @@ export function DownloaderDevicePanel() {
   const onlineDevices = devices.filter((device) => device.isOnline);
 
   return (
-    <div id="downloader-panel" className="mx-3 mb-4 rounded-lg border border-zinc-800 bg-[#121212] p-3">
+    <div id="downloader-panel" className={`rounded-lg border border-zinc-800 bg-[#121212] p-3 ${className}`}>
       <div className="flex items-center gap-2">
         <MonitorDown className="h-4 w-4 text-[#1ed760]" />
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white">BRS Downloader</p>

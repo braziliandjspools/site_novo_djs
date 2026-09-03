@@ -78,34 +78,37 @@ export function MusicasSidebar({
             </Link>
           );
         })}
+
+        <div className="mt-3 space-y-3 border-t border-zinc-800/80 pt-3">
+          <p className="truncate px-3 text-xs font-medium text-zinc-400">
+            <span className="font-bold text-white">{firstName}</span>
+            {" · "}
+            {hasVip ? "Premium" : authenticated ? "Gratuito" : "Visitante"}
+          </p>
+
+          {hasVip && authenticated && <DownloaderDevicePanel className="mx-0 mb-0" />}
+
+          {authenticated ? (
+            <button
+              type="button"
+              onClick={() => void onLogout()}
+              className="flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-sm font-semibold text-zinc-400 transition-colors hover:bg-[#1a1a1a] hover:text-white"
+            >
+              <LogOut className="h-5 w-5" />
+              Sair
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onLogin}
+              className="flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-sm font-semibold text-zinc-400 transition-colors hover:bg-[#1a1a1a] hover:text-white"
+            >
+              <LogIn className="h-5 w-5" />
+              Entrar
+            </button>
+          )}
+        </div>
       </nav>
-
-      {hasVip && authenticated && <DownloaderDevicePanel />}
-
-      <div className="border-t border-zinc-800/80 p-3">
-        <p className="mb-2 truncate px-2 text-xs text-zinc-500">
-          {firstName} · {hasVip ? "Premium" : authenticated ? "Gratuito" : "Visitante"}
-        </p>
-        {authenticated ? (
-          <button
-            type="button"
-            onClick={() => void onLogout()}
-            className="flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-sm font-semibold text-zinc-400 transition-colors hover:bg-[#1a1a1a] hover:text-white"
-          >
-            <LogOut className="h-5 w-5" />
-            Sair
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onLogin}
-            className="flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-sm font-semibold text-zinc-400 transition-colors hover:bg-[#1a1a1a] hover:text-white"
-          >
-            <LogIn className="h-5 w-5" />
-            Entrar
-          </button>
-        )}
-      </div>
     </>
   );
 

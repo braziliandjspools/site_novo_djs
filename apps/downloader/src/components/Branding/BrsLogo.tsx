@@ -1,4 +1,4 @@
-import { BRS_LOGO_SRC, SITE_NAME, SITE_SHORT } from "../lib/site";
+import { BRS_LOGO_SRC, SITE_NAME, SITE_SHORT } from "../../lib/site";
 
 type BrsLogoProps = {
   className?: string;

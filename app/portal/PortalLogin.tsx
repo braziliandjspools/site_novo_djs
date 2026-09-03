@@ -184,7 +184,7 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
         </>
       )}
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-xl lg:max-w-2xl">
         <div className="mb-8 text-center">
           <div className="flex justify-center">
             <BrsLogo href="/" className="h-12 w-auto max-w-[280px] object-contain" />
@@ -270,50 +270,52 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
                 </p>
 
                 <form onSubmit={(e) => void handleRegister(e)} className="mt-8 space-y-5">
-                  <div>
-                    <label htmlFor="portal-name" className={labelClassName}>
-                      Nome completo
-                    </label>
-                    <input
-                      id="portal-name"
-                      type="text"
-                      autoComplete="name"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className={inputClassName}
-                      placeholder="Seu nome"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="portal-register-email" className={labelClassName}>
-                      E-mail
-                    </label>
-                    <input
-                      id="portal-register-email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={inputClassName}
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="portal-whatsapp" className={labelClassName}>
-                      WhatsApp
-                    </label>
-                    <input
-                      id="portal-whatsapp"
-                      type="tel"
-                      autoComplete="tel"
-                      required
-                      value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      className={inputClassName}
-                      placeholder="(51) 99999-9999"
-                    />
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label htmlFor="portal-name" className={labelClassName}>
+                        Nome completo
+                      </label>
+                      <input
+                        id="portal-name"
+                        type="text"
+                        autoComplete="name"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className={inputClassName}
+                        placeholder="Seu nome"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="portal-register-email" className={labelClassName}>
+                        E-mail
+                      </label>
+                      <input
+                        id="portal-register-email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={inputClassName}
+                        placeholder="seu@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="portal-whatsapp" className={labelClassName}>
+                        WhatsApp
+                      </label>
+                      <input
+                        id="portal-whatsapp"
+                        type="tel"
+                        autoComplete="tel"
+                        required
+                        value={whatsapp}
+                        onChange={(e) => setWhatsapp(e.target.value)}
+                        className={inputClassName}
+                        placeholder="(51) 99999-9999"
+                      />
+                    </div>
                   </div>
                   <PasswordField
                     id="portal-register-password"

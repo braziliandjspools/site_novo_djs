@@ -1,4 +1,5 @@
 import { DOWNLOADER_NAME } from "../../lib/site";
+import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo } from "../../context/AuthContext";
 
 type ConnectionStatusProps = {

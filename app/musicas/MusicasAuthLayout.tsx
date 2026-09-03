@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { MusicasLoginModal } from "./components/MusicasLoginModal";
 import { MusicasSessionProvider } from "./components/MusicasSessionContext";
 import { MusicasToastProvider } from "./components/MusicasToast";
 import { DownloaderSyncProvider } from "./components/DownloaderSyncContext";
@@ -16,12 +16,18 @@ type MusicasAuthLayoutProps = {
 };
 
 export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [hasVip, setHasVip] = useState(false);
   const [userName, setUserName] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
+
+  const goToLogin = useCallback(() => {
+    const returnTo = encodeURIComponent(pathname || "/musicas/home");
+    router.push(`/musicas/entrar?return=${returnTo}`);
+  }, [pathname, router]);
 
   const checkAccess = useCallback(async () => {
     setLoading(true);
@@ -60,11 +66,15 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
       authenticated,
       hasVip,
       userName,
-      openLogin: () => setLoginOpen(true),
+      openLogin: goToLogin,
       onLogout: () => void handleLogout(),
     }),
-    [authenticated, hasVip, userName],
+    [authenticated, goToLogin, hasVip, userName],
   );
+
+  if (pathname === "/musicas/entrar") {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -86,7 +96,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
           userName={userName}
           hasVip={hasVip}
           onLogout={() => void handleLogout()}
-          onLogin={() => setLoginOpen(true)}
+          onLogin={goToLogin}
           mobileOpen={mobileOpen}
           onMobileOpenChange={setMobileOpen}
         />
@@ -119,7 +129,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
               {!authenticated && (
                 <button
                   type="button"
-                  onClick={() => setLoginOpen(true)}
+                  onClick={goToLogin}
                   className="hidden rounded-full px-4 py-2 text-sm font-bold text-zinc-300 transition-colors hover:text-white sm:inline-flex"
                 >
                   Entrar
@@ -147,8 +157,6 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
           </main>
         </div>
       </div>
-
-      {loginOpen && <MusicasLoginModal onClose={() => setLoginOpen(false)} onSuccess={() => void checkAccess()} />}
       </MusicasToastProvider>
       </DownloaderSyncProvider>
     </MusicasSessionProvider>
