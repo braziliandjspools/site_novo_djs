@@ -25,6 +25,8 @@ export type AppPreferences = {
   scheduleEnd: string;
   /** Downloads iniciados manualmente ignoram o horário. */
   scheduleAllowManualOverride: boolean;
+  /** Após concluir os downloads de um pack/pasta, criar um ZIP (opcional). */
+  zipCompressDownloads: boolean;
 };
 
 export const DEFAULT_PREFERENCES: AppPreferences = {
@@ -43,6 +45,7 @@ export const DEFAULT_PREFERENCES: AppPreferences = {
   scheduleStart: "00:00",
   scheduleEnd: "07:00",
   scheduleAllowManualOverride: true,
+  zipCompressDownloads: false,
 };
 
 const MB = 1024 * 1024;
@@ -84,6 +87,7 @@ function normalizePreferences(raw: Partial<AppPreferences> | null | undefined): 
   merged.scheduleAllowManualOverride = merged.scheduleAllowManualOverride !== false;
   merged.scheduleStart = normalizeTimeInput(String(merged.scheduleStart ?? "00:00"), "00:00");
   merged.scheduleEnd = normalizeTimeInput(String(merged.scheduleEnd ?? "07:00"), "07:00");
+  merged.zipCompressDownloads = Boolean(merged.zipCompressDownloads);
   return merged;
 }
 

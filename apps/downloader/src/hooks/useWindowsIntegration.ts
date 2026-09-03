@@ -50,6 +50,7 @@ export function useWindowsIntegration(enabled: boolean) {
     void getAppPreferences().then((prefs) => {
       downloadManager.setAutoDownload(prefs.autoDownload);
       downloadManager.setSchedulePreferences(prefs);
+      downloadManager.setZipCompressDownloads(prefs.zipCompressDownloads);
       notificationManager.setEnabled(prefs.showNotifications);
       notificationManager.resetKnownJobs(downloadManager.getSnapshot().jobs.map((job) => job.id));
     });

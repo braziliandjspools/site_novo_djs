@@ -85,6 +85,9 @@ pub struct AppPreferences {
     pub schedule_end: String,
     #[serde(default = "default_true")]
     pub schedule_allow_manual_override: bool,
+    /// Após concluir os downloads de um pack/pasta, criar um ZIP (opcional).
+    #[serde(default)]
+    pub zip_compress_downloads: bool,
 }
 
 fn default_true() -> bool {
@@ -143,6 +146,7 @@ impl Default for AppPreferences {
             schedule_start: default_schedule_start(),
             schedule_end: default_schedule_end(),
             schedule_allow_manual_override: true,
+            zip_compress_downloads: false,
         }
     }
 }

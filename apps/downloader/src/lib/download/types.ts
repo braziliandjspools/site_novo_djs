@@ -1,7 +1,9 @@
 import type { DownloadJob } from "../api/jobs";
 import type { DiskSpaceSnapshot } from "./disk-space-utils";
+import type { ZipTask } from "./zip-coordinator";
 
 export type { DiskSpaceSnapshot };
+export type { ZipTask };
 
 export type ConnectionState = "online" | "offline" | "connecting";
 
@@ -24,6 +26,7 @@ export type DownloadManagerSnapshot = {
   autoDownload: boolean;
   jobMetrics: Record<number, JobProgressMetrics>;
   diskSpace: DiskSpaceSnapshot;
+  zipTasks: ZipTask[];
 };
 
 export type DownloadManagerListener = (snapshot: DownloadManagerSnapshot) => void;

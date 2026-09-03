@@ -5,6 +5,7 @@ mod cancel;
 mod duplicates;
 mod disk_space;
 pub mod speed_limit;
+pub mod zip;
 
 use std::sync::Arc;
 

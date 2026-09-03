@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, FolderOpen, LogOut, User } from "lucide-react";
+import { ExternalLink, FolderOpen, Info, LogOut, User } from "lucide-react";
 import { Panel } from "../components/ui/Panel";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
@@ -119,6 +119,7 @@ export function SettingsPage() {
       setPrefs(saved);
       downloadManager.setAutoDownload(saved.autoDownload);
       downloadManager.setSchedulePreferences(saved);
+      downloadManager.setZipCompressDownloads(saved.zipCompressDownloads);
       notificationManager.setEnabled(saved.showNotifications);
     } catch (error) {
       setPrefsError(error instanceof Error ? error.message : "Não foi possível salvar.");
@@ -247,6 +248,21 @@ export function SettingsPage() {
             checked={prefs.preserveFolderStructure}
             onChange={(checked) => void updatePreference({ preserveFolderStructure: checked })}
           />
+          <div className="space-y-2">
+            <PreferenceToggle
+              label="Compactar downloads em arquivo ZIP"
+              description="Cria um único arquivo ZIP com as músicas após o download."
+              checked={prefs.zipCompressDownloads}
+              onChange={(checked) => void updatePreference({ zipCompressDownloads: checked })}
+            />
+            <div className="flex items-start gap-2 rounded-lg border border-zinc-800/80 bg-black/20 px-3 py-2.5 text-xs leading-relaxed text-zinc-500">
+              <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-zinc-500" aria-hidden />
+              <span>
+                Esta opção utiliza recursos moderados do seu computador durante a compactação,
+                principalmente em packs grandes.
+              </span>
+            </div>
+          </div>
           <div className="rounded-lg border border-zinc-800 bg-black/40 p-4">
             <p className="text-sm font-semibold text-white">Arquivos duplicados</p>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">

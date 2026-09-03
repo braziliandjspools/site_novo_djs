@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { downloadManager } from "../lib/download/download-manager";
 import { createRestQueueTransport } from "../lib/download/queue-transport";
-import type { DownloadManagerSnapshot, JobProgressMetrics, DiskSpaceSnapshot } from "../lib/download/types";
+import type { DownloadManagerSnapshot, JobProgressMetrics, DiskSpaceSnapshot, ZipTask } from "../lib/download/types";
 import type { DownloadJob } from "../lib/api/jobs";
 import type { ConnectionState } from "../lib/download/types";
 
@@ -22,6 +22,7 @@ const EMPTY_SNAPSHOT: DownloadManagerSnapshot = {
     driveRoot: null,
     insufficientSpace: null,
   },
+  zipTasks: [],
 };
 
 type DownloadManagerContextValue = {
@@ -33,6 +34,7 @@ type DownloadManagerContextValue = {
   maxConcurrency: number;
   jobMetrics: Record<number, JobProgressMetrics>;
   diskSpace: DiskSpaceSnapshot;
+  zipTasks: ZipTask[];
   syncNow: () => void;
   pauseJob: (jobId: number) => void;
   resumeJob: (jobId: number) => void;
@@ -51,6 +53,9 @@ type DownloadManagerContextValue = {
   moveJobToEnd: (jobId: number) => void;
   reorderQueue: (orderedIds: number[]) => void;
   setMaxConcurrency: (value: number) => void;
+  cancelZipTask: (taskId: string) => void;
+  dismissZipTask: (taskId: string) => void;
+  retryZipTask: (taskId: string) => void;
 };
 
 const DownloadManagerContext = createContext<DownloadManagerContextValue | null>(null);
@@ -110,6 +115,9 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       setMaxConcurrency: (value: number) => {
         void downloadManager.setMaxConcurrency(value);
       },
+      cancelZipTask: (taskId: string) => downloadManager.cancelZipTask(taskId),
+      dismissZipTask: (taskId: string) => downloadManager.dismissZipTask(taskId),
+      retryZipTask: (taskId: string) => downloadManager.retryZipTask(taskId),
     }),
     [],
   );
@@ -124,6 +132,7 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       maxConcurrency: snapshot.maxConcurrency,
       jobMetrics: snapshot.jobMetrics,
       diskSpace: snapshot.diskSpace,
+      zipTasks: snapshot.zipTasks,
       ...actions,
     }),
     [actions, snapshot],

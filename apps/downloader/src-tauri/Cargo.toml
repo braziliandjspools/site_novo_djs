@@ -29,4 +29,7 @@ tokio-util = "0.7"
 futures-util = "0.3"
 dirs = "6"
 fs4 = "0.13"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+walkdir = "2"
+log = "0.4"
 

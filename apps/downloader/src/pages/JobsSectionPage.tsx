@@ -34,6 +34,9 @@ import {
   type OrgMetaFilters,
 } from "../lib/download/job-organization";
 import { DownloadOrgToolbar } from "../components/downloads/DownloadOrgToolbar";
+import { ZipTaskRow } from "../components/downloads/ZipTaskRow";
+import { openDownloadDir } from "../lib/native/download";
+import { openZipFile } from "../lib/native/zip";
 import type { DownloadJob } from "../lib/api/jobs";
 
 export type JobSection = "downloads" | "queue";
@@ -111,6 +114,10 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     moveJobDown,
     moveJobToEnd,
     reorderQueue,
+    zipTasks,
+    cancelZipTask,
+    dismissZipTask,
+    retryZipTask,
   } = useDownloadManager();
 
   const isDownloads = section === "downloads";
@@ -354,7 +361,34 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
         <p className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{workerError}</p>
       )}
 
-      {isDownloads && serverLoading && catalog.length === 0 ? (
+      {isDownloads && zipTasks.length > 0 && (
+        <div className="space-y-2.5">
+          <p className="px-0.5 text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">
+            Compactação ZIP
+          </p>
+          {zipTasks.map((task) => (
+            <ZipTaskRow
+              key={task.id}
+              task={task}
+              onCancel={() => cancelZipTask(task.id)}
+              onDismiss={() => dismissZipTask(task.id)}
+              onRetry={() => retryZipTask(task.id)}
+              onOpenZip={
+                task.zipPath
+                  ? () => {
+                      void openZipFile(task.zipPath!);
+                    }
+                  : undefined
+              }
+              onOpenFolder={() => {
+                void openDownloadDir();
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {isDownloads && serverLoading && catalog.length === 0 && zipTasks.length === 0 ? (
         <div className="flex justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
         </div>
@@ -365,7 +399,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
           <p className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-8 text-center text-sm text-zinc-500">
             Nenhum download corresponde à busca/filtro.
           </p>
-        ) : (
+        ) : zipTasks.length > 0 ? null : (
           <EmptyQueueState offline={isOffline} />
         )
       ) : (

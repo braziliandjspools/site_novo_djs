@@ -188,7 +188,7 @@ pub fn resolve_destination_path(
     }
 }
 
-fn find_unique_path(path: &Path) -> Result<PathBuf, String> {
+pub fn find_unique_path(path: &Path) -> Result<PathBuf, String> {
     let parent = path
         .parent()
         .ok_or_else(|| "Destino inválido.".to_string())?;

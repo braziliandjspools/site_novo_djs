@@ -16,6 +16,7 @@ import {
   setMaxConcurrentDownloads,
   type DownloadProgressEvent,
 } from "../native/download";
+import { cancelPackZip, createPackZip, onZipProgress } from "../native/zip";
 import { loadSessionToken } from "../native/secure-store";
 import {
   CONNECT_BURST_MS,
@@ -48,6 +49,7 @@ import type {
 import { DEFAULT_MAX_CONCURRENCY, PROGRESS_SYNC_MS, PROGRESS_UI_MS, QUEUE_STATUSES } from "./types";
 import type { DownloadJob } from "../api/jobs";
 import type { AppPreferences } from "../native/app-preferences";
+import { ZipCoordinator } from "./zip-coordinator";
 
 function isQueueJob(job: DownloadJob) {
   return QUEUE_STATUSES.has(job.status) || job.status === "COMPLETED";
@@ -109,6 +111,12 @@ export class DownloadManager {
   private diskSpaceTimer: ReturnType<typeof setInterval> | null = null;
   private stopTimer: ReturnType<typeof setTimeout> | null = null;
   private lastNotifyKey = "";
+  private zipProgressCleanup: (() => void) | undefined;
+  private zipCoordinator = new ZipCoordinator({
+    createZip: (request) => createPackZip(request),
+    cancelZip: (taskId) => cancelPackZip(taskId),
+    onChange: () => this.notify(true),
+  });
 
   subscribe(listener: DownloadManagerListener) {
     this.listeners.add(listener);
@@ -149,6 +157,7 @@ export class DownloadManager {
         driveRoot: this.diskSpaceDriveRoot,
         insufficientSpace: this.diskSpaceError,
       },
+      zipTasks: this.zipCoordinator.listTasks(),
     };
   }
 
@@ -210,6 +219,23 @@ export class DownloadManager {
     this.scheduleEnd = normalizeTimeInput(prefs.scheduleEnd, "07:00");
     this.scheduleAllowManualOverride = prefs.scheduleAllowManualOverride !== false;
     this.evaluateScheduleWindow(true);
+  }
+
+  setZipCompressDownloads(enabled: boolean) {
+    this.zipCoordinator.setEnabled(Boolean(enabled));
+    this.notify();
+  }
+
+  cancelZipTask(taskId: string) {
+    void this.zipCoordinator.cancelTask(taskId);
+  }
+
+  dismissZipTask(taskId: string) {
+    this.zipCoordinator.dismissTask(taskId);
+  }
+
+  retryZipTask(taskId: string) {
+    this.zipCoordinator.retryTask(taskId);
   }
 
   isInsideDownloadSchedule(now: Date = new Date()) {
@@ -433,6 +459,8 @@ export class DownloadManager {
     }
     this.progressCleanup?.();
     this.progressCleanup = undefined;
+    this.zipProgressCleanup?.();
+    this.zipProgressCleanup = undefined;
     if (this.progressUiTimer) {
       clearTimeout(this.progressUiTimer);
       this.progressUiTimer = null;
@@ -624,6 +652,7 @@ export class DownloadManager {
     this.removeFromQueueOrder(jobId);
     this.persistLocalQueue();
     this.notify(true);
+    this.zipCoordinator.reevaluate(this.jobs.values());
     void this.dismissJobRemote(jobId);
   }
 
@@ -703,6 +732,7 @@ export class DownloadManager {
     }
     this.persistLocalQueue();
     this.notify(true);
+    this.zipCoordinator.reevaluate(this.jobs.values());
     void this.runBatchAction("cancel", ids).then(() => {
       void this.processQueue();
     });
@@ -753,6 +783,7 @@ export class DownloadManager {
     }
     this.persistLocalQueue();
     this.notify(true);
+    this.zipCoordinator.reevaluate(this.jobs.values());
     void this.runBatchAction("dismiss", unique);
   }
 
@@ -845,6 +876,22 @@ export class DownloadManager {
     this.progressCleanup = await onDownloadProgress((event) => {
       this.applyLocalProgress(event);
       void this.syncProgressThrottled(event.jobId, event);
+    });
+
+    this.zipProgressCleanup?.();
+    this.zipProgressCleanup = await onZipProgress((event) => {
+      this.zipCoordinator.applyProgress(event);
+    });
+  }
+
+  private notifyZipAfterComplete(job: DownloadJob, absolutePath: string) {
+    if (!this.zipCoordinator.isEnabled()) return;
+    this.zipCoordinator.recordCompleted({
+      jobId: job.id,
+      fileName: job.fileName,
+      relativePath: job.relativePath,
+      absolutePath,
+      activeJobs: this.jobs.values(),
     });
   }
 
@@ -949,6 +996,9 @@ export class DownloadManager {
           `${job.id}:${job.status}:${job.progress}:${job.downloadedBytes}:${job.error ?? ""}`,
       )
       .join("|");
+    const zips = snapshot.zipTasks
+      .map((task) => `${task.id}:${task.status}:${task.progress}:${task.done}:${task.error ?? ""}`)
+      .join("|");
     return [
       snapshot.connectionState,
       snapshot.error ?? "",
@@ -959,6 +1009,7 @@ export class DownloadManager {
       snapshot.pendingCount,
       this.queueOrder.join(","),
       jobs,
+      zips,
     ].join("/");
   }
 
@@ -1347,6 +1398,7 @@ export class DownloadManager {
           this.mergeServerJob(completed);
           this.jobs.delete(job.id);
           this.error = null;
+          this.notifyZipAfterComplete(job, result.path);
           return;
         }
 
@@ -1360,6 +1412,7 @@ export class DownloadManager {
         this.mergeServerJob(completed);
         this.jobs.delete(job.id);
         this.error = null;
+        this.notifyZipAfterComplete(job, result.path);
         return;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Falha no download.";
@@ -1370,6 +1423,7 @@ export class DownloadManager {
         }
 
         if (message.includes("cancelado")) {
+          this.zipCoordinator.reevaluate(this.jobs.values());
           return;
         }
 
