@@ -4,27 +4,17 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ExternalLink,
-  Home,
   Menu,
-  Mic2,
-  Music,
-  UserCircle,
-  Video,
   X,
 } from "lucide-react";
 import { PLATFORM_URL } from "../lib/site";
+import { SITE_NAV_LINKS } from "../lib/site-nav";
 import { BrsLogo } from "./BrsLogo";
-
-const navLinks = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/deemix", label: "Deemix", icon: Music },
-  { href: "/allavsoft", label: "Allavsoft", icon: Video },
-  { href: "/musicproducer", label: "Producer", icon: Mic2 },
-  { href: "/portal", label: "Portal", icon: UserCircle },
-];
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const navLinks = SITE_NAV_LINKS;
+
 
   return (
     <>

@@ -29,7 +29,7 @@ export function MusicasUserMenu({ userName, hasVip, onLogout }: MusicasUserMenuP
   const menuItems = [
     { href: "/musicas/atualizacoes", label: "Acervo VIP", icon: Music2, desc: "Músicas e atualizações" },
     { href: "/portal?view=account", label: "Meus dados", icon: User, desc: "Cadastro e assinatura" },
-    { href: "/portal?view=services", label: "Meus serviços", icon: LayoutGrid, desc: "Pools, Deemix e mais" },
+    { href: "/portal?view=services", label: "Meus serviços", icon: LayoutGrid, desc: "Pools e serviços da conta" },
     { href: "/portal?view=support", label: "Suporte", icon: HeadphonesIcon, desc: "Ajuda e contato" },
     { href: "/portal", label: "Portal completo", icon: CreditCard, desc: "Área do cliente" },
   ];

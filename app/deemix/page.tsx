@@ -30,6 +30,8 @@ import { IconBox } from "../components/IconBox";
 import { DeemixPurchaseCta } from "../components/DeemixPurchaseCta";
 import { SectionHeading } from "../components/SectionHeading";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "../lib/theme";
+import { DEEMIX_ENABLED } from "../lib/feature-flags";
+import { whatsappUrl } from "../lib/site";
 
 const serverAdvantages = [
   {
@@ -313,6 +315,43 @@ const faqs = [
 ];
 
 export default function DeemixPage() {
+  if (!DEEMIX_ENABLED) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-16 text-center sm:px-6">
+        <div className="flex items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="rounded-xl border border-[#002776]/60 bg-[#002776]/20 p-2 transition-colors hover:bg-[#002776]/40"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="font-display text-3xl tracking-wide text-[#FFDF00]">DEEMIX</h1>
+        </div>
+        <p className="text-lg font-semibold text-white">Temporariamente indisponível</p>
+        <p className="mx-auto max-w-xl text-sm leading-relaxed text-zinc-400">
+          O Deemix e o Deemix Server estão desativados no site por enquanto. Em breve avisaremos quando o
+          serviço voltar a ficar disponível.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="rounded-full border border-[#009739]/40 bg-[#009739]/10 px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#00B347] transition-colors hover:bg-[#009739]/20"
+          >
+            Voltar ao início
+          </Link>
+          <a
+            href={whatsappUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:bg-white/10"
+          >
+            Falar no WhatsApp
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-5xl space-y-12 px-4 py-12 sm:space-y-16 sm:px-6 sm:py-16">
       <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">

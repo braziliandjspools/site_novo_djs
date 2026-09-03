@@ -8,10 +8,22 @@ export type PlanBillingInfo = {
   expiringSoon: boolean;
 };
 
+export type PlanServices = {
+  poolsVip: boolean;
+  deemix: boolean;
+  allavsoft: boolean;
+};
+
 export type AuthUser = {
   name: string;
-  plan: string;
   email?: string;
+  whatsapp?: string | null;
+  plan: string;
+  planLabel?: string;
+  services?: PlanServices;
+  servicesLabel?: string;
+  monthlyValue?: number;
+  monthlyValueLabel?: string;
   billing?: PlanBillingInfo | null;
 };
 

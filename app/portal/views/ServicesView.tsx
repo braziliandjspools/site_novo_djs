@@ -67,7 +67,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
             <div>
               <h2 className="font-display text-xl tracking-wide text-white">Nenhuma licença ativa</h2>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
-                Contrate VIP, Deemix ou Allavsoft, ou peça uma produção musical pelo briefing assistido por IA.
+                Contrate VIP ou Allavsoft, ou peça uma produção musical pelo briefing assistido por IA.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

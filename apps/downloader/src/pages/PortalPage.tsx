@@ -1,4 +1,5 @@
 import { CreditCard, ExternalLink, ShieldCheck } from "lucide-react";
+import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Panel } from "../components/ui/Panel";
@@ -6,8 +7,14 @@ import { openPlatform } from "../lib/open-site";
 import { BP_PORTAL_URL, SITE_NAME } from "../lib/site";
 
 export function PortalPage() {
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
   const billing = user?.billing;
+  const planLabel = user?.planLabel || user?.servicesLabel || "—";
+  const services = user?.services;
+
+  useEffect(() => {
+    void refreshSession();
+  }, [refreshSession]);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
@@ -20,18 +27,40 @@ export function PortalPage() {
             <div className="rounded-xl border border-white/[0.06] bg-[#121212] px-4 py-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Conta</p>
               <p className="mt-1.5 text-sm font-bold text-white">{user?.name ?? "—"}</p>
-              <p className="mt-1 truncate text-xs text-zinc-500">{user?.email ?? "—"}</p>
+              <p className="mt-1 truncate text-xs text-zinc-500">{user?.email?.trim() || "—"}</p>
+              {user?.whatsapp ? (
+                <p className="mt-1 text-xs text-zinc-500">WhatsApp: {user.whatsapp}</p>
+              ) : null}
             </div>
             <div className="rounded-xl border border-white/[0.06] bg-[#121212] px-4 py-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Plano</p>
-              <p className="mt-1.5 text-sm font-bold text-[#1db954]">{user?.plan ?? "VIP"}</p>
+              <p className="mt-1.5 text-sm font-bold text-[#1db954]">{planLabel}</p>
               <p className="mt-1 text-xs text-zinc-500">
                 {billing?.nextDueLabel
                   ? `Próximo vencimento: ${billing.nextDueLabel}`
                   : "Vencimento não informado"}
               </p>
+              {user?.monthlyValueLabel ? (
+                <p className="mt-1 text-xs text-zinc-500">Mensalidade: {user.monthlyValueLabel}</p>
+              ) : null}
             </div>
           </div>
+
+          {services && (
+            <div className="rounded-xl border border-white/[0.06] bg-[#121212] px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                Serviços ativos
+              </p>
+              <ul className="mt-2 space-y-1.5 text-sm text-zinc-300">
+                <li className={services.poolsVip ? "text-[#1db954]" : "text-zinc-600"}>
+                  {services.poolsVip ? "●" : "○"} Pools VIP
+                </li>
+                <li className={services.allavsoft ? "text-[#1db954]" : "text-zinc-600"}>
+                  {services.allavsoft ? "●" : "○"} Allavsoft
+                </li>
+              </ul>
+            </div>
+          )}
 
           {billing?.expired ? (
             <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -61,7 +90,7 @@ export function PortalPage() {
             </li>
             <li className="flex items-start gap-2">
               <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#1db954]" />
-              Confira pools, Deemix e demais serviços inclusos na sua conta.
+              Consulte pools e demais serviços inclusos na sua conta no Portal web.
             </li>
           </ul>
         </div>

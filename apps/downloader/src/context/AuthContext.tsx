@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ApiError } from "../lib/api/client";
-import { fetchSession, loginWithPassword } from "../lib/api/auth";
+import { fetchSession, loginWithPassword, mapSessionUser } from "../lib/api/auth";
 import { registerDevice } from "../lib/api/devices";
 import { formatApiError } from "../lib/errors";
 import type { AuthUser, PlanBillingInfo } from "../lib/plan-status";
@@ -97,12 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
     }
 
-    setUser({
-      name: session.user.name,
-      plan: session.user.plan,
-      email: session.user.email,
-      billing: session.user.billing ?? null,
-    });
+    setUser(mapSessionUser(session.user));
     setDevice(deviceInfo);
     setSessionToken(token);
     setStatus("authenticated");

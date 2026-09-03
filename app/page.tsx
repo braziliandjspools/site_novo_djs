@@ -25,6 +25,7 @@ import { getPreviewPlaylists } from "./lib/google-drive";
 import { checkoutUrl, whatsappUrl } from "./lib/site";
 import { SITE_FAQS } from "./lib/site-faqs";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "./lib/theme";
+import { DEEMIX_ENABLED } from "./lib/feature-flags";
 
 const poolHighlights = [
   {
@@ -378,30 +379,34 @@ export default async function Home() {
       />
 
       {/* Deemix Server */}
-      <ToolPromoSection
-        id="deemix-server"
-        badge="Deemix Server"
-        title="Servidor dedicado para downloads rápidos"
-        description="Com o Deemix Server, o processamento acontece na nossa infraestrutura na nuvem. Você instala o programa no seu PC e baixa músicas com velocidade máxima, sem consumir sua banda nem configurar VPN ou proxies."
-        image={PLACEHOLDER.deemix}
-        imageAlt="Deemix Server"
-        href="/deemix"
-        buttonLabel="Conhecer o Deemix Server"
-        accent="blue"
-      />
+      {DEEMIX_ENABLED && (
+        <ToolPromoSection
+          id="deemix-server"
+          badge="Deemix Server"
+          title="Servidor dedicado para downloads rápidos"
+          description="Com o Deemix Server, o processamento acontece na nossa infraestrutura na nuvem. Você instala o programa no seu PC e baixa músicas com velocidade máxima, sem consumir sua banda nem configurar VPN ou proxies."
+          image={PLACEHOLDER.deemix}
+          imageAlt="Deemix Server"
+          href="/deemix"
+          buttonLabel="Conhecer o Deemix Server"
+          accent="blue"
+        />
+      )}
 
       {/* Deemix */}
-      <ToolPromoSection
-        id="deemix"
-        badge="Deemix"
-        title="Deemix incluso no seu acesso"
-        description="Baixe e organize suas músicas com praticidade usando o Deemix. Uma ferramenta simples para ampliar seu repertório e agilizar a preparação dos seus sets."
-        image={PLACEHOLDER.deemix}
-        imageAlt="Deemix"
-        href="/deemix"
-        buttonLabel="Saiba mais sobre o Deemix"
-        accent="green"
-      />
+      {DEEMIX_ENABLED && (
+        <ToolPromoSection
+          id="deemix"
+          badge="Deemix"
+          title="Deemix incluso no seu acesso"
+          description="Baixe e organize suas músicas com praticidade usando o Deemix. Uma ferramenta simples para ampliar seu repertório e agilizar a preparação dos seus sets."
+          image={PLACEHOLDER.deemix}
+          imageAlt="Deemix"
+          href="/deemix"
+          buttonLabel="Saiba mais sobre o Deemix"
+          accent="green"
+        />
+      )}
 
       {/* Allavsoft */}
       <ToolPromoSection

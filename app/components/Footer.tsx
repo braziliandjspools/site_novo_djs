@@ -1,6 +1,7 @@
 import { BrsLogo } from "./BrsLogo";
 import { whatsappUrl } from "../lib/site";
 import { SITE_NAME } from "../lib/branding";
+import { DEEMIX_ENABLED } from "../lib/feature-flags";
 
 export function Footer() {
   return (
@@ -17,7 +18,9 @@ export function Footer() {
           <h4 className="font-display text-sm tracking-wide text-[#FFDF00]">Plataforma</h4>
           <ul className="mt-3 space-y-2 text-xs">
             <li><a href="#planos" className="transition-colors hover:text-[#1DB954]">Planos</a></li>
-            <li><a href="/deemix" className="transition-colors hover:text-[#1DB954]">Deemix</a></li>
+            {DEEMIX_ENABLED && (
+              <li><a href="/deemix" className="transition-colors hover:text-[#1DB954]">Deemix</a></li>
+            )}
             <li><a href="/allavsoft" className="transition-colors hover:text-[#1DB954]">Allavsoft</a></li>
             <li><a href="/musicproducer" className="transition-colors hover:text-[#1DB954]">Music Producer</a></li>
             <li><a href="#acervo" className="transition-colors hover:text-[#1DB954]">Catálogo de Pools</a></li>

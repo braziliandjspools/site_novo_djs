@@ -1,6 +1,10 @@
 import { daysUntilDue, formatDueDate, getDueUrgency } from "./due-queue";
-import type { PortalUser } from "./portal-users";
-import { userHasPools } from "./portal-users";
+import {
+  formatMonthlyValue,
+  getServicesLabel,
+  type PortalUser,
+  userHasPools,
+} from "./portal-users";
 
 export type PlanBillingStatus = "ok" | "expiring" | "expired" | "none";
 
@@ -27,5 +31,23 @@ export function buildPlanBillingPayload(user: PortalUser) {
     status,
     expired: status === "expired",
     expiringSoon: status === "expiring",
+  };
+}
+
+/** Payload de conta/plano para o Downloader (mesmos dados reais do Portal web). */
+export function buildDownloaderAccountPayload(user: PortalUser) {
+  const billing = buildPlanBillingPayload(user);
+  const servicesLabel = getServicesLabel(user.services);
+  return {
+    name: user.name,
+    email: user.email,
+    whatsapp: user.whatsapp,
+    plan: user.plan,
+    planLabel: servicesLabel,
+    services: user.services,
+    servicesLabel,
+    monthlyValue: user.monthlyValue,
+    monthlyValueLabel: formatMonthlyValue(user.monthlyValue),
+    billing,
   };
 }

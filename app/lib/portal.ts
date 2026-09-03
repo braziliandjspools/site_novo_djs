@@ -10,6 +10,7 @@ import {
   userHasSubscriptionPlan,
   type PortalUser,
 } from "./portal-users";
+import { DEEMIX_ENABLED } from "./feature-flags";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -182,7 +183,7 @@ export function getPortalDataForUser(user: PortalUser) {
     hasSubscriptionPlan: userHasSubscriptionPlan(user),
     greeting,
     datetime: formatPortalDateTime(now),
-    deemix: userHasDeemix(user)
+    deemix: DEEMIX_ENABLED && userHasDeemix(user)
       ? {
           status: "active" as const,
           ...config.deemix,

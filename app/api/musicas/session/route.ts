@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getVipMusicSession } from "../../../lib/vip-music-access";
-import { buildPlanBillingPayload } from "../../../lib/plan-billing";
+import { buildDownloaderAccountPayload } from "../../../lib/plan-billing";
 import { handleDownloaderCorsPreflight, withDownloaderCorsJson } from "../../../lib/downloader-cors";
 
 export async function OPTIONS(request: Request) {
@@ -21,19 +21,14 @@ export async function GET(request: Request) {
     });
   }
 
-  const billing = buildPlanBillingPayload(session.user);
-  const hasVip = session.canPlay && !billing.expired;
+  const account = buildDownloaderAccountPayload(session.user);
+  const hasVip = session.canPlay && !account.billing.expired;
 
   return withDownloaderCorsJson(request, {
     authenticated: true,
     canPlay: hasVip,
     hasVip,
-    planExpired: billing.expired,
-    user: {
-      name: session.user.name,
-      plan: session.user.plan,
-      email: session.user.email,
-      billing,
-    },
+    planExpired: account.billing.expired,
+    user: account,
   });
 }
