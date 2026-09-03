@@ -25,10 +25,8 @@ model PortalUser {
   serviceDeemix                  Boolean    @default(false) @map("service_deemix")
   serviceAllavsoft               Boolean    @default(false) @map("service_allavsoft")
   monthlyValue                   Decimal    @default(0) @map("monthly_value") @db.Decimal(10, 2)
-  dueDay                         Int        @map("due_day")
   nextDueAt                      DateTime   @map("next_due_at")
   active                         Boolean    @default(true)
-  notes                          String?
   musicProducerDeliveriesEnabled Boolean    @default(false) @map("music_producer_deliveries_enabled")
   createdAt                      DateTime   @default(now()) @map("created_at")
   updatedAt                      DateTime   @updatedAt @map("updated_at")

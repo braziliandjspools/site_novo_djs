@@ -24,7 +24,6 @@ export function buildPlanBillingPayload(user: PortalUser) {
   const status = getPlanBillingStatus(user);
   const days = daysUntilDue(user.nextDueAt);
   return {
-    dueDay: user.dueDay,
     nextDueAt: user.nextDueAt.toISOString(),
     nextDueLabel: formatDueDate(user.nextDueAt),
     daysUntilDue: days,

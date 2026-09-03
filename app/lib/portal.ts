@@ -172,7 +172,6 @@ export function getPortalDataForUser(user: PortalUser) {
       servicesLabel: getServicesLabel(user.services),
       monthlyValue: user.monthlyValue,
       monthlyValueLabel: formatMonthlyValue(user.monthlyValue),
-      dueDay: user.dueDay,
       nextDueAt: user.nextDueAt.toISOString(),
       createdAt: user.createdAt.toISOString(),
       active: user.active,

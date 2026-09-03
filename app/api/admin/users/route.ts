@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { isAuthorizedAdminRequest } from "../../../lib/admin-auth";
 import {
   createPortalUser,
-  listPortalUsersGrouped,
-  normalizeServices,
+  listPortalUsersForAdmin,
   serializePortalUser,
   type CreatePortalUserInput,
   type PortalServicesInput,
@@ -37,7 +36,7 @@ export async function GET(request: Request) {
   if (!isAuthorizedAdminRequest(request)) return unauthorized();
 
   try {
-    const data = await listPortalUsersGrouped();
+    const data = await listPortalUsersForAdmin();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Admin users list failed:", error);
@@ -67,7 +66,6 @@ export async function POST(request: Request) {
   const password = body.password ?? "";
   const whatsapp = body.whatsapp?.trim() ?? "";
   const services = parseServices(body.services);
-  const dueDay = Number(body.dueDay);
   const monthlyValue = parseMonthlyValue(body.monthlyValue);
 
   if (!name || !email || !password || !whatsapp || !services) {
@@ -75,10 +73,6 @@ export async function POST(request: Request) {
       { error: "Campos obrigatórios: name, email, password, whatsapp, services." },
       { status: 400 },
     );
-  }
-
-  if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
-    return NextResponse.json({ error: "dueDay deve ser um número entre 1 e 31." }, { status: 400 });
   }
 
   if (monthlyValue === null) {
@@ -93,6 +87,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "nextDueAt inválido." }, { status: 400 });
   }
 
+  if (!body.nextDueAt?.trim()) {
+    return NextResponse.json({ error: "Informe a data do próximo vencimento." }, { status: 400 });
+  }
+
   try {
     const user = await createPortalUser({
       name,
@@ -101,10 +99,8 @@ export async function POST(request: Request) {
       whatsapp,
       services,
       monthlyValue,
-      dueDay,
       nextDueAt: body.nextDueAt,
       active: body.active,
-      notes: body.notes,
     });
 
     return NextResponse.json({ ok: true, user: serializePortalUser(user) }, { status: 201 });

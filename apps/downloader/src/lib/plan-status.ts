@@ -1,5 +1,4 @@
 export type PlanBillingInfo = {
-  dueDay: number;
   nextDueAt: string;
   nextDueLabel: string;
   daysUntilDue: number;

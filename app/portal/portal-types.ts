@@ -17,7 +17,6 @@ export type PortalData = {
     servicesLabel: string;
     monthlyValue: number;
     monthlyValueLabel: string;
-    dueDay: number;
     nextDueAt: string;
     createdAt: string;
     active: boolean;

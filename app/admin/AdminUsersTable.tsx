@@ -15,19 +15,10 @@ type AdminUser = {
   servicesLabel: string;
   monthlyValue: number;
   monthlyValueLabel: string;
-  dueDay: number;
   nextDueAt: string;
   active: boolean;
-  notes: string | null;
   createdAt: string;
   updatedAt: string;
-  queuePosition: number;
-  positionInGroup: number;
-};
-
-type UserGroup = {
-  label: string;
-  users: AdminUser[];
 };
 
 type AdminUsersTableProps = {
@@ -39,10 +30,8 @@ type DraftRow = {
   whatsapp: string;
   services: ServiceDraft;
   monthlyValue: string;
-  dueDay: string;
   nextDueAt: string;
   active: boolean;
-  notes: string;
 };
 
 const emptyDraft = (): DraftRow => ({
@@ -50,10 +39,8 @@ const emptyDraft = (): DraftRow => ({
   whatsapp: "",
   services: emptyServices(),
   monthlyValue: "0",
-  dueDay: "15",
   nextDueAt: "",
   active: true,
-  notes: "",
 });
 
 function rowUrgencyClass(urgency: ReturnType<typeof getDueUrgency>) {
@@ -77,7 +64,7 @@ const inputClass =
   "w-full min-w-0 rounded-md border border-white/10 bg-black/20 px-2 py-1.5 text-xs text-white outline-none focus:border-[#009739]/50";
 
 export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
-  const [groups, setGroups] = useState<UserGroup[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -92,9 +79,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     whatsapp: "",
     services: emptyServices(),
     monthlyValue: "0",
-    dueDay: "15",
     nextDueAt: "",
-    notes: "",
   });
 
   const loadUsers = useCallback(async () => {
@@ -110,24 +95,20 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         const data = (await res.json()) as { error?: string };
         throw new Error(data.error ?? "Não foi possível carregar os usuários.");
       }
-      const data = (await res.json()) as { groups?: UserGroup[]; total?: number };
-      setGroups(data.groups ?? []);
+      const data = (await res.json()) as { users?: AdminUser[]; total?: number };
+      setUsers(data.users ?? []);
       setTotal(data.total ?? 0);
 
       const nextDrafts: Record<number, DraftRow> = {};
-      for (const group of data.groups ?? []) {
-        for (const user of group.users) {
-          nextDrafts[user.id] = {
-            name: user.name,
-            whatsapp: user.whatsapp,
-            services: user.services,
-            monthlyValue: String(user.monthlyValue),
-            dueDay: String(user.dueDay),
-            nextDueAt: toDateInputValue(user.nextDueAt),
-            active: user.active,
-            notes: user.notes ?? "",
-          };
-        }
+      for (const user of data.users ?? []) {
+        nextDrafts[user.id] = {
+          name: user.name,
+          whatsapp: user.whatsapp,
+          services: user.services,
+          monthlyValue: String(user.monthlyValue),
+          nextDueAt: toDateInputValue(user.nextDueAt),
+          active: user.active,
+        };
       }
       setDrafts(nextDrafts);
     } catch (err) {
@@ -157,12 +138,6 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     const draft = drafts[id];
     if (!draft) return;
 
-    const dueDay = Number(draft.dueDay);
-    if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
-      setError("Dia de vencimento inválido.");
-      return;
-    }
-
     if (!draft.nextDueAt) {
       setError("Informe a data do próximo vencimento.");
       return;
@@ -179,10 +154,8 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           whatsapp: draft.whatsapp,
           services: draft.services,
           monthlyValue: Number(draft.monthlyValue),
-          dueDay,
           nextDueAt: draft.nextDueAt,
           active: draft.active,
-          notes: draft.notes || null,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -223,8 +196,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         body: JSON.stringify({
           ...newUser,
           monthlyValue: Number(newUser.monthlyValue),
-          dueDay: Number(newUser.dueDay),
-          nextDueAt: newUser.nextDueAt || undefined,
+          nextDueAt: newUser.nextDueAt,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -237,9 +209,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         whatsapp: "",
         services: emptyServices(),
         monthlyValue: "0",
-        dueDay: "15",
         nextDueAt: "",
-        notes: "",
       });
       await loadUsers();
     } catch (err) {
@@ -257,12 +227,11 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     );
   }
 
-  const allUsers = groups.flatMap((group) => group.users);
-  const dueSoonCount = allUsers.filter((user) => {
+  const dueSoonCount = users.filter((user) => {
     const nextDueAt = drafts[user.id]?.nextDueAt ?? user.nextDueAt;
     return getDueUrgency(nextDueAt) === "soon";
   }).length;
-  const overdueCount = allUsers.filter((user) => {
+  const overdueCount = users.filter((user) => {
     const nextDueAt = drafts[user.id]?.nextDueAt ?? user.nextDueAt;
     return getDueUrgency(nextDueAt) === "overdue";
   }).length;
@@ -274,7 +243,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <p className="text-xs font-bold uppercase tracking-widest text-[#FFDF00]">Administração</p>
           <h1 className="font-display text-3xl text-white">Clientes do portal</h1>
           <p className="mt-1 text-sm text-gray-400">
-            {total} clientes · fila ordenada pelo próximo vencimento
+            {total} clientes · lista ordenada pelo próximo vencimento
             {dueSoonCount > 0 ? (
               <span className="ml-2 font-semibold text-amber-300">
                 · {dueSoonCount} vence{dueSoonCount === 1 ? "" : "m"} nos próximos 5 dias
@@ -342,16 +311,14 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
               ["email", "E-mail"],
               ["password", "Senha (mín. 8)"],
               ["whatsapp", "WhatsApp"],
-              ["dueDay", "Dia vencimento (1-31)"],
-              ["nextDueAt", "Próx. vencimento (opcional)"],
-              ["notes", "Observações"],
+              ["nextDueAt", "Próx. vencimento"],
             ].map(([key, label]) => (
               <label key={key} className="block text-xs text-gray-400">
                 {label}
                 <input
                   type={key === "password" ? "password" : key === "nextDueAt" ? "date" : "text"}
-                  required={key !== "notes" && key !== "nextDueAt"}
-                  value={newUser[key as "name" | "email" | "password" | "whatsapp" | "dueDay" | "nextDueAt" | "notes"]}
+                  required
+                  value={newUser[key as "name" | "email" | "password" | "whatsapp" | "nextDueAt"]}
                   onChange={(e) => setNewUser((prev) => ({ ...prev, [key]: e.target.value }))}
                   className={`${inputClass} mt-1`}
                 />
@@ -390,160 +357,133 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         </form>
       )}
 
-      {groups.length === 0 ? (
+      {users.length === 0 ? (
         <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-12 text-center text-sm text-gray-400">
           Nenhum cliente cadastrado ainda.
         </p>
       ) : (
-        groups.map((group) => (
-          <section key={group.label} className="overflow-hidden rounded-2xl border border-[#002776]/60 bg-[#002776]/10">
-            <div className="border-b border-white/10 bg-[#002776]/20 px-4 py-3">
-              <h2 className="font-display text-lg capitalize text-[#FFDF00]">Fila · {group.label}</h2>
-              <p className="text-xs text-gray-400">{group.users.length} clientes neste vencimento</p>
-            </div>
+        <section className="overflow-hidden rounded-2xl border border-[#002776]/60 bg-[#002776]/10">
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-white/10 bg-black/20 text-[10px] uppercase tracking-wider text-gray-500">
+                  <th className="px-3 py-3">#</th>
+                  <th className="px-3 py-3">Nome</th>
+                  <th className="px-3 py-3">E-mail</th>
+                  <th className="px-3 py-3">WhatsApp</th>
+                  <th className="px-3 py-3">Serviços</th>
+                  <th className="px-3 py-3">Valor/mês</th>
+                  <th className="px-3 py-3">Próx. vencimento</th>
+                  <th className="px-3 py-3">Ativo</th>
+                  <th className="px-3 py-3">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user, index) => {
+                  const draft = drafts[user.id];
+                  if (!draft) return null;
+                  const isSaving = savingId === user.id;
+                  const urgency = getDueUrgency(draft.nextDueAt);
+                  const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 bg-black/20 text-[10px] uppercase tracking-wider text-gray-500">
-                    <th className="px-3 py-3"># Fila</th>
-                    <th className="px-3 py-3">Nome</th>
-                    <th className="px-3 py-3">E-mail</th>
-                    <th className="px-3 py-3">WhatsApp</th>
-                    <th className="px-3 py-3">Serviços</th>
-                    <th className="px-3 py-3">Valor/mês</th>
-                    <th className="px-3 py-3">Dia venc.</th>
-                    <th className="px-3 py-3">Próx. vencimento</th>
-                    <th className="px-3 py-3">Ativo</th>
-                    <th className="px-3 py-3">Observações</th>
-                    <th className="px-3 py-3">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {group.users.map((user) => {
-                    const draft = drafts[user.id];
-                    if (!draft) return null;
-                    const isSaving = savingId === user.id;
-                    const urgency = getDueUrgency(draft.nextDueAt);
-                    const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
-
-                    return (
-                      <tr
-                        key={user.id}
-                        className={`border-b border-white/5 hover:bg-white/[0.02] ${rowUrgencyClass(urgency)}`}
-                      >
-                        <td className="px-3 py-2 font-mono text-[#FFDF00]">
-                          {String(user.queuePosition).padStart(2, "0")}
-                          <span className="ml-1 text-gray-600">({user.positionInGroup})</span>
-                        </td>
-                        <td className="px-3 py-2">
+                  return (
+                    <tr
+                      key={user.id}
+                      className={`border-b border-white/5 hover:bg-white/[0.02] ${rowUrgencyClass(urgency)}`}
+                    >
+                      <td className="px-3 py-2 font-mono text-[#FFDF00]">
+                        {String(index + 1).padStart(2, "0")}
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          value={draft.name}
+                          onChange={(e) => updateDraft(user.id, { name: e.target.value })}
+                          className={inputClass}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-gray-300">{user.email}</td>
+                      <td className="px-3 py-2">
+                        <input
+                          value={draft.whatsapp}
+                          onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
+                          className={inputClass}
+                        />
+                      </td>
+                      <td className="px-3 py-2 min-w-[180px]">
+                        <ServiceSelector
+                          compact
+                          value={draft.services}
+                          onChange={(services) => updateDraft(user.id, { services })}
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={draft.monthlyValue}
+                          onChange={(e) => updateDraft(user.id, { monthlyValue: e.target.value })}
+                          className={`${inputClass} w-24 font-mono`}
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="space-y-1">
                           <input
-                            value={draft.name}
-                            onChange={(e) => updateDraft(user.id, { name: e.target.value })}
-                            className={inputClass}
+                            type="date"
+                            value={draft.nextDueAt}
+                            onChange={(e) => updateDraft(user.id, { nextDueAt: e.target.value })}
+                            className={`${inputClass} min-w-[140px] font-mono`}
                           />
-                        </td>
-                        <td className="px-3 py-2 text-gray-300">{user.email}</td>
-                        <td className="px-3 py-2">
-                          <input
-                            value={draft.whatsapp}
-                            onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
-                            className={inputClass}
-                          />
-                        </td>
-                        <td className="px-3 py-2 min-w-[180px]">
-                          <ServiceSelector
-                            compact
-                            value={draft.services}
-                            onChange={(services) => updateDraft(user.id, { services })}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={draft.monthlyValue}
-                            onChange={(e) => updateDraft(user.id, { monthlyValue: e.target.value })}
-                            className={`${inputClass} w-24 font-mono`}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <input
-                            type="number"
-                            min={1}
-                            max={31}
-                            value={draft.dueDay}
-                            onChange={(e) => updateDraft(user.id, { dueDay: e.target.value })}
-                            className={`${inputClass} w-16 font-mono`}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="space-y-1">
-                            <input
-                              type="date"
-                              value={draft.nextDueAt}
-                              onChange={(e) => updateDraft(user.id, { nextDueAt: e.target.value })}
-                              className={`${inputClass} min-w-[140px] font-mono`}
-                            />
-                            {urgencyLabel && (
-                              <span
-                                className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                                  urgency === "overdue"
-                                    ? "bg-red-500/20 text-red-300"
-                                    : "bg-amber-500/20 text-amber-200"
-                                }`}
-                              >
-                                {urgencyLabel}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2">
-                          <input
-                            type="checkbox"
-                            checked={draft.active}
-                            onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
-                            className="h-4 w-4 accent-[#009739]"
-                          />
-                        </td>
-                        <td className="px-3 py-2 min-w-[160px]">
-                          <input
-                            value={draft.notes}
-                            onChange={(e) => updateDraft(user.id, { notes: e.target.value })}
-                            className={inputClass}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => void saveUser(user.id)}
-                              disabled={isSaving}
-                              className="rounded-md border border-[#009739]/40 bg-[#009739]/15 p-2 text-[#00B347] hover:bg-[#009739]/25 disabled:opacity-50"
-                              title="Salvar"
+                          {urgencyLabel && (
+                            <span
+                              className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                urgency === "overdue"
+                                  ? "bg-red-500/20 text-red-300"
+                                  : "bg-amber-500/20 text-amber-200"
+                              }`}
                             >
-                              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void deleteUser(user.id, user.name)}
-                              disabled={isSaving}
-                              className="rounded-md border border-red-500/30 bg-red-500/10 p-2 text-red-300 hover:bg-red-500/20 disabled:opacity-50"
-                              title="Remover"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        ))
+                              {urgencyLabel}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="checkbox"
+                          checked={draft.active}
+                          onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
+                          className="h-4 w-4 accent-[#009739]"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => void saveUser(user.id)}
+                            disabled={isSaving}
+                            className="rounded-md border border-[#009739]/40 bg-[#009739]/15 p-2 text-[#00B347] hover:bg-[#009739]/25 disabled:opacity-50"
+                            title="Salvar"
+                          >
+                            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void deleteUser(user.id, user.name)}
+                            disabled={isSaving}
+                            className="rounded-md border border-red-500/30 bg-red-500/10 p-2 text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                            title="Remover"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
     </div>
   );

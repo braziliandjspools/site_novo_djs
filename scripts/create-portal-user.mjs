@@ -7,11 +7,6 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-function clampDueDay(dueDay, year, month) {
-  const lastDay = new Date(year, month, 0).getDate();
-  return Math.min(Math.max(1, dueDay), lastDay);
-}
-
 function getSaoPauloDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -24,23 +19,16 @@ function getSaoPauloDateParts(date = new Date()) {
   return { year: read("year"), month: read("month"), day: read("day") };
 }
 
-function computeNextDueAt(dueDay, reference = new Date()) {
+function defaultNextDueAt(reference = new Date()) {
   const { year, month, day } = getSaoPauloDateParts(reference);
-  const thisMonthDay = clampDueDay(dueDay, year, month);
-
-  if (thisMonthDay > day) {
-    return new Date(Date.UTC(year, month - 1, thisMonthDay, 12, 0, 0));
-  }
-
   let nextMonth = month + 1;
   let nextYear = year;
   if (nextMonth > 12) {
     nextMonth = 1;
     nextYear += 1;
   }
-
-  const nextMonthDay = clampDueDay(dueDay, nextYear, nextMonth);
-  return new Date(Date.UTC(nextYear, nextMonth - 1, nextMonthDay, 12, 0, 0));
+  const lastDay = new Date(nextYear, nextMonth, 0).getDate();
+  return new Date(Date.UTC(nextYear, nextMonth - 1, Math.min(day, lastDay), 12, 0, 0));
 }
 
 function parseServices(raw) {
@@ -107,23 +95,16 @@ async function main() {
       ["whatsapp", "WhatsApp (com DDD)"],
       ["services", "Serviços (pools,deemix,allavsoft — separados por vírgula)"],
       ["monthlyValue", "Valor mensal (R$)"],
-      ["dueDay", "Dia do vencimento (1-31)"],
-      ["notes", "Observações (opcional)"],
+      ["nextDueAt", "Próx. vencimento (AAAA-MM-DD, opcional)"],
     ],
     parsed,
   );
 
   const services = parseServices(data.services);
-  const dueDay = Number(data.dueDay);
   const monthlyValue = Number(data.monthlyValue ?? 0);
 
   if (!services.servicePoolsVip && !services.serviceDeemix && !services.serviceAllavsoft) {
     console.error("Informe ao menos um serviço: pools, deemix ou allavsoft.");
-    process.exit(1);
-  }
-
-  if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
-    console.error("dueDay inválido. Use um número entre 1 e 31.");
     process.exit(1);
   }
 
@@ -135,6 +116,16 @@ async function main() {
   if (String(data.password ?? "").length < 8) {
     console.error("A senha deve ter pelo menos 8 caracteres.");
     process.exit(1);
+  }
+
+  let nextDueAt = defaultNextDueAt();
+  if (data.nextDueAt && String(data.nextDueAt).trim()) {
+    const match = String(data.nextDueAt).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) {
+      console.error("nextDueAt inválido. Use AAAA-MM-DD.");
+      process.exit(1);
+    }
+    nextDueAt = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0));
   }
 
   const passwordHash = await bcrypt.hash(String(data.password), 12);
@@ -149,10 +140,8 @@ async function main() {
         plan: deriveLegacyPlan(services),
         ...services,
         monthlyValue,
-        dueDay,
-        nextDueAt: computeNextDueAt(dueDay),
+        nextDueAt,
         active: true,
-        notes: data.notes ? String(data.notes).trim() : null,
       },
     });
 

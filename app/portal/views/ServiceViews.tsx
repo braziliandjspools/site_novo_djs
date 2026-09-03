@@ -156,7 +156,6 @@ export function AccountView({ data }: { data: PortalData }) {
             ["WhatsApp", user.whatsapp],
             ["Serviços", user.servicesLabel],
             ["Valor mensal", user.monthlyValueLabel],
-            ["Dia do vencimento", `Todo dia ${user.dueDay} de cada mês`],
             ["Próximo vencimento", formatDateBr(user.nextDueAt)],
             ["Cliente desde", formatDateBr(user.createdAt)],
             ["Status", user.active ? "Ativo" : "Inativo"],

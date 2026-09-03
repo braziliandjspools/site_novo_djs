@@ -39,7 +39,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
           icon={Calendar}
           label="Próximo vencimento"
           value={data.hasSubscriptionPlan ? formatDateBr(user.nextDueAt) : "—"}
-          hint={data.hasSubscriptionPlan ? `Todo dia ${user.dueDay} de cada mês` : "Sem plano contratado"}
+          hint={data.hasSubscriptionPlan ? "Data do próximo pagamento" : "Sem plano contratado"}
         />
         <StatCard
           icon={Package}

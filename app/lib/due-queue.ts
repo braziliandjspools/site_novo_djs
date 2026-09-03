@@ -1,8 +1,3 @@
-export function clampDueDay(dueDay: number, year: number, month: number) {
-  const lastDay = new Date(year, month, 0).getDate();
-  return Math.min(Math.max(1, dueDay), lastDay);
-}
-
 export function getSaoPauloDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -24,14 +19,9 @@ function dateAtUtcNoon(year: number, month: number, day: number) {
   return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 }
 
-export function computeNextDueAt(dueDay: number, reference = new Date()) {
+/** Próximo vencimento padrão: mesmo dia no mês seguinte (fuso São Paulo). */
+export function defaultNextDueAt(reference = new Date()) {
   const { year, month, day } = getSaoPauloDateParts(reference);
-  const thisMonthDay = clampDueDay(dueDay, year, month);
-
-  if (thisMonthDay > day) {
-    return dateAtUtcNoon(year, month, thisMonthDay);
-  }
-
   let nextMonth = month + 1;
   let nextYear = year;
 
@@ -40,17 +30,8 @@ export function computeNextDueAt(dueDay: number, reference = new Date()) {
     nextYear += 1;
   }
 
-  const nextMonthDay = clampDueDay(dueDay, nextYear, nextMonth);
-  return dateAtUtcNoon(nextYear, nextMonth, nextMonthDay);
-}
-
-export function formatDueMonthLabel(date: Date | string) {
-  const value = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    month: "long",
-    year: "numeric",
-  }).format(value);
+  const lastDay = new Date(nextYear, nextMonth, 0).getDate();
+  return dateAtUtcNoon(nextYear, nextMonth, Math.min(day, lastDay));
 }
 
 export function formatDueDate(date: Date | string) {
@@ -115,35 +96,4 @@ export function daysUntilDue(date: Date | string) {
   const dueTime = dateAtUtcNoon(dueParts.year, dueParts.month, dueParts.day).getTime();
   const todayTime = dateAtUtcNoon(todayParts.year, todayParts.month, todayParts.day).getTime();
   return Math.round((dueTime - todayTime) / 86400000);
-}
-
-export function groupUsersByDueQueue<
-  T extends { id: number; nextDueAt: Date | string },
->(users: T[]) {
-  const sorted = [...users].sort((left, right) => {
-    const leftTime = new Date(left.nextDueAt).getTime();
-    const rightTime = new Date(right.nextDueAt).getTime();
-    if (leftTime !== rightTime) return leftTime - rightTime;
-    return left.id - right.id;
-  });
-
-  const groups = new Map<string, Array<T & { queuePosition: number; positionInGroup: number }>>();
-  let queuePosition = 0;
-
-  for (const user of sorted) {
-    const label = formatDueMonthLabel(user.nextDueAt);
-    const bucket = groups.get(label) ?? [];
-    queuePosition += 1;
-    bucket.push({
-      ...user,
-      queuePosition,
-      positionInGroup: bucket.length + 1,
-    });
-    groups.set(label, bucket);
-  }
-
-  return Array.from(groups.entries()).map(([label, groupUsers]) => ({
-    label,
-    users: groupUsers,
-  }));
 }

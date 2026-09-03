@@ -64,10 +64,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     body.monthlyValue = monthlyValue;
   }
 
-  if (body.dueDay !== undefined && (!Number.isInteger(body.dueDay) || body.dueDay < 1 || body.dueDay > 31)) {
-    return NextResponse.json({ error: "dueDay deve ser entre 1 e 31." }, { status: 400 });
-  }
-
   if (body.nextDueAt !== undefined && typeof body.nextDueAt !== "string") {
     return NextResponse.json({ error: "nextDueAt inválido." }, { status: 400 });
   }

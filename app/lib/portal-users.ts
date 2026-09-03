@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Decimal } from "@prisma/client/runtime/library";
 import type { PortalPlan, PortalUser as PrismaPortalUser } from "@prisma/client";
-import { computeNextDueAt, groupUsersByDueQueue, parseDateInputValue } from "./due-queue";
+import { defaultNextDueAt, parseDateInputValue } from "./due-queue";
 import { prisma } from "./prisma";
 
 export type { PortalPlan };
@@ -20,10 +20,8 @@ export type PortalUser = {
   plan: PortalPlan;
   services: PortalServices;
   monthlyValue: number;
-  dueDay: number;
   nextDueAt: Date;
   active: boolean;
-  notes: string | null;
   musicProducerDeliveriesEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -42,10 +40,8 @@ export type CreatePortalUserInput = {
   whatsapp: string;
   services?: PortalServicesInput;
   monthlyValue?: number;
-  dueDay: number;
   nextDueAt?: string;
   active?: boolean;
-  notes?: string;
   /** @deprecated use services */
   plan?: PortalPlan;
 };
@@ -55,10 +51,8 @@ export type UpdatePortalUserInput = {
   whatsapp?: string;
   services?: PortalServicesInput;
   monthlyValue?: number;
-  dueDay?: number;
   nextDueAt?: string;
   active?: boolean;
-  notes?: string | null;
   musicProducerDeliveriesEnabled?: boolean;
   password?: string;
   /** @deprecated use services */
@@ -82,10 +76,8 @@ function mapUser(user: PrismaPortalUser): PortalUser {
     plan: user.plan,
     services: mapServices(user),
     monthlyValue: Number(user.monthlyValue),
-    dueDay: user.dueDay,
     nextDueAt: user.nextDueAt,
     active: user.active,
-    notes: user.notes,
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -199,9 +191,7 @@ export async function verifyUserPassword(email: string, password: string) {
 
 export async function createPortalUser(input: CreatePortalUserInput) {
   const passwordHash = await bcrypt.hash(input.password, 12);
-  const nextDueAt = input.nextDueAt
-    ? parseDateInputValue(input.nextDueAt)
-    : computeNextDueAt(input.dueDay);
+  const nextDueAt = input.nextDueAt ? parseDateInputValue(input.nextDueAt) : defaultNextDueAt();
   const services = normalizeServices(input.services, input.plan);
   const monthlyValue = parseMonthlyValue(input.monthlyValue);
 
@@ -216,10 +206,8 @@ export async function createPortalUser(input: CreatePortalUserInput) {
       serviceDeemix: services.deemix,
       serviceAllavsoft: services.allavsoft,
       monthlyValue: new Decimal(monthlyValue),
-      dueDay: input.dueDay,
       nextDueAt,
       active: input.active !== false,
-      notes: input.notes?.trim() || null,
     },
   });
 
@@ -245,9 +233,7 @@ export async function registerPortalUser(input: RegisterPortalUserInput) {
     email,
     whatsapp: input.whatsapp,
     password: input.password,
-    dueDay: 1,
     active: true,
-    notes: "Cadastro via portal — sem serviços",
   });
 }
 
@@ -271,10 +257,8 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
     serviceDeemix?: boolean;
     serviceAllavsoft?: boolean;
     monthlyValue?: Decimal;
-    dueDay?: number;
     nextDueAt?: Date;
     active?: boolean;
-    notes?: string | null;
     musicProducerDeliveriesEnabled?: boolean;
     passwordHash?: string;
   } = {};
@@ -301,14 +285,10 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
     data.monthlyValue = new Decimal(parseMonthlyValue(input.monthlyValue));
   }
 
-  if (input.dueDay !== undefined) data.dueDay = input.dueDay;
   if (input.nextDueAt !== undefined) {
     data.nextDueAt = parseDateInputValue(input.nextDueAt);
-  } else if (input.dueDay !== undefined) {
-    data.nextDueAt = computeNextDueAt(input.dueDay);
   }
   if (input.active !== undefined) data.active = input.active;
-  if (input.notes !== undefined) data.notes = input.notes?.trim() || null;
   if (input.musicProducerDeliveriesEnabled !== undefined) {
     data.musicProducerDeliveriesEnabled = input.musicProducerDeliveriesEnabled;
   }
@@ -326,13 +306,10 @@ export async function deletePortalUser(id: number) {
   await prisma.portalUser.delete({ where: { id } });
 }
 
-export async function listPortalUsersGrouped() {
+export async function listPortalUsersForAdmin() {
   const users = await listPortalUsersByQueue();
-  const serialized = users.map(serializePortalUser);
-  const groups = groupUsersByDueQueue(serialized);
-
   return {
-    groups,
+    users: users.map(serializePortalUser),
     total: users.length,
   };
 }
@@ -349,10 +326,8 @@ export function serializePortalUser(user: PortalUser) {
     servicesLabel: getServicesLabel(user.services),
     monthlyValue: user.monthlyValue,
     monthlyValueLabel: formatMonthlyValue(user.monthlyValue),
-    dueDay: user.dueDay,
     nextDueAt: user.nextDueAt.toISOString(),
     active: user.active,
-    notes: user.notes,
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
