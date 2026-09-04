@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return withDownloaderCorsJson(request, { error: "Requisição inválida." }, { status: 400 });
   }
 
-  const data = body as { slug?: unknown; url?: unknown; targetDeviceId?: unknown };
+  const data = body as { slug?: unknown; url?: unknown; targetDeviceId?: unknown; root?: unknown };
   const raw =
     (typeof data.slug === "string" && data.slug) ||
     (typeof data.url === "string" && data.url) ||
@@ -36,9 +36,10 @@ export async function POST(request: Request) {
     typeof data.targetDeviceId === "string" && data.targetDeviceId.trim()
       ? data.targetDeviceId.trim()
       : null;
+  const root = data.root === "colecoes" ? "colecoes" : "vip";
 
   try {
-    const result = await importPackJobsBySlug(access.user.id, parsed.slug, { targetDeviceId });
+    const result = await importPackJobsBySlug(access.user.id, parsed.slug, { targetDeviceId, root });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });
     }
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
         folderName: result.folder.displayName,
         relativePath: result.folder.relativePath,
         slug: result.folder.slug,
+        root: result.folder.root,
       },
       { status: 201 },
     );

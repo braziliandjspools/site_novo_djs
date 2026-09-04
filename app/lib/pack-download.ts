@@ -8,9 +8,12 @@ import {
   listVipMusicFolders,
   type VipMusicFolder,
 } from "./vip-music-catalog";
+import { getCollectionsRootFolderId } from "./vip-collections";
 import { ensureAudioExtension, type PreviewTrack } from "./google-drive";
 import { createDownloadJobsBatch, type DownloadJobInput } from "./downloader";
 import { parsePackDownloadInput } from "./pack-download-link";
+
+export type PackRoot = "vip" | "colecoes";
 
 export type PackResolvedFolder = {
   slug: string;
@@ -20,6 +23,7 @@ export type PackResolvedFolder = {
   displayName: string;
   relativePath: string;
   pathLabels: string[];
+  root: PackRoot;
 };
 
 export type PackTrackJob = {
@@ -31,8 +35,13 @@ export type PackTrackJob = {
 
 export { parsePackDownloadInput };
 
-export async function resolvePackFolderBySlug(slug: string): Promise<PackResolvedFolder | null> {
-  const rootId = getVipMusicRootFolderId();
+export async function resolvePackFolderBySlug(
+  slug: string,
+  options?: { root?: PackRoot },
+): Promise<PackResolvedFolder | null> {
+  const rootMode: PackRoot = options?.root === "colecoes" ? "colecoes" : "vip";
+  const rootId =
+    rootMode === "colecoes" ? await getCollectionsRootFolderId() : getVipMusicRootFolderId();
   if (!rootId) return null;
 
   const segments = slug
@@ -41,7 +50,7 @@ export async function resolvePackFolderBySlug(slug: string): Promise<PackResolve
     .filter(Boolean);
   if (segments.length === 0) return null;
 
-  let parentId: string | undefined;
+  let parentId: string | undefined = rootId;
   const resolved: VipMusicFolder[] = [];
 
   for (const segment of segments) {
@@ -64,6 +73,7 @@ export async function resolvePackFolderBySlug(slug: string): Promise<PackResolve
     displayName: displayFolderName(target.name),
     relativePath: pathLabels.join("/"),
     pathLabels,
+    root: rootMode,
   };
 }
 
@@ -99,8 +109,8 @@ async function collectTracksRecursive(
   return jobs;
 }
 
-export async function previewPackBySlug(slug: string) {
-  const folder = await resolvePackFolderBySlug(slug);
+export async function previewPackBySlug(slug: string, options?: { root?: PackRoot }) {
+  const folder = await resolvePackFolderBySlug(slug, options);
   if (!folder) {
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
   }
@@ -117,9 +127,9 @@ export async function previewPackBySlug(slug: string) {
 export async function importPackJobsBySlug(
   portalUserId: number,
   slug: string,
-  options?: { targetDeviceId?: string | null },
+  options?: { targetDeviceId?: string | null; root?: PackRoot },
 ) {
-  const folder = await resolvePackFolderBySlug(slug);
+  const folder = await resolvePackFolderBySlug(slug, { root: options?.root });
   if (!folder) {
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
   }

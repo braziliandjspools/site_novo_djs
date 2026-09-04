@@ -102,6 +102,7 @@ export default function ColecoesPage() {
             albumCount: item.albumCount,
             trackCount: item.trackCount,
             hrefSegments: [item.slug],
+            downloaderSlug: item.slug,
           }))}
           emptyLabel="Ainda não há coleções nesta pasta do Drive."
         />

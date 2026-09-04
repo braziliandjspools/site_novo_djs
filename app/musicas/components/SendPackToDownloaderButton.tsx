@@ -13,6 +13,8 @@ type SendPackToDownloaderButtonProps = {
   label?: string;
   className?: string;
   compact?: boolean;
+  /** Raiz do Drive: atualizações VIP ou coleções */
+  root?: "vip" | "colecoes";
 };
 
 export function SendPackToDownloaderButton({
@@ -20,6 +22,7 @@ export function SendPackToDownloaderButton({
   label = "Enviar ao Downloader",
   className = "",
   compact = false,
+  root = "vip",
 }: SendPackToDownloaderButtonProps) {
   const { authenticated, openLogin, hasVip } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -45,6 +48,7 @@ export function SendPackToDownloaderButton({
       const result = await sendPackSlugToDownloader(slug, {
         target: sync?.selectedTarget,
         devices: sync?.devices,
+        root,
       });
       showToast(
         result.count === 1

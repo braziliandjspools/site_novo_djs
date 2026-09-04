@@ -17,6 +17,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const raw = searchParams.get("slug") ?? searchParams.get("url") ?? "";
+  const root = searchParams.get("root") === "colecoes" ? "colecoes" : "vip";
   const parsed = parsePackDownloadInput(raw) ?? (raw.trim() ? { slug: raw.trim() } : null);
   if (!parsed?.slug) {
     return withDownloaderCorsJson(
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await previewPackBySlug(parsed.slug);
+    const result = await previewPackBySlug(parsed.slug, { root });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });
     }
@@ -40,6 +41,7 @@ export async function GET(request: Request) {
       pathLabels: result.folder.pathLabels,
       trackCount: result.trackCount,
       sampleTitles: result.sampleTitles,
+      root: result.folder.root,
       downloadUrl: `/musicas/dl/${result.folder.slug}`,
     });
   } catch (error) {

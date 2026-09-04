@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronRight, Disc3, Layers, Loader2, Music2 } from "lucide-react";
-import type { PreviewTrack } from "../../lib/google-drive";
 import { collectionsHref } from "../../lib/vip-music-slugs";
 import { MusicasPageHeader } from "../MusicasShell";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { CollectionAlbumGrid } from "./CollectionAlbumGrid";
-import { VipMusicTrackList } from "./VipMusicTrackList";
+import { CollectionTracksPanel } from "./CollectionTracksPanel";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { pushRecentFolder } from "../lib/music-library-storage";
 
 type CollectionChildItem = {
@@ -31,7 +31,6 @@ type ResolveResponse = {
   slugSegments: string[];
   resolvedPath: { slug: string; id: string; name: string; displayName: string }[];
   items: CollectionChildItem[];
-  tracks: PreviewTrack[];
   albumCount: number;
   trackCount: number;
   canPlay?: boolean;
@@ -52,10 +51,12 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   const slugPath = slugSegments.join("/");
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
     void fetch(`/api/musicas/colecoes/resolve?slug=${encodeURIComponent(slugPath)}`, {
       cache: "no-store",
+      signal: controller.signal,
     })
       .then(async (res) => {
         const body = (await res.json()) as ResolveResponse;
@@ -63,10 +64,14 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
         setData(body);
       })
       .catch((err: Error) => {
+        if (err.name === "AbortError") return;
         setError(err.message);
         setData(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
   }, [slugPath]);
 
   useEffect(() => {
@@ -89,7 +94,14 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
     return (
       <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-8 text-center text-sm text-red-300">
         {error ?? "Não foi possível abrir esta coleção."}
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold text-black"
+          >
+            Recarregar
+          </button>
           <Link href="/musicas/colecoes" className="text-[#1ed760] hover:underline">
             Voltar para Coleções
           </Link>
@@ -100,7 +112,8 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
 
   const canPlay = Boolean(data.canPlay);
   const parentSegments = slugSegments.slice(0, -1);
-  const isAlbumLevel = slugSegments.length >= 2 || (slugSegments.length === 1 && data.level === "tracks");
+  const packSlug = slugSegments.join("/");
+  const relativePath = data.resolvedPath.map((part) => part.displayName).join(" / ");
 
   return (
     <div className="space-y-6">
@@ -131,19 +144,32 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
         subtitle={
           data.level === "tracks"
             ? `${data.trackCount} faixa${data.trackCount === 1 ? "" : "s"} nesta pasta`
-            : `${data.albumCount} pasta${data.albumCount === 1 ? "" : "s"} · ${data.trackCount} faixa${data.trackCount === 1 ? "" : "s"} no total`
+            : `${data.albumCount} pasta${data.albumCount === 1 ? "" : "s"} · ${data.trackCount} faixa${data.trackCount === 1 ? "" : "s"} listadas`
         }
       />
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
-          {data.level === "tracks" ? <Disc3 className="h-3.5 w-3.5 text-[#1ed760]" /> : <Layers className="h-3.5 w-3.5 text-[#1ed760]" />}
+          {data.level === "tracks" ? (
+            <Disc3 className="h-3.5 w-3.5 text-[#1ed760]" />
+          ) : (
+            <Layers className="h-3.5 w-3.5 text-[#1ed760]" />
+          )}
           {data.level === "tracks" ? "Álbum / pasta" : "Coleção / discografia"}
         </div>
         <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
           <Music2 className="h-3.5 w-3.5 text-[#1ed760]" />
           {data.trackCount} faixas
         </div>
+        <SendPackToDownloaderButton
+          slug={packSlug}
+          root="colecoes"
+          label={
+            data.level === "tracks"
+              ? "Enviar álbum ao Downloader"
+              : "Enviar coletânea ao Downloader"
+          }
+        />
         {parentSegments.length > 0 && (
           <Link
             href={collectionsHref(parentSegments)}
@@ -167,24 +193,18 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
             folderCount: item.folderCount,
             trackCount: item.trackCount,
             hrefSegments: [...slugSegments, item.slug],
+            downloaderSlug: [...slugSegments, item.slug].join("/"),
             isAlbum: true,
           }))}
           emptyLabel="Nenhum disco ou pasta nesta coleção."
         />
       ) : (
-        <section className="rounded-2xl border border-zinc-800 bg-[#181818] p-3 sm:p-4">
-          <VipMusicTrackList
-            folderId={data.folderId}
-            tracks={data.tracks}
-            canPlay={canPlay}
-            canDownload={canPlay}
-            relativePath={data.resolvedPath.map((part) => part.displayName).join(" / ")}
-          />
-        </section>
-      )}
-
-      {isAlbumLevel && data.level === "folders" && data.items.length === 0 && (
-        <p className="text-center text-sm text-zinc-500">Esta pasta ainda não tem conteúdo listável.</p>
+        <CollectionTracksPanel
+          folderId={data.folderId}
+          folderName={data.folderName}
+          canPlay={canPlay}
+          relativePath={relativePath}
+        />
       )}
     </div>
   );

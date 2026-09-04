@@ -1,7 +1,6 @@
 import { listDriveFolderChildren } from "./google-drive";
 import { GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID } from "./site";
 import {
-  getVipMusicCatalog,
   listVipMusicFolders,
   type VipMusicCatalogResponse,
   type VipMusicFolder,
@@ -87,28 +86,6 @@ async function countFolderContents(folderId: string) {
   };
 }
 
-async function sumNestedTrackEstimate(folderId: string, depth = 0): Promise<number> {
-  if (depth > 2) return 0;
-  const stats = await countFolderContents(folderId);
-  if (stats.level === "tracks") return stats.trackCount;
-
-  const children = await listVipMusicFolders(folderId);
-  const limited = children.slice(0, 40);
-  const counts = await Promise.all(
-    limited.map(async (child) => {
-      try {
-        const childStats = await countFolderContents(child.id);
-        if (childStats.level === "tracks") return childStats.trackCount;
-        if (depth >= 1) return childStats.folderCount > 0 ? 0 : childStats.trackCount;
-        return sumNestedTrackEstimate(child.id, depth + 1);
-      } catch {
-        return 0;
-      }
-    }),
-  );
-  return counts.reduce((sum, value) => sum + value, 0);
-}
-
 export async function listCollections(): Promise<{
   configured: boolean;
   rootFolderId: string | null;
@@ -177,8 +154,7 @@ async function enrichChildren(folders: VipMusicFolder[]): Promise<CollectionChil
       try {
         const stats = await countFolderContents(folder.id);
         folderCount = stats.folderCount;
-        trackCount =
-          stats.level === "tracks" ? stats.trackCount : await sumNestedTrackEstimate(folder.id);
+        trackCount = stats.trackCount;
         level = stats.level;
       } catch {
         /* keep zeros */
@@ -239,35 +215,46 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
   }
 
   const target = resolvedPath.at(-1);
-  const catalog = await getVipMusicCatalog(target?.id ?? rootId, target?.name ?? "Coleções");
+  const folderId = target?.id ?? rootId;
+  const folderName = target?.name ?? "Coleções";
 
-  if (catalog.level === "tracks") {
+  // Detecção leve: se há subpastas, lista pastas; senão, é álbum de faixas.
+  const childFolders = await listVipMusicFolders(folderId);
+  if (childFolders.length === 0) {
+    let trackCount = 0;
+    try {
+      const stats = await countFolderContents(folderId);
+      trackCount = stats.trackCount;
+    } catch {
+      trackCount = 0;
+    }
+
     return {
       configured: true,
       rootFolderId: rootId,
-      folderId: catalog.folderId,
-      folderName: catalog.folderName,
-      displayName: displayFolderName(catalog.folderName),
+      folderId,
+      folderName,
+      displayName: displayFolderName(folderName),
       level: "tracks",
       slugSegments: segments,
       resolvedPath,
       items: [],
-      tracks: catalog.tracks,
+      tracks: [],
       albumCount: 0,
-      trackCount: catalog.tracks.length,
+      trackCount,
     };
   }
 
-  const items = await enrichChildren(catalog.items);
+  const items = await enrichChildren(childFolders);
   const albumCount = items.length;
   const trackCount = items.reduce((sum, item) => sum + item.trackCount, 0);
 
   return {
     configured: true,
     rootFolderId: rootId,
-    folderId: catalog.folderId,
-    folderName: catalog.folderName,
-    displayName: displayFolderName(catalog.folderName),
+    folderId,
+    folderName,
+    displayName: displayFolderName(folderName),
     level: "folders",
     slugSegments: segments,
     resolvedPath,

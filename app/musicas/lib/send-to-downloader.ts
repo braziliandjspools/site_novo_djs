@@ -182,7 +182,7 @@ export async function sendFolderToDownloader(input: {
  */
 export async function sendPackSlugToDownloader(
   slug: string,
-  options: Omit<SendOptions, "relativePath"> = {},
+  options: Omit<SendOptions, "relativePath"> & { root?: "vip" | "colecoes" } = {},
 ) {
   const normalized = slug.replace(/^\/+|\/+$/g, "").trim();
   if (!normalized) {
@@ -191,6 +191,7 @@ export async function sendPackSlugToDownloader(
 
   const targetDeviceIds = resolveTargetDeviceIds(options.target, options.devices ?? []);
   const targets = targetDeviceIds.length > 0 ? targetDeviceIds : [null];
+  const root = options.root === "colecoes" ? "colecoes" : "vip";
 
   let totalCount = 0;
   let folderName: string | undefined;
@@ -203,6 +204,7 @@ export async function sendPackSlugToDownloader(
       credentials: "same-origin",
       body: JSON.stringify({
         slug: normalized,
+        root,
         ...(targetDeviceId ? { targetDeviceId } : {}),
       }),
     });

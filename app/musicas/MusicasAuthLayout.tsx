@@ -10,6 +10,8 @@ import { MusicasMobileMenuButton, MusicasSidebar } from "./MusicasSidebar";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
+import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
+import { VipMiniPlayerBar } from "./components/VipMiniPlayerBar";
 import { checkoutUrl } from "../lib/site";
 
 type MusicasAuthLayoutProps = {
@@ -91,6 +93,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
     <MusicasSessionProvider value={sessionValue}>
       <DownloaderSyncProvider>
       <MusicasToastProvider>
+      <VipMusicPlayerProvider canPlay={hasVip}>
       <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-clip bg-black text-zinc-100">
         <MusicasSidebar
           authenticated={authenticated}
@@ -153,12 +156,14 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 overflow-x-clip overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-3 py-4 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
+          <main className="min-w-0 flex-1 overflow-x-clip overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-3 py-4 pb-28 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
             {!authenticated && !hasVip && <MusicasGuestBanner />}
             {children}
           </main>
+          <VipMiniPlayerBar />
         </div>
       </div>
+      </VipMusicPlayerProvider>
       </MusicasToastProvider>
       </DownloaderSyncProvider>
     </MusicasSessionProvider>
