@@ -1,10 +1,10 @@
 /**
  * Manifesto de release do Downloader.
  * Configure no Vercel (ou .env):
- * - DOWNLOADER_LATEST_VERSION=0.3.0
+ * - DOWNLOADER_LATEST_VERSION=0.4.0
  * - DOWNLOADER_DOWNLOAD_URL=https://.../BRS-Downloader-Setup.exe
- * - DOWNLOADER_RELEASE_NOTES=Correções de login e sininho unificado
- * - DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-03T20:00:00.000Z (opcional)
+ * - DOWNLOADER_RELEASE_NOTES=Login automático após reinício do PC
+ * - DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-04T20:00:00.000Z (opcional)
  */
 
 export type DownloaderReleaseManifest = {

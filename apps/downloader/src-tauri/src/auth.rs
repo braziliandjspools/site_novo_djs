@@ -91,7 +91,10 @@ fn load_keyring_token() -> Option<String> {
     let entry = Entry::new(KEYRING_SERVICE, KEYRING_SESSION_USER).ok()?;
     match entry.get_password() {
         Ok(token) if !token.trim().is_empty() => Some(token),
+        // Sem entrada ou vazio: não tem token no keyring.
         Ok(_) | Err(keyring::Error::NoEntry) => None,
+        // Erros transitórios (Credential Manager após reboot) → None,
+        // o caller ainda tenta o arquivo de fallback.
         Err(_) => None,
     }
 }
@@ -149,6 +152,7 @@ pub fn get_platform_name() -> String {
     "desktop".to_string()
 }
 
+/// Dual-write: keyring + arquivo. O arquivo cobre reboot quando o Credential Manager falha.
 #[tauri::command]
 pub fn save_session_token(app: AppHandle, token: String) -> Result<(), String> {
     let trimmed = token.trim();
@@ -156,17 +160,29 @@ pub fn save_session_token(app: AppHandle, token: String) -> Result<(), String> {
         return Err("Token de sessão inválido.".to_string());
     }
 
-    if save_keyring_token(trimmed).is_ok() {
-        let _ = clear_session_file(&session_file_path(&app)?);
+    let path = session_file_path(&app)?;
+    let file_ok = write_session_file(&path, trimmed);
+    let keyring_ok = save_keyring_token(trimmed);
+
+    if file_ok.is_ok() || keyring_ok.is_ok() {
         return Ok(());
     }
 
-    write_session_file(&session_file_path(&app)?, trimmed)
+    Err(format!(
+        "Não foi possível salvar a sessão. keyring: {}; arquivo: {}",
+        keyring_ok.err().unwrap_or_default(),
+        file_ok.err().unwrap_or_default()
+    ))
 }
 
 #[tauri::command]
 pub fn load_session_token(app: AppHandle) -> Result<Option<String>, String> {
     if let Some(token) = load_keyring_token() {
+        // Repara o fallback em arquivo se o keyring ainda tiver o token.
+        let path = session_file_path(&app)?;
+        if read_session_file(&path)?.is_none() {
+            let _ = write_session_file(&path, &token);
+        }
         return Ok(Some(token));
     }
 

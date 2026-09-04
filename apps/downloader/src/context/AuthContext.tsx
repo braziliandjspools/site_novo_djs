@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { ApiError } from "../lib/api/client";
+import { ApiError, NetworkError } from "../lib/api/client";
 import { fetchSession, loginWithPassword, mapSessionUser } from "../lib/api/auth";
 import { registerDevice } from "../lib/api/devices";
 import { formatApiError } from "../lib/errors";
@@ -38,6 +38,23 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const BOOTSTRAP_RETRY_DELAYS_MS = [800, 1600, 3200, 5000];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function isAuthInvalidError(err: unknown) {
+  return err instanceof ApiError && (err.status === 401 || err.status === 403);
+}
+
+function isTransientSessionError(err: unknown) {
+  if (err instanceof NetworkError) return true;
+  if (err instanceof ApiError && err.status >= 500) return true;
+  if (err instanceof TypeError) return true;
+  return false;
+}
 
 async function buildDeviceInfo(): Promise<DeviceInfo> {
   const [deviceId, deviceName, platform] = await Promise.all([
@@ -132,7 +149,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await registerCurrentDevice(token, deviceInfo);
       } catch (registerError) {
         if (requireDeviceRegistration) {
-          // Mantém logado, mas avisa. Downloads podem falhar até o registro funcionar.
           setError(
             `Conta conectada, mas o registro deste PC falhou: ${formatApiError(registerError)}`,
           );
@@ -154,28 +170,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
 
+    // Mantém o token em memória cedo — se a rede falhar, ainda sabemos que havia sessão.
+    setSessionToken(token);
+
+    const tryEstablish = async () =>
+      establishSession(token, { requireDeviceRegistration: false });
+
+    let lastError: unknown;
     try {
-      return await establishSession(token, { requireDeviceRegistration: false });
-    } catch (err) {
+      return await tryEstablish();
+    } catch (firstError) {
+      lastError = firstError;
       if (loginInFlight.current) return false;
 
-      // Se já está autenticado, não derruba a sessão por falha transitória de rede.
-      if (
-        statusRef.current === "authenticated" &&
-        !(err instanceof ApiError && (err.status === 401 || err.status === 403))
-      ) {
-        setError(formatApiError(err));
+      // Rede / 5xx / reboot: retry e NÃO apaga o token.
+      if (!isAuthInvalidError(firstError) && isTransientSessionError(firstError)) {
+        for (const delay of BOOTSTRAP_RETRY_DELAYS_MS) {
+          await sleep(delay);
+          if (loginInFlight.current) return false;
+          try {
+            return await tryEstablish();
+          } catch (retryError) {
+            lastError = retryError;
+            if (isAuthInvalidError(retryError)) {
+              await clearSessionToken().catch(() => undefined);
+              clearLocalSession();
+              setError(
+                retryError instanceof ApiError && retryError.status === 401
+                  ? "Sessão expirada. Faça login novamente."
+                  : formatApiError(retryError),
+              );
+              return false;
+            }
+          }
+        }
+
+        setError(
+          `${formatApiError(lastError)} A sessão foi mantida — tente de novo quando a rede estiver ok.`,
+        );
+        if (statusRef.current !== "authenticated") {
+          setStatus("unauthenticated");
+        }
         return false;
       }
 
-      await clearSessionToken().catch(() => undefined);
-      clearLocalSession();
-      if (err instanceof ApiError && err.status === 401) {
-        setError("Sessão expirada. Faça login novamente.");
-      } else if (err instanceof ApiError && err.status === 403) {
-        setError(err.message);
-      } else {
-        setError(formatApiError(err));
+      if (statusRef.current === "authenticated" && !isAuthInvalidError(firstError)) {
+        setError(formatApiError(firstError));
+        return false;
+      }
+
+      // Credenciais inválidas / plano: aí sim limpa.
+      if (isAuthInvalidError(firstError)) {
+        await clearSessionToken().catch(() => undefined);
+        clearLocalSession();
+        if (firstError instanceof ApiError && firstError.status === 401) {
+          setError("Sessão expirada. Faça login novamente.");
+        } else {
+          setError(formatApiError(firstError));
+        }
+        return false;
+      }
+
+      // Outros erros: não apagar token.
+      setError(formatApiError(firstError));
+      if (statusRef.current !== "authenticated") {
+        setStatus("unauthenticated");
       }
       return false;
     }

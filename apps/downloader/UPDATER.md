@@ -9,8 +9,8 @@ O app consulta `GET /api/downloader/updates/latest?current=0.2.0` e avisa no **s
 3. No **Vercel → Environment Variables**, defina:
 
 ```
-DOWNLOADER_LATEST_VERSION=0.3.0
-DOWNLOADER_DOWNLOAD_URL=https://seu-cdn/.../BRS-Downloader_0.3.0_x64-setup.exe
+DOWNLOADER_LATEST_VERSION=0.4.0
+DOWNLOADER_DOWNLOAD_URL=https://seu-cdn/.../BRS-Downloader_0.4.0_x64-setup.exe
 DOWNLOADER_RELEASE_NOTES=Correção de login e sininho unificado
 DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-03T20:00:00.000Z
 ```

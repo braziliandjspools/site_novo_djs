@@ -1,6 +1,6 @@
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "0.3.0";
-export const APP_CORE_VERSION = "0.3.0";
+export const WEBUI_VERSION = "0.4.0";
+export const APP_CORE_VERSION = "0.4.0";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
@@ -11,6 +11,16 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.4.0",
+    date: "2026-09-04",
+    items: [
+      "Login automático após reiniciar o PC (sessão salva em keyring + arquivo de fallback)",
+      "Não apaga mais a sessão quando a rede falha na abertura do app",
+      "Botão para reconectar com a sessão salva sem digitar a senha",
+      "Retries mais longos no bootstrap após reboot",
+    ],
+  },
   {
     version: "0.3.0",
     date: "2026-09-03",

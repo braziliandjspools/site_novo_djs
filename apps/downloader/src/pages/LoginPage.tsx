@@ -18,13 +18,14 @@ const inputClassName =
 const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500";
 
 export function LoginPage() {
-  const { login, error: authError } = useAuth();
+  const { login, error: authError, refreshSession, sessionToken } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [apiBaseUrl, setApiBaseUrl] = useState(DEFAULT_API_BASE_URL);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [testingServer, setTestingServer] = useState(false);
   const [serverStatus, setServerStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,37 @@ export function LoginPage() {
       }
     })();
   }, []);
+
+  // Se já há token salvo (ex.: após reboot com rede lenta), tenta restaurar sem pedir senha.
+  useEffect(() => {
+    if (!sessionToken) return;
+    let cancelled = false;
+    void (async () => {
+      setReconnecting(true);
+      try {
+        await refreshSession();
+      } finally {
+        if (!cancelled) setReconnecting(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionToken, refreshSession]);
+
+  async function handleReconnect() {
+    setReconnecting(true);
+    setError(null);
+    try {
+      await persistApiBaseUrl(apiBaseUrl);
+      const ok = await refreshSession();
+      if (!ok) setError("Não foi possível restaurar a sessão. Faça login novamente.");
+    } catch (err) {
+      setError(formatApiError(err));
+    } finally {
+      setReconnecting(false);
+    }
+  }
 
   function applyNormalizedUrl(raw: string) {
     const normalized = normalizeApiBaseUrl(raw);
@@ -125,6 +157,26 @@ export function LoginPage() {
           <p className="mt-2 text-sm text-zinc-500">
             Use o mesmo e-mail e senha do portal {SITE_NAME}.
           </p>
+
+          {sessionToken && (
+            <div className="mt-4 rounded-lg border border-[#1db954]/25 bg-[#1db954]/10 px-3 py-3">
+              <p className="text-sm text-zinc-200">
+                {reconnecting
+                  ? "Restaurando sessão salva…"
+                  : "Há uma sessão salva neste PC. Você pode reconectar sem digitar a senha."}
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={reconnecting || submitting}
+                className="mt-3 w-full"
+                onClick={() => void handleReconnect()}
+              >
+                {reconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                Reconectar automaticamente
+              </Button>
+            </div>
+          )}
 
           <div className="mt-6 space-y-4">
             <div>
