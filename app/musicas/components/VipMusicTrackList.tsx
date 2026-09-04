@@ -160,7 +160,7 @@ function TrackRow({
               : "border-transparent hover:border-zinc-800 hover:bg-white/[0.03]"
       }`}
     >
-      <div className="flex items-center gap-1.5 px-1.5 py-1">
+      <div className="flex min-w-0 items-center gap-1.5 px-1.5 py-1">
         {selectionMode && canDownload ? (
           <button
             type="button"
@@ -212,12 +212,14 @@ function TrackRow({
           disabled={!canPlay && !selectionMode}
           className="min-w-0 flex-1 text-left"
         >
-          <div className="flex items-center gap-1.5">
+          <div className="flex min-w-0 items-center gap-1.5">
             {isPlaying && <PlayingBars />}
-            <p className={`truncate text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}>
+            <p className={`min-w-0 truncate text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}>
               {track.title}
             </p>
-            <TrackDownloadStatus fileId={track.id} />
+            <span className="hidden sm:inline">
+              <TrackDownloadStatus fileId={track.id} />
+            </span>
           </div>
           {track.artist && track.artist !== "Unknown Artist" && (
             <p className="truncate text-[10px] leading-tight text-zinc-500">{track.artist}</p>
@@ -231,7 +233,7 @@ function TrackRow({
         )}
 
         {isActive && canPlay && !selectionMode && (
-          <div className="flex flex-shrink-0 items-center">
+          <div className="hidden flex-shrink-0 items-center sm:flex">
             <button
               type="button"
               onClick={onPrev}
@@ -253,13 +255,14 @@ function TrackRow({
           </div>
         )}
 
+        {/* Desktop: ícones na mesma linha */}
         {canDownload && !selectionMode ? (
-          <>
+          <div className="hidden flex-shrink-0 items-center gap-0.5 sm:flex">
             <button
               type="button"
               onClick={onSendToDownloader}
               disabled={isSendingToDownloader}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
               title="Enviar para o Downloader"
               aria-label={`Enviar ${track.title} para o Downloader`}
             >
@@ -273,19 +276,49 @@ function TrackRow({
               type="button"
               onClick={onDownload}
               disabled={isDownloading}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
               title={`Baixar ${resolveDownloadFilename(track)}`}
               aria-label={`Baixar ${track.title}`}
             >
               {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             </button>
-          </>
+          </div>
         ) : !canDownload ? (
           <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-zinc-700">
             <Lock className="h-3 w-3" />
           </div>
         ) : null}
       </div>
+
+      {/* Mobile: ações sempre visíveis, linha própria — não corta / não some */}
+      {canDownload && !selectionMode ? (
+        <div className="flex items-center gap-2 px-1.5 pb-1.5 pl-9 sm:hidden">
+          <button
+            type="button"
+            onClick={onSendToDownloader}
+            disabled={isSendingToDownloader}
+            className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#1ed760]/35 bg-[#1ed760]/10 px-2 py-1.5 text-[11px] font-bold text-[#1ed760] disabled:opacity-50"
+            aria-label={`Enviar ${track.title} para o Downloader`}
+          >
+            {isSendingToDownloader ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <MonitorDown className="h-3.5 w-3.5" />
+            )}
+            Downloader
+          </button>
+          <button
+            type="button"
+            onClick={onDownload}
+            disabled={isDownloading}
+            className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-600 bg-zinc-900 px-2 py-1.5 text-[11px] font-bold text-zinc-200 disabled:opacity-50"
+            aria-label={`Baixar ${track.title}`}
+          >
+            {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            Baixar
+          </button>
+        </div>
+      ) : null}
 
       {isActive && canPlay && !selectionMode && (
         <div className="flex items-center gap-2 px-1.5 pb-1.5 pl-9">
@@ -571,7 +604,7 @@ export function VipMusicTrackList({
                 type="button"
                 onClick={() => void handleSendSelectedToDownloader()}
                 disabled={selectedCount === 0 || batchSending}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-[#1ed760] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-[#1ed760] px-2.5 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-black transition-opacity hover:opacity-90 disabled:opacity-40 sm:ml-auto sm:w-auto sm:py-1"
               >
                 {batchSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <MonitorDown className="h-3 w-3" />}
                 {selectionLabel}

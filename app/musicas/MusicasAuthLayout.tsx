@@ -90,7 +90,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
     <MusicasSessionProvider value={sessionValue}>
       <DownloaderSyncProvider>
       <MusicasToastProvider>
-      <div className="flex min-h-screen bg-black text-zinc-100">
+      <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-clip bg-black text-zinc-100">
         <MusicasSidebar
           authenticated={authenticated}
           userName={userName}
@@ -101,9 +101,9 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
           onMobileOpenChange={setMobileOpen}
         />
 
-        <div className="flex min-h-screen flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-black/80 px-4 py-3 backdrop-blur-md sm:px-6">
-            <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-black/80 px-3 py-3 backdrop-blur-md sm:gap-4 sm:px-6">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <MusicasMobileMenuButton onClick={() => setMobileOpen(true)} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-white sm:text-base">
@@ -115,7 +115,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                     "BRS Music"
                   )}
                 </p>
-                <p className="truncate text-xs text-zinc-500">
+                <p className="truncate text-[10px] text-zinc-500 sm:text-xs">
                   {hasVip
                     ? "Premium · Ouvir e baixar liberado"
                     : authenticated
@@ -125,7 +125,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
               </div>
             </div>
 
-            <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
               {!authenticated && (
                 <button
                   type="button"
@@ -140,7 +140,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                   href={checkoutUrl("VIP")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold text-black transition-transform hover:scale-[1.03] sm:px-5 sm:text-sm"
+                  className="inline-flex items-center justify-center rounded-full bg-[#1ed760] px-3 py-2 text-[11px] font-bold text-black transition-transform hover:scale-[1.03] sm:px-5 sm:text-sm"
                 >
                   Assinar VIP
                 </a>
@@ -151,7 +151,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-4 py-5 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
+          <main className="min-w-0 flex-1 overflow-x-clip overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-3 py-4 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
             {!authenticated && !hasVip && <MusicasGuestBanner />}
             {children}
           </main>

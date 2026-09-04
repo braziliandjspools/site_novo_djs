@@ -57,7 +57,7 @@ export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps
                 type="button"
                 onClick={() => goTo(active - 1)}
                 aria-label="Depoimento anterior"
-                className="absolute -left-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#121212]/90 text-white transition-colors hover:border-[#009739]/50 hover:text-[#00B347]"
+                className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#121212]/90 text-white transition-colors hover:border-[#009739]/50 hover:text-[#00B347]"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -65,7 +65,7 @@ export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps
                 type="button"
                 onClick={() => goTo(active + 1)}
                 aria-label="Próximo depoimento"
-                className="absolute -right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#121212]/90 text-white transition-colors hover:border-[#009739]/50 hover:text-[#00B347]"
+                className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#121212]/90 text-white transition-colors hover:border-[#009739]/50 hover:text-[#00B347]"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

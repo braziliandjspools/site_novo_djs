@@ -281,7 +281,7 @@ export default function AllavsoftPage() {
         <AllavsoftActions className="mt-8" />
       </section>
 
-      <section id="faq" className="border-t border-white/5 site-section-blue px-6 py-20 -mx-6">
+      <section id="faq" className="border-t border-white/5 site-section-blue px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <SectionHeading
             badge="FAQ"

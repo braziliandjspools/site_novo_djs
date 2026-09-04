@@ -449,7 +449,7 @@ export default async function Home() {
                 key={plan.name}
                 className={`relative rounded-2xl border p-6 text-center transition-all md:p-8 md:text-left ${
                   plan.highlight
-                    ? "border-[#FFDF00]/60 bg-gradient-to-b from-[#009739]/20 to-transparent shadow-2xl shadow-[#009739]/20 md:scale-[1.03]"
+                    ? "border-[#FFDF00]/60 bg-gradient-to-b from-[#009739]/20 to-transparent shadow-2xl shadow-[#009739]/20"
                     : "border-white/10 bg-[#282828] hover:border-[#009739]/40"
                 }`}
               >

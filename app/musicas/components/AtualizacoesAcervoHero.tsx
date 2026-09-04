@@ -25,7 +25,7 @@ export function AtualizacoesAcervoHero({ monthCount, hasVip }: AtualizacoesAcerv
             />
           </div>
           <p className="text-xs font-bold uppercase tracking-wider text-[#1ed760]">Acervo VIP</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">Atualizações</h1>
+          <h1 className="mt-2 break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">Atualizações</h1>
           <p className="mt-4 max-w-3xl text-justify text-sm leading-relaxed text-zinc-300 sm:text-base">{WELCOME_TEXT}</p>
         </div>
 

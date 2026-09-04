@@ -87,14 +87,14 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
         </p>
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+      <div className="flex flex-shrink-0 items-center gap-0.5">
         {hasVip && (
           <>
             <button
               type="button"
               onClick={(event) => void handleDownload(event)}
               disabled={downloading}
-              className="rounded-md p-2 text-zinc-500 hover:text-white disabled:opacity-40"
+              className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900/80 p-2 text-zinc-300 hover:text-white disabled:opacity-40 sm:border-transparent sm:bg-transparent sm:text-zinc-500"
               aria-label="Baixar"
             >
               {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
@@ -103,7 +103,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
               type="button"
               onClick={(event) => void handleSend(event)}
               disabled={sending}
-              className="rounded-md p-2 text-zinc-500 hover:text-[#1ed760] disabled:opacity-40"
+              className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-[#1ed760]/35 bg-[#1ed760]/10 p-2 text-[#1ed760] hover:text-[#1ed760] disabled:opacity-40 sm:border-transparent sm:bg-transparent sm:text-zinc-500"
               aria-label="Enviar para Downloader"
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MonitorDown className="h-4 w-4" />}

@@ -51,7 +51,7 @@ export function AtualizacoesMonthHero({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-wider text-[#1ed760]">{eyebrow}</p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">{title}</h1>
+            <h1 className="break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">{title}</h1>
             {label && mode === "weeks" && (
               <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase ${monthStatusClass(status)}`}>
                 {label}

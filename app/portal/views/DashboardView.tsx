@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowRight, Calendar, LayoutGrid, MessageCircle, Music2, Package, Sparkles } from "lucide-react";
 import { whatsappUrl } from "../../lib/site";
 import { PortalBadge, PortalCard, StatCard } from "../PortalShell";
@@ -92,8 +93,73 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
       )}
 
       <PortalCard title="Resumo dos serviços">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
+        <div className="space-y-3 md:hidden">
+          {[
+            data.pools && {
+              name: "Pools VIP",
+              badge: <PortalBadge>Ativo</PortalBadge>,
+              due: formatDateBr(user.nextDueAt),
+              action: () => onNavigate("service-pools"),
+              actionLabel: "Gerenciar",
+            },
+            data.deemix && {
+              name: "Deemix",
+              badge: <PortalBadge>Ativo</PortalBadge>,
+              due: formatDateBr(user.nextDueAt),
+              action: () => onNavigate("service-deemix"),
+              actionLabel: "Gerenciar",
+            },
+            data.allavsoft && {
+              name: "Allavsoft",
+              badge: <PortalBadge variant="amber">Em breve</PortalBadge>,
+              due: formatDateBr(data.allavsoft.availableFrom),
+              action: () => onNavigate("service-allavsoft"),
+              actionLabel: "Ver detalhes",
+            },
+            {
+              name: "Produção Musical",
+              badge: data.musicProducerDeliveries.enabled ? (
+                <PortalBadge>Ativo</PortalBadge>
+              ) : (
+                <PortalBadge variant="amber">Sem faixas</PortalBadge>
+              ),
+              due: "Minhas produções",
+              action: () => onNavigate("service-music-producer"),
+              actionLabel: "Ver faixas",
+            },
+          ]
+            .filter(Boolean)
+            .map((row) => {
+              const item = row as {
+                name: string;
+                badge: ReactNode;
+                due: string;
+                action: () => void;
+                actionLabel: string;
+              };
+              return (
+                <div key={item.name} className="rounded-xl border border-zinc-800 bg-[#0a0a0a] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-white">{item.name}</p>
+                      <p className="mt-1 text-xs text-zinc-500">{item.due}</p>
+                    </div>
+                    {item.badge}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={item.action}
+                    className="mt-3 text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline"
+                  >
+                    {item.actionLabel}
+                  </button>
+                </div>
+              );
+            })}
+        </div>
+
+        <div className="hidden md:block">
+          <table className="w-full table-fixed text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-800 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
                 <th className="pb-3 pr-4">Serviço</th>
@@ -189,21 +255,21 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
 
         <PortalCard title="Informações da conta">
           <dl className="space-y-3 text-sm">
-            <div className="flex justify-between border-b border-zinc-800 pb-2">
+            <div className="flex flex-col gap-1 border-b border-zinc-800 pb-2 sm:flex-row sm:justify-between sm:gap-3">
               <dt className="text-zinc-500">E-mail</dt>
-              <dd className="font-medium text-white">{user.email}</dd>
+              <dd className="break-all font-medium text-white">{user.email}</dd>
             </div>
-            <div className="flex justify-between border-b border-zinc-800 pb-2">
+            <div className="flex flex-col gap-1 border-b border-zinc-800 pb-2 sm:flex-row sm:justify-between sm:gap-3">
               <dt className="text-zinc-500">Serviços</dt>
-              <dd className="font-medium text-[#FFDF00]">{user.servicesLabel}</dd>
+              <dd className="break-words font-medium text-[#FFDF00]">{user.servicesLabel}</dd>
             </div>
-            <div className="flex justify-between border-b border-zinc-800 pb-2">
+            <div className="flex flex-col gap-1 border-b border-zinc-800 pb-2 sm:flex-row sm:justify-between sm:gap-3">
               <dt className="text-zinc-500">Valor mensal</dt>
               <dd className="font-medium text-white">{user.monthlyValueLabel}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
               <dt className="text-zinc-500">WhatsApp</dt>
-              <dd className="font-medium text-white">{user.whatsapp}</dd>
+              <dd className="break-all font-medium text-white">{user.whatsapp}</dd>
             </div>
           </dl>
           <button

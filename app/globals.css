@@ -23,18 +23,35 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  overflow-x: hidden;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 @layer base {
-  img {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
     max-width: 100%;
     height: auto;
+  }
+
+  /* Evita flex/grid filhos forçarem scroll horizontal */
+  .min-w-0 {
+    min-width: 0;
   }
 }
 

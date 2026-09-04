@@ -108,7 +108,7 @@ export function Hero() {
               <span className="h-2 w-2 rounded-full bg-[#009739]" />
               Pools · Curadoria · Remix Services
             </span>
-            <h1 className="font-display text-4xl leading-none tracking-wide text-white sm:text-5xl md:text-7xl">
+            <h1 className="font-display break-words text-3xl leading-none tracking-wide text-white sm:text-5xl md:text-7xl">
               Packs, curadoria e{" "}
               <span className="bg-gradient-to-r from-[#009739] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
                 conteúdo para DJs
@@ -140,8 +140,8 @@ export function Hero() {
         <div className="br-stripe relative z-10" />
       </section>
 
-      <section className="border-b border-white/5 site-section-blue px-6 py-10">
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 sm:grid-cols-4">
+      <section className="border-b border-white/5 site-section-blue px-4 py-10 sm:px-6">
+        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
           {[
             { value: "400+", label: "Pools & Services" },
             { value: "24/7", label: "Acesso ilimitado" },

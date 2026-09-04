@@ -42,11 +42,11 @@ function WeekDayStrip({ days }: { days: CalendarDay[] }) {
   if (days.length === 0) return null;
 
   return (
-    <div className="mt-4 grid grid-cols-7 gap-1.5">
+    <div className="mt-4 flex flex-wrap gap-1.5">
       {days.map((day) => (
         <div
           key={day.iso}
-          className={`flex flex-col items-center rounded-lg px-1 py-2 text-center transition-colors ${
+          className={`flex min-w-[2.5rem] flex-1 flex-col items-center rounded-lg px-1 py-2 text-center transition-colors sm:min-w-0 ${
             day.isToday
               ? "bg-[#1ed760] text-black shadow-[0_0_20px_rgba(30,215,96,0.35)]"
               : "bg-black/35 text-zinc-400"
@@ -131,11 +131,11 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
             >
               <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#1ed760]/10 blur-2xl" />
 
-              <div className="relative flex items-start gap-2 p-4 sm:p-5">
+              <div className="relative flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-2 sm:p-5">
                 <Link href={href} className="min-w-0 flex-1">
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     <div
-                      className={`flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-2xl ${
+                      className={`flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl sm:h-16 sm:w-16 ${
                         isCurrent ? "bg-[#1ed760] text-black" : "bg-[#1ed760]/12 text-[#1ed760]"
                       }`}
                     >
@@ -147,7 +147,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
 
                     <div className="min-w-0 flex-1 pt-0.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-lg font-black tracking-tight text-white group-hover:text-[#1ed760]">
+                        <p className="break-words text-base font-black tracking-tight text-white group-hover:text-[#1ed760] sm:text-lg">
                           {weekTitle}
                         </p>
                         {isCurrent && (
@@ -167,13 +167,13 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                       </p>
                     </div>
 
-                    <ChevronRight className="mt-2 h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760]" />
+                    <ChevronRight className="mt-2 hidden h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760] sm:block" />
                   </div>
 
                   <WeekDayStrip days={days} />
                 </Link>
 
-                <div className="flex flex-shrink-0 items-center gap-1">
+                <div className="flex flex-shrink-0 items-center justify-end gap-1 sm:pt-1">
                   <SendPackToDownloaderButton
                     slug={`${monthSlug}/${weekSlug}`}
                     compact

@@ -58,17 +58,17 @@ export function VipMiniPlayerBar() {
           </div>
         </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
+        <div className="flex flex-shrink-0 items-center gap-1.5">
           {track && (
             <>
               <Link
                 href={`/api/musicas/download/${track.id}`}
-                className="rounded-full border border-zinc-700 p-2 text-zinc-400 hover:text-white"
+                className="rounded-full border border-zinc-700 p-2 text-zinc-300 hover:text-white"
                 title="Baixar"
               >
                 <Download className="h-4 w-4" />
               </Link>
-              <span className="rounded-full border border-zinc-700 p-2 text-zinc-400" title="Enviar via lista">
+              <span className="rounded-full border border-[#1ed760]/40 bg-[#1ed760]/10 p-2 text-[#1ed760]" title="Enviar via lista">
                 <MonitorDown className="h-4 w-4" />
               </span>
             </>

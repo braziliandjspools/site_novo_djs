@@ -260,7 +260,7 @@ export function StyleFolderAccordion({
             disabled={sendingFolder}
             title="Enviar pasta inteira para o Downloader"
             aria-label={`Enviar pasta ${label} para o Downloader`}
-            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition-colors hover:bg-[#1ed760]/20 disabled:opacity-50 sm:h-6 sm:w-6 sm:border-transparent sm:bg-transparent sm:text-zinc-500 sm:hover:bg-white/10 sm:hover:text-[#1ed760]"
           >
             {sendingFolder ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

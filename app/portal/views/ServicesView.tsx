@@ -91,8 +91,30 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
       )}
 
       <PortalCard>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
+        <div className="space-y-3 md:hidden">
+          {rows.map((row) => (
+            <div key={row.name} className="rounded-xl border border-zinc-800 bg-[#0a0a0a] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="break-words font-medium text-white">{row.name}</p>
+                  <p className="mt-1 text-xs text-zinc-500">{row.name.split(" — ")[0]}</p>
+                  <p className="mt-1 text-xs text-zinc-500">Venc.: {row.due}</p>
+                </div>
+                {row.badge}
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigate(row.view)}
+                className="mt-3 rounded-lg bg-[#00ff9d] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a]"
+              >
+                Gerenciar
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden md:block">
+          <table className="w-full table-fixed text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-800 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
                 <th className="pb-3 pr-4">Produto / Serviço</th>

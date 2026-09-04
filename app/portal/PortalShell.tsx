@@ -100,9 +100,9 @@ export function PortalShell({
   const isServiceDetail = serviceViews.includes(activeView);
 
   return (
-    <div className="flex min-h-screen bg-[#121212] text-zinc-100">
+    <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-clip bg-[#121212] text-zinc-100">
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-zinc-800 bg-[#0a0a0a] transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[85vw] flex-col border-r border-zinc-800 bg-[#0a0a0a] transition-transform lg:static lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -177,10 +177,10 @@ export function PortalShell({
         />
       )}
 
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#181818]/95 px-4 py-3 backdrop-blur-md sm:px-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#181818]/95 px-3 py-3 backdrop-blur-md sm:px-6">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 lg:hidden"
@@ -188,14 +188,14 @@ export function PortalShell({
               >
                 {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-white">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold uppercase tracking-wide text-white">
                   Olá, <span className="text-[#00ff9d]">{firstName}</span>
                 </p>
                 <p className="text-[11px] uppercase tracking-wider text-zinc-500">Área do cliente</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-shrink-0 items-center gap-3">
               <span className="hidden rounded border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#00ff9d] sm:inline">
                 Online
               </span>
@@ -204,7 +204,7 @@ export function PortalShell({
           </div>
         </header>
 
-        <main className="flex-1 bg-[#121212] p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-clip bg-[#121212] p-3 sm:p-6 lg:p-8">{children}</main>
 
         <footer className="border-t border-zinc-800 bg-[#0a0a0a] px-6 py-3 text-center text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">
           Brazilian Remix Service · Client Area

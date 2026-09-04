@@ -33,12 +33,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${bebasNeue.variable} ${roboto.variable} ${dmSans.variable} h-full w-full overflow-x-hidden antialiased`}
+      className={`${bebasNeue.variable} ${roboto.variable} ${dmSans.variable} h-full w-full max-w-[100vw] overflow-x-clip antialiased`}
     >
       <head>
         <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />
       </head>
-      <body className="flex min-h-full w-full flex-col overflow-x-hidden bg-[#121212] text-white font-sans" suppressHydrationWarning>
+      <body className="flex min-h-full w-full max-w-[100vw] flex-col overflow-x-clip bg-[#121212] text-white font-sans" suppressHydrationWarning>
         <MarketingChrome>{children}</MarketingChrome>
       </body>
     </html>
