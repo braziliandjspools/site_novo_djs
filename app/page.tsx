@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   ChevronDown,
   CloudCog,
@@ -24,8 +25,12 @@ import { ToolPromoSection } from "./components/ToolPromoSection";
 import { getPreviewPlaylists } from "./lib/google-drive";
 import { whatsappUrl } from "./lib/site";
 import { SITE_FAQS } from "./lib/site-faqs";
+import { buildPageMetadata, faqJsonLd } from "./lib/seo";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "./lib/theme";
 import { DEEMIX_ENABLED } from "./lib/feature-flags";
+import { JsonLd } from "./components/JsonLd";
+
+export const metadata: Metadata = buildPageMetadata("home");
 
 const poolHighlights = [
   {
@@ -131,6 +136,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <JsonLd data={faqJsonLd(SITE_FAQS)} />
       <Hero />
 
       <section id="pools" className="px-4 pb-12 pt-4 br-pattern sm:px-6 md:pb-20">

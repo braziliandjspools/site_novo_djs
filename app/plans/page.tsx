@@ -3,12 +3,9 @@ import { MessageCircle } from "lucide-react";
 import { PlansSection } from "../components/PlansSection";
 import { SectionHeading } from "../components/SectionHeading";
 import { whatsappUrl } from "../lib/site";
+import { buildPageMetadata } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Planos | Brazilian Remix Service",
-  description:
-    "Escolha o plano VIP do Brazilian Remix Service: 1 mês, 3 meses ou 1 ano com acesso ao acervo, ferramentas e atualizações.",
-};
+export const metadata: Metadata = buildPageMetadata("plans");
 
 export default function PlansPage() {
   return (

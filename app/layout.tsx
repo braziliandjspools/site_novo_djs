@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import { Bebas_Neue, DM_Sans, Roboto } from "next/font/google";
 import "./globals.css";
 import { MarketingChrome } from "./components/MarketingChrome";
-import { SITE_NAME, SITE_TAGLINE, BRS_LOGO_SRC } from "./lib/branding";
+import { JsonLd } from "./components/JsonLd";
+import { BRS_LOGO_SRC } from "./lib/branding";
+import {
+  buildRootMetadata,
+  organizationJsonLd,
+  serviceJsonLd,
+  websiteJsonLd,
+} from "./lib/seo";
 
 const bebasNeue = Bebas_Neue({
   variable: "--font-sora",
@@ -22,11 +29,7 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: `${SITE_NAME} | ${SITE_TAGLINE}`,
-  description:
-    "Acervo com mais de 400 pools e remix services curados para DJs profissionais no Brasil.",
-};
+export const metadata: Metadata = buildRootMetadata();
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -37,6 +40,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />
+        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
+        <JsonLd data={serviceJsonLd()} />
       </head>
       <body className="flex min-h-full w-full max-w-[100vw] flex-col overflow-x-clip bg-[#121212] text-white font-sans" suppressHydrationWarning>
         <MarketingChrome>{children}</MarketingChrome>

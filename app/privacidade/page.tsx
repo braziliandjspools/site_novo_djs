@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buildPageMetadata } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Política de Privacidade | Brazilian Remix Service",
-  description: "Lorem ipsum dolor sit amet — política de privacidade da Brazilian Remix Service.",
-};
+export const metadata: Metadata = buildPageMetadata("privacidade");
 
 export default function PrivacidadePage() {
   return (

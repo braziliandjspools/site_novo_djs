@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   ArrowLeft,
   ArrowRight,
@@ -32,6 +33,9 @@ import { SectionHeading } from "../components/SectionHeading";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "../lib/theme";
 import { DEEMIX_ENABLED } from "../lib/feature-flags";
 import { whatsappUrl } from "../lib/site";
+import { buildPageMetadata } from "../lib/seo";
+
+export const metadata: Metadata = buildPageMetadata("deemix");
 
 const serverAdvantages = [
   {

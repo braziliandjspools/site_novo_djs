@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   ArrowLeft,
   ChevronDown,
@@ -20,6 +21,9 @@ import { AllavsoftActions } from "../components/AllavsoftActions";
 import { IconBox } from "../components/IconBox";
 import { SectionHeading } from "../components/SectionHeading";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "../lib/theme";
+import { buildPageMetadata } from "../lib/seo";
+
+export const metadata: Metadata = buildPageMetadata("allavsoft");
 
 const features = [
   {

@@ -33,6 +33,11 @@ export function folderHref(slugSegments: string[]): string {
   return `/musicas/atualizacoes/${slugSegments.join("/")}`;
 }
 
+export function collectionsHref(slugSegments: string[] = []): string {
+  if (slugSegments.length === 0) return "/musicas/colecoes";
+  return `/musicas/colecoes/${slugSegments.map(encodeURIComponent).join("/")}`;
+}
+
 export function findFolderBySlug(folders: VipMusicFolder[], slug: string): VipMusicFolder | null {
   const normalized = slug.toLowerCase();
   return folders.find((folder) => slugifyFolderName(folder.name) === normalized) ?? null;

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { LegalDocumentPage } from "../LegalDocumentPage";
 import { codeOfConductDocument } from "./policy-content";
+import { buildPageMetadata } from "../../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Código de Conduta | Brazilian Remix Service",
-  description: "Código de Conduta da Brazilian Remix Service, Brazilian Packs e Downloader.",
-};
+export const metadata: Metadata = buildPageMetadata("privacy-conduct");
 
 export default function PrivacyConductRoute() {
   return <LegalDocumentPage document={codeOfConductDocument} />;

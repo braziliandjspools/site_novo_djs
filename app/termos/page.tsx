@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buildPageMetadata } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Termos de Serviço | Brazilian Remix Service",
-  description: "Lorem ipsum dolor sit amet — termos de uso da plataforma Brazilian Remix Service.",
-};
+export const metadata: Metadata = buildPageMetadata("termos");
 
 export default function TermosPage() {
   return (

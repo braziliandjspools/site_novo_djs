@@ -43,6 +43,15 @@ export const GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID = parseDriveFolderId(
     "https://drive.google.com/drive/folders/1zg5As-CxI6qtiAhQM-mOoHseKRxcDXxH",
 );
 
+/**
+ * Pasta raiz de Coleções / Discografias (opcional).
+ * Se vazio, o site procura uma pasta "COLEÇÕES" (ou similar) dentro do acervo VIP.
+ * Estrutura: COLEÇÕES → Nome da coleção → Discos/pastas → arquivos.
+ */
+export const GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID = parseDriveFolderId(
+  process.env.GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID ?? "",
+);
+
 export function whatsappUrl(message?: string) {
   const base = `https://wa.me/${WHATSAPP_NUMBER}`;
   if (!message) return base;
