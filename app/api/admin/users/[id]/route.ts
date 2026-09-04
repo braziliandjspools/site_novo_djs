@@ -68,6 +68,14 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "nextDueAt inválido." }, { status: 400 });
   }
 
+  if (body.email !== undefined) {
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ error: "E-mail inválido." }, { status: 400 });
+    }
+    body.email = email;
+  }
+
   if (body.password !== undefined && body.password.length > 0 && body.password.length < 8) {
     return NextResponse.json({ error: "A senha deve ter pelo menos 8 caracteres." }, { status: 400 });
   }

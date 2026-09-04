@@ -48,6 +48,7 @@ export type CreatePortalUserInput = {
 
 export type UpdatePortalUserInput = {
   name?: string;
+  email?: string;
   whatsapp?: string;
   services?: PortalServicesInput;
   monthlyValue?: number;
@@ -251,6 +252,7 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
 
   const data: {
     name?: string;
+    email?: string;
     whatsapp?: string;
     plan?: PortalPlan;
     servicePoolsVip?: boolean;
@@ -264,6 +266,17 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
   } = {};
 
   if (input.name !== undefined) data.name = input.name.trim();
+  if (input.email !== undefined) {
+    const email = input.email.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      throw new Error("E-mail inválido.");
+    }
+    const existing = await prisma.portalUser.findUnique({ where: { email } });
+    if (existing && existing.id !== id) {
+      throw new Error("Este e-mail já está cadastrado.");
+    }
+    data.email = email;
+  }
   if (input.whatsapp !== undefined) data.whatsapp = input.whatsapp.trim();
 
   if (input.services !== undefined || input.plan !== undefined) {
