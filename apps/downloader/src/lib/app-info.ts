@@ -1,6 +1,6 @@
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "0.2.0";
-export const APP_CORE_VERSION = "0.2.0";
+export const WEBUI_VERSION = "0.3.0";
+export const APP_CORE_VERSION = "0.3.0";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
@@ -11,6 +11,18 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.3.0",
+    date: "2026-09-03",
+    items: [
+      "Sininho unificado: plano, downloads e atualizações do app",
+      "Aviso de nova versão in-app com link de download do instalador",
+      "Portal no app com dados reais de plano e serviços",
+      "Compressão ZIP opcional após o download",
+      "Bloqueio de login quando o plano VIP está vencido",
+      "Estabilidade de sessão e login no Downloader",
+    ],
+  },
   {
     version: "0.2.0",
     date: "2026-09-03",

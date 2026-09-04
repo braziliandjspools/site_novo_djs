@@ -11,7 +11,10 @@ build
 apps/downloader
 apps/downloader/**
 **/*.pdb
-**/*.exe
 **/*.dll
 **/*.rlib
 **/src-tauri/target
+# binaries em geral, mas liberar instaladores públicos
+*.exe
+!public/downloads/
+!public/downloads/**

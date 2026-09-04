@@ -47,4 +47,9 @@ apps/downloader/dist
 apps/downloader/src-tauri/target
 apps/downloader/release
 
+# instalador publicado para updates in-app
+!public/downloads/
+!public/downloads/*.exe
+
 .vercel
+.env*
