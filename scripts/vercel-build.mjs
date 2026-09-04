@@ -24,7 +24,8 @@ if (!databaseUrl) {
   const migrationEnv = { ...process.env, DATABASE_URL: directUrl };
 
   // db push primeiro: evita P3005 quando o banco já tem tabelas sem histórico de migration
-  const pushed = tryRun("npx prisma db push --skip-generate", migrationEnv);
+  // --accept-data-loss: drops intencionais (ex.: due_day / notes) no schema portal
+  const pushed = tryRun("npx prisma db push --skip-generate --accept-data-loss", migrationEnv);
   if (!pushed) {
     console.warn("[build] db push falhou — tentando migrate deploy...");
     if (!tryRun("npx prisma migrate deploy", migrationEnv)) {

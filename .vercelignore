@@ -1,0 +1,17 @@
+# Keep Vercel uploads small — site only needs the Next.js app.
+.git
+.vercel
+.next
+node_modules
+coverage
+data
+out
+build
+apps/downloader
+apps/downloader/**
+**/*.pdb
+**/*.exe
+**/*.dll
+**/*.rlib
+**/target
+**/src-tauri/target
