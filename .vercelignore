@@ -4,7 +4,8 @@
 .next
 node_modules
 coverage
-data
+/data
+/data/
 out
 build
 apps/downloader
@@ -13,5 +14,4 @@ apps/downloader/**
 **/*.exe
 **/*.dll
 **/*.rlib
-**/target
 **/src-tauri/target
