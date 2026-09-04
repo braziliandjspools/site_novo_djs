@@ -35,9 +35,60 @@ model PortalUser {
   briefings       MusicProducerBriefing[]
   downloadDevices DownloadDevice[]
   downloadJobs    DownloadJob[]
+  siteNotices     SiteNotice[]
+  noticeReceipts  SiteNoticeReceipt[]
 
   @@index([nextDueAt])
   @@map("portal_users")
+}
+
+enum SiteNoticeAudience {
+  GLOBAL
+  USER
+}
+
+enum SiteNoticeSeverity {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+/** Avisos do admin: globais (todos) ou direcionados a um usuário. */
+model SiteNotice {
+  id           Int                @id @default(autoincrement())
+  title        String
+  body         String
+  severity     SiteNoticeSeverity @default(INFO)
+  audience     SiteNoticeAudience @default(GLOBAL)
+  portalUserId Int?               @map("portal_user_id")
+  portalUser   PortalUser?        @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  active       Boolean            @default(true)
+  startsAt     DateTime?          @map("starts_at")
+  endsAt       DateTime?          @map("ends_at")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  receipts SiteNoticeReceipt[]
+
+  @@index([audience, active, createdAt])
+  @@index([portalUserId, active])
+  @@map("site_notices")
+}
+
+model SiteNoticeReceipt {
+  id           Int       @id @default(autoincrement())
+  noticeId     Int       @map("notice_id")
+  notice       SiteNotice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  portalUserId Int       @map("portal_user_id")
+  portalUser   PortalUser @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  readAt       DateTime? @map("read_at")
+  dismissedAt  DateTime? @map("dismissed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@unique([noticeId, portalUserId])
+  @@index([portalUserId])
+  @@map("site_notice_receipts")
 }
 
 enum DownloadJobProvider {

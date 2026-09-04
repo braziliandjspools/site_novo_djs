@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { AdminLogin } from "./AdminLogin";
 import { AdminMusicProducerDeliveries } from "./AdminMusicProducerDeliveries";
+import { AdminNotices } from "./AdminNotices";
 import { AdminUsersTable } from "./AdminUsersTable";
 
-type AdminTab = "users" | "deliveries";
+type AdminTab = "users" | "deliveries" | "notices";
 
 export function AdminApp() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -54,12 +55,23 @@ export function AdminApp() {
         >
           Produções musicais
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("notices")}
+          className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${
+            activeTab === "notices" ? "bg-[#FFDF00] text-black" : "text-gray-400 hover:text-white"
+          }`}
+        >
+          Avisos
+        </button>
       </div>
 
       {activeTab === "users" ? (
         <AdminUsersTable onLogout={() => setAuthenticated(false)} />
-      ) : (
+      ) : activeTab === "deliveries" ? (
         <AdminMusicProducerDeliveries onLogout={() => setAuthenticated(false)} />
+      ) : (
+        <AdminNotices onLogout={() => setAuthenticated(false)} />
       )}
     </div>
   );

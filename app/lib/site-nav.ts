@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Home, Mic2, Music, UserCircle, Video } from "lucide-react";
+import { CreditCard, Home, Mic2, Music, UserCircle, Video } from "lucide-react";
 import { DEEMIX_ENABLED } from "./feature-flags";
 
 export type SiteNavLink = {
@@ -11,6 +11,7 @@ export type SiteNavLink = {
 
 const ALL_SITE_NAV_LINKS: SiteNavLink[] = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/plans", label: "Planos", icon: CreditCard },
   { href: "/deemix", label: "Deemix", icon: Music },
   { href: "/allavsoft", label: "Allavsoft", icon: Video },
   { href: "/musicproducer", label: "Producer", icon: Mic2 },

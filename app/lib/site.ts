@@ -1,6 +1,6 @@
 import { SITE_NAME } from "./branding";
 
-export const PLATFORM_URL = "https://plataformavip.netlify.app/";
+export const PLATFORM_URL = "/musicas";
 export const WHATSAPP_NUMBER = "5551935052274";
 
 function parseDriveFolderId(value: string): string {

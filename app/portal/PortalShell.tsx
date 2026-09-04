@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { BrsLogo } from "../components/BrsLogo";
+import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 import { MusicasUserMenu } from "../musicas/components/MusicasUserMenu";
 
 export type PortalView =
@@ -195,7 +196,8 @@ export function PortalShell({
                 <p className="text-[11px] uppercase tracking-wider text-zinc-500">Área do cliente</p>
               </div>
             </div>
-            <div className="flex flex-shrink-0 items-center gap-3">
+            <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+              <SiteNotificationBell />
               <span className="hidden rounded border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#00ff9d] sm:inline">
                 Online
               </span>

@@ -2,19 +2,15 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  ExternalLink,
-  Menu,
-  X,
-} from "lucide-react";
-import { PLATFORM_URL } from "../lib/site";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import { SITE_NAV_LINKS } from "../lib/site-nav";
 import { BrsLogo } from "./BrsLogo";
+import { SiteNotificationBell } from "./notifications/SiteNotificationBell";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const navLinks = SITE_NAV_LINKS;
-
 
   return (
     <>
@@ -42,23 +38,26 @@ export function Header() {
             </ul>
           </nav>
 
-          <a
-            href={PLATFORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden flex-shrink-0 items-center gap-2 rounded-lg border border-[#009739]/50 bg-[#009739]/10 px-4 py-2 text-sm font-semibold text-[#1DB954] transition-all hover:border-[#1DB954] hover:bg-[#009739]/20 hover:text-white lg:inline-flex"
-          >
-            Plataforma
-            <ExternalLink size={14} />
-          </a>
+          <div className="ml-3 hidden items-center gap-2 lg:flex">
+            <SiteNotificationBell compact />
+            <Link
+              href="/musicas"
+              className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border border-[#009739]/50 bg-[#009739]/10 px-4 py-2 text-sm font-semibold text-[#1DB954] transition-all hover:border-[#1DB954] hover:bg-[#009739]/20 hover:text-white"
+            >
+              Plataforma
+            </Link>
+          </div>
 
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="relative z-10 ml-auto flex-shrink-0 rounded-md p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
-            aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="ml-auto flex items-center gap-1 lg:hidden">
+            <SiteNotificationBell compact />
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="relative z-10 flex-shrink-0 rounded-md p-2 text-white transition-colors hover:bg-white/10"
+              aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -89,15 +88,13 @@ export function Header() {
                     {link.label}
                   </a>
                 ))}
-                <a
-                  href={PLATFORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/musicas"
                   onClick={() => setIsOpen(false)}
                   className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1DB954] px-5 py-3 text-sm font-bold text-white"
                 >
-                  Plataforma <ExternalLink size={14} />
-                </a>
+                  Plataforma
+                </Link>
               </nav>
               <div className="border-t border-white/10 p-4 text-center text-[11px] uppercase tracking-wider text-gray-500">
                 Verde · Amarelo · Azul

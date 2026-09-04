@@ -1,5 +1,4 @@
 import {
-  CheckCircle2,
   ChevronDown,
   CloudCog,
   Folder,
@@ -13,6 +12,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { DriveCatalog } from "./components/DriveCatalog";
 import { Hero } from "./components/Hero";
 import { IconBox } from "./components/IconBox";
@@ -22,7 +22,7 @@ import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
 import { TrackShowcase } from "./components/TrackShowcase";
 import { ToolPromoSection } from "./components/ToolPromoSection";
 import { getPreviewPlaylists } from "./lib/google-drive";
-import { checkoutUrl, whatsappUrl } from "./lib/site";
+import { whatsappUrl } from "./lib/site";
 import { SITE_FAQS } from "./lib/site-faqs";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "./lib/theme";
 import { DEEMIX_ENABLED } from "./lib/feature-flags";
@@ -123,57 +123,6 @@ const testimonials = [
     role: "DJ de Eventos & Open Format",
     quote:
       "Assino principalmente pela praticidade. Sempre encontro versões boas, packs atualizados e material que realmente uso nos eventos. Virou parte da minha preparação semanal.",
-  },
-];
-
-const plans = [
-  {
-    name: "1 Mês",
-    price: "R$ 50",
-    period: "Pagamento único",
-    equivalent: null as string | null,
-    badge: null as string | null,
-    features: [
-      "Acesso completo ao acervo por 30 dias",
-      "Músicas, edits, remixes e vídeos",
-      "Acesso ao Google Drive e FTP",
-      "Atualizações disponíveis durante o período",
-      "Acesso às ferramentas inclusas",
-      "Renovação manual, sem cobrança automática",
-    ],
-    highlight: false,
-  },
-  {
-    name: "3 Meses",
-    price: "R$ 135",
-    period: "Pagamento único — 10% de desconto",
-    equivalent: "Equivale a R$ 45 por mês",
-    badge: "10% off",
-    features: [
-      "Acesso completo ao acervo por 3 meses",
-      "Músicas, edits, remixes e vídeos",
-      "Acesso ao Google Drive e FTP",
-      "Atualizações disponíveis durante todo o período",
-      "Acesso às ferramentas inclusas",
-      "Renovação manual, sem cobrança automática",
-    ],
-    highlight: false,
-  },
-  {
-    name: "1 Ano",
-    price: "R$ 504",
-    period: "Pagamento único — melhor custo-benefício",
-    equivalent: "Equivale a R$ 42 por mês",
-    badge: "Melhor custo-benefício",
-    features: [
-      "Acesso completo ao acervo por 12 meses",
-      "Músicas, edits, remixes e vídeos",
-      "Acesso ao Google Drive e FTP",
-      "Atualizações disponíveis durante todo o período",
-      "Acesso às ferramentas inclusas",
-      "Renovação manual, sem cobrança automática",
-    ],
-    highlight: true,
   },
 ];
 
@@ -435,61 +384,20 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Planos */}
-      <section id="planos" className="border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20">
-        <div className="mx-auto max-w-5xl">
+      {/* Planos — CTA para /plans */}
+      <section className="border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-3xl text-center">
           <SectionHeading
             badge="Acesso"
-            title="Escolha seu acesso"
-            subtitle="Escolha o plano que melhor combina com a sua rotina e tenha acesso ao acervo Brazilian Remix Service, ferramentas inclusas e atualizações frequentes. Compare as opções e encontre a melhor forma de manter seu repertório sempre completo e organizado."
+            title="Escolha seu plano"
+            subtitle="Compare 1 mês, 3 meses e 1 ano e assine pelo WhatsApp com acesso completo ao acervo e às ferramentas."
           />
-          <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12 sm:max-w-none sm:grid-cols-2 md:grid-cols-3 md:gap-6">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border p-6 text-center transition-all md:p-8 md:text-left ${
-                  plan.highlight
-                    ? "border-[#FFDF00]/60 bg-gradient-to-b from-[#009739]/20 to-transparent shadow-2xl shadow-[#009739]/20"
-                    : "border-white/10 bg-[#282828] hover:border-[#009739]/40"
-                }`}
-              >
-                {plan.badge && plan.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FFDF00] px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#002776]">
-                    {plan.badge}
-                  </span>
-                )}
-                {plan.badge && !plan.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-[#009739]/50 bg-[#009739]/20 px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#00B347]">
-                    {plan.badge}
-                  </span>
-                )}
-                <h3 className="font-display text-lg text-white">{plan.name}</h3>
-                <p className="mt-4 font-display text-4xl font-bold text-white">{plan.price}</p>
-                <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">{plan.period}</p>
-                {plan.equivalent && (
-                  <p className="mt-2 text-sm font-medium text-[#FFDF00]">{plan.equivalent}</p>
-                )}
-                <ul className="mt-6 space-y-2.5">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start justify-center gap-2 text-sm text-gray-300 md:justify-start">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#009739]" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href={checkoutUrl(plan.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`mt-8 block w-full rounded-lg py-3 text-center text-sm font-bold uppercase tracking-wide transition-all hover:scale-105 ${
-                    plan.highlight ? "bg-[#009739] text-white hover:bg-[#00B347]" : "border border-[#009739]/60 text-[#00B347] hover:bg-[#009739]/10"
-                  }`}
-                >
-                  Comprar
-                </a>
-              </div>
-            ))}
-          </div>
+          <Link
+            href="/plans"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#009739] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-[#009739]/30 transition-all hover:scale-105 hover:bg-[#00B347]"
+          >
+            Ver planos e preços
+          </Link>
         </div>
       </section>
 

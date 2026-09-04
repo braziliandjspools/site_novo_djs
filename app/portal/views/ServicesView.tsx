@@ -72,7 +72,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/#planos"
+                href="/plans"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a]"
               >
                 <Sparkles className="h-3.5 w-3.5" />

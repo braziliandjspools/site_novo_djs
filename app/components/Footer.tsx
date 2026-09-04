@@ -17,7 +17,7 @@ export function Footer() {
         <div>
           <h4 className="font-display text-sm tracking-wide text-[#FFDF00]">Plataforma</h4>
           <ul className="mt-3 space-y-2 text-xs">
-            <li><a href="#planos" className="transition-colors hover:text-[#1DB954]">Planos</a></li>
+            <li><a href="/plans" className="transition-colors hover:text-[#1DB954]">Planos</a></li>
             {DEEMIX_ENABLED && (
               <li><a href="/deemix" className="transition-colors hover:text-[#1DB954]">Deemix</a></li>
             )}

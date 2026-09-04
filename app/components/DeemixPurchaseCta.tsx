@@ -41,7 +41,7 @@ export function DeemixPurchaseCta({ product, accent = "green" }: DeemixPurchaseC
           Comprar acesso ao {product}
         </a>
         <Link
-          href="/#planos"
+          href="/plans"
           className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-gray-300 transition-colors hover:border-[#FFDF00]/50 hover:text-[#FFDF00]"
         >
           Ver planos de pools

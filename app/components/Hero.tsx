@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { PLATFORM_URL } from "../lib/site";
 import { PLACEHOLDER } from "../lib/theme";
 import { SiteImage } from "./SiteImage";
 type ParallaxLayer = {
@@ -126,14 +126,12 @@ export function Hero() {
                 Ver catálogo de pools
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <a
-                href={PLATFORM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/musicas"
                 className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border-2 border-[#FFDF00]/60 bg-transparent px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#FFDF00] transition-all hover:bg-[#FFDF00]/10 sm:w-auto"
               >
                 Acessar plataforma
-              </a>
+              </Link>
             </div>
           </div>
         </div>

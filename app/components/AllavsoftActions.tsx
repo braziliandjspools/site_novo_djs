@@ -39,7 +39,7 @@ export function AllavsoftActions({ variant = "row", compact = false, className =
             Área do cliente
           </Link>
           <Link
-            href="/#planos"
+            href="/plans"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-[#002776]/60 px-5 py-2.5 text-xs font-semibold text-gray-400 transition-colors hover:border-[#FFDF00]/40 hover:text-[#FFDF00] sm:px-7 sm:py-3.5 sm:text-sm"
           >
             Ver planos de pools

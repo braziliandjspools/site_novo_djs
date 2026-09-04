@@ -9,6 +9,7 @@ import { DownloaderSyncProvider } from "./components/DownloaderSyncContext";
 import { MusicasMobileMenuButton, MusicasSidebar } from "./MusicasSidebar";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
+import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 import { checkoutUrl } from "../lib/site";
 
 type MusicasAuthLayoutProps = {
@@ -126,6 +127,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
+              <SiteNotificationBell />
               {!authenticated && (
                 <button
                   type="button"
