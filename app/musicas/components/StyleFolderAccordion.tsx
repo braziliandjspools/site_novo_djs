@@ -12,6 +12,7 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipMusicTrackList } from "./VipMusicTrackList";
+import { PLACEHOLDER } from "../../lib/theme";
 type StyleFolderAccordionProps = {
   folder: VipMusicFolder;
   canPlay: boolean;
@@ -197,12 +198,12 @@ export function StyleFolderAccordion({
   return (
     <div
       id={`style-folder-${folder.id}`}
-      className={`overflow-hidden border bg-black ${
+      className={`overflow-hidden border bg-black md:rounded-xl ${
         isNew ? "border-[#1ed760]/50 shadow-[0_0_0_1px_rgba(30,215,96,0.15)]" : "border-zinc-800/90"
       }`}
     >
       <div
-        className={`group flex w-full items-center gap-2 border-l-2 px-2.5 py-2 transition-colors sm:px-3 ${
+        className={`group flex w-full items-center gap-2 border-l-2 px-2.5 py-2 transition-colors sm:px-3 md:px-4 md:py-2.5 ${
           isPlayingFolder
             ? "border-l-[#00ff9d] bg-zinc-950"
             : isOpen
@@ -277,8 +278,8 @@ export function StyleFolderAccordion({
         }`}
         aria-hidden={!isOpen}
       >
-        <div className="min-h-0 overflow-hidden border-t border-zinc-800/80 bg-[#121212]">
-          <div className="p-0.5">
+        <div className="min-h-0 overflow-hidden border-t border-zinc-800/80 bg-[#121212] md:bg-[#0c0c0c]">
+          <div className="p-0.5 md:p-3">
             {error && (
               <p className="rounded-lg bg-red-500/10 px-3 py-2 text-center text-xs text-red-400">{error}</p>
             )}
@@ -299,6 +300,8 @@ export function StyleFolderAccordion({
                 relativePath={relativePath}
                 highlightTrackId={highlightTrackId}
                 autoPlayTrackId={autoPlayTrackId}
+                layout="table"
+                folderCoverSrc={PLACEHOLDER.trackCover}
                 continueContext={
                   monthSlug && monthName
                     ? {
@@ -316,7 +319,7 @@ export function StyleFolderAccordion({
                 type="button"
                 disabled={loading}
                 onClick={() => void loadPage(page + 1, true)}
-                className="flex w-full items-center justify-center gap-1.5 border-t border-zinc-800 bg-black py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:bg-zinc-950 hover:text-zinc-300 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-1.5 border-t border-zinc-800 bg-black py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:bg-zinc-950 hover:text-zinc-300 disabled:opacity-50 md:mt-2 md:rounded-lg md:border md:border-white/[0.06] md:bg-[#181818] md:py-2.5"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Carregar mais 50

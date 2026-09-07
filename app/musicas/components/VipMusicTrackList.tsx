@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   Check,
   ChevronLeft,
@@ -14,6 +15,7 @@ import {
   Square,
 } from "lucide-react";
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
+import { PLACEHOLDER } from "../../lib/theme";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { TrackDownloadStatus } from "./TrackDownloadStatus";
@@ -37,7 +39,13 @@ type VipMusicTrackListProps = {
     monthSlug: string;
     weekSlug?: string;
   };
+  /** `table` = layout desktop em tabela (Atualizações). Mobile permanece o TrackRow atual. */
+  layout?: "default" | "table";
+  folderCoverSrc?: string;
 };
+
+const TABLE_GRID =
+  "grid grid-cols-[2.25rem_3.5rem_minmax(0,1.6fr)_minmax(0,1fr)_auto] items-center gap-x-3";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -104,6 +112,8 @@ type TrackRowProps = {
   isLoading: boolean;
   isBusy: boolean;
   isHighlighted: boolean;
+  /** Quando false, não define id no DOM (evita duplicata mobile/desktop). */
+  setDomAnchor?: boolean;
   progress: number;
   currentTime: number;
   duration: number;
@@ -132,6 +142,7 @@ function TrackRow({
   isLoading,
   isBusy,
   isHighlighted,
+  setDomAnchor = true,
   progress,
   currentTime,
   duration,
@@ -149,7 +160,7 @@ function TrackRow({
 }: TrackRowProps) {
   return (
     <article
-      id={isHighlighted ? `track-${track.id}` : undefined}
+      id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
       className={`rounded-md border transition-colors ${
         isHighlighted
           ? "border-[#FFDF00]/40 bg-[#FFDF00]/5"
@@ -348,6 +359,242 @@ function TrackRow({
   );
 }
 
+type TrackTableRowProps = TrackRowProps & {
+  folderCoverSrc: string;
+};
+
+function TrackTableRow({
+  track,
+  index,
+  canPlay,
+  canDownload,
+  selectionMode,
+  isSelected,
+  isActive,
+  isPlaying,
+  isLoading,
+  isBusy,
+  isHighlighted,
+  setDomAnchor = true,
+  progress,
+  currentTime,
+  duration,
+  hasPrev,
+  hasNext,
+  onToggle,
+  onSeek,
+  onPrev,
+  onNext,
+  onDownload,
+  isDownloading,
+  onSendToDownloader,
+  isSendingToDownloader,
+  onToggleSelected,
+  folderCoverSrc,
+}: TrackTableRowProps) {
+  const artistLabel =
+    track.artist && track.artist !== "Unknown Artist" ? track.artist : "—";
+
+  return (
+    <article
+      id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
+      className={`group/row relative border-b border-white/[0.04] transition-colors last:border-b-0 ${
+        isHighlighted
+          ? "bg-[#FFDF00]/5"
+          : isSelected
+            ? "bg-[#1ed760]/8"
+            : isActive
+              ? "bg-white/[0.06]"
+              : "hover:bg-white/[0.04]"
+      }`}
+    >
+      <div className={`${TABLE_GRID} px-3 py-2.5`}>
+        {/* Index / select */}
+        <div className="flex items-center justify-center">
+          {selectionMode && canDownload ? (
+            <button
+              type="button"
+              onClick={onToggleSelected}
+              aria-label={isSelected ? `Remover ${track.title} da seleção` : `Selecionar ${track.title}`}
+              className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+                isSelected
+                  ? "border-[#1ed760] bg-[#1ed760] text-black"
+                  : "border-zinc-600 bg-transparent text-transparent hover:border-zinc-400"
+              }`}
+            >
+              {isSelected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+            </button>
+          ) : isPlaying ? (
+            <PlayingBars />
+          ) : (
+            <span
+              className={`font-mono text-[11px] tabular-nums ${
+                isActive ? "text-white" : "text-zinc-600 group-hover/row:text-zinc-400"
+              }`}
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          )}
+        </div>
+
+        {/* Cover + play */}
+        <div className="relative">
+          {canPlay ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              disabled={isBusy || selectionMode}
+              aria-label={isPlaying ? `Pausar ${track.title}` : `Ouvir ${track.title}`}
+              className={`group/cover relative block h-14 w-14 overflow-hidden rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] ring-1 ring-white/10 transition ${
+                selectionMode ? "opacity-60" : "hover:ring-[#1ed760]/50"
+              }`}
+            >
+              <Image
+                src={folderCoverSrc}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="56px"
+              />
+              <span
+                className={`absolute inset-0 flex items-center justify-center bg-black/55 transition-opacity ${
+                  isPlaying || isLoading || isActive
+                    ? "opacity-100"
+                    : "opacity-0 group-hover/cover:opacity-100 group-hover/row:opacity-100"
+                }`}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                ) : isPlaying ? (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-lg">
+                    <Pause className="h-4 w-4" fill="currentColor" />
+                  </span>
+                ) : (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-lg">
+                    <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
+                  </span>
+                )}
+              </span>
+            </button>
+          ) : (
+            <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-md bg-zinc-900 ring-1 ring-white/10">
+              <Image src={folderCoverSrc} alt="" fill className="object-cover opacity-40" sizes="56px" />
+              <Lock className="relative z-10 h-4 w-4 text-zinc-500" />
+            </div>
+          )}
+        </div>
+
+        {/* Title */}
+        <button
+          type="button"
+          onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
+          disabled={!canPlay && !selectionMode}
+          className="min-w-0 text-left"
+        >
+          <p
+            className={`truncate text-sm font-medium leading-snug ${
+              isActive || isPlaying ? "text-[#1ed760]" : "text-white"
+            }`}
+          >
+            {track.title}
+          </p>
+          {isActive && duration > 0 && !selectionMode && (
+            <p className="mt-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </p>
+          )}
+        </button>
+
+        {/* Artist */}
+        <p className="min-w-0 truncate text-sm text-zinc-400">{artistLabel}</p>
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-1">
+          <TrackDownloadStatus fileId={track.id} />
+
+          {isActive && canPlay && !selectionMode && (
+            <>
+              <button
+                type="button"
+                onClick={onPrev}
+                disabled={!hasPrev}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                disabled={!hasNext}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                aria-label="Próxima"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </>
+          )}
+
+          {canDownload && !selectionMode ? (
+            <>
+              <button
+                type="button"
+                onClick={onSendToDownloader}
+                disabled={isSendingToDownloader}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
+                title="Enviar para o Downloader"
+                aria-label={`Enviar ${track.title} para o Downloader`}
+              >
+                {isSendingToDownloader ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MonitorDown className="h-4 w-4" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={onDownload}
+                disabled={isDownloading}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
+                title={`Baixar ${resolveDownloadFilename(track)}`}
+                aria-label={`Baixar ${track.title}`}
+              >
+                {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              </button>
+            </>
+          ) : !canDownload ? (
+            <div className="flex h-8 w-8 items-center justify-center text-zinc-700">
+              <Lock className="h-3.5 w-3.5" />
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {isActive && canPlay && !selectionMode && (
+        <div className="px-3 pb-2.5 pl-[calc(2.25rem+3.5rem+1.5rem)]">
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Progresso"
+            className="h-3 cursor-pointer py-1"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              onSeek((e.clientX - rect.left) / rect.width);
+            }}
+          >
+            <div className="h-1 rounded-full bg-zinc-800">
+              <div
+                className={`h-full rounded-full ${isPlaying ? "bg-[#1ed760]" : "bg-zinc-500"}`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </article>
+  );
+}
+
 export function VipMusicTrackList({
   folderId,
   tracks,
@@ -357,6 +604,8 @@ export function VipMusicTrackList({
   highlightTrackId,
   autoPlayTrackId,
   continueContext,
+  layout = "default",
+  folderCoverSrc = PLACEHOLDER.trackCover,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -379,9 +628,19 @@ export function VipMusicTrackList({
   const [batchSending, setBatchSending] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [isDesktop, setIsDesktop] = useState(false);
   const autoPlayedRef = useRef<string | null>(null);
   const isThisFolder = playingFolderId === folderId;
   const isGlobalBusy = loadingId !== null;
+
+  useEffect(() => {
+    if (layout !== "table") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    const syncMq = () => setIsDesktop(mq.matches);
+    syncMq();
+    mq.addEventListener("change", syncMq);
+    return () => mq.removeEventListener("change", syncMq);
+  }, [layout]);
 
   const activeId = isThisFolder ? (playingId ?? focusedTrackId ?? loadingId) : focusedTrackId;
   const selectedCount = selectedIds.size;
@@ -567,6 +826,41 @@ export function VipMusicTrackList({
 
   if (tracks.length === 0) return null;
 
+  const useTable = layout === "table";
+
+  const rowPropsFor = (track: PreviewTrack, index: number) => {
+    const isActive = activeId === track.id;
+    const isPlaying = isThisFolder && playingId === track.id;
+    const isLoading = isThisFolder && loadingId === track.id;
+    return {
+      track,
+      index,
+      canPlay,
+      canDownload,
+      selectionMode,
+      isSelected: selectedIds.has(track.id),
+      isActive,
+      isPlaying,
+      isLoading,
+      isBusy: isGlobalBusy && loadingId !== track.id,
+      isHighlighted: highlightTrackId === track.id,
+      progress: isActive && isThisFolder ? progress : 0,
+      currentTime: isActive && isThisFolder ? currentTime : 0,
+      duration: isActive && isThisFolder ? duration : 0,
+      hasPrev: index > 0,
+      hasNext: index < tracks.length - 1,
+      onToggle: () => void handleToggle(track.id),
+      onSeek: (ratio: number) => void handleSeek(ratio),
+      onPrev: () => playAtIndex(index - 1),
+      onNext: () => playAtIndex(index + 1),
+      onDownload: () => void handleDownload(track),
+      isDownloading: downloadingId === track.id,
+      onSendToDownloader: () => void handleSendToDownloader(track),
+      isSendingToDownloader: sendingId === track.id,
+      onToggleSelected: () => toggleTrackSelected(track.id),
+    };
+  };
+
   return (
     <div>
       {error && isThisFolder && (
@@ -574,7 +868,13 @@ export function VipMusicTrackList({
       )}
 
       {canDownload && tracks.length > 1 && (
-        <div className="mb-1 flex flex-wrap items-center gap-1.5 border-b border-zinc-800/80 px-1.5 py-1.5">
+        <div
+          className={`mb-1 flex flex-wrap items-center gap-1.5 px-1.5 py-1.5 ${
+            useTable
+              ? "border-b border-white/[0.06] md:px-3 md:py-2.5"
+              : "border-b border-zinc-800/80"
+          }`}
+        >
           {selectionMode ? (
             <>
               <button
@@ -623,43 +923,51 @@ export function VipMusicTrackList({
         </div>
       )}
 
-      <div className="space-y-px">
-        {tracks.map((track, index) => {
-          const isActive = activeId === track.id;
-          const isPlaying = isThisFolder && playingId === track.id;
-          const isLoading = isThisFolder && loadingId === track.id;
-          return (
-            <TrackRow
-              key={track.id}
-              track={track}
-              index={index}
-              canPlay={canPlay}
-              canDownload={canDownload}
-              selectionMode={selectionMode}
-              isSelected={selectedIds.has(track.id)}
-              isActive={isActive}
-              isPlaying={isPlaying}
-              isLoading={isLoading}
-              isBusy={isGlobalBusy && loadingId !== track.id}
-              isHighlighted={highlightTrackId === track.id}
-              progress={isActive && isThisFolder ? progress : 0}
-              currentTime={isActive && isThisFolder ? currentTime : 0}
-              duration={isActive && isThisFolder ? duration : 0}
-              hasPrev={index > 0}
-              hasNext={index < tracks.length - 1}
-              onToggle={() => void handleToggle(track.id)}
-              onSeek={(ratio) => void handleSeek(ratio)}
-              onPrev={() => playAtIndex(index - 1)}
-              onNext={() => playAtIndex(index + 1)}
-              onDownload={() => void handleDownload(track)}
-              isDownloading={downloadingId === track.id}
-              onSendToDownloader={() => void handleSendToDownloader(track)}
-              isSendingToDownloader={sendingId === track.id}
-              onToggleSelected={() => toggleTrackSelected(track.id)}
-            />
-          );
-        })}
+      {/* Mobile (and default layout): stacked TrackRow */}
+      <div className={useTable ? "space-y-px md:hidden" : "space-y-px"}>
+        {tracks.map((track, index) => (
+          <TrackRow
+            key={track.id}
+            {...rowPropsFor(track, index)}
+            setDomAnchor={!useTable || !isDesktop}
+          />
+        ))}
       </div>
+
+      {/* Desktop table — Atualizações only */}
+      {useTable && (
+        <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-[#181818]/80 md:block">
+          <div
+            className={`${TABLE_GRID} sticky top-0 z-[1] border-b border-white/[0.06] bg-[#121212]/95 px-3 py-2.5 backdrop-blur`}
+          >
+            <span className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+              #
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+              Capa
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+              Música
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+              Artista
+            </span>
+            <span className="text-right text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+              Ações
+            </span>
+          </div>
+          <div>
+            {tracks.map((track, index) => (
+              <TrackTableRow
+                key={track.id}
+                {...rowPropsFor(track, index)}
+                folderCoverSrc={folderCoverSrc}
+                setDomAnchor={isDesktop}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
