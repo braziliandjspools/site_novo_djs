@@ -117,7 +117,7 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+        <div className="absolute right-0 z-[100] mt-2 w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
           <div className="flex items-center justify-between gap-2 px-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
               {t("notificationsTitle")}

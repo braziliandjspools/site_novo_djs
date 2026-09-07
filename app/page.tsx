@@ -137,8 +137,8 @@ export default async function Home() {
   const downloaderRelease = getDownloaderReleaseManifest();
   const downloaderUrl =
     downloaderRelease?.downloadUrl ??
-    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.2_public_beta_x64-setup.exe";
-  const downloaderVersion = downloaderRelease?.version ?? "1.0.2_public_beta";
+    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.3_public_beta_x64-setup.exe";
+  const downloaderVersion = downloaderRelease?.version ?? "1.0.3_public_beta";
 
   return (
     <div className="flex min-h-screen flex-col">

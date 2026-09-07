@@ -55,7 +55,7 @@ export function AppShell({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="relative flex flex-shrink-0 items-start justify-between gap-4 overflow-hidden border-b border-white/[0.06] bg-[#121212]/90 px-7 py-5 backdrop-blur-md">
+        <header className="relative z-50 flex flex-shrink-0 items-start justify-between gap-4 border-b border-white/[0.06] bg-[#121212]/90 px-7 py-5 backdrop-blur-md">
           <div
             className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/50 to-transparent"
             aria-hidden
@@ -70,10 +70,12 @@ export function AppShell({
               </p>
             )}
           </div>
-          <NotificationBell
-            onOpenPortal={() => onNavigate("portal")}
-            onOpenSettings={() => onNavigate("settings")}
-          />
+          <div className="relative z-[60] flex-shrink-0">
+            <NotificationBell
+              onOpenPortal={() => onNavigate("portal")}
+              onOpenSettings={() => onNavigate("settings")}
+            />
+          </div>
         </header>
 
         <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-7 py-7">

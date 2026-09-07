@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.2_public_beta";
-export const APP_CORE_VERSION = "1.0.2_public_beta";
+export const WEBUI_VERSION = "1.0.3_public_beta";
+export const APP_CORE_VERSION = "1.0.3_public_beta";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
@@ -16,6 +16,14 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.3_public_beta",
+    date: "2026-09-07",
+    items: [
+      "Corrige painel do sininho aparecendo atrás do conteúdo da página",
+      "Header e notificações com z-index na frente do restante da interface",
+    ],
+  },
   {
     version: "1.0.2_public_beta",
     date: "2026-09-07",
