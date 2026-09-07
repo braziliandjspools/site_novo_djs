@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
+import type { PreviewTrack } from "../../lib/google-drive";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import {
   childrenAreWeekFolders,
@@ -17,6 +18,7 @@ import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { StyleFolderAccordion } from "./StyleFolderAccordion";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
+import { VipMusicTrackList } from "./VipMusicTrackList";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { pushRecentFolder } from "../lib/music-library-storage";
@@ -28,6 +30,7 @@ type ResolveResponse = {
   folderName: string;
   level: "folders" | "tracks";
   items: VipMusicCatalogItem[];
+  tracks?: PreviewTrack[];
   canPlay: boolean;
   resolvedPath: { slug: string; id: string; name: string }[];
   slugSegments: string[];
@@ -110,6 +113,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   }, [data, slugSegments.length]);
 
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
+  const showingTracks = Boolean(data && data.level === "tracks");
 
   useEffect(() => {
     if (!data || !estiloSlug || !showingStyles) return;
@@ -164,20 +168,30 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         >
           Atualizações
         </Link>
-        <ChevronRight className="h-3 w-3" />
-        {weekSlug ? (
+        {(data?.resolvedPath ?? []).map((part, index, all) => {
+          const hrefParts = all.slice(0, index + 1).map((item) => item.slug);
+          const isLast = index === all.length - 1;
+          return (
+            <span key={`${part.id}-${part.slug}`} className="contents">
+              <ChevronRight className="h-3 w-3" />
+              {isLast ? (
+                <span className="font-medium text-white">{displayFolderName(part.name)}</span>
+              ) : (
+                <Link
+                  href={folderHref(hrefParts)}
+                  className="font-medium text-zinc-400 transition-colors hover:text-white"
+                >
+                  {displayFolderName(part.name)}
+                </Link>
+              )}
+            </span>
+          );
+        })}
+        {!data && (
           <>
-            <Link
-              href={folderHref([monthSlug])}
-              className="font-medium text-zinc-400 transition-colors hover:text-white"
-            >
-              {monthTitle}
-            </Link>
             <ChevronRight className="h-3 w-3" />
-            <span className="font-medium text-white">{weekTitle}</span>
+            <span className="font-medium text-white">{currentTitle}</span>
           </>
-        ) : (
-          <span className="font-medium text-white">{currentTitle}</span>
         )}
       </nav>
 
@@ -252,9 +266,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   monthSlug={monthSlug}
                   monthName={monthTitle}
                   weekSlug={weekSlug}
-                  slugSegments={[monthSlug, weekSlug, slugifyFolderName(folder.name)].filter(
-                    (part): part is string => Boolean(part),
-                  )}
+                  slugSegments={[...slugSegments, slugifyFolderName(folder.name)]}
                   isNew={newChildIds.has(folder.id)}
                   isOpen={openFolderId === folder.id}
                   highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}
@@ -274,6 +286,31 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             weekSlug={weekSlug}
           />
         </>
+      )}
+
+      {!loading && !error && data && showingTracks && (
+        <div className="rounded-xl border border-zinc-800/90 bg-[#0c0c0c] p-2 md:p-3">
+          <VipMusicTrackList
+            folderId={data.folderId}
+            tracks={data.tracks ?? []}
+            canPlay={playbackEnabled}
+            canDownload={playbackEnabled}
+            relativePath={relativeStyleBase}
+            highlightTrackId={faixaId ?? undefined}
+            autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
+            layout="table"
+            continueContext={
+              monthSlug
+                ? {
+                    monthSlug,
+                    monthName: monthTitle,
+                    weekSlug,
+                    styleName: displayFolderName(data.folderName),
+                  }
+                : undefined
+            }
+          />
+        </div>
       )}
     </div>
   );

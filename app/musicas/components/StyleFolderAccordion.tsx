@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronDown, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
+import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import { displayFolderName, parseMonthStatus, slugifyFolderName } from "../../lib/vip-music-slugs";
-import type { VipMusicFolder } from "../../lib/vip-music-catalog";
-import { sendFolderToDownloader } from "../lib/send-to-downloader";
+import { sendFolderToDownloader, sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -28,6 +28,8 @@ type StyleFolderAccordionProps = {
   highlightTrackId?: string;
   autoPlayTrackId?: string;
   scrollIntoView?: boolean;
+  /** Evita nesting infinito acidental. */
+  depth?: number;
 };
 
 type TracksResponse = {
@@ -38,6 +40,15 @@ type TracksResponse = {
   canPlay: boolean;
   canDownload: boolean;
 };
+
+type CatalogResponse = {
+  level: "folders" | "tracks";
+  items: VipMusicCatalogItem[];
+  tracks?: PreviewTrack[];
+  error?: string;
+};
+
+const MAX_NEST_DEPTH = 8;
 
 export function StyleFolderAccordion({
   folder,
@@ -54,12 +65,16 @@ export function StyleFolderAccordion({
   highlightTrackId,
   autoPlayTrackId,
   scrollIntoView = false,
+  depth = 0,
 }: StyleFolderAccordionProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
   const { isFolderPlaying, setFolderPlayback } = useVipMusicPlayer();
   const isPlayingFolder = isFolderPlaying(folder.id);
+  const [contentMode, setContentMode] = useState<"unknown" | "folders" | "tracks">("unknown");
+  const [childFolders, setChildFolders] = useState<VipMusicCatalogItem[]>([]);
+  const [openChildId, setOpenChildId] = useState<string | null>(null);
   const [tracks, setTracks] = useState<PreviewTrack[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -69,7 +84,7 @@ export function StyleFolderAccordion({
   const [error, setError] = useState<string | null>(null);
   const [sendingFolder, setSendingFolder] = useState(false);
 
-  const loadPage = useCallback(
+  const loadTrackPage = useCallback(
     async (nextPage: number, append: boolean) => {
       setLoading(true);
       setError(null);
@@ -84,6 +99,7 @@ export function StyleFolderAccordion({
         const data = (await res.json()) as TracksResponse & { error?: string };
         if (!res.ok) throw new Error(data.error ?? "Erro ao carregar faixas.");
 
+        setContentMode("tracks");
         setTracks((prev) => (append ? [...prev, ...data.tracks] : data.tracks));
         setTotal(data.total);
         setPage(data.page);
@@ -98,27 +114,57 @@ export function StyleFolderAccordion({
     [folder.id, folder.name],
   );
 
+  const loadContents = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        folderId: folder.id,
+        folderName: folder.name,
+      });
+      const res = await fetch(`/api/musicas/catalog?${params.toString()}`, { cache: "no-store" });
+      const data = (await res.json()) as CatalogResponse;
+      if (!res.ok) throw new Error(data.error ?? "Erro ao carregar pasta.");
+
+      if (data.level === "folders" && data.items.length > 0) {
+        setContentMode("folders");
+        setChildFolders(data.items);
+        setTracks([]);
+        setTotal(data.items.length);
+        setHasMore(false);
+        setLoaded(true);
+        setLoading(false);
+        return;
+      }
+
+      await loadTrackPage(1, false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar pasta.");
+      setLoading(false);
+    }
+  }, [folder.id, folder.name, loadTrackPage]);
+
   useEffect(() => {
     if (isOpen && !loaded && !loading) {
-      void loadPage(1, false);
+      void loadContents();
     }
-  }, [isOpen, loaded, loading, loadPage]);
+  }, [isOpen, loaded, loading, loadContents]);
 
   useEffect(() => {
-    if (!highlightTrackId || !loaded || loading || !hasMore) return;
+    if (!highlightTrackId || !loaded || loading || contentMode !== "tracks" || !hasMore) return;
     const found = tracks.some((track) => track.id === highlightTrackId);
     if (!found) {
-      void loadPage(page + 1, true);
+      void loadTrackPage(page + 1, true);
     }
-  }, [highlightTrackId, loaded, loading, tracks, hasMore, page, loadPage]);
+  }, [highlightTrackId, loaded, loading, contentMode, tracks, hasMore, page, loadTrackPage]);
 
   useEffect(() => {
-    if (!highlightTrackId || !loaded) return;
+    if (!highlightTrackId || !loaded || contentMode !== "tracks") return;
     const timer = setTimeout(() => {
       document.getElementById(`track-${highlightTrackId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 250);
     return () => clearTimeout(timer);
-  }, [highlightTrackId, loaded, tracks]);
+  }, [highlightTrackId, loaded, contentMode, tracks]);
 
   useEffect(() => {
     if (!scrollIntoView || !isOpen) return;
@@ -131,26 +177,28 @@ export function StyleFolderAccordion({
   const loadMoreRef = useRef<() => Promise<void>>(async () => {});
 
   loadMoreRef.current = async () => {
-    if (hasMore && !loading) {
-      await loadPage(page + 1, true);
+    if (contentMode === "tracks" && hasMore && !loading) {
+      await loadTrackPage(page + 1, true);
     }
   };
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || contentMode !== "tracks") return;
     setFolderPlayback(folder.id, {
       tracks,
       hasMore,
       loadMore: async () => loadMoreRef.current(),
     });
-  }, [folder.id, tracks, hasMore, loaded, setFolderPlayback]);
+  }, [folder.id, tracks, hasMore, loaded, contentMode, setFolderPlayback]);
 
-  function handleToggle() {
-    if (!isOpen && !loaded) {
-      void loadPage(1, false);
-    }
-    onToggle();
-  }
+  const label = displayFolderName(folder.name);
+  const folderStatus = parseMonthStatus(folder.name);
+  const packSlugSegments =
+    slugSegments && slugSegments.length > 0
+      ? slugSegments
+      : [monthSlug, weekSlug, slugifyFolderName(folder.name)].filter(
+          (part): part is string => Boolean(part),
+        );
 
   async function handleSendFolderToDownloader(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
@@ -167,13 +215,20 @@ export function StyleFolderAccordion({
 
     setSendingFolder(true);
     try {
-      const result = await sendFolderToDownloader({
-        folderId: folder.id,
-        folderName: folder.name,
-        relativePath,
-        target: sync?.selectedTarget,
-        devices: sync?.devices,
-      });
+      const packSlug = packSlugSegments.join("/");
+      const result =
+        packSlug.length > 0
+          ? await sendPackSlugToDownloader(packSlug, {
+              target: sync?.selectedTarget,
+              devices: sync?.devices,
+            })
+          : await sendFolderToDownloader({
+              folderId: folder.id,
+              folderName: folder.name,
+              relativePath,
+              target: sync?.selectedTarget,
+              devices: sync?.devices,
+            });
       showToast(
         result.count === 1
           ? "1 faixa adicionada ao BRS Downloader"
@@ -187,19 +242,19 @@ export function StyleFolderAccordion({
     }
   }
 
-  const label = displayFolderName(folder.name);
-  const folderStatus = parseMonthStatus(folder.name);
-  const packSlugSegments =
-    slugSegments && slugSegments.length > 0
-      ? slugSegments
-      : [monthSlug, weekSlug, slugifyFolderName(folder.name)].filter(
-          (part): part is string => Boolean(part),
-        );
+  function handleToggle() {
+    if (!isOpen && !loaded) {
+      void loadContents();
+    }
+    onToggle();
+  }
+
+  const nestedPad = depth > 0 ? "md:ml-3 md:border-l md:border-zinc-800/80 md:pl-3" : "";
 
   return (
     <div
       id={`style-folder-${folder.id}`}
-      className={`overflow-hidden border bg-black md:rounded-xl ${
+      className={`overflow-hidden border bg-black md:rounded-xl ${nestedPad} ${
         folderStatus.status === "em-atualizacao"
           ? "border-amber-500/50 shadow-[0_0_0_1px_rgba(245,158,11,0.2)]"
           : isNew
@@ -232,7 +287,7 @@ export function StyleFolderAccordion({
             }`}
           />
           {isPlayingFolder ? (
-            <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] animate-pulse" />
+            <Volume2 className="h-3.5 w-3.5 flex-shrink-0 animate-pulse text-[#00ff9d]" />
           ) : (
             <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d]/80 group-hover:text-[#00ff9d]" />
           )}
@@ -259,13 +314,13 @@ export function StyleFolderAccordion({
             </span>
           )}
           {loaded && (
-            <span className="flex-shrink-0 text-[10px] font-semibold tabular-nums text-zinc-500">{total}</span>
+            <span className="flex-shrink-0 text-[10px] font-semibold tabular-nums text-zinc-500">
+              {contentMode === "folders" ? `${total} pastas` : total}
+            </span>
           )}
           {loading && !loaded && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#00ff9d]" />}
         </button>
-        {packSlugSegments.length > 0 && (
-          <CopyPackLinkButton slugSegments={packSlugSegments} />
-        )}
+        {packSlugSegments.length > 0 && <CopyPackLinkButton slugSegments={packSlugSegments} />}
         {canDownload && (
           <button
             type="button"
@@ -300,10 +355,42 @@ export function StyleFolderAccordion({
                 <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
               </div>
             )}
-            {loaded && tracks.length === 0 && !loading && (
+
+            {loaded && contentMode === "folders" && (
+              <div className="space-y-2">
+                {childFolders.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-[#727272]">Nenhuma subpasta nesta pasta.</p>
+                ) : depth >= MAX_NEST_DEPTH ? (
+                  <p className="py-6 text-center text-sm text-[#727272]">
+                    Limite de pastas aninhadas atingido.
+                  </p>
+                ) : (
+                  childFolders.map((child) => (
+                    <StyleFolderAccordion
+                      key={child.id}
+                      folder={child}
+                      canPlay={canPlay}
+                      canDownload={canDownload}
+                      relativePath={`${relativePath ?? displayFolderName(folder.name)}/${displayFolderName(child.name)}`}
+                      monthSlug={monthSlug}
+                      monthName={monthName}
+                      weekSlug={weekSlug}
+                      slugSegments={[...packSlugSegments, slugifyFolderName(child.name)]}
+                      isOpen={openChildId === child.id}
+                      depth={depth + 1}
+                      onToggle={() =>
+                        setOpenChildId((current) => (current === child.id ? null : child.id))
+                      }
+                    />
+                  ))
+                )}
+              </div>
+            )}
+
+            {loaded && contentMode === "tracks" && tracks.length === 0 && !loading && (
               <p className="py-6 text-center text-sm text-[#727272]">Nenhuma faixa nesta pasta.</p>
             )}
-            {loaded && tracks.length > 0 && (
+            {loaded && contentMode === "tracks" && tracks.length > 0 && (
               <VipMusicTrackList
                 folderId={folder.id}
                 tracks={tracks}
@@ -325,11 +412,11 @@ export function StyleFolderAccordion({
                 }
               />
             )}
-            {hasMore && (
+            {contentMode === "tracks" && hasMore && (
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => void loadPage(page + 1, true)}
+                onClick={() => void loadTrackPage(page + 1, true)}
                 className="flex w-full items-center justify-center gap-1.5 border-t border-zinc-800 bg-black py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:bg-zinc-950 hover:text-zinc-300 disabled:opacity-50 md:mt-2 md:rounded-lg md:border md:border-white/[0.06] md:bg-[#181818] md:py-2.5"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
