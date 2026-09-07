@@ -16,16 +16,9 @@ import { useState } from "react";
 import { BrsLogo } from "../components/BrsLogo";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 import { MusicasUserMenu } from "../musicas/components/MusicasUserMenu";
+import { portalPath, type PortalView } from "./portal-routes";
 
-export type PortalView =
-  | "dashboard"
-  | "services"
-  | "service-pools"
-  | "service-deemix"
-  | "service-allavsoft"
-  | "service-music-producer"
-  | "account"
-  | "support";
+export type { PortalView };
 
 type PortalShellProps = {
   userName: string;
@@ -47,13 +40,15 @@ const navItems: { id: PortalView; label: string; icon: typeof Home }[] = [
   { id: "support", label: "Suporte", icon: HeadphonesIcon },
 ];
 
-function NavButton({
+function NavLink({
+  href,
   active,
   onClick,
   icon: Icon,
   label,
   sub = false,
 }: {
+  href: string;
   active: boolean;
   onClick: () => void;
   icon?: typeof Home;
@@ -61,8 +56,8 @@ function NavButton({
   sub?: boolean;
 }) {
   return (
-    <button
-      type="button"
+    <Link
+      href={href}
       onClick={onClick}
       className={`relative flex w-full items-center gap-3 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
         sub ? "px-3 py-2 text-[11px]" : "px-3 py-2.5 text-xs"
@@ -74,7 +69,7 @@ function NavButton({
     >
       {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
       {label}
-    </button>
+    </Link>
   );
 }
 
@@ -114,8 +109,9 @@ export function PortalShell({
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {navItems.map(({ id, label, icon }) => (
-            <NavButton
+            <NavLink
               key={id}
+              href={portalPath(id)}
               active={activeView === id || (id === "services" && isServiceDetail)}
               onClick={() => {
                 onNavigate(id);
@@ -130,25 +126,37 @@ export function PortalShell({
             <div className="mt-3 border-t border-zinc-800 pt-3">
               <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">Serviço</p>
               {hasPools && (
-                <NavButton
+                <NavLink
+                  href={portalPath("service-pools")}
                   active={activeView === "service-pools"}
-                  onClick={() => onNavigate("service-pools")}
+                  onClick={() => {
+                    onNavigate("service-pools");
+                    setMobileOpen(false);
+                  }}
                   label="Pools VIP"
                   sub
                 />
               )}
               {hasDeemix && (
-                <NavButton
+                <NavLink
+                  href={portalPath("service-deemix")}
                   active={activeView === "service-deemix"}
-                  onClick={() => onNavigate("service-deemix")}
+                  onClick={() => {
+                    onNavigate("service-deemix");
+                    setMobileOpen(false);
+                  }}
                   label="Deemix"
                   sub
                 />
               )}
               {hasAllavsoft && (
-                <NavButton
+                <NavLink
+                  href={portalPath("service-allavsoft")}
                   active={activeView === "service-allavsoft"}
-                  onClick={() => onNavigate("service-allavsoft")}
+                  onClick={() => {
+                    onNavigate("service-allavsoft");
+                    setMobileOpen(false);
+                  }}
                   label="Allavsoft"
                   sub
                 />

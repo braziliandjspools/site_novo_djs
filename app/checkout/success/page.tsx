@@ -23,7 +23,7 @@ export default function CheckoutSuccessPage() {
           subtitle="Estamos confirmando sua assinatura. Assim que a Hotmart confirmar o pagamento, seu acesso será liberado automaticamente."
         />
         <Link
-          href="/portal?view=account"
+          href="/portal/conta"
           className="mt-8 inline-flex items-center gap-2 rounded-lg bg-[#009739] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-all hover:scale-105 hover:bg-[#00B347]"
         >
           <User className="h-4 w-4" />

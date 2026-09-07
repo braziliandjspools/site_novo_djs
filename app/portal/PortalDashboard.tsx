@@ -1,9 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { PortalShell, type PortalView } from "./PortalShell";
 import type { PortalData } from "./portal-types";
+import {
+  isPortalView,
+  portalPath,
+  viewFromPortalPathname,
+} from "./portal-routes";
 import { DashboardView } from "./views/DashboardView";
 import { ServicesView } from "./views/ServicesView";
 import {
@@ -20,11 +26,24 @@ type PortalDashboardProps = {
 };
 
 export function PortalDashboard({ onLogout }: PortalDashboardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<PortalView>("dashboard");
+  const [activeView, setActiveView] = useState<PortalView>(() => viewFromPortalPathname(pathname));
   const [now, setNow] = useState(() => new Date());
+
+  const navigate = useCallback(
+    (view: PortalView) => {
+      setActiveView(view);
+      const href = portalPath(view);
+      if (pathname !== href) {
+        router.push(href);
+      }
+    },
+    [pathname, router],
+  );
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -46,22 +65,14 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
   }, [loadData]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const view = params.get("view");
-    const allowed: PortalView[] = [
-      "dashboard",
-      "services",
-      "service-pools",
-      "service-deemix",
-      "service-allavsoft",
-      "service-music-producer",
-      "account",
-      "support",
-    ];
-    if (view && allowed.includes(view as PortalView)) {
-      setActiveView(view as PortalView);
-    }
-  }, []);
+    setActiveView(viewFromPortalPathname(pathname));
+  }, [pathname]);
+
+  useEffect(() => {
+    const legacyView = new URLSearchParams(window.location.search).get("view");
+    if (!legacyView || !isPortalView(legacyView)) return;
+    router.replace(portalPath(legacyView));
+  }, [router]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -94,9 +105,9 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
   function renderView() {
     switch (activeView) {
       case "dashboard":
-        return <DashboardView data={portalData} now={now} onNavigate={setActiveView} />;
+        return <DashboardView data={portalData} now={now} onNavigate={navigate} />;
       case "services":
-        return <ServicesView data={portalData} onNavigate={setActiveView} />;
+        return <ServicesView data={portalData} onNavigate={navigate} />;
       case "service-pools":
         return <PoolsServiceView data={portalData} />;
       case "service-deemix":
@@ -110,7 +121,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
       case "support":
         return <SupportView />;
       default:
-        return <DashboardView data={portalData} now={now} onNavigate={setActiveView} />;
+        return <DashboardView data={portalData} now={now} onNavigate={navigate} />;
     }
   }
 
@@ -118,7 +129,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
     <PortalShell
       userName={portalData.user.name}
       activeView={activeView}
-      onNavigate={setActiveView}
+      onNavigate={navigate}
       onLogout={() => void handleLogout()}
       hasPools={Boolean(portalData.pools)}
       hasDeemix={Boolean(portalData.deemix)}
