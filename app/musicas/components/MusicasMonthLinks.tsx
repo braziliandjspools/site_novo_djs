@@ -50,13 +50,13 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
           return (
             <div
               key={folder.id}
-              className={`flex w-full items-center gap-2 rounded-lg bg-orange-600/20 px-2 py-1.5 transition-all hover:bg-orange-500/35 ${
+              className={`flex w-full items-center gap-2 rounded-lg bg-orange-600/20 px-3 py-2.5 transition-all hover:bg-orange-500/35 sm:px-4 sm:py-3 ${
                 isNew ? "ring-1 ring-orange-400/50" : ""
               }`}
             >
               <Link
                 href={folderHref([slug])}
-                className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-1 text-sm font-semibold text-orange-50 hover:text-white"
+                className="flex min-w-0 flex-1 items-center justify-center gap-2 px-3 py-1.5 text-sm font-semibold text-orange-50 hover:text-white sm:text-base"
               >
                 <span>{name}</span>
                 {isNew && (
@@ -67,16 +67,19 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                 {!isNew && label ? (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200/80">{label}</span>
                 ) : null}
+                <span className="text-base font-bold text-orange-200/90" aria-hidden>
+                  &gt;
+                </span>
               </Link>
               <SendPackToDownloaderButton
                 slug={slug}
                 compact
                 label="Enviar mês inteiro ao Downloader"
-                className="text-orange-100/80 hover:text-white"
+                className="!h-9 !w-9 text-orange-100/80 hover:text-white"
               />
               <CopyPackLinkButton
                 slugSegments={[slug]}
-                className="!h-8 !w-8 text-orange-100/80 hover:text-white"
+                className="!h-9 !w-9 text-orange-100/80 hover:text-white"
                 label="Copiar link do mês para o Downloader"
               />
             </div>
@@ -111,6 +114,9 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
               {!isNew && label ? (
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
               ) : null}
+              <span className="font-bold opacity-80" aria-hidden>
+                &gt;
+              </span>
             </Link>
             <SendPackToDownloaderButton
               slug={slug}

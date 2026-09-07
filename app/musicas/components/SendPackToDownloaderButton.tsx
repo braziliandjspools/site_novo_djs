@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { Loader2, MonitorDown } from "lucide-react";
+import { Loader2 } from "lucide-react";
+
+function DedinhoIcon({ className = "" }: { className?: string }) {
+  return (
+    <span className={`inline-flex leading-none ${className}`} aria-hidden>
+      👆
+    </span>
+  );
+}
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -71,9 +79,9 @@ export function SendPackToDownloaderButton({
         disabled={sending}
         title={label}
         aria-label={label}
-        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50 ${className}`}
+        className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-base text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50 ${className}`}
       >
-        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
+        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DedinhoIcon className="text-sm" />}
       </button>
     );
   }
@@ -83,9 +91,9 @@ export function SendPackToDownloaderButton({
       type="button"
       onClick={(event) => void handleClick(event)}
       disabled={sending}
-      className={`inline-flex items-center justify-center gap-2 rounded-full border border-[#1ed760]/40 bg-[#1ed760]/10 px-4 py-2 text-xs font-bold text-[#1ed760] transition-colors hover:border-[#1ed760] hover:bg-[#1ed760]/20 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full border border-[#1ed760]/40 bg-[#1ed760]/10 px-5 py-2.5 text-xs font-bold text-[#1ed760] transition-colors hover:border-[#1ed760] hover:bg-[#1ed760]/20 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
-      {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
+      {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DedinhoIcon className="text-sm" />}
       <span>{sending ? "Enviando…" : label}</span>
     </button>
   );

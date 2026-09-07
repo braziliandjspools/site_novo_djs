@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import {
   displayFolderName,
   folderHref,
@@ -167,7 +166,9 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                       </p>
                     </div>
 
-                    <ChevronRight className="mt-2 hidden h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760] sm:block" />
+                    <span className="mt-2 hidden flex-shrink-0 text-base font-bold text-zinc-600 transition-colors group-hover:text-[#1ed760] sm:inline" aria-hidden>
+                      &gt;
+                    </span>
                   </div>
 
                   <WeekDayStrip days={days} />

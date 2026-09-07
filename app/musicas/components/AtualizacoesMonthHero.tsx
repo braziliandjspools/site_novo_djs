@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib/vip-music-slugs";
 
 export function monthStatusClass(status: MonthStatus) {
@@ -17,6 +18,8 @@ type AtualizacoesMonthHeroProps = {
   mode?: HeroMode;
   actions?: ReactNode;
 };
+
+const HERO_BG = "/images/atualizacoes-hero-bg.jpg";
 
 export function AtualizacoesMonthHero({
   folderName,
@@ -46,29 +49,43 @@ export function AtualizacoesMonthHero({
         : "estilos";
 
   return (
-    <section className="relative mb-8 w-full overflow-hidden rounded-md bg-gradient-to-br from-[#1a3264] via-[#181818] to-[#121212]">
-      <div className="relative flex flex-col gap-6 px-5 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
+    <section className="relative mb-8 w-full overflow-hidden rounded-md bg-[#0a0a0a]">
+      <Image
+        src={HERO_BG}
+        alt=""
+        fill
+        priority
+        className="object-cover object-center"
+        sizes="100vw"
+      />
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/35"
+        aria-hidden
+      />
+      <div className="relative z-[1] flex flex-col gap-6 px-5 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-wider text-[#1ed760]">{eyebrow}</p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h1 className="break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">{title}</h1>
+            <h1 className="break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
+              {title}
+            </h1>
             {label && mode === "weeks" && (
               <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase ${monthStatusClass(status)}`}>
                 {label}
               </span>
             )}
           </div>
-          <p className="mt-3 max-w-2xl text-sm text-zinc-400">{description}</p>
+          <p className="mt-3 max-w-2xl text-sm text-zinc-300">{description}</p>
           {actions ? <div className="mt-4 flex flex-wrap gap-2">{actions}</div> : null}
         </div>
 
         <div className="flex flex-shrink-0 flex-wrap gap-2">
-          <span className="rounded-full bg-black/30 px-4 py-2 text-xs font-semibold text-zinc-200">
+          <span className="rounded-full bg-black/40 px-4 py-2 text-xs font-semibold text-zinc-200 ring-1 ring-white/10">
             {styleCount} {countLabel}
           </span>
           <span
-            className={`rounded-full px-4 py-2 text-xs font-bold ${
-              hasVip ? "bg-[#1ed760]/15 text-[#1ed760]" : "bg-zinc-800 text-zinc-500"
+            className={`rounded-full px-4 py-2 text-xs font-bold ring-1 ring-white/10 ${
+              hasVip ? "bg-[#1ed760]/15 text-[#1ed760]" : "bg-black/40 text-zinc-400"
             }`}
           >
             {hasVip ? "Premium ativo" : "Visualização"}

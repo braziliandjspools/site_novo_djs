@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { ChevronDown, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
+import { ChevronDown, FolderOpen, Loader2, Volume2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { displayFolderName, slugifyFolderName } from "../../lib/vip-music-slugs";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -266,7 +266,9 @@ export function StyleFolderAccordion({
             {sendingFolder ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <MonitorDown className="h-3.5 w-3.5" />
+              <span className="text-sm leading-none" aria-hidden>
+                👆
+              </span>
             )}
           </button>
         )}
