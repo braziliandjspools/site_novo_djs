@@ -70,14 +70,13 @@ export function parseWeekNumber(name: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Pastas de ano: "BRS 2026", "PACKS 2026", "📦PACKS 2025". */
+/** Pastas de ano: "BRS 2026", "BRS 2025". */
 export function isYearFolderName(name: string): boolean {
-  return parseYearFolder(name) != null;
+  return /^brs\s+\d{4}\b/i.test(displayFolderName(name).trim());
 }
 
 export function parseYearFolder(name: string): number | null {
-  const label = displayFolderName(name).trim();
-  const match = label.match(/(?:brs|packs)\s+(\d{4})\b/i);
+  const match = displayFolderName(name).trim().match(/^brs\s+(\d{4})\b/i);
   if (!match) return null;
   const year = Number(match[1]);
   return Number.isFinite(year) ? year : null;
