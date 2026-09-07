@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import {
   ChevronDown,
-  CloudCog,
-  Folder,
-  HardDrive,
+  Download,
   Layers,
   ListMusic,
   MessageCircle,
+  Monitor,
   Music2,
   RefreshCw,
+  Smartphone,
   Sparkles,
   Users,
   Zap,
@@ -23,10 +23,12 @@ import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
 import { TrackShowcase } from "./components/TrackShowcase";
 import { ToolPromoSection } from "./components/ToolPromoSection";
 import { getPreviewPlaylists } from "./lib/google-drive";
+import { getDownloaderReleaseManifest } from "./lib/downloader-updates";
+import { DOWNLOADER_NAME } from "./lib/branding";
 import { whatsappUrl } from "./lib/site";
 import { SITE_FAQS } from "./lib/site-faqs";
 import { buildPageMetadata, faqJsonLd } from "./lib/seo";
-import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "./lib/theme";
+import { PLACEHOLDER } from "./lib/theme";
 import { DEEMIX_ENABLED } from "./lib/feature-flags";
 import { JsonLd } from "./components/JsonLd";
 
@@ -79,29 +81,28 @@ const poolHighlights = [
 
 const accessMethods = [
   {
-    icon: HardDrive,
-    title: "FTP Access",
-    text: "Acesse o acervo via FileZilla e faça downloads em massa com mais praticidade. Ideal para transferir grandes volumes de arquivos com conexão estável, organização e acesso direto às pastas disponíveis.",
-    bgImage: PLACEHOLDER.ftpAccess,
+    icon: Smartphone,
+    title: "Site — download direto",
+    text: "No celular ou no navegador: abra a plataforma VIP, navegue pelas atualizações e baixe as faixas na hora. Ideal para dispositivos móveis e acesso rápido sem instalar nada.",
+    href: "/musicas/atualizacoes",
+    cta: "Abrir plataforma",
+    accent: "green" as const,
   },
   {
-    icon: CloudCog,
-    title: "Google Drive",
-    text: "Acesse o acervo pelo Google Drive com pastas organizadas por pool, gênero e data de atualização. Encontre seus arquivos com facilidade, navegue de forma simples e mantenha tudo disponível na nuvem.",
-    bgImage: PLACEHOLDER.googleDrive,
+    icon: Monitor,
+    title: "Downloader — Windows",
+    text: "No PC, use o BRS Downloader oficial: filas, pastas preservadas, sincronização com a conta e downloads em massa com mais controle. Feito para quem baixa packs inteiros no Windows.",
+    href: "#downloader",
+    cta: "Ver o Downloader",
+    accent: "yellow" as const,
   },
-  {
-    icon: Folder,
-    title: "RaiDrive",
-    text: "Integre o acervo ao seu computador e acesse os arquivos como se estivessem em um disco rígido local. Navegue pelas pastas com praticidade, abra conteúdos rapidamente e simplifique o acesso ao seu repertório.",
-    bgImage: PLACEHOLDER.raidrive,
-  },
-  {
-    icon: Music2,
-    title: "Plataforma VIP",
-    text: "Navegue, ouça e baixe as atualizações direto no navegador. Mês a mês, por estilo, com busca integrada — o portal online do Brazilian Remix Service, sem instalar nada além do login.",
-    bgImage: PLACEHOLDER.musicasPortal,
-  },
+];
+
+const downloaderHighlights = [
+  "Fila e progresso em tempo real",
+  "Importar pack por link do site",
+  "Organização por pastas e metadados",
+  "Sincronizado com a conta VIP",
 ];
 
 const testimonials = [
@@ -133,6 +134,11 @@ const testimonials = [
 
 export default async function Home() {
   const previewPlaylists = await getPreviewPlaylists().catch(() => []);
+  const downloaderRelease = getDownloaderReleaseManifest();
+  const downloaderUrl =
+    downloaderRelease?.downloadUrl ??
+    "https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe";
+  const downloaderVersion = downloaderRelease?.version ?? "1.0.1_public_beta";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -190,62 +196,118 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Métodos de acesso */}
-      <section id="acesso" className="border-y border-white/5 site-section-green px-4 py-12 sm:px-6 lg:px-10 xl:px-14 2xl:px-16 md:py-20">
-        <div className="mx-auto w-full max-w-[90rem]">
+      {/* Como baixar — só site + Downloader */}
+      <section id="acesso" className="border-y border-white/5 site-section-green px-4 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-5xl">
           <SectionHeading
             badge="Acesso"
             title="Como você baixa o acervo"
-            subtitle="Escolha a forma mais prática para acessar seus arquivos. Você pode baixar diretamente pela plataforma ou utilizar o acesso via FTP para transferências maiores e mais rápidas — tudo incluso na mesma assinatura."
+            subtitle="Duas formas simples: no celular ou navegador, baixe direto pelo site. No Windows, use o BRS Downloader para packs e filas completas."
           />
-          <div className="mt-10 grid grid-cols-1 gap-8 sm:mt-12 md:grid-cols-2 md:gap-x-10 md:gap-y-12 lg:gap-x-14 lg:gap-y-14">
-            {accessMethods.map((method, index) => {
-              const colorKey = COLOR_CYCLE[index % COLOR_CYCLE.length];
-              const c = CARD_COLORS[colorKey];
-              const accentBar =
-                colorKey === "green"
-                  ? "via-[#00B347]"
-                  : colorKey === "yellow"
-                    ? "via-[#FFDF00]"
-                    : "via-[#6B9FFF]";
-              return (
-                <article
-                  key={method.title}
-                  className={`group relative aspect-[21/9] min-h-[180px] overflow-hidden rounded-2xl border ${c.border} ${c.hoverBorder} shadow-lg shadow-black/40 ring-1 ring-inset ring-white/[0.06] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/60 md:min-h-[220px] lg:min-h-[240px]`}
+          <div className="mt-10 grid gap-5 md:mt-12 md:grid-cols-2">
+            {accessMethods.map((method) => (
+              <article key={method.title} className="site-panel flex flex-col p-6 md:p-8">
+                <div
+                  className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl ${
+                    method.accent === "green"
+                      ? "bg-[#009739]/15 text-[#00B347]"
+                      : "bg-[#FFDF00]/15 text-[#FFDF00]"
+                  }`}
                 >
-                  <div className="absolute inset-0 overflow-hidden">
-                    <SiteImage
-                      src={method.bgImage}
-                      alt=""
-                      fill
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      quality={75}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#121212]/88 to-[#121212]/35" />
-                  <div
-                    className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent ${accentBar} to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-100`}
-                  />
-                  <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
-                    <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 ${c.iconBg} shadow-lg backdrop-blur-md`}
-                    >
-                      <method.icon className={`h-5 w-5 ${c.text}`} />
-                    </div>
-                    <div className="mt-auto pt-4">
-                      <h3 className="font-display text-lg font-semibold tracking-tight text-white sm:text-xl">
-                        {method.title}
-                      </h3>
-                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-300/90">
-                        {method.text}
-                      </p>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+                  <method.icon className="h-6 w-6" />
+                </div>
+                <h3 className="font-display text-xl font-semibold text-white">{method.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-zinc-400">{method.text}</p>
+                {method.href.startsWith("#") ? (
+                  <a
+                    href={method.href}
+                    className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all ${
+                      method.accent === "green"
+                        ? "bg-[#009739] text-white hover:bg-[#00B347]"
+                        : "border border-[#FFDF00]/50 text-[#FFDF00] hover:bg-[#FFDF00]/10"
+                    }`}
+                  >
+                    {method.cta}
+                  </a>
+                ) : (
+                  <Link
+                    href={method.href}
+                    className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all ${
+                      method.accent === "green"
+                        ? "bg-[#009739] text-white hover:bg-[#00B347]"
+                        : "border border-[#FFDF00]/50 text-[#FFDF00] hover:bg-[#FFDF00]/10"
+                    }`}
+                  >
+                    {method.cta}
+                  </Link>
+                )}
+              </article>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* Top Downloader */}
+      <section id="downloader" className="border-b border-white/5 site-section-blue px-4 py-14 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <SectionHeading
+            badge={DOWNLOADER_NAME}
+            title="O app oficial para Windows"
+            subtitle="Fila inteligente, importação por link, organização por pastas e sincronização com a plataforma VIP. Feito para DJs que baixam packs inteiros no PC."
+          />
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {downloaderHighlights.map((item) => (
+              <div key={item} className="site-panel px-4 py-3 text-center text-sm font-medium text-zinc-300">
+                {item}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+            <figure className="site-panel overflow-hidden p-2">
+              <SiteImage
+                src="/images/downloader/brs-downloader-inicio.png"
+                alt="BRS Downloader — tela Início com fila, conexão e atalhos"
+                width={1440}
+                height={900}
+                className="h-auto w-full rounded-xl object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              <figcaption className="px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-zinc-500">
+                Início · visão geral e importação por link
+              </figcaption>
+            </figure>
+            <figure className="site-panel overflow-hidden p-2">
+              <SiteImage
+                src="/images/downloader/brs-downloader-downloads.png"
+                alt="BRS Downloader — tela Downloads com filtros e organização"
+                width={1440}
+                height={900}
+                className="h-auto w-full rounded-xl object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              <figcaption className="px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-zinc-500">
+                Downloads · fila, filtros e metadados
+              </figcaption>
+            </figure>
+          </div>
+
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
+            <a
+              href={downloaderUrl}
+              className="site-btn site-btn-primary"
+            >
+              <Download className="h-4 w-4" />
+              Baixar {DOWNLOADER_NAME}
+            </a>
+            <Link href="/musicas/atualizacoes" className="site-btn site-btn-ghost">
+              Abrir plataforma
+            </Link>
+          </div>
+          <p className="mt-4 text-center text-xs text-zinc-500">
+            Windows x64 · versão {downloaderVersion} · mesmo login da conta VIP
+          </p>
         </div>
       </section>
 
@@ -254,7 +316,7 @@ export default async function Home() {
         id="musicas"
         badge="Plataforma VIP"
         title="Portal de atualizações online"
-        description="Acesse o acervo pelo navegador: navegue por mês e estilo, ouça previews, baixe faixas e acompanhe as novidades sem depender só do Drive ou FTP. Tudo organizado na plataforma que criamos para assinantes VIP."
+        description="Acesse o acervo pelo navegador: navegue por mês e estilo, ouça previews e baixe faixas direto no site — principalmente no celular. No PC Windows, combine com o BRS Downloader para packs completos."
         image={PLACEHOLDER.musicasPortal}
         imageAlt="Portal de atualizações Brazilian Remix Service"
         href="/musicas/atualizacoes"
