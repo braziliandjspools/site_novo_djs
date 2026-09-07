@@ -25,6 +25,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkout = searchParams.get("checkout");
@@ -36,6 +37,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
 
   async function startCheckout(planId: string) {
     setLoadingPlanId(planId);
+    setError(null);
     try {
       const res = await fetch(`/api/checkout/hotmart/${planId}?format=json`, {
         cache: "no-store",
@@ -53,11 +55,19 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
       }
 
       if (!res.ok || !data.checkoutUrl) {
+        setError(
+          data.error ??
+            (res.status === 503
+              ? "Checkout Hotmart ainda não configurado. Peça ao administrador para definir HOTMART_DRIVE_MONTHLY_CHECKOUT_URL na Vercel."
+              : "Não foi possível abrir o checkout. Tente novamente."),
+        );
         return;
       }
 
       // URL externa Hotmart (checkout oficial)
       window.location.href = data.checkoutUrl;
+    } catch {
+      setError("Erro de conexão ao abrir o checkout. Tente novamente.");
     } finally {
       setLoadingPlanId(null);
     }
@@ -112,6 +122,11 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
                   "Assinar agora"
                 )}
               </button>
+              {error && (
+                <p className="mt-3 text-sm text-red-400" role="alert">
+                  {error}
+                </p>
+              )}
               <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
                 <ShieldCheck className="h-3.5 w-3.5 text-[#009739]" />
                 Pagamento processado com segurança pela Hotmart.
