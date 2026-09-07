@@ -23,7 +23,7 @@ export function SectionHeading({ badge, title, subtitle, centered = true }: Sect
           <span className="h-1 w-8 rounded-full bg-[#002776]" />
         </div>
       )}
-      <h2 className="font-display text-3xl tracking-wide text-white sm:text-4xl">{title}</h2>
+      <h2 className="font-display text-3xl font-semibold text-white sm:text-4xl">{title}</h2>
       {subtitle && <p className="mt-3 text-base leading-relaxed text-gray-400">{subtitle}</p>}
       {!badge && (
         <div className={`mt-5 flex gap-1 ${stripeAlign}`}>

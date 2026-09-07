@@ -12,7 +12,7 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipMusicTrackList } from "./VipMusicTrackList";
-import { PLACEHOLDER } from "../../lib/theme";
+
 type StyleFolderAccordionProps = {
   folder: VipMusicFolder;
   canPlay: boolean;
@@ -313,7 +313,6 @@ export function StyleFolderAccordion({
                 highlightTrackId={highlightTrackId}
                 autoPlayTrackId={autoPlayTrackId}
                 layout="table"
-                folderCoverSrc={PLACEHOLDER.trackCover}
                 continueContext={
                   monthSlug && monthName
                     ? {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import {
   Check,
   ChevronLeft,
@@ -15,7 +14,6 @@ import {
   Square,
 } from "lucide-react";
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
-import { PLACEHOLDER } from "../../lib/theme";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { TrackDownloadStatus } from "./TrackDownloadStatus";
@@ -41,11 +39,10 @@ type VipMusicTrackListProps = {
   };
   /** `table` = layout desktop em tabela (Atualizações). Mobile permanece o TrackRow atual. */
   layout?: "default" | "table";
-  folderCoverSrc?: string;
 };
 
 const TABLE_GRID =
-  "grid grid-cols-[2.25rem_3.5rem_minmax(0,1.6fr)_minmax(0,1fr)_auto] items-center gap-x-3";
+  "grid grid-cols-[2.25rem_minmax(0,1.6fr)_minmax(0,1fr)_auto] items-center gap-x-3";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -359,9 +356,7 @@ function TrackRow({
   );
 }
 
-type TrackTableRowProps = TrackRowProps & {
-  folderCoverSrc: string;
-};
+type TrackTableRowProps = TrackRowProps;
 
 function TrackTableRow({
   track,
@@ -390,7 +385,6 @@ function TrackTableRow({
   onSendToDownloader,
   isSendingToDownloader,
   onToggleSelected,
-  folderCoverSrc,
 }: TrackTableRowProps) {
   const artistLabel =
     track.artist && track.artist !== "Unknown Artist" ? track.artist : "—";
@@ -437,73 +431,53 @@ function TrackTableRow({
           )}
         </div>
 
-        {/* Cover + play */}
-        <div className="relative">
+        {/* Title + play */}
+        <div className="flex min-w-0 items-center gap-3">
           {canPlay ? (
             <button
               type="button"
               onClick={onToggle}
               disabled={isBusy || selectionMode}
               aria-label={isPlaying ? `Pausar ${track.title}` : `Ouvir ${track.title}`}
-              className={`group/cover relative block h-14 w-14 overflow-hidden rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.45)] ring-1 ring-white/10 transition ${
-                selectionMode ? "opacity-60" : "hover:ring-[#1ed760]/50"
-              }`}
+              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
+                isPlaying
+                  ? "bg-[#1ed760] text-black shadow-lg shadow-[#1ed760]/25"
+                  : "bg-white/10 text-white hover:bg-[#1ed760] hover:text-black"
+              } ${selectionMode ? "opacity-60" : ""}`}
             >
-              <Image
-                src={folderCoverSrc}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="56px"
-              />
-              <span
-                className={`absolute inset-0 flex items-center justify-center bg-black/55 transition-opacity ${
-                  isPlaying || isLoading || isActive
-                    ? "opacity-100"
-                    : "opacity-0 group-hover/cover:opacity-100 group-hover/row:opacity-100"
-                }`}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin text-white" />
-                ) : isPlaying ? (
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-lg">
-                    <Pause className="h-4 w-4" fill="currentColor" />
-                  </span>
-                ) : (
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-lg">
-                    <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
-                  </span>
-                )}
-              </span>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isPlaying ? (
+                <Pause className="h-4 w-4" fill="currentColor" />
+              ) : (
+                <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
+              )}
             </button>
           ) : (
-            <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-md bg-zinc-900 ring-1 ring-white/10">
-              <Image src={folderCoverSrc} alt="" fill className="object-cover opacity-40" sizes="56px" />
-              <Lock className="relative z-10 h-4 w-4 text-zinc-500" />
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-zinc-500 ring-1 ring-white/10">
+              <Lock className="h-3.5 w-3.5" />
             </div>
           )}
-        </div>
-
-        {/* Title */}
-        <button
-          type="button"
-          onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
-          disabled={!canPlay && !selectionMode}
-          className="min-w-0 text-left"
-        >
-          <p
-            className={`truncate text-sm font-medium leading-snug ${
-              isActive || isPlaying ? "text-[#1ed760]" : "text-white"
-            }`}
+          <button
+            type="button"
+            onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
+            disabled={!canPlay && !selectionMode}
+            className="min-w-0 text-left"
           >
-            {track.title}
-          </p>
-          {isActive && duration > 0 && !selectionMode && (
-            <p className="mt-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
-              {formatTime(currentTime)} / {formatTime(duration)}
+            <p
+              className={`truncate text-sm font-medium leading-snug ${
+                isActive || isPlaying ? "text-[#1ed760]" : "text-white"
+              }`}
+            >
+              {track.title}
             </p>
-          )}
-        </button>
+            {isActive && duration > 0 && !selectionMode && (
+              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </p>
+            )}
+          </button>
+        </div>
 
         {/* Artist */}
         <p className="min-w-0 truncate text-sm text-zinc-400">{artistLabel}</p>
@@ -571,7 +545,7 @@ function TrackTableRow({
       </div>
 
       {isActive && canPlay && !selectionMode && (
-        <div className="px-3 pb-2.5 pl-[calc(2.25rem+3.5rem+1.5rem)]">
+        <div className="px-3 pb-2.5 pl-[calc(2.25rem+2.75rem)]">
           <div
             role="slider"
             tabIndex={0}
@@ -605,7 +579,6 @@ export function VipMusicTrackList({
   autoPlayTrackId,
   continueContext,
   layout = "default",
-  folderCoverSrc = PLACEHOLDER.trackCover,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -944,9 +917,6 @@ export function VipMusicTrackList({
               #
             </span>
             <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              Capa
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
               Música
             </span>
             <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
@@ -961,7 +931,6 @@ export function VipMusicTrackList({
               <TrackTableRow
                 key={track.id}
                 {...rowPropsFor(track, index)}
-                folderCoverSrc={folderCoverSrc}
                 setDomAnchor={isDesktop}
               />
             ))}

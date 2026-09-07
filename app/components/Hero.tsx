@@ -108,7 +108,7 @@ export function Hero() {
               <span className="h-2 w-2 rounded-full bg-[#009739]" />
               Pools · Curadoria · Remix Services
             </span>
-            <h1 className="font-display break-words text-3xl leading-none tracking-wide text-white sm:text-5xl md:text-7xl">
+            <h1 className="font-display break-words text-3xl font-semibold leading-none text-white sm:text-5xl md:text-7xl">
               Packs, curadoria e{" "}
               <span className="bg-gradient-to-r from-[#009739] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
                 conteúdo para DJs
@@ -121,14 +121,14 @@ export function Hero() {
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <a
                 href="#acervo"
-                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-[#009739] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-all hover:bg-[#00B347] hover:shadow-lg hover:shadow-[#009739]/30 sm:w-auto"
+                className="site-btn site-btn-primary w-full max-w-xs sm:w-auto"
               >
                 Ver catálogo de pools
                 <ArrowRight className="h-4 w-4" />
               </a>
               <Link
                 href="/musicas"
-                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border-2 border-[#FFDF00]/60 bg-transparent px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#FFDF00] transition-all hover:bg-[#FFDF00]/10 sm:w-auto"
+                className="site-btn site-btn-ghost w-full max-w-xs border-[#FFDF00]/60 text-[#FFDF00] hover:bg-[#FFDF00]/10 sm:w-auto"
               >
                 Acessar plataforma
               </Link>

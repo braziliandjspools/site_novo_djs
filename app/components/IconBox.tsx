@@ -14,12 +14,12 @@ export function IconBox({ icon: Icon, title, description, color = "green", class
 
   return (
     <div
-      className={`group flex flex-col items-center rounded-2xl border ${c.border} bg-[#282828] p-5 text-center transition-all duration-300 sm:p-6 md:items-start md:text-left ${c.hoverBorder} hover:-translate-y-1 hover:bg-[#333333] ${className}`}
+      className={`group site-panel flex flex-col items-center p-5 text-center transition-all duration-300 sm:p-6 md:items-start md:text-left ${c.border} ${c.hoverBorder} hover:-translate-y-1 hover:border-opacity-80 ${className}`}
     >
       <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl ${c.iconBg} transition-transform duration-300 group-hover:scale-110`}>
         <Icon className={`h-7 w-7 ${c.text}`} />
       </div>
-      <h3 className="font-display text-lg tracking-wide text-white">{title}</h3>
+      <h3 className="font-display text-lg font-semibold text-white">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-gray-400">{description}</p>
     </div>
   );

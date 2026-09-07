@@ -85,10 +85,10 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative rounded-2xl border p-6 text-center transition-all md:p-8 md:text-left ${
+              className={`relative site-panel p-6 text-center transition-all md:p-8 md:text-left ${
                 plan.highlight
-                  ? "border-[#FFDF00]/60 bg-gradient-to-b from-[#009739]/20 to-transparent shadow-2xl shadow-[#009739]/20"
-                  : "border-white/10 bg-[#282828] hover:border-[#009739]/40"
+                  ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
+                  : "hover:border-[#009739]/35"
               }`}
             >
               {plan.badge && (
@@ -111,7 +111,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
                 type="button"
                 onClick={() => void startCheckout(plan.id)}
                 disabled={loadingPlanId === plan.id}
-                className="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#009739] py-3 text-center text-sm font-bold uppercase tracking-wide text-white transition-all hover:scale-105 hover:bg-[#00B347] disabled:cursor-wait disabled:opacity-80"
+                className="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 site-btn site-btn-primary rounded-xl disabled:cursor-wait disabled:opacity-80"
               >
                 {loadingPlanId === plan.id ? (
                   <>

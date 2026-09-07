@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, DM_Sans, Roboto } from "next/font/google";
+import { DM_Sans, Sora } from "next/font/google";
 import "./globals.css";
 import { MarketingChrome } from "./components/MarketingChrome";
 import { JsonLd } from "./components/JsonLd";
@@ -11,20 +11,14 @@ import {
   websiteJsonLd,
 } from "./lib/seo";
 
-const bebasNeue = Bebas_Neue({
+const sora = Sora({
   variable: "--font-sora",
   subsets: ["latin"],
-  weight: ["400"],
-});
-
-const roboto = Roboto({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700", "900"],
+  weight: ["500", "600", "700", "800"],
 });
 
 const dmSans = DM_Sans({
-  variable: "--font-player",
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -36,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${bebasNeue.variable} ${roboto.variable} ${dmSans.variable} h-full w-full max-w-[100vw] overflow-x-clip antialiased`}
+      className={`${sora.variable} ${dmSans.variable} h-full w-full max-w-[100vw] overflow-x-clip antialiased`}
     >
       <head>
         <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />
