@@ -11,7 +11,6 @@ import { MusicasUserMenu } from "./components/MusicasUserMenu";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
-import { VipMiniPlayerBar } from "./components/VipMiniPlayerBar";
 import { checkoutUrl } from "../lib/site";
 
 type MusicasAuthLayoutProps = {
@@ -154,11 +153,10 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 overflow-x-clip overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-3 py-4 pb-28 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
+          <main className="min-w-0 flex-1 overflow-x-clip overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-3 py-4 pb-8 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
             {!authenticated && !hasVip && <MusicasGuestBanner />}
             {children}
           </main>
-          <VipMiniPlayerBar />
         </div>
       </div>
       </VipMusicPlayerProvider>
