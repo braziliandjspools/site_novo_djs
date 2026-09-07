@@ -301,13 +301,34 @@ export const messagesPtBR = {
   notificationsDownloadFailed: "Falha no download",
   notificationsDownloadComplete: "Download concluído",
   notificationsPlanExpired: "Seu plano venceu",
-  notificationsOpenPortal: "Abrir portal",
+  notificationsPlanWarning: "Aviso do plano",
+  notificationsOpenPortal: "Abrir Portal",
   notificationsUpdateTitle: "BRS Downloader {version} disponível",
   notificationsUpdateBody: "Baixe a nova versão para receber as últimas melhorias.",
+  notificationsNewTrackReceived: "Nova música recebida",
+  notificationsNewTracksReceived: "Novas músicas recebidas",
+  notificationsNewTracksBody: "{count} músicas entraram na fila",
+  notificationsDownloadsComplete: "Downloads concluídos",
+  notificationsDownloadsCompleteBody: "{count} músicas foram baixadas",
+  notificationsDownloadFailedFile: "Falha ao baixar arquivo",
+  notificationsDownloadsFailed: "Falhas no download",
+  notificationsDownloadsFailedBody: "{count} arquivos falharam",
+  notificationsDownloadUpdate: "Baixar e atualizar",
+  notificationsUpdateCheckFailed: "Falha ao verificar atualizações",
+  notificationsUpdateSystemTitle: "Atualização {version}",
+  notificationsUpdateSystemBody: "Abra o sininho do app para baixar e instalar.",
+
+  // plan notices
+  planExpiredBody:
+    "Plano vencido desde {date}. Renove no Portal para continuar usando o Downloader.",
+  planDueToday: "Seu plano vence hoje ({date}). Renove no Portal para não perder o acesso.",
+  planDueTomorrow: "Seu plano vence amanhã ({date}).",
+  planDueInDays: "Seu plano vence em {days} dias ({date}).",
 
   // updater
   updaterNewVersion: "Nova versão {version} disponível",
   updaterNotes: "Novidades desta versão",
+  updaterDefaultBody: "Há uma atualização do BRS Downloader pronta para instalar.",
 
   // errors
   errorsGeneric: "Algo deu errado. Tente novamente.",

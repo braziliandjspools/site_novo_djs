@@ -294,13 +294,34 @@ export const messagesEs = {
   notificationsDownloadFailed: "Fallo en la descarga",
   notificationsDownloadComplete: "Descarga completada",
   notificationsPlanExpired: "Tu plan ha vencido",
-  notificationsOpenPortal: "Abrir portal",
+  notificationsPlanWarning: "Aviso del plan",
+  notificationsOpenPortal: "Abrir Portal",
   notificationsUpdateTitle: "BRS Downloader {version} disponible",
   notificationsUpdateBody: "Descarga la nueva versión para tener las últimas mejoras.",
+  notificationsNewTrackReceived: "Nueva canción recibida",
+  notificationsNewTracksReceived: "Nuevas canciones recibidas",
+  notificationsNewTracksBody: "{count} canciones entraron en la cola",
+  notificationsDownloadsComplete: "Descargas completadas",
+  notificationsDownloadsCompleteBody: "{count} canciones se descargaron",
+  notificationsDownloadFailedFile: "Error al descargar el archivo",
+  notificationsDownloadsFailed: "Fallos en la descarga",
+  notificationsDownloadsFailedBody: "{count} archivos fallaron",
+  notificationsDownloadUpdate: "Descargar y actualizar",
+  notificationsUpdateCheckFailed: "No se pudieron comprobar las actualizaciones",
+  notificationsUpdateSystemTitle: "Actualización {version}",
+  notificationsUpdateSystemBody: "Abre la campana de la app para descargar e instalar.",
+
+  // plan notices
+  planExpiredBody:
+    "Plan vencido desde {date}. Renueva en el Portal para seguir usando el Downloader.",
+  planDueToday: "Tu plan vence hoy ({date}). Renueva en el Portal para no perder el acceso.",
+  planDueTomorrow: "Tu plan vence mañana ({date}).",
+  planDueInDays: "Tu plan vence en {days} días ({date}).",
 
   // updater
   updaterNewVersion: "Nueva versión {version} disponible",
   updaterNotes: "Novedades de esta versión",
+  updaterDefaultBody: "Hay una actualización de BRS Downloader lista para instalar.",
 
   // errors
   errorsGeneric: "Algo salió mal. Inténtalo de nuevo.",

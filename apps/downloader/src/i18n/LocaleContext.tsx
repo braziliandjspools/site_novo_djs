@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { getAppPreferences, setAppPreferences } from "../lib/native/app-preferences";
+import { setRuntimeLocale } from "./runtime";
 import { translate, type MessageKey } from "./translate";
 import { normalizeLocale, type AppLocale } from "./types";
 
@@ -41,7 +42,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       try {
         const prefs = await getAppPreferences();
         if (cancelled) return;
-        setLocaleState(normalizeLocale(prefs.locale));
+        const next = normalizeLocale(prefs.locale);
+        setLocaleState(next);
+        setRuntimeLocale(next);
         setLocaleConfigured(Boolean(prefs.localeConfigured));
       } catch {
         // Preferências indisponíveis: segue no padrão e pede o idioma ao usuário.
@@ -56,11 +59,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback(async (next: AppLocale, configured: boolean) => {
     // Aplica na interface antes de gravar para a troca parecer instantânea.
-    setLocaleState(next);
+    const locale = normalizeLocale(next);
+    setLocaleState(locale);
+    setRuntimeLocale(locale);
     setLocaleConfigured(configured);
     try {
       const prefs = await getAppPreferences();
-      await setAppPreferences({ ...prefs, locale: next, localeConfigured: configured });
+      await setAppPreferences({ ...prefs, locale, localeConfigured: configured });
     } catch {
       // Sem persistência a escolha vale só para esta sessão.
     }

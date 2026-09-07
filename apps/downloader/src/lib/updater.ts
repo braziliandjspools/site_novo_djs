@@ -1,6 +1,7 @@
 import { APP_VERSION } from "./api/config";
 import { apiFetch } from "./api/client";
 import { compareSemver } from "./semver";
+import { tRuntime } from "../i18n/runtime";
 import { inAppNotificationFeed } from "./notifications/in-app-feed";
 import { isDesktopRuntime } from "./native/app-preferences";
 import { openPlatform } from "./open-site";
@@ -60,17 +61,22 @@ export async function checkForAppUpdates(options?: {
     );
 
     if (data.updateAvailable && data.latest && notifyFeed) {
+      const notes = data.latest.notes?.trim() || tRuntime("updaterDefaultBody");
       inAppNotificationFeed.push({
         kind: "update",
         severity: "info",
-        title: `Nova versão ${data.latest.version}`,
-        body: data.latest.notes || "Há uma atualização do BRS Downloader pronta para instalar.",
+        title: tRuntime("updaterNewVersion", { version: data.latest.version }),
+        body: notes,
         dedupeKey: `update:${data.latest.version}`,
-        action: { type: "update", label: "Baixar e atualizar", url: data.latest.downloadUrl },
+        action: {
+          type: "update",
+          label: tRuntime("notificationsDownloadUpdate"),
+          url: data.latest.downloadUrl,
+        },
       });
       void notifySystem(
-        `Atualização ${data.latest.version}`,
-        "Abra o sininho do app para baixar e instalar.",
+        tRuntime("notificationsUpdateSystemTitle", { version: data.latest.version }),
+        tRuntime("notificationsUpdateSystemBody"),
       );
     }
 
@@ -82,12 +88,12 @@ export async function checkForAppUpdates(options?: {
     };
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Não foi possível verificar atualizações.";
+      error instanceof Error ? error.message : tRuntime("notificationsUpdateCheckFailed");
     if (!options?.silent) {
       inAppNotificationFeed.push({
         kind: "info",
         severity: "warning",
-        title: "Falha ao verificar atualizações",
+        title: tRuntime("notificationsUpdateCheckFailed"),
         body: message,
         dedupeKey: "update-check-error",
       });

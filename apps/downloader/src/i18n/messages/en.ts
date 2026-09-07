@@ -294,13 +294,34 @@ export const messagesEn = {
   notificationsDownloadFailed: "Download failed",
   notificationsDownloadComplete: "Download complete",
   notificationsPlanExpired: "Your plan has expired",
-  notificationsOpenPortal: "Open portal",
+  notificationsPlanWarning: "Plan notice",
+  notificationsOpenPortal: "Open Portal",
   notificationsUpdateTitle: "BRS Downloader {version} available",
   notificationsUpdateBody: "Download the new version to get the latest improvements.",
+  notificationsNewTrackReceived: "New track received",
+  notificationsNewTracksReceived: "New tracks received",
+  notificationsNewTracksBody: "{count} tracks were added to the queue",
+  notificationsDownloadsComplete: "Downloads complete",
+  notificationsDownloadsCompleteBody: "{count} tracks finished downloading",
+  notificationsDownloadFailedFile: "Failed to download file",
+  notificationsDownloadsFailed: "Download failures",
+  notificationsDownloadsFailedBody: "{count} files failed",
+  notificationsDownloadUpdate: "Download and update",
+  notificationsUpdateCheckFailed: "Could not check for updates",
+  notificationsUpdateSystemTitle: "Update {version}",
+  notificationsUpdateSystemBody: "Open the app bell to download and install.",
+
+  // plan notices
+  planExpiredBody:
+    "Plan expired since {date}. Renew in the Portal to keep using the Downloader.",
+  planDueToday: "Your plan expires today ({date}). Renew in the Portal to keep access.",
+  planDueTomorrow: "Your plan expires tomorrow ({date}).",
+  planDueInDays: "Your plan expires in {days} days ({date}).",
 
   // updater
   updaterNewVersion: "New version {version} available",
   updaterNotes: "What's new in this version",
+  updaterDefaultBody: "A BRS Downloader update is ready to install.",
 
   // errors
   errorsGeneric: "Something went wrong. Please try again.",

@@ -1,3 +1,6 @@
+import type { MessageKey } from "../i18n/translate";
+import { tRuntime } from "../i18n/runtime";
+
 export type PlanBillingInfo = {
   nextDueAt: string;
   nextDueLabel: string;
@@ -26,24 +29,27 @@ export type AuthUser = {
   billing?: PlanBillingInfo | null;
 };
 
-export function planNotificationMessages(billing: PlanBillingInfo | null | undefined): string[] {
+type TranslateFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
+
+export function planNotificationMessages(
+  billing: PlanBillingInfo | null | undefined,
+  t: TranslateFn = tRuntime,
+): string[] {
   if (!billing || billing.status === "none" || billing.status === "ok") return [];
 
   if (billing.expired) {
-    return [
-      `Plano vencido desde ${billing.nextDueLabel}. Renove no Portal para continuar usando o Downloader.`,
-    ];
+    return [t("planExpiredBody", { date: billing.nextDueLabel })];
   }
 
   const days = billing.daysUntilDue;
   if (days <= 0) {
-    return [`Seu plano vence hoje (${billing.nextDueLabel}). Renove no Portal para não perder o acesso.`];
+    return [t("planDueToday", { date: billing.nextDueLabel })];
   }
   if (days === 1) {
-    return [`Seu plano vence amanhã (${billing.nextDueLabel}).`];
+    return [t("planDueTomorrow", { date: billing.nextDueLabel })];
   }
   if (days <= 5) {
-    return [`Seu plano vence em ${days} dias (${billing.nextDueLabel}).`];
+    return [t("planDueInDays", { days, date: billing.nextDueLabel })];
   }
   return [];
 }

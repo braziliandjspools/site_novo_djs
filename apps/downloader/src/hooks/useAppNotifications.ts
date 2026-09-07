@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "../i18n/LocaleContext";
 import type { PlanBillingInfo } from "../lib/plan-status";
 import { planNotificationMessages } from "../lib/plan-status";
 import { inAppNotificationFeed } from "../lib/notifications/in-app-feed";
@@ -9,12 +10,13 @@ const UPDATE_POLL_MS = 6 * 60 * 60 * 1000;
 
 /** Sincroniza avisos de plano + checagem de update no feed do sininho. */
 export function useAppNotifications(billing?: PlanBillingInfo | null) {
+  const { t, locale } = useLocale();
   const [update, setUpdate] = useState<UpdateCheckResult | null>(null);
   const planKeysRef = useRef<string>("");
 
   useEffect(() => {
-    const messages = planNotificationMessages(billing);
-    const key = messages.join("|");
+    const messages = planNotificationMessages(billing, t);
+    const key = `${locale}|${messages.join("|")}`;
     if (key === planKeysRef.current) return;
     planKeysRef.current = key;
 
@@ -22,13 +24,13 @@ export function useAppNotifications(billing?: PlanBillingInfo | null) {
       inAppNotificationFeed.push({
         kind: "plan",
         severity: billing?.expired ? "error" : "warning",
-        title: billing?.expired ? "Plano vencido" : "Aviso do plano",
+        title: billing?.expired ? t("notificationsPlanExpired") : t("notificationsPlanWarning"),
         body: message,
-        dedupeKey: `plan:${message}`,
-        action: { type: "portal", label: "Abrir Portal" },
+        dedupeKey: `plan:${locale}:${message}`,
+        action: { type: "portal", label: t("notificationsOpenPortal") },
       });
     }
-  }, [billing]);
+  }, [billing, locale, t]);
 
   useEffect(() => {
     if (!isDesktopRuntime()) return;
