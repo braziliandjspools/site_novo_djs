@@ -1,5 +1,6 @@
 import { CheckSquare, Pause, Play, RotateCcw, Trash2, X } from "lucide-react";
 import { Button } from "../ui/Button";
+import { useLocale } from "../../i18n/LocaleContext";
 
 type BulkSelectionBarProps = {
   selectedCount: number;
@@ -38,14 +39,16 @@ export function BulkSelectionBar({
   onRetry,
   onDismiss,
 }: BulkSelectionBarProps) {
+  const { t } = useLocale();
+
   if (visibleCount <= 0) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-3 py-2.5">
       <p className="mr-1 text-xs font-semibold tabular-nums text-zinc-300">
         {selectedCount > 0
-          ? `${selectedCount} selecionado${selectedCount === 1 ? "" : "s"}`
-          : `${visibleCount} item(ns)`}
+          ? t("commonSelected", { count: selectedCount })
+          : t("commonItems", { count: visibleCount })}
       </p>
 
       <Button
@@ -55,7 +58,7 @@ export function BulkSelectionBar({
         onClick={allVisibleSelected ? onClearSelection : onSelectAll}
       >
         <CheckSquare className="h-3.5 w-3.5" />
-        {allVisibleSelected ? "Limpar seleção" : "Selecionar tudo"}
+        {allVisibleSelected ? t("jobsClearSelection") : t("jobsSelectAll")}
       </Button>
 
       {selectedCount > 0 && canPause && (
@@ -66,7 +69,7 @@ export function BulkSelectionBar({
           onClick={onPause}
         >
           <Pause className="h-3.5 w-3.5" />
-          Pausar
+          {t("jobsActionPause")}
         </Button>
       )}
 
@@ -78,7 +81,7 @@ export function BulkSelectionBar({
           onClick={onResume}
         >
           <Play className="h-3.5 w-3.5" />
-          Retomar
+          {t("jobsActionResume")}
         </Button>
       )}
 
@@ -90,7 +93,7 @@ export function BulkSelectionBar({
           onClick={onCancel}
         >
           <X className="h-3.5 w-3.5" />
-          Cancelar
+          {t("jobsActionCancel")}
         </Button>
       )}
 
@@ -102,7 +105,7 @@ export function BulkSelectionBar({
           onClick={onRetry}
         >
           <RotateCcw className="h-3.5 w-3.5" />
-          Tentar novamente
+          {t("jobsActionRetry")}
         </Button>
       )}
 
@@ -114,7 +117,7 @@ export function BulkSelectionBar({
           onClick={onDismiss}
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Remover do histórico
+          {t("jobsRemoveFromHistory")}
         </Button>
       )}
     </div>

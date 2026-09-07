@@ -6,10 +6,11 @@ import type {
 } from "../../lib/download/job-organization";
 import {
   EMPTY_ORG_FILTERS,
-  ORG_FACET_LABELS,
-  ORG_GROUP_LABELS,
+  ORG_FACET_LABEL_KEYS,
+  ORG_GROUP_LABEL_KEYS,
   hasAnyOrgFacet,
 } from "../../lib/download/job-organization";
+import { useLocale } from "../../i18n/LocaleContext";
 
 type DownloadOrgToolbarProps = {
   facets: OrgFacets;
@@ -28,6 +29,8 @@ export function DownloadOrgToolbar({
   onFiltersChange,
   onGroupByChange,
 }: DownloadOrgToolbarProps) {
+  const { t } = useLocale();
+
   if (!hasAnyOrgFacet(facets)) return null;
 
   const visibleFacets = FACET_ORDER.filter((key) => {
@@ -48,7 +51,7 @@ export function DownloadOrgToolbar({
     <div className="space-y-3 rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-3 py-3 sm:px-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-          Organizar por metadados
+          {t("orgTitle")}
         </p>
         {hasActiveFilter && (
           <button
@@ -56,7 +59,7 @@ export function DownloadOrgToolbar({
             className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-300"
             onClick={() => onFiltersChange({ ...EMPTY_ORG_FILTERS })}
           >
-            Limpar filtros
+            {t("jobsClearOrg")}
           </button>
         )}
       </div>
@@ -65,7 +68,7 @@ export function DownloadOrgToolbar({
         {visibleFacets.map((key) => (
           <label key={key} className="flex min-w-[140px] flex-1 flex-col gap-1">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-              {ORG_FACET_LABELS[key]}
+              {t(ORG_FACET_LABEL_KEYS[key])}
             </span>
             <select
               value={filters[key] ?? ""}
@@ -77,7 +80,7 @@ export function DownloadOrgToolbar({
               }
               className="rounded-lg border border-white/[0.08] bg-[#121212] px-2.5 py-2 text-xs text-white outline-none focus:border-[#1db954]/50"
             >
-              <option value="">Todos</option>
+              <option value="">{t("jobsFilterAll")}</option>
               {facets[key].map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -90,7 +93,7 @@ export function DownloadOrgToolbar({
 
       <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.04] pt-3">
         <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-          Agrupar
+          {t("orgGroup")}
         </span>
         {(["none", "folder", "category", "date"] as const).map((key) => {
           const active = groupBy === key;
@@ -106,7 +109,7 @@ export function DownloadOrgToolbar({
               }`}
               aria-pressed={active}
             >
-              {ORG_GROUP_LABELS[key]}
+              {t(ORG_GROUP_LABEL_KEYS[key])}
             </button>
           );
         })}

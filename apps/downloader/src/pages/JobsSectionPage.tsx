@@ -37,22 +37,27 @@ import { DownloadOrgToolbar } from "../components/downloads/DownloadOrgToolbar";
 import { ZipTaskRow } from "../components/downloads/ZipTaskRow";
 import { openDownloadDir } from "../lib/native/download";
 import { openZipFile } from "../lib/native/zip";
+import { useLocale, type MessageKey } from "../i18n/LocaleContext";
 import type { DownloadJob } from "../lib/api/jobs";
 
 export type JobSection = "downloads" | "queue";
 
 const SECTION_COPY: Record<
   JobSection,
-  { eyebrow: string; empty: string; filter: (job: DownloadJob, activeJobIds: number[]) => boolean }
+  {
+    eyebrowKey: MessageKey;
+    emptyKey: MessageKey;
+    filter: (job: DownloadJob, activeJobIds: number[]) => boolean;
+  }
 > = {
   downloads: {
-    eyebrow: "Downloads",
-    empty: "Nenhum download encontrado.",
+    eyebrowKey: "navDownloads",
+    emptyKey: "jobsNoneFound",
     filter: () => true,
   },
   queue: {
-    eyebrow: "Fila",
-    empty: "Nenhum item aguardando download.",
+    eyebrowKey: "navQueue",
+    emptyKey: "jobsNoneWaiting",
     filter: (job) => job.status === "PENDING" || job.status === "RECEIVED" || job.status === "FAILED",
   },
 };
@@ -61,7 +66,7 @@ type JobsSectionPageProps = {
   section: JobSection;
 };
 
-function formatQueueLabel(queueBytes: number, jobs: DownloadJob[]) {
+function formatQueueLabel(queueBytes: number, jobs: DownloadJob[], unknownSizeLabel: string) {
   if (queueBytes > 0) return formatDiskSize(queueBytes);
   const eligible = jobs.filter(
     (job) =>
@@ -73,7 +78,7 @@ function formatQueueLabel(queueBytes: number, jobs: DownloadJob[]) {
   );
   if (eligible.length === 0) return "0 B";
   const anyKnown = eligible.some((job) => jobKnownTotalBytes(job) > 0);
-  return anyKnown ? "0 B" : "Sem tamanho informado";
+  return anyKnown ? "0 B" : unknownSizeLabel;
 }
 
 function useStressCatalogEnabled() {
@@ -88,6 +93,7 @@ function useStressCatalogEnabled() {
 }
 
 export function JobsSectionPage({ section }: JobsSectionPageProps) {
+  const { t } = useLocale();
   const { device } = useAuth();
   const {
     jobs: managerJobs,
@@ -162,7 +168,20 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     [orgFilters, statusFilteredJobs],
   );
 
-  const jobGroups = useMemo(() => groupJobsByOrg(filteredJobs, groupBy), [filteredJobs, groupBy]);
+  const groupFallbackLabels = useMemo(
+    () => ({
+      all: t("orgAllGroup"),
+      noDate: t("orgNoDate"),
+      noFolder: t("orgNoFolder"),
+      noCategory: t("orgNoCategory"),
+    }),
+    [t],
+  );
+
+  const jobGroups = useMemo(
+    () => groupJobsByOrg(filteredJobs, groupBy, groupFallbackLabels),
+    [filteredJobs, groupBy, groupFallbackLabels],
+  );
 
   // Limpa seleção de itens que saíram da lista visível.
   useEffect(() => {
@@ -228,17 +247,23 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">{copy.eyebrow}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">
+            {t(copy.eyebrowKey)}
+          </p>
           <p className="mt-1 text-sm text-zinc-400">
             {filteredJobs.length === 0
-              ? copy.empty
-              : `${filteredJobs.length} item(ns) · ${activeJobIds.length}/${maxConcurrency} ativos`}
+              ? t(copy.emptyKey)
+              : t("jobsSummary", {
+                  count: filteredJobs.length,
+                  active: activeJobIds.length,
+                  max: maxConcurrency,
+                })}
             {stressEnabled ? " · stress 500" : ""}
           </p>
         </div>
         <Button variant="primary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
           <ExternalLink className="h-4 w-4" />
-          Abrir plataforma
+          {t("commonOpenPlatform")}
         </Button>
       </div>
 
@@ -246,7 +271,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-              Espaço disponível
+              {t("jobsDiskAvailable")}
             </p>
             <p className="mt-1.5 text-lg font-bold tabular-nums text-white">
               {diskSpace.availableBytes != null ? formatDiskSize(diskSpace.availableBytes) : "—"}
@@ -254,10 +279,10 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
           </div>
           <div className="rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-              Na fila
+              {t("jobsSectionQueue")}
             </p>
             <p className="mt-1.5 text-lg font-bold tabular-nums text-[#1db954]">
-              {formatQueueLabel(liveQueueBytes, managerJobs)}
+              {formatQueueLabel(liveQueueBytes, managerJobs, t("jobsNoSizeInfo"))}
             </p>
           </div>
         </div>
@@ -266,10 +291,10 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
       {isQueue && (
         <div className="rounded-xl border border-white/[0.06] bg-[#1a1a1a] px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-            Tamanho estimado na fila
+            {t("jobsQueueEstimated")}
           </p>
           <p className="mt-1.5 text-lg font-bold tabular-nums text-[#1db954]">
-            {formatQueueLabel(liveQueueBytes, managerJobs)}
+            {formatQueueLabel(liveQueueBytes, managerJobs, t("jobsNoSizeInfo"))}
           </p>
         </div>
       )}
@@ -353,7 +378,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
       {isOffline && (
         <p className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           <WifiOff className="h-4 w-4 flex-shrink-0" />
-          Sem conexão
+          {t("commonOffline")}
         </p>
       )}
 
@@ -364,7 +389,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
       {isDownloads && zipTasks.length > 0 && (
         <div className="space-y-2.5">
           <p className="px-0.5 text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">
-            Compactação ZIP
+            {t("jobsZipSection")}
           </p>
           {zipTasks.map((task) => (
             <ZipTaskRow
@@ -394,10 +419,10 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
         </div>
       ) : filteredJobs.length === 0 ? (
         isDownloads && activeJobIds.length > 0 && !deferredQuery && statusFilter === "all" && !Object.values(orgFilters).some(Boolean) ? (
-          <p className="text-sm text-zinc-500">Preparando próximo arquivo…</p>
+          <p className="text-sm text-zinc-500">{t("jobsPreparingNext")}</p>
         ) : deferredQuery || statusFilter !== "all" || Object.values(orgFilters).some(Boolean) ? (
           <p className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-8 text-center text-sm text-zinc-500">
-            Nenhum download corresponde à busca/filtro.
+            {t("jobsNoMatch")}
           </p>
         ) : zipTasks.length > 0 ? null : (
           <EmptyQueueState offline={isOffline} />

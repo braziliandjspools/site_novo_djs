@@ -1,4 +1,5 @@
 import type { DownloadJob } from "../api/jobs";
+import type { MessageKey } from "../../i18n/translate";
 
 /** Filtros de status da UI de busca (somente local). */
 export type DownloadFinderFilter =
@@ -27,23 +28,24 @@ export const FINDER_FILTER_ORDER: DownloadFinderFilter[] = [
   "paused",
 ];
 
-export const FINDER_FILTER_LABELS: Record<DownloadFinderFilter, string> = {
-  all: "Todos",
-  downloading: "Baixando",
-  queued: "Na fila",
-  completed: "Concluídos",
-  failed: "Falharam",
-  paused: "Pausados",
+/** Chaves de tradução — a UI resolve com `t()` no ponto de uso. */
+export const FINDER_FILTER_LABEL_KEYS: Record<DownloadFinderFilter, MessageKey> = {
+  all: "jobsFilterAll",
+  downloading: "jobsFilterDownloading",
+  queued: "jobsFilterQueued",
+  completed: "jobsFilterCompleted",
+  failed: "jobsFilterFailed",
+  paused: "jobsFilterPaused",
 };
 
 /** Rótulos curtos nos contadores (ex.: "Fila 18"). */
-export const FINDER_COUNT_LABELS: Record<DownloadFinderFilter, string> = {
-  all: "Todos",
-  downloading: "Baixando",
-  queued: "Fila",
-  completed: "Concluídos",
-  failed: "Falharam",
-  paused: "Pausados",
+export const FINDER_COUNT_LABEL_KEYS: Record<DownloadFinderFilter, MessageKey> = {
+  all: "jobsFilterAll",
+  downloading: "jobsFilterDownloading",
+  queued: "jobsFinderCountQueued",
+  completed: "jobsFilterCompleted",
+  failed: "jobsFilterFailed",
+  paused: "jobsFilterPaused",
 };
 
 function normalizeQuery(query: string) {

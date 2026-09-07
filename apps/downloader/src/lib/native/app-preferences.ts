@@ -1,4 +1,5 @@
 import { normalizeTimeInput } from "../download/download-schedule";
+import { normalizeLocale, type AppLocale } from "../../i18n/types";
 
 export type ExistingFileBehavior = "ignore" | "ask" | "replace" | "rename";
 
@@ -29,6 +30,10 @@ export type AppPreferences = {
   zipCompressDownloads: boolean;
   /** Verificar novas versões do app no site e avisar no sininho. */
   checkAppUpdates: boolean;
+  /** Idioma da interface: pt-BR (padrão), en, es. */
+  locale: AppLocale;
+  /** true depois que o usuário escolheu idioma na primeira abertura. */
+  localeConfigured: boolean;
 };
 
 export const DEFAULT_PREFERENCES: AppPreferences = {
@@ -49,6 +54,8 @@ export const DEFAULT_PREFERENCES: AppPreferences = {
   scheduleAllowManualOverride: true,
   zipCompressDownloads: false,
   checkAppUpdates: true,
+  locale: "pt-BR",
+  localeConfigured: false,
 };
 
 const MB = 1024 * 1024;
@@ -92,6 +99,8 @@ function normalizePreferences(raw: Partial<AppPreferences> | null | undefined): 
   merged.scheduleEnd = normalizeTimeInput(String(merged.scheduleEnd ?? "07:00"), "07:00");
   merged.zipCompressDownloads = Boolean(merged.zipCompressDownloads);
   merged.checkAppUpdates = merged.checkAppUpdates !== false;
+  merged.locale = normalizeLocale(merged.locale);
+  merged.localeConfigured = Boolean(merged.localeConfigured);
   return merged;
 }
 

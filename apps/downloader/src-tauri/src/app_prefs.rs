@@ -91,6 +91,12 @@ pub struct AppPreferences {
     /// Verificar novas versões publicadas no site e avisar no sininho.
     #[serde(default = "default_true")]
     pub check_app_updates: bool,
+    /// Idioma da UI: pt-BR | en | es
+    #[serde(default = "default_locale")]
+    pub locale: String,
+    /// true após o usuário escolher o idioma na primeira abertura.
+    #[serde(default)]
+    pub locale_configured: bool,
 }
 
 fn default_true() -> bool {
@@ -111,6 +117,19 @@ fn default_schedule_start() -> String {
 
 fn default_schedule_end() -> String {
     "07:00".to_string()
+}
+
+fn default_locale() -> String {
+    "pt-BR".to_string()
+}
+
+fn normalize_locale(value: &str) -> String {
+    match value.trim() {
+        "en" | "en-US" | "en-GB" => "en".to_string(),
+        "es" | "es-ES" | "es-MX" | "es-AR" => "es".to_string(),
+        "pt" | "pt-BR" | "pt-PT" => "pt-BR".to_string(),
+        _ => "pt-BR".to_string(),
+    }
 }
 
 fn normalize_hhmm(value: &str, fallback: &str) -> String {
@@ -151,6 +170,8 @@ impl Default for AppPreferences {
             schedule_allow_manual_override: true,
             zip_compress_downloads: false,
             check_app_updates: true,
+            locale: default_locale(),
+            locale_configured: false,
         }
     }
 }
@@ -182,6 +203,7 @@ impl AppPreferences {
         self.speed_limit_custom_mbps = self.speed_limit_custom_mbps.clamp(0.1, 1000.0);
         self.schedule_start = normalize_hhmm(&self.schedule_start, "00:00");
         self.schedule_end = normalize_hhmm(&self.schedule_end, "07:00");
+        self.locale = normalize_locale(&self.locale);
     }
 }
 

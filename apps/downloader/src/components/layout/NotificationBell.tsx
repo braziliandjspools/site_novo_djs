@@ -15,6 +15,7 @@ import { openUpdateDownload } from "../../lib/updater";
 import { openPlatform } from "../../lib/open-site";
 import { BP_PORTAL_URL } from "../../lib/site";
 import { Button } from "../ui/Button";
+import { useLocale } from "../../i18n/LocaleContext";
 
 type NotificationBellProps = {
   onOpenPortal?: () => void;
@@ -42,6 +43,7 @@ function kindIcon(kind: AppNotification["kind"]) {
 }
 
 export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationBellProps) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>(() => inAppNotificationFeed.list());
 
@@ -99,8 +101,10 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
             ? "border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
             : "border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white"
         }`}
-        aria-label={hasAlert ? `${unread} notificações` : "Notificações"}
-        title={hasAlert ? `${unread} nova(s)` : "Notificações"}
+        aria-label={
+          hasAlert ? t("notificationsCountAria", { count: unread }) : t("notificationsTitle")
+        }
+        title={hasAlert ? t("notificationsNewAria", { count: unread }) : t("notificationsTitle")}
       >
         <Bell className="h-4 w-4" />
         {hasAlert && (
@@ -116,7 +120,7 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
         <div className="absolute right-0 z-40 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
           <div className="flex items-center justify-between gap-2 px-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Notificações
+              {t("notificationsTitle")}
             </p>
             {items.length > 0 && (
               <button
@@ -124,14 +128,14 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
                 className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-300"
                 onClick={() => inAppNotificationFeed.clear()}
               >
-                Limpar
+                {t("commonClear")}
               </button>
             )}
           </div>
 
           {items.length === 0 ? (
             <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-3 text-sm text-zinc-400">
-              Nenhuma notificação no momento.
+              {t("notificationsEmpty")}
             </p>
           ) : (
             <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
@@ -164,7 +168,7 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
                     <button
                       type="button"
                       className="rounded-md p-1 text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
-                      aria-label="Dispensar"
+                      aria-label={t("notificationsDismiss")}
                       onClick={() => inAppNotificationFeed.dismiss(item.id)}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -185,7 +189,7 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
                 else void openPlatform(BP_PORTAL_URL);
               }}
             >
-              Portal
+              {t("navPortal")}
             </Button>
             {onOpenSettings && (
               <Button
@@ -196,7 +200,7 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
                   onOpenSettings();
                 }}
               >
-                Configurações
+                {t("navSettings")}
               </Button>
             )}
           </div>

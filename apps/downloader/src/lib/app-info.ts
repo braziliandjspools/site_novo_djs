@@ -1,16 +1,37 @@
+import type { MessageKey } from "../i18n/translate";
+
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "0.4.0";
-export const APP_CORE_VERSION = "0.4.0";
+export const WEBUI_VERSION = "0.5.0_beta";
+export const APP_CORE_VERSION = "0.5.0_beta";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
 export type ChangelogEntry = {
   version: string;
   date: string;
+  /** Itens em português; versões anteriores ao suporte multilíngue. */
   items: string[];
+  /** Quando presente, a UI traduz estas chaves e ignora `items`. */
+  itemKeys?: MessageKey[];
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.5.0_beta",
+    date: "2026-09-07",
+    items: [
+      "App em três idiomas: português, inglês e espanhol",
+      "Tela de escolha de idioma na primeira abertura",
+      "Troca de idioma em Configurações, aplicada na hora",
+      "Textos revisados em toda a interface, incluindo notificações",
+    ],
+    itemKeys: [
+      "changelogV050betaItem1",
+      "changelogV050betaItem2",
+      "changelogV050betaItem3",
+      "changelogV050betaItem4",
+    ],
+  },
   {
     version: "0.4.0",
     date: "2026-09-04",

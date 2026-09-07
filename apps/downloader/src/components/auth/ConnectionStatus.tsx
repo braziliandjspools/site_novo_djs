@@ -1,4 +1,5 @@
 import { DOWNLOADER_NAME } from "../../lib/site";
+import { useLocale } from "../../i18n/LocaleContext";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo } from "../../context/AuthContext";
 
@@ -9,6 +10,7 @@ type ConnectionStatusProps = {
 };
 
 export function ConnectionStatus({ device, connectionState, error }: ConnectionStatusProps) {
+  const { t } = useLocale();
   const isOffline = connectionState === "offline";
   const isConnecting = connectionState === "connecting";
 
@@ -38,7 +40,11 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
           }`}
           aria-hidden
         />
-        {isOffline ? "Sem conexão" : isConnecting ? "Conectando…" : "Conectado"}
+        {isOffline
+          ? t("connectionNoConnection")
+          : isConnecting
+            ? t("connectionConnecting")
+            : t("connectionConnected")}
       </p>
       <p className="mt-2 truncate text-sm font-bold tracking-wide text-white">{device.deviceName}</p>
       <p className="text-xs text-zinc-500">{device.platformLabel}</p>

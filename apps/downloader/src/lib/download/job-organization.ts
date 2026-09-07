@@ -1,4 +1,5 @@
 import type { DownloadJob } from "../api/jobs";
+import type { MessageKey } from "../../i18n/translate";
 
 /**
  * Organização local a partir dos metadados que já chegam no job:
@@ -58,20 +59,21 @@ export const EMPTY_ORG_FILTERS: OrgMetaFilters = {
   editType: null,
 };
 
-export const ORG_GROUP_LABELS: Record<OrgGroupBy, string> = {
-  none: "Sem agrupamento",
-  folder: "Pasta",
-  category: "Categoria",
-  date: "Data",
+/** Chaves de tradução — a UI resolve com `t()` no ponto de uso. */
+export const ORG_GROUP_LABEL_KEYS: Record<OrgGroupBy, MessageKey> = {
+  none: "jobsOrgNone",
+  folder: "jobsOrgByFolder",
+  category: "orgCategory",
+  date: "orgDate",
 };
 
-export const ORG_FACET_LABELS: Record<OrgFacetKey, string> = {
-  genre: "Gênero",
-  pool: "Pool",
-  month: "Mês",
-  category: "Categoria",
-  folder: "Pasta",
-  editType: "Tipo de edit",
+export const ORG_FACET_LABEL_KEYS: Record<OrgFacetKey, MessageKey> = {
+  genre: "jobsOrgByGenre",
+  pool: "orgPool",
+  month: "jobsOrgByMonth",
+  category: "orgCategory",
+  folder: "jobsOrgByFolder",
+  editType: "orgEditType",
 };
 
 /** Reconhece pools só quando o texto do job contém o token (não cria opções vazias). */
@@ -254,9 +256,31 @@ export type OrgJobGroup = {
   jobs: DownloadJob[];
 };
 
-export function groupJobsByOrg(jobs: DownloadJob[], groupBy: OrgGroupBy): OrgJobGroup[] {
+/**
+ * Rótulos que não vêm dos metadados do job. A UI passa os textos já traduzidos;
+ * os padrões em português mantêm os testes e chamadas sem `t` funcionando.
+ */
+export type OrgGroupFallbackLabels = {
+  all: string;
+  noDate: string;
+  noFolder: string;
+  noCategory: string;
+};
+
+const DEFAULT_GROUP_FALLBACK_LABELS: OrgGroupFallbackLabels = {
+  all: "Todos",
+  noDate: "Sem data",
+  noFolder: "Sem pasta",
+  noCategory: "Sem categoria",
+};
+
+export function groupJobsByOrg(
+  jobs: DownloadJob[],
+  groupBy: OrgGroupBy,
+  fallbackLabels: OrgGroupFallbackLabels = DEFAULT_GROUP_FALLBACK_LABELS,
+): OrgJobGroup[] {
   if (groupBy === "none" || jobs.length === 0) {
-    return [{ key: "all", label: "Todos", jobs }];
+    return [{ key: "all", label: fallbackLabels.all, jobs }];
   }
 
   const buckets = new Map<string, DownloadJob[]>();
@@ -284,13 +308,17 @@ export function groupJobsByOrg(jobs: DownloadJob[], groupBy: OrgGroupBy): OrgJob
       let label = key;
       if (key === "__none__") {
         label =
-          groupBy === "date" ? "Sem data" : groupBy === "folder" ? "Sem pasta" : "Sem categoria";
+          groupBy === "date"
+            ? fallbackLabels.noDate
+            : groupBy === "folder"
+              ? fallbackLabels.noFolder
+              : fallbackLabels.noCategory;
       } else if (groupBy === "folder") {
-        label = meta?.folder ?? "Sem pasta";
+        label = meta?.folder ?? fallbackLabels.noFolder;
       } else if (groupBy === "category") {
-        label = meta?.category ?? "Sem categoria";
+        label = meta?.category ?? fallbackLabels.noCategory;
       } else if (groupBy === "date") {
-        label = meta?.dateLabel ?? "Sem data";
+        label = meta?.dateLabel ?? fallbackLabels.noDate;
       }
       return { key, label, jobs: groupJobs };
     })

@@ -8,7 +8,7 @@ import { APP_VERSION, DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBas
 import { APP_CHANGELOG, APP_CORE_VERSION, RUSTC_VERSION, WEBUI_VERSION } from "../lib/app-info";
 import { checkForAppUpdates, openUpdateDownload } from "../lib/updater";
 import { openPlatform } from "../lib/open-site";
-import { BP_MUSICAS_URL, BP_PRIVACY_CONDUCT_URL, BP_PRIVACY_COOKIES_URL, BP_PRIVACY_DOWNLOADER_URL, SITE_NAME } from "../lib/site";
+import { BP_MUSICAS_URL, BP_PRIVACY_CONDUCT_URL, BP_PRIVACY_COOKIES_URL, BP_PRIVACY_DOWNLOADER_URL } from "../lib/site";
 import { downloadManager } from "../lib/download/download-manager";
 import { notificationManager } from "../lib/notifications/notification-manager";
 import {
@@ -25,28 +25,33 @@ import {
   openDownloadDir,
   pickDownloadDir,
 } from "../lib/native/download";
+import { useLocale, type MessageKey } from "../i18n/LocaleContext";
+import { LanguagePicker } from "../i18n/LanguagePicker";
 
-const EXISTING_FILE_OPTIONS: { value: ExistingFileBehavior; label: string; description: string }[] = [
+const EXISTING_FILE_OPTIONS: {
+  value: ExistingFileBehavior;
+  labelKey: MessageKey;
+  descriptionKey: MessageKey;
+}[] = [
   {
     value: "ignore",
-    label: "Ignorar automaticamente",
-    description:
-      "Pula o download quando o arquivo já existe. Arquivos comprovadamente iguais (mesmo ID e tamanho) são sempre ignorados.",
+    labelKey: "settingsExistingIgnore",
+    descriptionKey: "settingsExistingIgnoreDesc",
   },
   {
     value: "ask",
-    label: "Perguntar",
-    description: "Exibe um diálogo para substituir, renomear ou ignorar quando houver conflito.",
+    labelKey: "settingsExistingAsk",
+    descriptionKey: "settingsExistingAskDesc",
   },
   {
     value: "rename",
-    label: "Renomear automaticamente",
-    description: "musica.mp3 → musica (1).mp3 quando o arquivo já existir.",
+    labelKey: "settingsExistingRename",
+    descriptionKey: "settingsExistingRenameDesc",
   },
   {
     value: "replace",
-    label: "Substituir",
-    description: "Sobrescreve o arquivo existente na pasta de destino.",
+    labelKey: "settingsExistingReplace",
+    descriptionKey: "settingsExistingReplaceDesc",
   },
 ];
 
@@ -78,6 +83,7 @@ function PreferenceToggle({
 }
 
 export function SettingsPage() {
+  const { t, locale, setLocale } = useLocale();
   const { user, device, logout } = useAuth();
   const { maxConcurrency, setMaxConcurrency } = useDownloadManager();
   const [downloadDir, setDownloadDir] = useState<string>("");
@@ -106,7 +112,7 @@ export function SettingsPage() {
         const dir = await getDownloadDir();
         setDownloadDir(dir);
       } catch (error) {
-        setDirError(error instanceof Error ? error.message : "Não foi possível carregar a pasta.");
+        setDirError(error instanceof Error ? error.message : t("settingsFolderLoadError"));
       } finally {
         setLoadingDir(false);
       }
@@ -125,7 +131,7 @@ export function SettingsPage() {
       downloadManager.setZipCompressDownloads(saved.zipCompressDownloads);
       notificationManager.setEnabled(saved.showNotifications);
     } catch (error) {
-      setPrefsError(error instanceof Error ? error.message : "Não foi possível salvar.");
+      setPrefsError(error instanceof Error ? error.message : t("settingsSaveError"));
     }
   }
 
@@ -138,7 +144,7 @@ export function SettingsPage() {
         void downloadManager.refreshDiskSpace();
       }
     } catch (error) {
-      setDirError(error instanceof Error ? error.message : "Não foi possível alterar a pasta.");
+      setDirError(error instanceof Error ? error.message : t("settingsFolderChangeError"));
     }
   }
 
@@ -147,7 +153,7 @@ export function SettingsPage() {
     try {
       await openDownloadDir();
     } catch (error) {
-      setDirError(error instanceof Error ? error.message : "Não foi possível abrir a pasta.");
+      setDirError(error instanceof Error ? error.message : t("settingsFolderOpenError"));
     }
   }
 
@@ -174,28 +180,33 @@ export function SettingsPage() {
   }
 
   const speedLimitOptions: { value: SpeedLimitMode; label: string }[] = [
-    { value: "unlimited", label: "Sem limite" },
+    { value: "unlimited", label: t("settingsSpeedUnlimited") },
     { value: "1", label: "1 MB/s" },
     { value: "2", label: "2 MB/s" },
     { value: "5", label: "5 MB/s" },
     { value: "10", label: "10 MB/s" },
     { value: "20", label: "20 MB/s" },
-    { value: "custom", label: "Personalizado" },
+    { value: "custom", label: t("settingsSpeedCustom") },
   ];
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-      <Panel title="Conta" description={`Sua sessão VIP conectada ao ${SITE_NAME}.`}>
+      <Panel title={t("settingsAccount")} description={t("settingsAccountDesc")}>
         <div className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1db954]/10 text-[#1db954]">
             <User className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white">{user?.name}</p>
-            <p className="mt-1 text-xs text-zinc-500">Plano {user?.plan}</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              {t("settingsPlan", { plan: user?.plan ?? "—" })}
+            </p>
             {device && (
               <p className="mt-2 text-xs text-zinc-600">
-                Dispositivo: {device.deviceName} · {device.platformLabel}
+                {t("settingsDevice", {
+                  name: device.deviceName,
+                  platform: device.platformLabel,
+                })}
               </p>
             )}
           </div>
@@ -206,39 +217,54 @@ export function SettingsPage() {
           onClick={() => void logout()}
         >
           <LogOut className="h-4 w-4" />
-          Sair da conta
+          {t("settingsLogout")}
         </Button>
       </Panel>
 
-      <Panel title="Windows" description="Integração com bandeja, inicialização e notificações.">
+      <Panel title={t("settingsLanguage")} description={t("settingsLanguageDesc")}>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-white">{t("languageCurrent")}</p>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-500">{t("settingsLanguageHint")}</p>
+          </div>
+          <LanguagePicker
+            value={locale}
+            onChange={(next) => void setLocale(next)}
+            variant="select"
+            className="flex-shrink-0"
+          />
+        </div>
+      </Panel>
+
+      <Panel title={t("settingsWindows")} description={t("settingsWindowsDesc")}>
         <div className="space-y-2">
           <PreferenceToggle
-            label="Iniciar com Windows"
-            description="Abre o downloader automaticamente ao ligar o computador."
+            label={t("settingsStartWithWindows")}
+            description={t("settingsStartWithWindowsDesc")}
             checked={prefs.startWithWindows}
             onChange={(checked) => void updatePreference({ startWithWindows: checked })}
           />
           <PreferenceToggle
-            label="Minimizar para bandeja"
-            description="Ao fechar a janela, o app continua na bandeja e mantém os downloads."
+            label={t("settingsMinimizeToTray")}
+            description={t("settingsMinimizeToTrayDesc")}
             checked={prefs.minimizeToTray}
             onChange={(checked) => void updatePreference({ minimizeToTray: checked })}
           />
           <PreferenceToggle
-            label="Baixar automaticamente"
-            description="Inicia downloads assim que novas músicas entrarem na fila."
+            label={t("settingsAutoDownload")}
+            description={t("settingsAutoDownloadDesc")}
             checked={prefs.autoDownload}
             onChange={(checked) => void updatePreference({ autoDownload: checked })}
           />
           <PreferenceToggle
-            label="Mostrar notificações"
-            description="Alertas nativos do Windows e entradas no sininho para novas músicas, conclusões e falhas."
+            label={t("settingsShowNotifications")}
+            description={t("settingsShowNotificationsDesc")}
             checked={prefs.showNotifications}
             onChange={(checked) => void updatePreference({ showNotifications: checked })}
           />
           <PreferenceToggle
-            label="Verificar atualizações do aplicativo"
-            description="O app consulta o site periodicamente e avisa no sininho quando houver um novo instalador (.exe)."
+            label={t("settingsCheckUpdates")}
+            description={t("settingsCheckUpdatesDesc")}
             checked={prefs.checkAppUpdates}
             onChange={(checked) => void updatePreference({ checkAppUpdates: checked })}
           />
@@ -246,36 +272,30 @@ export function SettingsPage() {
         {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
       </Panel>
 
-      <Panel
-        title="Organização"
-        description="Como salvar arquivos e lidar com duplicatas na pasta de destino."
-      >
+      <Panel title={t("settingsOrganization")} description={t("settingsOrganizationDesc")}>
         <div className="space-y-2">
           <PreferenceToggle
-            label="Preservar estrutura de pastas"
-            description="Mantém subpastas do site (ex.: Funk/Setembro 2026/musica.mp3) dentro da pasta de downloads."
+            label={t("settingsPreserveStructure")}
+            description={t("settingsPreserveStructureDesc")}
             checked={prefs.preserveFolderStructure}
             onChange={(checked) => void updatePreference({ preserveFolderStructure: checked })}
           />
           <div className="space-y-2">
             <PreferenceToggle
-              label="Compactar downloads em arquivo ZIP"
-              description="Cria um único arquivo ZIP com as músicas após o download."
+              label={t("settingsZipCompress")}
+              description={t("settingsZipCompressDesc")}
               checked={prefs.zipCompressDownloads}
               onChange={(checked) => void updatePreference({ zipCompressDownloads: checked })}
             />
             <div className="flex items-start gap-2 rounded-lg border border-zinc-800/80 bg-black/20 px-3 py-2.5 text-xs leading-relaxed text-zinc-500">
               <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-zinc-500" aria-hidden />
-              <span>
-                Esta opção utiliza recursos moderados do seu computador durante a compactação,
-                principalmente em packs grandes.
-              </span>
+              <span>{t("settingsZipHint")}</span>
             </div>
           </div>
           <div className="rounded-lg border border-zinc-800 bg-black/40 p-4">
-            <p className="text-sm font-semibold text-white">Arquivos duplicados</p>
+            <p className="text-sm font-semibold text-white">{t("settingsExistingFile")}</p>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-              Como tratar arquivos que já existem na pasta de destino (análise local, sem consulta ao servidor).
+              {t("settingsExistingFileDesc")}
             </p>
             <div className="mt-3 space-y-2">
               {EXISTING_FILE_OPTIONS.map((option) => (
@@ -291,8 +311,10 @@ export function SettingsPage() {
                     className="mt-1 h-4 w-4 border-zinc-600 bg-zinc-900 text-[#1db954] focus:ring-[#1db954]"
                   />
                   <span>
-                    <span className="block text-sm text-white">{option.label}</span>
-                    <span className="mt-0.5 block text-xs text-zinc-500">{option.description}</span>
+                    <span className="block text-sm text-white">{t(option.labelKey)}</span>
+                    <span className="mt-0.5 block text-xs text-zinc-500">
+                      {t(option.descriptionKey)}
+                    </span>
                   </span>
                 </label>
               ))}
@@ -302,39 +324,36 @@ export function SettingsPage() {
         {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
       </Panel>
 
-      <Panel title="Pasta de downloads" description="Local onde os arquivos finalizados são salvos.">
+      <Panel title={t("settingsDownloadFolder")} description={t("settingsDownloadFolderDesc")}>
         <div className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
             <FolderOpen className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white">
-              {loadingDir ? "Carregando..." : downloadDir || "Não configurada"}
+              {loadingDir ? t("commonLoading") : downloadDir || t("settingsFolderNotSet")}
             </p>
             <p className="mt-1 break-all text-xs leading-relaxed text-zinc-500">
-              {downloadDir || "Escolha uma pasta para iniciar os downloads."}
+              {downloadDir || t("settingsFolderPickHint")}
             </p>
           </div>
         </div>
         {dirError && <p className="mt-3 text-xs text-red-400">{dirError}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => void handlePickFolder()}>
-            Alterar pasta
+            {t("settingsPickFolder")}
           </Button>
           <Button variant="secondary" disabled={!downloadDir} onClick={() => void handleOpenFolder()}>
-            Abrir pasta
+            {t("settingsOpenFolder")}
           </Button>
         </div>
       </Panel>
 
-      <Panel
-        title="Downloads"
-        description="Agendamento local da fila. Não usa servidor nem Neon."
-      >
+      <Panel title={t("settingsDownloads")} description={t("settingsDownloadsDesc")}>
         <div className="space-y-3">
           <PreferenceToggle
-            label="Baixar somente em determinados horários"
-            description="Fora da janela, novos downloads aguardam. Ao entrar no horário, a fila retoma sozinha."
+            label={t("settingsScheduleEnabled")}
+            description={t("settingsScheduleEnabledDesc")}
             checked={prefs.scheduleEnabled}
             onChange={(checked) => void updatePreference({ scheduleEnabled: checked })}
           />
@@ -347,7 +366,7 @@ export function SettingsPage() {
                     htmlFor="scheduleStart"
                     className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500"
                   >
-                    Iniciar
+                    {t("settingsScheduleStart")}
                   </label>
                   <input
                     id="scheduleStart"
@@ -370,7 +389,7 @@ export function SettingsPage() {
                     htmlFor="scheduleEnd"
                     className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500"
                   >
-                    Parar
+                    {t("settingsScheduleEnd")}
                   </label>
                   <input
                     id="scheduleEnd"
@@ -389,16 +408,13 @@ export function SettingsPage() {
                   />
                 </div>
               </div>
-              <p className="mt-3 text-xs leading-relaxed text-zinc-600">
-                Intervalos que atravessam meia-noite são suportados (ex.: 23:00 → 06:00). Ao terminar o horário, os
-                downloads ativos são pausados com retomada — sem cancelar jobs.
-              </p>
+              <p className="mt-3 text-xs leading-relaxed text-zinc-600">{t("settingsScheduleHint")}</p>
             </div>
           )}
 
           <PreferenceToggle
-            label="Downloads iniciados manualmente ignoram o horário"
-            description="Retomar ou tentar novamente pela interface pode iniciar mesmo fora da janela."
+            label={t("settingsScheduleOverride")}
+            description={t("settingsScheduleOverrideDesc")}
             checked={prefs.scheduleAllowManualOverride}
             onChange={(checked) => void updatePreference({ scheduleAllowManualOverride: checked })}
           />
@@ -406,10 +422,7 @@ export function SettingsPage() {
         {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
       </Panel>
 
-      <Panel
-        title="Downloads simultâneos"
-        description="Quantos arquivos baixar ao mesmo tempo. Padrão: 3."
-      >
+      <Panel title={t("settingsConcurrency")} description={t("settingsConcurrencyDesc")}>
         <div className="flex flex-wrap gap-2">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
@@ -428,12 +441,9 @@ export function SettingsPage() {
         </div>
       </Panel>
 
-      <Panel
-        title="Rede"
-        description="Limite total de velocidade compartilhado entre todos os downloads ativos."
-      >
+      <Panel title={t("settingsNetwork")} description={t("settingsNetworkDesc")}>
         <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
-          Limite de velocidade
+          {t("settingsSpeedLimit")}
         </p>
         <div className="flex flex-wrap gap-2">
           {speedLimitOptions.map((option) => (
@@ -458,7 +468,7 @@ export function SettingsPage() {
               htmlFor="speedLimitCustomMbps"
               className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500"
             >
-              Velocidade personalizada (MB/s)
+              {t("settingsSpeedCustomLabel")}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -483,17 +493,14 @@ export function SettingsPage() {
           </div>
         )}
 
-        <p className="mt-3 text-xs leading-relaxed text-zinc-600">
-          O limite vale para o conjunto dos downloads (não por arquivo). Alterações valem na hora, inclusive durante
-          transferências em andamento.
-        </p>
+        <p className="mt-3 text-xs leading-relaxed text-zinc-600">{t("settingsSpeedHint")}</p>
         {prefsError && <p className="mt-2 text-xs text-red-400">{prefsError}</p>}
       </Panel>
 
-      <Panel title="Aplicativo" description="Versão instalada, atualizações e conexão com o site.">
+      <Panel title={t("settingsApplication")} description={t("settingsApplicationDesc")}>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
-            <dt className="text-zinc-500">Versão instalada</dt>
+            <dt className="text-zinc-500">{t("settingsInstalledVersion")}</dt>
             <dd className="font-mono font-semibold text-white">{APP_VERSION}</dd>
           </div>
         </dl>
@@ -517,12 +524,12 @@ export function SettingsPage() {
             }}
           >
             {updateBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Verificar atualizações
+            {updateBusy ? t("settingsCheckingUpdates") : t("settingsCheckUpdatesNow")}
           </Button>
           {latestDownloadUrl && (
             <Button variant="primary" onClick={() => void openUpdateDownload(latestDownloadUrl)}>
               <Download className="h-4 w-4" />
-              Baixar nova versão
+              {t("settingsDownloadUpdate")}
             </Button>
           )}
         </div>
@@ -530,7 +537,7 @@ export function SettingsPage() {
 
         <div className="mt-4">
           <label htmlFor="apiBaseUrl" className="mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
-            URL do site (API)
+            {t("settingsApiUrl")}
           </label>
           <input
             id="apiBaseUrl"
@@ -551,42 +558,42 @@ export function SettingsPage() {
             className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#1db954]"
           />
           <p className="mt-2 text-xs text-zinc-600">
-            Padrão do build: {DEFAULT_API_BASE_URL}. Use http://localhost:3000 em desenvolvimento.
+            {t("settingsApiDefaultHint", { url: DEFAULT_API_BASE_URL })}
           </p>
         </div>
       </Panel>
 
-      <Panel title="Sobre" description="Informações do app, versões e links legais.">
+      <Panel title={t("settingsAbout")} description={t("settingsAboutDesc")}>
         <button
           type="button"
           onClick={() => void openPlatform(BP_MUSICAS_URL)}
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1db954] px-5 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-[#1ed760]"
         >
           <ExternalLink className="h-4 w-4" />
-          APP ONLINE
+          {t("settingsAppOnline")}
         </button>
 
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
-            <dt className="text-zinc-500">Versão WebUI atual</dt>
+            <dt className="text-zinc-500">{t("settingsWebuiVersion")}</dt>
             <dd className="font-mono font-semibold text-white">{WEBUI_VERSION}</dd>
           </div>
           <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
-            <dt className="text-zinc-500">Versão atual</dt>
+            <dt className="text-zinc-500">{t("settingsCoreVersion")}</dt>
             <dd className="font-mono font-semibold text-white">{APP_CORE_VERSION}</dd>
           </div>
           <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">
-            <dt className="text-zinc-500">Versão do Rust</dt>
+            <dt className="text-zinc-500">{t("settingsRustcVersion")}</dt>
             <dd className="font-mono font-semibold text-white">{RUSTC_VERSION}</dd>
           </div>
         </dl>
 
-        <p className="mt-4 text-xs leading-relaxed text-zinc-400">
-          Este app usa a biblioteca Rust, na qual você pode se basear para criar sua própria UI no futuro.
-        </p>
+        <p className="mt-4 text-xs leading-relaxed text-zinc-400">{t("settingsRustNote")}</p>
 
         <div className="mt-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]">Changelog</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]">
+            {t("settingsChangelog")}
+          </p>
           <div className="mt-3 space-y-4">
             {APP_CHANGELOG.map((entry) => (
               <div key={entry.version} className="rounded-xl border border-white/[0.06] bg-[#141414] px-4 py-3">
@@ -595,7 +602,7 @@ export function SettingsPage() {
                   <p className="text-[11px] text-zinc-500">{entry.date}</p>
                 </div>
                 <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-zinc-400">
-                  {entry.items.map((item) => (
+                  {(entry.itemKeys ? entry.itemKeys.map((key) => t(key)) : entry.items).map((item) => (
                     <li key={item} className="flex gap-2">
                       <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-[#1db954]" />
                       <span>{item}</span>
@@ -610,27 +617,25 @@ export function SettingsPage() {
         <div className="mt-5 flex flex-col gap-2">
           <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}>
             <ExternalLink className="h-4 w-4" />
-            Política de Privacidade
+            {t("settingsPrivacyPolicy")}
           </Button>
           <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}>
             <ExternalLink className="h-4 w-4" />
-            Política de Cookies
+            {t("settingsCookiesPolicy")}
           </Button>
           <Button variant="secondary" onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}>
             <ExternalLink className="h-4 w-4" />
-            Código de Conduta
+            {t("settingsConductCode")}
           </Button>
         </div>
-        <p className="mt-3 text-xs text-zinc-600">
-          Políticas abrem no navegador padrão.
-        </p>
+        <p className="mt-3 text-xs text-zinc-600">{t("settingsPoliciesHint")}</p>
       </Panel>
 
-      <Panel title="Plataforma" description="Acesse o catálogo VIP para enviar músicas ao Downloader.">
+      <Panel title={t("settingsPlatform")} description={t("settingsPlatformDesc")}>
         <p className="mb-4 break-all text-xs text-zinc-600">{BP_MUSICAS_URL}</p>
         <Button variant="secondary" onClick={() => void openPlatform()}>
           <ExternalLink className="h-4 w-4" />
-          Abrir plataforma
+          {t("settingsOpenPlatform")}
         </Button>
       </Panel>
     </div>

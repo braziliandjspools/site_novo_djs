@@ -17,36 +17,38 @@ import { PortalPage } from "./pages/PortalPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { useWindowsIntegration } from "./hooks/useWindowsIntegration";
 import { DesktopRequiredNotice } from "./components/DesktopRequiredNotice";
+import { LanguageOnboardingPage } from "./pages/LanguageOnboardingPage";
+import { LocaleProvider, useLocale, type MessageKey } from "./i18n/LocaleContext";
 import type { DownloadJob } from "./lib/api/jobs";
 
-const PAGE_META: Record<AppRoute, { title: string; subtitle: string }> = {
+const PAGE_META: Record<AppRoute, { title: MessageKey; subtitle: MessageKey }> = {
   home: {
-    title: "Início",
-    subtitle: "Visão geral da sua fila, conexão e atalhos rápidos.",
+    title: "pagesHomeTitle",
+    subtitle: "pagesHomeSubtitle",
   },
   downloads: {
-    title: "Downloads",
-    subtitle: "Acompanhe os arquivos sendo baixados agora.",
+    title: "pagesDownloadsTitle",
+    subtitle: "pagesDownloadsSubtitle",
   },
   queue: {
-    title: "Fila",
-    subtitle: "Itens aguardando ou prontos para iniciar no seu PC.",
+    title: "pagesQueueTitle",
+    subtitle: "pagesQueueSubtitle",
   },
   completed: {
-    title: "Concluídos",
-    subtitle: "Downloads finalizados sincronizados com o site.",
+    title: "pagesCompletedTitle",
+    subtitle: "pagesCompletedSubtitle",
   },
   history: {
-    title: "Histórico",
-    subtitle: "Revise conclusões, falhas e reenvie quando necessário.",
+    title: "pagesHistoryTitle",
+    subtitle: "pagesHistorySubtitle",
   },
   portal: {
-    title: "Portal",
-    subtitle: "Gerencie seu plano, renovação e serviços VIP.",
+    title: "pagesPortalTitle",
+    subtitle: "pagesPortalSubtitle",
   },
   settings: {
-    title: "Configurações",
-    subtitle: "Conta, destino dos arquivos e preferências do aplicativo.",
+    title: "pagesSettingsTitle",
+    subtitle: "pagesSettingsSubtitle",
   },
 };
 
@@ -78,6 +80,7 @@ function countJobs(jobs: DownloadJob[], activeJobIds: number[], deviceId: string
 
 function AuthenticatedApp() {
   const { user, device, logout } = useAuth();
+  const { t } = useLocale();
   const { connectionState, jobs, activeJobIds, workerError } = useDownloadManager();
   const [route, setRoute] = useState<AppRoute>(() => loadActiveRoute("home"));
   const [folderConfigured, setFolderConfigured] = useState<boolean | null>(null);
@@ -133,8 +136,8 @@ function AuthenticatedApp() {
     <AppShell
       activeRoute={route}
       onNavigate={setRoute}
-      title={meta.title}
-      subtitle={meta.subtitle}
+      title={t(meta.title)}
+      subtitle={t(meta.subtitle)}
       userName={user.name}
       device={device}
       connectionState={connectionState}
@@ -154,19 +157,34 @@ function AuthenticatedApp() {
   );
 }
 
+function LoadingScreen() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-[var(--background)]">
+      <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
+    </div>
+  );
+}
+
 function AppContent() {
   const { status } = useAuth();
+  const { ready: localeReady, localeConfigured } = useLocale();
 
   if (!isDesktopRuntime()) {
     return <DesktopRequiredNotice />;
   }
 
+  // As preferências ainda estão sendo lidas: sem elas não dá para saber se o
+  // usuário já escolheu o idioma, e piscar a tela errada é pior que esperar.
+  if (!localeReady) {
+    return <LoadingScreen />;
+  }
+
+  if (!localeConfigured) {
+    return <LanguageOnboardingPage />;
+  }
+
   if (status === "loading") {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[var(--background)]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (status !== "authenticated") {
@@ -182,9 +200,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <LocaleProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </LocaleProvider>
   );
 }
 

@@ -1,6 +1,7 @@
 import { Archive, CheckCircle2, FolderOpen, Loader2, RotateCcw, X, XCircle } from "lucide-react";
 import type { ZipTask } from "../../lib/download/zip-coordinator";
 import { Button } from "../ui/Button";
+import { useLocale, type MessageKey } from "../../i18n/LocaleContext";
 
 type ZipTaskRowProps = {
   task: ZipTask;
@@ -11,20 +12,21 @@ type ZipTaskRowProps = {
   onOpenFolder?: () => void;
 };
 
-function statusLabel(task: ZipTask) {
+/** Retorna a chave de tradução do status, ou null quando o status é desconhecido. */
+function statusLabelKey(task: ZipTask): MessageKey | null {
   switch (task.status) {
     case "queued":
-      return "Na fila";
+      return "jobsFilterQueued";
     case "compressing":
-      return "Compactando";
+      return "zipStatusRunning";
     case "completed":
-      return "Concluído";
+      return "jobsStatusCompleted";
     case "failed":
-      return "Falhou";
+      return "jobsStatusFailed";
     case "cancelled":
-      return "Cancelado";
+      return "zipStatusCancelled";
     default:
-      return task.status;
+      return null;
   }
 }
 
@@ -36,8 +38,10 @@ export function ZipTaskRow({
   onOpenZip,
   onOpenFolder,
 }: ZipTaskRowProps) {
+  const { t } = useLocale();
   const active = task.status === "compressing" || task.status === "queued";
   const progress = Math.min(100, Math.max(0, task.progress || 0));
+  const statusKey = statusLabelKey(task);
 
   return (
     <article className="rounded-2xl border border-white/[0.06] bg-[#1f1f1f] px-4 py-3.5">
@@ -68,12 +72,12 @@ export function ZipTaskRow({
                       : "bg-white/5 text-zinc-400"
               }`}
             >
-              {statusLabel(task)}
+              {statusKey ? t(statusKey) : task.status}
             </span>
           </div>
 
           <p className="mt-1 text-xs text-zinc-500">
-            {active ? task.message || "Compactando arquivos..." : task.message}
+            {active ? task.message || t("zipCompressingFiles") : task.message}
           </p>
 
           {active && (
@@ -86,12 +90,10 @@ export function ZipTaskRow({
               </div>
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-400">
                 <span className="font-semibold text-zinc-200">
-                  {progress > 0 ? `${progress}%` : "Compactando arquivos..."}
+                  {progress > 0 ? `${progress}%` : t("zipCompressingFiles")}
                 </span>
                 {task.total > 0 && (
-                  <span>
-                    {task.done} / {task.total} arquivos
-                  </span>
+                  <span>{t("zipFilesProgress", { done: task.done, total: task.total })}</span>
                 )}
               </div>
             </div>
@@ -105,25 +107,25 @@ export function ZipTaskRow({
             {active && onCancel && (
               <Button variant="ghost" className="!h-8 !px-3 !text-[11px] text-zinc-400" onClick={onCancel}>
                 <X className="h-3.5 w-3.5" />
-                Cancelar
+                {t("jobsActionCancel")}
               </Button>
             )}
             {task.status === "completed" && onOpenZip && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onOpenZip}>
                 <Archive className="h-3.5 w-3.5" />
-                Abrir ZIP
+                {t("zipOpenZip")}
               </Button>
             )}
             {task.status === "completed" && onOpenFolder && (
               <Button variant="ghost" className="!h-8 !px-3 !text-[11px] text-zinc-400" onClick={onOpenFolder}>
                 <FolderOpen className="h-3.5 w-3.5" />
-                Abrir pasta
+                {t("jobsActionOpenFolder")}
               </Button>
             )}
             {task.status === "failed" && onRetry && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onRetry}>
                 <RotateCcw className="h-3.5 w-3.5" />
-                Tentar novamente
+                {t("jobsActionRetry")}
               </Button>
             )}
             {(task.status === "failed" || task.status === "cancelled" || task.status === "completed") &&
@@ -134,7 +136,7 @@ export function ZipTaskRow({
                   onClick={onDismiss}
                 >
                   <X className="h-3.5 w-3.5" />
-                  Ocultar
+                  {t("zipHide")}
                 </Button>
               )}
           </div>

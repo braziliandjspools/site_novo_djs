@@ -6,8 +6,10 @@ import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
 import { importPackLink, parsePackLinkInput, previewPackLink, type PackPreview } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
+import { useLocale } from "../i18n/LocaleContext";
 
 export function ImportPackPanel() {
+  const { t } = useLocale();
   const { sessionToken } = useAuth();
   const { syncNow } = useDownloadManager();
   const [url, setUrl] = useState("");
@@ -19,12 +21,12 @@ export function ImportPackPanel() {
 
   async function handleValidate() {
     if (!sessionToken) {
-      setError("Faça login para validar o link.");
+      setError(t("importLoginRequired"));
       return;
     }
     const parsed = parsePackLinkInput(url);
     if (!parsed) {
-      setError("Cole um link válido do site (ex.: …/musicas/dl/julho-2024/semana-01/funk).");
+      setError(t("importInvalidLink"));
       setPreview(null);
       return;
     }
@@ -37,7 +39,7 @@ export function ImportPackPanel() {
       const result = await previewPackLink(sessionToken, url);
       setPreview(result);
       if (result.trackCount === 0) {
-        setError("Pasta encontrada, mas sem faixas para baixar.");
+        setError(t("importNoTracks"));
       }
     } catch (err) {
       setError(formatApiError(err));
@@ -55,8 +57,8 @@ export function ImportPackPanel() {
       const result = await importPackLink(sessionToken, preview.slug);
       setSuccess(
         result.count === 1
-          ? "1 faixa adicionada à fila."
-          : `${result.count} faixas adicionadas à fila.`,
+          ? t("importAddedOne")
+          : t("importAddedMany", { count: result.count }),
       );
       syncNow();
     } catch (err) {
@@ -67,13 +69,10 @@ export function ImportPackPanel() {
   }
 
   return (
-    <Panel
-      title="Importar link do site"
-      description="Cole o link do mês, semana ou estilo copiado no acervo VIP. O app valida e enfileira todas as faixas mantendo a estrutura de pastas."
-    >
+    <Panel title={t("importTitle")} description={t("importPanelDesc")}>
       <div className="space-y-3">
         <label htmlFor="pack-link" className="mb-1 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
-          Link da pasta
+          {t("importFolderLink")}
         </label>
         <div className="flex gap-2">
           <div className="relative min-w-0 flex-1">
@@ -94,7 +93,7 @@ export function ImportPackPanel() {
                   void handleValidate();
                 }
               }}
-              placeholder="https://…/musicas/dl/julho-2024  (mês inteiro) ou …/semana-01/funk"
+              placeholder={t("importPlaceholder")}
               className="w-full rounded-lg border border-zinc-800 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-[#1db954]"
             />
           </div>
@@ -105,7 +104,7 @@ export function ImportPackPanel() {
             className="flex-shrink-0"
           >
             {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Validar
+            {t("importValidate")}
           </Button>
         </div>
 
@@ -124,7 +123,7 @@ export function ImportPackPanel() {
             <p className="mt-3 text-lg font-black tabular-nums text-[#1db954]">
               {preview.trackCount}{" "}
               <span className="text-sm font-semibold text-zinc-400">
-                {preview.trackCount === 1 ? "faixa" : "faixas"}
+                {preview.trackCount === 1 ? t("importTrackSingular") : t("importTrackPlural")}
               </span>
             </p>
             {preview.sampleTitles.length > 0 && (
@@ -136,7 +135,10 @@ export function ImportPackPanel() {
                 ))}
                 {preview.trackCount > preview.sampleTitles.length && (
                   <li className="text-zinc-600">
-                    · e mais {preview.trackCount - preview.sampleTitles.length}…
+                    ·{" "}
+                    {t("importAndMore", {
+                      count: preview.trackCount - preview.sampleTitles.length,
+                    })}
                   </li>
                 )}
               </ul>
@@ -147,7 +149,7 @@ export function ImportPackPanel() {
               onClick={() => void handleImport()}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              Baixar todas
+              {t("importDownloadAll")}
             </Button>
           </div>
         )}

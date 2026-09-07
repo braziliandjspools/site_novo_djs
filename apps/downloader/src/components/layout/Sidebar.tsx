@@ -12,6 +12,7 @@ import {
 import { BrsLogo } from "../Branding/BrsLogo";
 import { ConnectionStatus } from "../auth/ConnectionStatus";
 import { DOWNLOADER_NAME } from "../../lib/site";
+import { useLocale, type MessageKey } from "../../i18n/LocaleContext";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo } from "../../context/AuthContext";
 
@@ -41,17 +42,17 @@ type SidebarProps = {
 
 const NAV_ITEMS: {
   id: AppRoute;
-  label: string;
+  labelKey: MessageKey;
   icon: typeof Download;
   countKey?: keyof NonNullable<SidebarProps["counts"]>;
 }[] = [
-  { id: "home", label: "Início", icon: Home },
-  { id: "downloads", label: "Downloads", icon: Download, countKey: "downloads" },
-  { id: "queue", label: "Fila", icon: ListOrdered, countKey: "queue" },
-  { id: "completed", label: "Concluídos", icon: CheckCircle2, countKey: "completed" },
-  { id: "history", label: "Histórico", icon: History },
-  { id: "portal", label: "Portal", icon: CreditCard },
-  { id: "settings", label: "Configurações", icon: Settings },
+  { id: "home", labelKey: "navHome", icon: Home },
+  { id: "downloads", labelKey: "navDownloads", icon: Download, countKey: "downloads" },
+  { id: "queue", labelKey: "navQueue", icon: ListOrdered, countKey: "queue" },
+  { id: "completed", labelKey: "navCompleted", icon: CheckCircle2, countKey: "completed" },
+  { id: "history", labelKey: "navHistory", icon: History },
+  { id: "portal", labelKey: "navPortal", icon: CreditCard },
+  { id: "settings", labelKey: "navSettings", icon: Settings },
 ];
 
 export function Sidebar({
@@ -64,6 +65,7 @@ export function Sidebar({
   onLogout,
   counts,
 }: SidebarProps) {
+  const { t } = useLocale();
   const firstName = userName.split(" ")[0] ?? userName;
 
   return (
@@ -82,9 +84,9 @@ export function Sidebar({
 
       <nav className="mt-5 flex-1 space-y-1 overflow-y-auto px-3">
         <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase">
-          Menu
+          {t("navMenu")}
         </p>
-        {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => {
+        {NAV_ITEMS.map(({ id, labelKey, icon: Icon, countKey }) => {
           const active = activeRoute === id;
           const badge = countKey && counts ? counts[countKey] : 0;
 
@@ -100,7 +102,7 @@ export function Sidebar({
               }`}
             >
               <Icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-[#1db954]" : ""}`} />
-              <span className="flex-1">{label}</span>
+              <span className="flex-1">{t(labelKey)}</span>
               {badge > 0 && (
                 <span className="rounded-md bg-[#1db954] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
                   {badge}
@@ -112,8 +114,8 @@ export function Sidebar({
       </nav>
 
       <div className="border-t border-white/[0.06] px-5 py-4">
-        <p className="truncate text-sm font-semibold text-white">
-          Olá, <span className="text-[#1db954]">{firstName}</span>
+        <p className="truncate text-sm font-semibold text-[#1db954]">
+          {t("navHello", { name: firstName })}
         </p>
         <button
           type="button"
@@ -121,7 +123,7 @@ export function Sidebar({
           className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-zinc-500 transition-colors hover:text-white"
         >
           <LogOut className="h-3.5 w-3.5" />
-          Sair
+          {t("navLogout")}
         </button>
       </div>
     </aside>

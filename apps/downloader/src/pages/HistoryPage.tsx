@@ -25,8 +25,10 @@ import {
   type OrgMetaFilters,
 } from "../lib/download/job-organization";
 import { DownloadOrgToolbar } from "../components/downloads/DownloadOrgToolbar";
+import { useLocale } from "../i18n/LocaleContext";
 
 export function HistoryPage() {
+  const { t } = useLocale();
   const { sessionToken } = useAuth();
   const {
     syncNow,
@@ -62,7 +64,20 @@ export function HistoryPage() {
     [orgFilters, statusFiltered],
   );
 
-  const jobGroups = useMemo(() => groupJobsByOrg(filteredJobs, groupBy), [filteredJobs, groupBy]);
+  const groupFallbackLabels = useMemo(
+    () => ({
+      all: t("orgAllGroup"),
+      noDate: t("orgNoDate"),
+      noFolder: t("orgNoFolder"),
+      noCategory: t("orgNoCategory"),
+    }),
+    [t],
+  );
+
+  const jobGroups = useMemo(
+    () => groupJobsByOrg(filteredJobs, groupBy, groupFallbackLabels),
+    [filteredJobs, groupBy, groupFallbackLabels],
+  );
 
   useEffect(() => {
     setSelectedIds((prev) => {
@@ -144,14 +159,14 @@ export function HistoryPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Histórico</p>
-          <p className="mt-1 text-sm text-zinc-500">
-            Downloads concluídos e falhas recentes — atualiza em tempo real.
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">
+            {t("historyTitle")}
           </p>
+          <p className="mt-1 text-sm text-zinc-500">{t("historySubtitle")}</p>
         </div>
         <Button variant="secondary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
           <ExternalLink className="h-4 w-4" />
-          Abrir plataforma
+          {t("commonOpenPlatform")}
         </Button>
       </div>
 
@@ -223,9 +238,7 @@ export function HistoryPage() {
         </div>
       ) : filteredJobs.length === 0 ? (
         <p className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-8 text-center text-sm text-zinc-500">
-          {historyJobs.length === 0
-            ? "Nenhum item no histórico."
-            : "Nenhum download corresponde à busca/filtro."}
+          {historyJobs.length === 0 ? t("historyEmptyList") : t("jobsNoMatch")}
         </p>
       ) : (
         <div className="space-y-5">
@@ -262,7 +275,7 @@ export function HistoryPage() {
                       onClick={() => void handleOpenFolder()}
                     >
                       <FolderOpen className="h-3.5 w-3.5" />
-                      Abrir pasta
+                      {t("jobsActionOpenFolder")}
                     </Button>
                     <Button
                       variant="secondary"
@@ -271,7 +284,7 @@ export function HistoryPage() {
                       onClick={() => void handleRedownload(job.id)}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      Baixar novamente
+                      {t("historyRetry")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -280,7 +293,7 @@ export function HistoryPage() {
                       onClick={() => void handleDismiss(job.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      Remover do histórico
+                      {t("jobsRemoveFromHistory")}
                     </Button>
                   </div>
                 </div>

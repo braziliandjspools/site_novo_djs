@@ -21,6 +21,7 @@ import type { JobProgressMetrics } from "../../lib/download/types";
 import { formatBytes, formatEta, formatSpeed } from "../../lib/download/progress-tracker";
 import { extractJobOrgMeta } from "../../lib/download/job-organization";
 import { Button } from "../ui/Button";
+import { useLocale, type MessageKey } from "../../i18n/LocaleContext";
 
 type JobRowProps = {
   job: DownloadJob;
@@ -47,21 +48,22 @@ type JobRowProps = {
   onDismiss?: () => void;
 };
 
-function statusLabel(status: string) {
+/** Retorna a chave de tradução do status, ou null quando o status é desconhecido. */
+function statusLabelKey(status: string): MessageKey | null {
   switch (status) {
     case "PENDING":
     case "RECEIVED":
-      return "Na fila";
+      return "jobsFilterQueued";
     case "DOWNLOADING":
-      return "Baixando";
+      return "jobsStatusDownloading";
     case "PAUSED":
-      return "Pausado";
+      return "jobsStatusPaused";
     case "COMPLETED":
-      return "Concluído";
+      return "jobsStatusCompleted";
     case "FAILED":
-      return "Falhou";
+      return "jobsStatusFailed";
     default:
-      return status;
+      return null;
   }
 }
 
@@ -108,6 +110,7 @@ export const JobRow = memo(function JobRow({
   onRetry,
   onDismiss,
 }: JobRowProps) {
+  const { t } = useLocale();
   const waiting = job.status === "PENDING" || job.status === "RECEIVED";
   const downloading = job.status === "DOWNLOADING" || isActive;
   const paused = job.status === "PAUSED";
@@ -115,6 +118,7 @@ export const JobRow = memo(function JobRow({
   const progress = Math.min(100, Math.max(0, Number(job.progress) || 0));
   const indeterminate = downloading && progress <= 0;
   const canReorder = showQueueActions && !downloading && (waiting || paused || failed);
+  const statusKey = statusLabelKey(job.status);
   const org = extractJobOrgMeta(job);
   const orgChips = [
     org.genre,
@@ -143,7 +147,7 @@ export const JobRow = memo(function JobRow({
               checked={selected}
               onChange={() => onToggleSelect?.()}
               className="h-4 w-4 rounded border-zinc-600 bg-[#121212] accent-[#1db954]"
-              aria-label={`Selecionar ${job.fileName}`}
+              aria-label={t("jobsSelectAria", { name: job.fileName })}
             />
           </label>
         )}
@@ -151,7 +155,7 @@ export const JobRow = memo(function JobRow({
         {draggable && canReorder && (
           <div
             className="mt-2 cursor-grab text-zinc-600 active:cursor-grabbing"
-            title="Arrastar para reordenar"
+            title={t("jobsDragToReorder")}
             aria-hidden
           >
             <GripVertical className="h-4 w-4" />
@@ -178,14 +182,14 @@ export const JobRow = memo(function JobRow({
                         : "bg-white/5 text-zinc-400"
               }`}
             >
-              {statusLabel(job.status)}
+              {statusKey ? t(statusKey) : job.status}
             </span>
           </div>
 
           {waiting && !isActive && (
-            <p className="mt-1 text-xs text-zinc-500">Aguardando slot de download</p>
+            <p className="mt-1 text-xs text-zinc-500">{t("jobsWaitingSlot")}</p>
           )}
-          {paused && <p className="mt-1 text-xs text-amber-300">Download pausado</p>}
+          {paused && <p className="mt-1 text-xs text-amber-300">{t("jobsPausedNotice")}</p>}
 
           {job.relativePath && (
             <p className="mt-1 truncate text-xs text-zinc-600">{job.relativePath}</p>
@@ -220,7 +224,7 @@ export const JobRow = memo(function JobRow({
               </div>
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-400">
                 <span className="font-semibold text-zinc-200">
-                  {indeterminate ? "Iniciando…" : `${progress}%`}
+                  {indeterminate ? t("jobsStarting") : `${progress}%`}
                 </span>
                 <span>
                   {formatBytes(job.downloadedBytes)}
@@ -237,7 +241,7 @@ export const JobRow = memo(function JobRow({
           )}
 
           {job.status === "COMPLETED" && (
-            <p className="mt-1 text-xs text-zinc-500">Download concluído</p>
+            <p className="mt-1 text-xs text-zinc-500">{t("jobsCompletedNotice")}</p>
           )}
 
           {failed && job.error && <p className="mt-2 text-xs text-red-400">{job.error}</p>}
@@ -246,39 +250,39 @@ export const JobRow = memo(function JobRow({
             {canReorder && onDownloadNow && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onDownloadNow}>
                 <Zap className="h-3.5 w-3.5" />
-                Baixar agora
+                {t("jobsActionDownloadNow")}
               </Button>
             )}
             {canReorder && onMoveToTop && (
-              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveToTop} title="Mover para o topo">
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveToTop} title={t("jobsActionMoveTop")}>
                 <ArrowUpToLine className="h-3.5 w-3.5" />
               </Button>
             )}
             {canReorder && onMoveUp && (
-              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveUp} title="Mover para cima">
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveUp} title={t("jobsActionMoveUp")}>
                 <ArrowUp className="h-3.5 w-3.5" />
               </Button>
             )}
             {canReorder && onMoveDown && (
-              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveDown} title="Mover para baixo">
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveDown} title={t("jobsActionMoveDown")}>
                 <ArrowDown className="h-3.5 w-3.5" />
               </Button>
             )}
             {canReorder && onMoveToEnd && (
-              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveToEnd} title="Mover para o final">
+              <Button variant="ghost" className="!h-8 !px-2.5 !text-[11px] text-zinc-400" onClick={onMoveToEnd} title={t("jobsActionMoveBottom")}>
                 <ArrowDownToLine className="h-3.5 w-3.5" />
               </Button>
             )}
             {downloading && onPause && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onPause}>
                 <Pause className="h-3.5 w-3.5" />
-                Pausar
+                {t("jobsActionPause")}
               </Button>
             )}
             {paused && onResume && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onResume}>
                 <Play className="h-3.5 w-3.5" />
-                Retomar
+                {t("jobsActionResume")}
               </Button>
             )}
             {!failed && job.status !== "COMPLETED" && onCancel && (
@@ -288,13 +292,13 @@ export const JobRow = memo(function JobRow({
                 onClick={onCancel}
               >
                 <X className="h-3.5 w-3.5" />
-                Cancelar
+                {t("jobsActionCancel")}
               </Button>
             )}
             {failed && onRetry && (
               <Button variant="secondary" className="!h-8 !px-3 !text-[11px]" onClick={onRetry}>
                 <RotateCcw className="h-3.5 w-3.5" />
-                Tentar novamente
+                {t("jobsActionRetry")}
               </Button>
             )}
             {failed && onDismiss && (
@@ -302,10 +306,10 @@ export const JobRow = memo(function JobRow({
                 variant="ghost"
                 className="!h-8 !px-3 !text-[11px] text-red-400"
                 onClick={onDismiss}
-                title="Remover da fila"
+                title={t("jobsRemoveFromQueue")}
               >
                 <X className="h-3.5 w-3.5" />
-                Excluir
+                {t("jobsDelete")}
               </Button>
             )}
           </div>

@@ -19,6 +19,7 @@ import { SITE_NAME } from "../lib/site";
 import type { AppRoute } from "../components/layout/Sidebar";
 import type { DownloadJob } from "../lib/api/jobs";
 import { ImportPackPanel } from "../components/ImportPackPanel";
+import { useLocale, type MessageKey } from "../i18n/LocaleContext";
 
 type HomePageProps = {
   userName: string;
@@ -38,8 +39,8 @@ function countByStatus(jobs: DownloadJob[], activeJobIds: number[]) {
 
 const QUICK_LINKS: {
   route: AppRoute;
-  label: string;
-  description: string;
+  labelKey: MessageKey;
+  descriptionKey: MessageKey;
   icon: typeof Download;
   accent: string;
   iconBg: string;
@@ -47,8 +48,8 @@ const QUICK_LINKS: {
 }[] = [
   {
     route: "downloads",
-    label: "Downloads",
-    description: "Acompanhe o que está baixando agora.",
+    labelKey: "navDownloads",
+    descriptionKey: "homeQuickDownloadsDesc",
     icon: Download,
     accent: "text-sky-300",
     iconBg: "bg-sky-500/15 text-sky-300",
@@ -56,8 +57,8 @@ const QUICK_LINKS: {
   },
   {
     route: "queue",
-    label: "Fila",
-    description: "Itens aguardando ou prontos para iniciar.",
+    labelKey: "navQueue",
+    descriptionKey: "homeQuickQueueDesc",
     icon: ListOrdered,
     accent: "text-violet-300",
     iconBg: "bg-violet-500/15 text-violet-300",
@@ -65,8 +66,8 @@ const QUICK_LINKS: {
   },
   {
     route: "completed",
-    label: "Concluídos",
-    description: "Arquivos finalizados e sincronizados.",
+    labelKey: "navCompleted",
+    descriptionKey: "homeQuickCompletedDesc",
     icon: CheckCircle2,
     accent: "text-[#1db954]",
     iconBg: "bg-[#1db954]/15 text-[#1db954]",
@@ -74,8 +75,8 @@ const QUICK_LINKS: {
   },
   {
     route: "history",
-    label: "Histórico",
-    description: "Revise falhas e reenvie quando precisar.",
+    labelKey: "navHistory",
+    descriptionKey: "homeQuickHistoryDesc",
     icon: History,
     accent: "text-amber-300",
     iconBg: "bg-amber-500/15 text-amber-300",
@@ -83,8 +84,8 @@ const QUICK_LINKS: {
   },
   {
     route: "settings",
-    label: "Configurações",
-    description: "Conta, pasta de destino e preferências.",
+    labelKey: "navSettings",
+    descriptionKey: "homeQuickSettingsDesc",
     icon: Settings,
     accent: "text-rose-300",
     iconBg: "bg-rose-500/15 text-rose-300",
@@ -93,6 +94,7 @@ const QUICK_LINKS: {
 ];
 
 export function HomePage({ userName, onNavigate }: HomePageProps) {
+  const { t } = useLocale();
   const { jobs, connectionState, activeJobIds, pendingCount, syncNow, workerError } = useDownloadManager();
   const firstName = userName.split(" ")[0] ?? userName;
   const counts = countByStatus(jobs, activeJobIds);
@@ -130,22 +132,24 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         <div className="relative flex flex-col gap-6 p-7 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <BrsLogo className="mb-5 h-12 w-auto max-w-[280px] object-contain object-left sm:h-14" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#1db954]">Bem-vindo de volta</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Olá, <span className="text-[#1db954]">{firstName}</span>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#1db954]">
+              {t("homeWelcomeEyebrow")}
+            </p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#1db954] sm:text-4xl">
+              {t("homeWelcome", { name: firstName })}
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
-              Adicione músicas pelo {SITE_NAME}, acompanhe a fila aqui e mantenha seu acervo sempre atualizado.
+              {t("homeIntro", { site: SITE_NAME })}
             </p>
           </div>
           <div className="flex flex-shrink-0 flex-wrap gap-2">
             <Button onClick={() => void openPlatform()}>
               <ExternalLink className="h-4 w-4" />
-              Abrir plataforma
+              {t("commonOpenPlatform")}
             </Button>
             <Button variant="secondary" disabled={syncing || isOffline} onClick={handleSync}>
               <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-              {syncing ? "Sincronizando…" : "Sincronizar"}
+              {syncing ? t("homeSyncing") : t("homeSync")}
             </Button>
           </div>
         </div>
@@ -174,12 +178,10 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-white">
-              {syncing ? "Sincronizando com o site…" : "Fila atualizada"}
+              {syncing ? t("homeSyncingTitle") : t("homeSyncedTitle")}
             </p>
             <p className="mt-0.5 text-xs text-zinc-400">
-              {syncing
-                ? `Conectando à plataforma ${SITE_NAME} para buscar novos downloads e atualizar o status.`
-                : "Tudo certo — a fila local está alinhada com a sua conta VIP."}
+              {syncing ? t("homeSyncingBody", { site: SITE_NAME }) : t("homeSyncedBody")}
             </p>
           </div>
         </div>
@@ -187,22 +189,27 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Em download"
+          label={t("homeStatDownloading")}
           value={counts.downloading}
-          hint={`${activeJobIds.length} ativo(s) agora`}
+          hint={t("homeStatDownloadingHint", { count: activeJobIds.length })}
           tone="sky"
         />
         <StatCard
-          label="Na fila"
+          label={t("homeStatsQueue")}
           value={counts.queue || pendingCount}
-          hint="Aguardando ou com falha"
+          hint={t("homeStatQueueHint")}
           tone="violet"
         />
-        <StatCard label="Concluídos" value={counts.completed} hint="Nesta sessão sincronizada" tone="green" />
         <StatCard
-          label="Conexão"
-          value={isOffline ? "Offline" : "Online"}
-          hint={isOffline ? "Fila salva localmente" : "Pronto para sincronizar"}
+          label={t("homeStatsCompleted")}
+          value={counts.completed}
+          hint={t("homeStatCompletedHint")}
+          tone="green"
+        />
+        <StatCard
+          label={t("homeStatConnection")}
+          value={isOffline ? t("commonOffline") : t("commonOnline")}
+          hint={isOffline ? t("homeStatConnectionOffline") : t("homeStatConnectionOnline")}
           tone={isOffline ? "amber" : "emerald"}
         />
       </div>
@@ -216,7 +223,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
           }`}
         >
           {isOffline ? <WifiOff className="mt-0.5 h-4 w-4 flex-shrink-0" /> : <Wifi className="mt-0.5 h-4 w-4 flex-shrink-0" />}
-          <p>{isOffline ? "Sem internet no momento. A fila será sincronizada quando a conexão voltar." : workerError}</p>
+          <p>{isOffline ? t("homeOfflineWarning") : workerError}</p>
         </div>
       )}
 
@@ -225,12 +232,12 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Menu</p>
-            <h2 className="text-lg font-bold text-white">Acesso rápido</h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">{t("navMenu")}</p>
+            <h2 className="text-lg font-bold text-white">{t("homeQuickAccess")}</h2>
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {QUICK_LINKS.map(({ route, label, description, icon: Icon, accent, iconBg, borderHover }) => {
+          {QUICK_LINKS.map(({ route, labelKey, descriptionKey, icon: Icon, accent, iconBg, borderHover }) => {
             const badge =
               route === "downloads"
                 ? counts.downloading
@@ -257,12 +264,12 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
                     </span>
                   )}
                 </div>
-                <h3 className="font-semibold text-white">{label}</h3>
-                <p className="mt-1 flex-1 text-xs leading-relaxed text-zinc-500">{description}</p>
+                <h3 className="font-semibold text-white">{t(labelKey)}</h3>
+                <p className="mt-1 flex-1 text-xs leading-relaxed text-zinc-500">{t(descriptionKey)}</p>
                 <span
                   className={`mt-3 inline-flex items-center gap-1 text-xs font-semibold opacity-0 transition-opacity group-hover:opacity-100 ${accent}`}
                 >
-                  Abrir
+                  {t("commonOpen")}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </button>
@@ -274,8 +281,10 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
       <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a]">
         <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Atividade recente</p>
-            <h2 className="text-base font-bold text-white">Últimos itens na fila</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              {t("homeRecentActivity")}
+            </p>
+            <h2 className="text-base font-bold text-white">{t("homeRecentTitle")}</h2>
           </div>
           {jobs.length > 0 && (
             <button
@@ -283,16 +292,16 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
               onClick={() => onNavigate("queue")}
               className="text-xs font-semibold text-[#1db954] hover:underline"
             >
-              Ver fila completa
+              {t("homeViewFullQueue")}
             </button>
           )}
         </div>
         {recentJobs.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <p className="text-sm text-zinc-500">Nenhum item ainda. Abra a plataforma e adicione músicas à fila.</p>
+            <p className="text-sm text-zinc-500">{t("homeNoItems")}</p>
             <Button className="mt-4" onClick={() => void openPlatform()}>
               <ExternalLink className="h-4 w-4" />
-              Abrir plataforma
+              {t("commonOpenPlatform")}
             </Button>
           </div>
         ) : (

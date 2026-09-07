@@ -9,12 +9,16 @@ import {
   pickDownloadDir,
   setDownloadDir,
 } from "../lib/native/download";
+import { useLocale } from "../i18n/LocaleContext";
 
 type ChooseDownloadFolderPageProps = {
   onConfigured: () => void;
 };
 
+const EXAMPLE_PATH = "D:\\Brazilian Remix Service";
+
 export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderPageProps) {
+  const { t } = useLocale();
   const { syncNow } = useDownloadManager();
   const [suggestedPath, setSuggestedPath] = useState("");
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
@@ -51,7 +55,7 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
       syncNow();
       onConfigured();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível confirmar a pasta.");
+      setError(err instanceof Error ? err.message : t("folderConfirmError"));
     } finally {
       setSubmitting(false);
     }
@@ -66,7 +70,7 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
       setSelectedPath(picked);
       await finalizeFolder(picked);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível selecionar a pasta.");
+      setError(err instanceof Error ? err.message : t("folderSelectError"));
     } finally {
       setSubmitting(false);
     }
@@ -81,7 +85,7 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
       setSelectedPath(saved);
       await finalizeFolder(saved);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível usar a pasta sugerida.");
+      setError(err instanceof Error ? err.message : t("folderSuggestedError"));
     } finally {
       setSubmitting(false);
     }
@@ -92,21 +96,23 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
       <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#1db954]/10 text-[#1db954]">
         <FolderOpen className="h-8 w-8" strokeWidth={1.75} />
       </div>
-      <h1 className="max-w-md text-2xl font-bold text-white">Escolha onde suas músicas serão salvas</h1>
+      <h1 className="max-w-md text-2xl font-bold text-white">{t("folderChooseTitle")}</h1>
       <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-500">
-        Exemplo: <span className="text-zinc-300">D:\Brazilian Remix Service</span>
+        {t("folderExample", { path: EXAMPLE_PATH })}
       </p>
 
       {loading ? (
-        <p className="mt-6 text-xs text-zinc-600">Carregando sugestão…</p>
+        <p className="mt-6 text-xs text-zinc-600">{t("folderLoadingSuggestion")}</p>
       ) : (
         <div className="mt-6 w-full max-w-lg rounded-xl border border-zinc-800 bg-[#181818]/80 p-4 text-left">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Pasta sugerida</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+            {t("folderSuggested")}
+          </p>
           <p className="mt-2 break-all text-sm text-zinc-300">{suggestedPath}</p>
           {selectedPath && (
             <>
               <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
-                Pasta selecionada
+                {t("folderSelected")}
               </p>
               <p className="mt-2 flex items-start gap-2 break-all text-sm text-white">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#1db954]" />
@@ -124,11 +130,11 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
       <div className="mt-8 flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
         <Button disabled={submitting || !suggestedPath} onClick={() => void handleUseSuggested()}>
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
-          Usar pasta sugerida
+          {t("folderUseSuggested")}
         </Button>
         <Button variant="secondary" disabled={submitting} onClick={() => void handlePickFolder()}>
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
-          Escolher outra pasta
+          {t("folderPickAnother")}
         </Button>
       </div>
     </div>

@@ -4,22 +4,28 @@ import { Button } from "../components/ui/Button";
 import { JobRow } from "../components/downloads/JobRow";
 import { openPlatform } from "../lib/open-site";
 import { EmptyQueueState } from "../components/downloads/EmptyQueueState";
+import { useLocale } from "../i18n/LocaleContext";
 
 export function CompletedPage() {
+  const { t } = useLocale();
   const { jobs, loading, error } = useServerJobs({ status: "COMPLETED", limit: 500, pollMs: 5000 });
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Concluídos</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">
+            {t("completedTitle")}
+          </p>
           <p className="mt-1 text-sm text-zinc-500">
-            {jobs.length === 0 ? "Nenhum download concluído recentemente." : `${jobs.length} download(s) concluído(s)`}
+            {jobs.length === 0
+              ? t("completedNoneRecent")
+              : t("completedSummary", { count: jobs.length })}
           </p>
         </div>
         <Button variant="secondary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
           <ExternalLink className="h-4 w-4" />
-          Abrir plataforma
+          {t("commonOpenPlatform")}
         </Button>
       </div>
 

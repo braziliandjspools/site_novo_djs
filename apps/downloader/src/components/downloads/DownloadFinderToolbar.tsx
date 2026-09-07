@@ -1,10 +1,11 @@
 import { Search } from "lucide-react";
 import type { DownloadFinderCounts, DownloadFinderFilter } from "../../lib/download/job-finder";
 import {
-  FINDER_COUNT_LABELS,
-  FINDER_FILTER_LABELS,
+  FINDER_COUNT_LABEL_KEYS,
+  FINDER_FILTER_LABEL_KEYS,
   FINDER_FILTER_ORDER,
 } from "../../lib/download/job-finder";
+import { useLocale } from "../../i18n/LocaleContext";
 
 const SEARCH_INPUT_CLASS =
   "w-full rounded-xl border border-white/[0.08] bg-[#121212] py-2.5 pl-10 pr-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#1db954]/50 focus:ring-1 focus:ring-[#1db954]/25";
@@ -24,6 +25,8 @@ export function DownloadFinderToolbar({
   onFilterChange,
   counts,
 }: DownloadFinderToolbarProps) {
+  const { t } = useLocale();
+
   return (
     <div className="space-y-3">
       <div className="relative">
@@ -32,7 +35,7 @@ export function DownloadFinderToolbar({
           type="search"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Buscar downloads..."
+          placeholder={t("jobsFinderPlaceholder")}
           className={SEARCH_INPUT_CLASS}
           autoComplete="off"
           spellCheck={false}
@@ -55,7 +58,7 @@ export function DownloadFinderToolbar({
               }`}
               aria-pressed={active}
             >
-              <span>{FINDER_FILTER_LABELS[key]}</span>
+              <span>{t(FINDER_FILTER_LABEL_KEYS[key])}</span>
               <span className={`ml-1.5 tabular-nums ${active ? "text-[#1db954]" : "text-zinc-500"}`}>
                 {count}
               </span>
@@ -75,7 +78,7 @@ export function DownloadFinderToolbar({
           ] as const satisfies Exclude<DownloadFinderFilter, "all">[]
         ).map((key) => (
           <span key={key} className="tabular-nums">
-            {FINDER_COUNT_LABELS[key]} {counts[key]}
+            {t(FINDER_COUNT_LABEL_KEYS[key])} {counts[key]}
           </span>
         ))}
       </div>

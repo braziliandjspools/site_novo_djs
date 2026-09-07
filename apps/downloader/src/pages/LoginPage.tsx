@@ -9,6 +9,8 @@ import { DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "
 import { pingApi } from "../lib/api/client";
 import { formatApiError } from "../lib/errors";
 import { getAppPreferences, setAppPreferences, isDesktopRuntime } from "../lib/native/app-preferences";
+import { useLocale } from "../i18n/LocaleContext";
+import { LanguagePicker } from "../i18n/LanguagePicker";
 
 const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 
@@ -19,6 +21,7 @@ const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.1
 
 export function LoginPage() {
   const { login, error: authError, refreshSession, sessionToken } = useAuth();
+  const { t, locale, setLocale } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [apiBaseUrl, setApiBaseUrl] = useState(DEFAULT_API_BASE_URL);
@@ -72,7 +75,7 @@ export function LoginPage() {
     try {
       await persistApiBaseUrl(apiBaseUrl);
       const ok = await refreshSession();
-      if (!ok) setError("Não foi possível restaurar a sessão. Faça login novamente.");
+      if (!ok) setError(t("loginReconnectFail"));
     } catch (err) {
       setError(formatApiError(err));
     } finally {
@@ -140,6 +143,13 @@ export function LoginPage() {
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/75" aria-hidden />
 
+      <LanguagePicker
+        value={locale}
+        onChange={(next) => void setLocale(next)}
+        variant="compact"
+        className="absolute right-4 top-4 z-20"
+      />
+
       <div className="relative z-10 w-full max-w-md animate-fade-up">
         <div className="mb-8 text-center">
           <div className="flex justify-center">
@@ -152,18 +162,16 @@ export function LoginPage() {
           onSubmit={(event) => void handleSubmit(event)}
           className="rounded-3xl border border-white/[0.08] bg-[#111111]/88 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md"
         >
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Conta VIP</p>
-          <h1 className="text-xl font-bold text-white">Entrar na sua conta</h1>
-          <p className="mt-2 text-sm text-zinc-500">
-            Use o mesmo e-mail e senha do portal {SITE_NAME}.
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">
+            {t("loginVipAccount")}
           </p>
+          <h1 className="text-xl font-bold text-white">{t("loginTitle")}</h1>
+          <p className="mt-2 text-sm text-zinc-500">{t("loginSubtitle", { site: SITE_NAME })}</p>
 
           {sessionToken && (
             <div className="mt-4 rounded-lg border border-[#1db954]/25 bg-[#1db954]/10 px-3 py-3">
               <p className="text-sm text-zinc-200">
-                {reconnecting
-                  ? "Restaurando sessão salva…"
-                  : "Há uma sessão salva neste PC. Você pode reconectar sem digitar a senha."}
+                {reconnecting ? t("loginRestoringSession") : t("loginSavedSessionHint")}
               </p>
               <Button
                 type="button"
@@ -173,7 +181,7 @@ export function LoginPage() {
                 onClick={() => void handleReconnect()}
               >
                 {reconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-                Reconectar automaticamente
+                {t("loginReconnect")}
               </Button>
             </div>
           )}
@@ -181,7 +189,7 @@ export function LoginPage() {
           <div className="mt-6 space-y-4">
             <div>
               <label htmlFor="email" className={labelClassName}>
-                E-mail
+                {t("loginEmail")}
               </label>
               <input
                 id="email"
@@ -197,7 +205,7 @@ export function LoginPage() {
 
             <div>
               <label htmlFor="password" className={labelClassName}>
-                Senha
+                {t("loginPassword")}
               </label>
               <div className="relative">
                 <input
@@ -215,7 +223,7 @@ export function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-label={showPassword ? t("loginHidePassword") : t("loginShowPassword")}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -230,12 +238,12 @@ export function LoginPage() {
               className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-zinc-300"
             >
               <Server className="h-3.5 w-3.5" />
-              {showAdvanced ? "Ocultar servidor" : "Configurar servidor da API"}
+              {showAdvanced ? t("loginHideServer") : t("loginAdvancedServer")}
             </button>
             {showAdvanced && (
               <div className="mt-3 space-y-2 rounded-lg border border-zinc-800 bg-black/30 p-3">
                 <label htmlFor="apiBaseUrl" className={labelClassName}>
-                  URL do site (API)
+                  {t("loginApiUrl")}
                 </label>
                 <input
                   id="apiBaseUrl"
@@ -250,8 +258,7 @@ export function LoginPage() {
                   placeholder="sitenovodjs.vercel.app"
                 />
                 <p className="text-[11px] leading-relaxed text-zinc-600">
-                  Pode digitar só o domínio (<span className="text-zinc-400">sitenovodjs.vercel.app</span>) ou a URL
-                  completa. Músicas:{" "}
+                  {t("loginApiHint")}{" "}
                   <span className="text-zinc-400">sitenovodjs.vercel.app/musicas/atualizacoes</span>
                 </p>
                 <Button
@@ -262,7 +269,7 @@ export function LoginPage() {
                   onClick={() => void handleTestServer()}
                 >
                   {testingServer ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Testar conexão
+                  {t("loginTestConnection")}
                 </Button>
                 {serverStatus && (
                   <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[#1db954]" : "text-zinc-400"}`}>
@@ -279,7 +286,7 @@ export function LoginPage() {
 
           <Button type="submit" disabled={submitting} className="mt-6 w-full">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            Entrar
+            {t("loginEnter")}
           </Button>
         </form>
 
@@ -289,7 +296,7 @@ export function LoginPage() {
             onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}
             className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
-            Privacidade
+            {t("loginPrivacy")}
           </button>
           <span className="text-zinc-600" aria-hidden>
             ·
@@ -299,7 +306,7 @@ export function LoginPage() {
             onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}
             className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
-            Cookies
+            {t("loginCookies")}
           </button>
           <span className="text-zinc-600" aria-hidden>
             ·
@@ -309,7 +316,7 @@ export function LoginPage() {
             onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}
             className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
-            Conduta
+            {t("loginConduct")}
           </button>
         </p>
       </div>
