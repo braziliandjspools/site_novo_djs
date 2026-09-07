@@ -1,10 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { ChevronDown, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
-import { displayFolderName, parseMonthStatus, slugifyFolderName } from "../../lib/vip-music-slugs";
+import {
+  displayFolderName,
+  folderHref,
+  parseMonthStatus,
+  slugifyFolderName,
+} from "../../lib/vip-music-slugs";
 import { sendFolderToDownloader, sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -28,8 +34,6 @@ type StyleFolderAccordionProps = {
   highlightTrackId?: string;
   autoPlayTrackId?: string;
   scrollIntoView?: boolean;
-  /** Evita nesting infinito acidental. */
-  depth?: number;
 };
 
 type TracksResponse = {
@@ -48,8 +52,6 @@ type CatalogResponse = {
   error?: string;
 };
 
-const MAX_NEST_DEPTH = 8;
-
 export function StyleFolderAccordion({
   folder,
   canPlay,
@@ -65,7 +67,6 @@ export function StyleFolderAccordion({
   highlightTrackId,
   autoPlayTrackId,
   scrollIntoView = false,
-  depth = 0,
 }: StyleFolderAccordionProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -74,7 +75,6 @@ export function StyleFolderAccordion({
   const isPlayingFolder = isFolderPlaying(folder.id);
   const [contentMode, setContentMode] = useState<"unknown" | "folders" | "tracks">("unknown");
   const [childFolders, setChildFolders] = useState<VipMusicCatalogItem[]>([]);
-  const [openChildId, setOpenChildId] = useState<string | null>(null);
   const [tracks, setTracks] = useState<PreviewTrack[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -250,12 +250,10 @@ export function StyleFolderAccordion({
     onToggle();
   }
 
-  const nestedPad = depth > 0 ? "md:ml-3 md:border-l md:border-zinc-800/80 md:pl-3" : "";
-
   return (
     <div
       id={`style-folder-${folder.id}`}
-      className={`overflow-hidden border bg-black md:rounded-xl ${nestedPad} ${
+      className={`overflow-hidden border bg-black md:rounded-xl ${
         folderStatus.status === "em-atualizacao"
           ? "border-amber-500/50 shadow-[0_0_0_1px_rgba(245,158,11,0.2)]"
           : isNew
@@ -358,32 +356,26 @@ export function StyleFolderAccordion({
             )}
 
             {loaded && contentMode === "folders" && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {childFolders.length === 0 ? (
                   <p className="py-6 text-center text-sm text-[#727272]">Nenhuma subpasta nesta pasta.</p>
-                ) : depth >= MAX_NEST_DEPTH ? (
-                  <p className="py-6 text-center text-sm text-[#727272]">
-                    Limite de pastas aninhadas atingido.
-                  </p>
                 ) : (
-                  childFolders.map((child) => (
-                    <StyleFolderAccordion
-                      key={child.id}
-                      folder={child}
-                      canPlay={canPlay}
-                      canDownload={canDownload}
-                      relativePath={`${relativePath ?? displayFolderName(folder.name)}/${displayFolderName(child.name)}`}
-                      monthSlug={monthSlug}
-                      monthName={monthName}
-                      weekSlug={weekSlug}
-                      slugSegments={[...packSlugSegments, slugifyFolderName(child.name)]}
-                      isOpen={openChildId === child.id}
-                      depth={depth + 1}
-                      onToggle={() =>
-                        setOpenChildId((current) => (current === child.id ? null : child.id))
-                      }
-                    />
-                  ))
+                  childFolders.map((child) => {
+                    const childSegments = [...packSlugSegments, slugifyFolderName(child.name)];
+                    return (
+                      <Link
+                        key={child.id}
+                        href={folderHref(childSegments)}
+                        className="group/folder flex items-center gap-2 rounded-lg border border-zinc-800/80 bg-black px-3 py-2.5 transition-colors hover:border-[#1ed760]/40 hover:bg-zinc-950"
+                      >
+                        <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d]/80 group-hover/folder:text-[#00ff9d]" />
+                        <span className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-[0.12em] text-zinc-200 group-hover/folder:text-white">
+                          {displayFolderName(child.name)}
+                        </span>
+                        <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover/folder:text-[#1ed760]" />
+                      </Link>
+                    );
+                  })
                 )}
                 {tracks.length > 0 && (
                   <div className="mt-3 border-t border-zinc-800/80 pt-3">

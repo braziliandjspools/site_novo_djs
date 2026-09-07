@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import { AtualizacoesAcervoHero } from "../components/AtualizacoesAcervoHero";
+import { AtualizacoesSyncNotice } from "../components/AtualizacoesSyncNotice";
 import { MusicasMonthLinks } from "../components/MusicasMonthLinks";
 import { useMusicasSession } from "../components/MusicasSessionContext";
 import { monthsReadKey } from "../lib/read-state";
@@ -48,7 +49,10 @@ export default function AtualizacoesPage() {
       )}
 
       {!loading && !error && (
-        <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
+        <>
+          <AtualizacoesSyncNotice />
+          <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
+        </>
       )}
     </div>
   );
