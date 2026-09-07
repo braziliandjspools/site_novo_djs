@@ -6,8 +6,10 @@ import {
   displayFolderName,
   folderHref,
   parseMonthStatus,
+  parseYearCollectionFolder,
   slugifyFolderName,
   sortFoldersByMonthDate,
+  sortFoldersByYearCollection,
 } from "../../lib/vip-music-slugs";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
@@ -61,12 +63,16 @@ type MusicasMonthLinksProps = {
 };
 
 export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }: MusicasMonthLinksProps) {
-  const byDate = sortFoldersByMonthDate(folders, true);
-  const sorted = [...byDate].sort((a, b) => {
+  const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
+  const byStructure =
+    yearLike >= Math.ceil(folders.length * 0.5)
+      ? sortFoldersByYearCollection(folders, true)
+      : sortFoldersByMonthDate(folders, true);
+  const sorted = [...byStructure].sort((a, b) => {
     const aNew = newFolderIds.has(a.id) ? 0 : 1;
     const bNew = newFolderIds.has(b.id) ? 0 : 1;
     if (aNew !== bNew) return aNew - bNew;
-    return 0;
+    return byStructure.indexOf(a) - byStructure.indexOf(b);
   });
 
   if (sorted.length === 0) {

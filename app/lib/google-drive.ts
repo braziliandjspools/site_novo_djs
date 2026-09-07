@@ -234,7 +234,7 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
     if (pageToken) params.set("pageToken", pageToken);
 
     const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) throw new Error(`Drive API error: ${res.status}`);

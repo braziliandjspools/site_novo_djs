@@ -49,7 +49,7 @@ export function AtualizacoesAcervoHero({ monthCount, hasVip }: AtualizacoesAcerv
 
         <div className="flex flex-shrink-0 flex-wrap gap-2">
           <span className="rounded-full bg-black/40 px-4 py-2 text-xs font-semibold text-zinc-200 ring-1 ring-white/10">
-            {monthCount} {monthCount === 1 ? "mês" : "meses"}
+            {monthCount} {monthCount === 1 ? "pasta" : "pastas"}
           </span>
           <span
             className={`rounded-full px-4 py-2 text-xs font-bold ring-1 ring-white/10 ${

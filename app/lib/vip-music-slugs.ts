@@ -86,6 +86,40 @@ export function parseMonthFolderDate(name: string): { year: number; month: numbe
   return { year, month };
 }
 
+/** Pastas de coleção anual: "PACKS 2026", "POOLS 2026", etc. */
+export function parseYearCollectionFolder(name: string): { year: number; kind: string } | null {
+  const label = displayFolderName(name)
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .trim();
+  const match = label.match(/^([a-z0-9][a-z0-9\s_-]*?)\s+(\d{4})$/i);
+  if (!match) return null;
+  const year = Number(match[2]);
+  if (!Number.isFinite(year) || year < 2000 || year > 2100) return null;
+  // Evita colidir com "SETEMBRO 2026" (mês).
+  if (MONTH_INDEX[match[1].toLowerCase().replace(/\s+/g, "")]) return null;
+  if (parseMonthFolderDate(name)) return null;
+  return { year, kind: match[1].trim().toUpperCase() };
+}
+
+export function sortFoldersByYearCollection(
+  folders: VipMusicFolder[],
+  newestFirst = true,
+): VipMusicFolder[] {
+  const dir = newestFirst ? -1 : 1;
+  return [...folders].sort((a, b) => {
+    const da = parseYearCollectionFolder(a.name);
+    const db = parseYearCollectionFolder(b.name);
+    if (da && db) {
+      if (da.year !== db.year) return (da.year - db.year) * dir;
+      return da.kind.localeCompare(db.kind, "pt-BR");
+    }
+    if (da && !db) return -1;
+    if (!da && db) return 1;
+    return a.name.localeCompare(b.name, "pt-BR", { numeric: true }) * (newestFirst ? -1 : 1);
+  });
+}
+
 /** Maioria dos filhos parece semana → hierarquia Mês > Semana > Estilo. */
 export function childrenAreWeekFolders(folders: VipMusicFolder[]): boolean {
   if (folders.length === 0) return false;
@@ -125,6 +159,10 @@ export function sortVipChildFolders(folders: VipMusicFolder[]): VipMusicFolder[]
   const monthLike = folders.filter((folder) => parseMonthFolderDate(folder.name)).length;
   if (monthLike >= Math.ceil(folders.length * 0.5)) {
     return sortFoldersByMonthDate(folders, true);
+  }
+  const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
+  if (yearLike >= Math.ceil(folders.length * 0.5)) {
+    return sortFoldersByYearCollection(folders, true);
   }
   return [...folders].sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
 }
