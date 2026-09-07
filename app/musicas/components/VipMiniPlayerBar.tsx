@@ -39,8 +39,10 @@ export function VipMiniPlayerBar() {
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-white">{track?.title ?? "Reproduzindo…"}</p>
-          <p className="truncate text-xs text-zinc-500">{track?.artist ?? ""}</p>
+          <p className="truncate text-sm font-bold text-white" title={track?.title}>
+            {track?.title ?? "Reproduzindo…"}
+          </p>
+          {track?.pack ? <p className="truncate text-xs text-zinc-500">{track.pack}</p> : null}
           <div className="mt-1 flex items-center gap-2">
             <div
               className="h-1 flex-1 cursor-pointer rounded-full bg-zinc-800"

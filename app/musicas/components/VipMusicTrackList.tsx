@@ -233,7 +233,10 @@ function TrackRow({
         >
           <div className="flex min-w-0 items-center gap-1.5">
             {isPlaying && <PlayingBars />}
-            <p className={`min-w-0 truncate text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}>
+            <p
+              className={`min-w-0 break-words text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}
+              title={track.title}
+            >
               {track.title}
             </p>
             <span className="hidden sm:inline">
@@ -477,9 +480,10 @@ function TrackTableRow({
             className="min-w-0 text-left"
           >
             <p
-              className={`truncate text-sm font-medium leading-snug ${
+              className={`break-words text-sm font-medium leading-snug ${
                 isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
+              title={track.title}
             >
               {track.title}
             </p>

@@ -77,14 +77,18 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
       </div>
 
       <div className="min-w-0 flex-1">
-        <Link href={track.href} className="block truncate text-sm font-semibold text-white hover:underline">
+        <Link
+          href={track.href}
+          className="block text-sm font-semibold leading-snug text-white hover:underline"
+          title={track.title}
+        >
           {track.title}
         </Link>
-        <p className="truncate text-xs text-zinc-500">
-          {track.artist}
-          {track.bpm ? ` · ${track.bpm} BPM` : ""}
-          {track.styleName ? ` · ${track.styleName}` : ""}
-        </p>
+        {[track.bpm ? `${track.bpm} BPM` : null, track.styleName].filter(Boolean).length > 0 ? (
+          <p className="truncate text-xs text-zinc-500">
+            {[track.bpm ? `${track.bpm} BPM` : null, track.styleName].filter(Boolean).join(" · ")}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-0.5">

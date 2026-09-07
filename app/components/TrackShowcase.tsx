@@ -163,9 +163,9 @@ function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progre
                     </p>
                   )}
                 </>
-              ) : (
+              ) : track.artist && !track.title.startsWith(track.artist) ? (
                 <p className="truncate text-xs text-gray-400 sm:text-sm">{track.artist}</p>
-              )}
+              ) : null}
             </div>
             <span className="hidden flex-shrink-0 font-mono text-[10px] text-gray-600 sm:inline">
               {String(index + 1).padStart(2, "0")}

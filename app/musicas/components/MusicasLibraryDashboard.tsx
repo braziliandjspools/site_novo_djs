@@ -171,10 +171,12 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-zinc-500">Você parou aqui →</p>
-              <p className="truncate font-semibold text-white">{continueItem.title}</p>
-              <p className="truncate text-xs text-zinc-500">
-                {continueItem.artist} · {continueItem.styleName}
+              <p className="truncate font-semibold text-white" title={continueItem.title}>
+                {continueItem.title}
               </p>
+              {continueItem.styleName ? (
+                <p className="truncate text-xs text-zinc-500">{continueItem.styleName}</p>
+              ) : null}
             </div>
             <ArrowRight className="h-5 w-5 text-zinc-500" />
           </Link>

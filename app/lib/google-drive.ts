@@ -153,8 +153,15 @@ function isAudioFile(name: string, mimeType: string) {
   return AUDIO_EXTENSIONS.test(name);
 }
 
+/** Remove numeração de faixa no início: `01 - `, `01.`, `1)`, `001_`, etc. */
+export function stripLeadingTrackNumber(name: string): string {
+  return name.replace(/^\d{1,3}\s*[-.)_\]]\s*/, "").trim();
+}
+
 export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pack"> {
-  const base = decodeHtmlEntities(fileName.replace(AUDIO_EXTENSIONS, "").trim());
+  const base = stripLeadingTrackNumber(
+    decodeHtmlEntities(fileName.replace(AUDIO_EXTENSIONS, "").trim()),
+  );
 
   let version: string | null = null;
   let bpmFrom: number | null = null;
@@ -192,9 +199,10 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
     }
   }
 
+  // Título = nome completo do arquivo (sem extensão/numeração). Artista só para busca/metadados.
   const dashIdx = working.indexOf(" - ");
-  const artist = dashIdx > 0 ? working.slice(0, dashIdx).trim() : "Unknown Artist";
-  const title = dashIdx > 0 ? working.slice(dashIdx + 3).trim() : working;
+  const artist = dashIdx > 0 ? working.slice(0, dashIdx).trim() : "";
+  const title = working;
 
   const bpm =
     bpmFrom !== null && bpmTo !== null ? `${bpmFrom} → ${bpmTo}` : bpmFrom !== null ? String(bpmFrom) : null;
