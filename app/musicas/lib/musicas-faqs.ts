@@ -6,7 +6,7 @@ export type MusicasFaq = {
 export const MUSICAS_FAQS: MusicasFaq[] = [
   {
     q: "Preciso ser assinante VIP para usar a plataforma?",
-    a: "Você pode navegar pelo catálogo, ver meses e estilos sem assinar. Para ouvir previews, baixar faixas e acessar downloads protegidos, é necessário o plano VIP com Pools ativo na sua conta.",
+    a: "Você pode navegar pelo catálogo e ouvir 1 minuto de prévia de cada faixa sem assinar. Para ouvir a música completa, baixar e usar o Downloader, assine o plano VIP em /plans.",
   },
   {
     q: "Com que frequência o acervo é atualizado?",

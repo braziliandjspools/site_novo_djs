@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../../lib/drive-audio-stream";
-import { requireVipMusicAccess } from "../../../lib/vip-music-access";
+import { resolveVipMusicStreamAccess } from "../../../lib/vip-music-access";
 
 export async function POST(request: Request) {
-  const access = await requireVipMusicAccess();
+  const access = await resolveVipMusicStreamAccess();
   if (!access.ok) {
-    return NextResponse.json({ error: access.error }, { status: access.status });
+    return NextResponse.json({ error: "Stream indisponível" }, { status: 403 });
   }
 
   let id: string | undefined;
@@ -22,14 +22,21 @@ export async function POST(request: Request) {
   }
 
   try {
-    const upstream = await fetchDriveAudioUpstream(id);
+    const upstream = await fetchDriveAudioUpstream(
+      id,
+      undefined,
+      access.mode === "preview" ? { previewMaxBytes: access.maxBytes } : undefined,
+    );
     if ("error" in upstream) {
       return NextResponse.json({ error: upstream.error }, { status: upstream.status });
     }
 
     return new NextResponse(upstream.body, {
       status: upstream.status,
-      headers: driveAudioResponseHeaders(upstream, { inline: true }),
+      headers: driveAudioResponseHeaders(upstream, {
+        inline: true,
+        previewSeconds: access.mode === "preview" ? access.previewSeconds : null,
+      }),
     });
   } catch {
     return NextResponse.json({ error: "Falha no stream" }, { status: 502 });

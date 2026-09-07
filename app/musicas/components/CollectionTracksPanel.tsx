@@ -9,6 +9,7 @@ type CollectionTracksPanelProps = {
   folderId: string;
   folderName: string;
   canPlay: boolean;
+  canDownload?: boolean;
   relativePath?: string;
 };
 
@@ -24,6 +25,7 @@ export function CollectionTracksPanel({
   folderId,
   folderName,
   canPlay,
+  canDownload = false,
   relativePath,
 }: CollectionTracksPanelProps) {
   const [tracks, setTracks] = useState<PreviewTrack[]>([]);
@@ -103,7 +105,7 @@ export function CollectionTracksPanel({
         folderId={folderId}
         tracks={tracks}
         canPlay={canPlay}
-        canDownload={canPlay}
+        canDownload={canDownload}
         relativePath={relativePath}
       />
       {hasMore && (

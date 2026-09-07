@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { getVipMusicSession } from "../../../lib/vip-music-access";
+import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 import { listCollections } from "../../../lib/vip-collections";
 
 export const revalidate = 60;
 
 export async function GET() {
   const session = await getVipMusicSession();
+  const access = vipMusicClientAccess(session);
 
   try {
     const data = await listCollections();
     return NextResponse.json({
       ...data,
-      canPlay: session.canPlay,
-      authenticated: session.authenticated,
+      ...access,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao carregar coleções.";

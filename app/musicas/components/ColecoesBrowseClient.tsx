@@ -34,6 +34,7 @@ type ResolveResponse = {
   albumCount: number;
   trackCount: number;
   canPlay?: boolean;
+  canDownload?: boolean;
   message?: string;
   error?: string;
 };
@@ -111,6 +112,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   }
 
   const canPlay = Boolean(data.canPlay);
+  const canDownload = Boolean(data.canDownload);
   const parentSegments = slugSegments.slice(0, -1);
   const packSlug = slugSegments.join("/");
   const relativePath = data.resolvedPath.map((part) => part.displayName).join(" / ");
@@ -203,6 +205,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
           folderId={data.folderId}
           folderName={data.folderName}
           canPlay={canPlay}
+          canDownload={canDownload}
           relativePath={relativePath}
         />
       )}

@@ -32,6 +32,8 @@ type ResolveResponse = {
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
   canPlay: boolean;
+  canDownload?: boolean;
+  canPlayFull?: boolean;
   resolvedPath: { slug: string; id: string; name: string }[];
   slugSegments: string[];
 };
@@ -140,8 +142,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     });
   }, [data, openFolderId, showingStyles, slugSegments]);
 
-  const { authenticated } = useMusicasSession();
+  const { authenticated, hasVip } = useMusicasSession();
   const playbackEnabled = Boolean(data?.canPlay);
+  const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
 
   const monthTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
@@ -199,7 +202,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         <AtualizacoesMonthHero
           folderName={data.folderName}
           styleCount={data.items.length}
-          hasVip={playbackEnabled}
+          hasVip={hasVip}
           mode={showingWeeks ? "weeks" : weekSlug ? "week-styles" : "styles"}
           actions={
             slugSegments.length === 1 ? (
@@ -217,7 +220,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         />
       )}
 
-      {authenticated && !playbackEnabled && <VipUpgradeBanner />}
+      {!hasVip && <VipUpgradeBanner />}
 
       {loading && (
         <div className="flex justify-center py-16">
@@ -261,7 +264,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   key={folder.id}
                   folder={folder}
                   canPlay={playbackEnabled}
-                  canDownload={playbackEnabled}
+                  canDownload={downloadEnabled}
                   relativePath={`${relativeStyleBase}/${displayFolderName(folder.name)}`}
                   monthSlug={monthSlug}
                   monthName={monthTitle}
@@ -294,7 +297,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             folderId={data.folderId}
             tracks={data.tracks ?? []}
             canPlay={playbackEnabled}
-            canDownload={playbackEnabled}
+            canDownload={downloadEnabled}
             relativePath={relativeStyleBase}
             highlightTrackId={faixaId ?? undefined}
             autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}

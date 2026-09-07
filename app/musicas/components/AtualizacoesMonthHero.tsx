@@ -88,7 +88,7 @@ export function AtualizacoesMonthHero({
               hasVip ? "bg-[#1ed760]/15 text-[#1ed760]" : "bg-black/40 text-zinc-400"
             }`}
           >
-            {hasVip ? "Premium ativo" : "Visualização"}
+            {hasVip ? "Premium ativo" : "Prévia 1 min"}
           </span>
         </div>
       </div>

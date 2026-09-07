@@ -93,7 +93,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
     <MusicasSessionProvider value={sessionValue}>
       <DownloaderSyncProvider>
       <MusicasToastProvider>
-      <VipMusicPlayerProvider canPlay={hasVip}>
+      <VipMusicPlayerProvider canPlayFull={hasVip}>
       <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-clip bg-black text-zinc-100">
         <MusicasSidebar
           authenticated={authenticated}
@@ -123,8 +123,8 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                   {hasVip
                     ? "Premium · Ouvir e baixar liberado"
                     : authenticated
-                      ? "Gratuito · Assine o VIP para ouvir"
-                      : "Explore o catálogo · Assine para liberar tudo"}
+                      ? "Prévia de 1 min · Assine o VIP para faixa completa"
+                      : "Prévia de 1 min · Assine em /plans para liberar tudo"}
                 </p>
               </div>
             </div>
@@ -143,8 +143,6 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
               {!hasVip && (
                 <a
                   href={checkoutUrl("VIP")}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-center rounded-full bg-[#1ed760] px-3 py-2 text-[11px] font-bold text-black transition-transform hover:scale-[1.03] sm:px-5 sm:text-sm"
                 >
                   Assinar VIP
