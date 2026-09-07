@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { MusicasSessionProvider } from "./components/MusicasSessionContext";
@@ -25,14 +25,15 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   const [hasVip, setHasVip] = useState(false);
   const [userName, setUserName] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const didBootRef = useRef(false);
 
   const goToLogin = useCallback(() => {
     const returnTo = encodeURIComponent(pathname || "/musicas/home");
     router.push(`/musicas/entrar?return=${returnTo}`);
   }, [pathname, router]);
 
-  const checkAccess = useCallback(async () => {
-    setLoading(true);
+  const checkAccess = useCallback(async (options?: { showLoader?: boolean }) => {
+    if (options?.showLoader !== false) setLoading(true);
     try {
       const res = await fetch("/api/musicas/session", { cache: "no-store" });
       const data = (await res.json()) as {
@@ -53,14 +54,17 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   }, []);
 
   useEffect(() => {
-    void checkAccess();
-  }, [checkAccess]);
+    if (pathname === "/musicas/entrar") return;
+    const showLoader = !didBootRef.current;
+    void (async () => {
+      await checkAccess({ showLoader });
+      didBootRef.current = true;
+    })();
+  }, [checkAccess, pathname]);
 
   async function handleLogout() {
     await fetch("/api/portal/logout", { method: "POST" });
-    setAuthenticated(false);
-    setHasVip(false);
-    setUserName("");
+    window.location.assign("/musicas/home");
   }
 
   const sessionValue = useMemo(

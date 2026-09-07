@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { PortalLogin } from "../../portal/PortalLogin";
 
@@ -16,7 +16,6 @@ function getSafeReturnPath(value: string | null) {
 }
 
 function MusicasEntrarContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = getSafeReturnPath(searchParams.get("return"));
   const checkoutPlan = searchParams.get("checkout");
@@ -33,12 +32,12 @@ function MusicasEntrarContent() {
 
       <PortalLogin
         onSuccess={() => {
-          if (checkoutPlan && returnTo.startsWith("/plans")) {
-            router.push(`/plans?checkout=${encodeURIComponent(checkoutPlan)}`);
-          } else {
-            router.push(returnTo);
-          }
-          router.refresh();
+          const target =
+            checkoutPlan && returnTo.startsWith("/plans")
+              ? `/plans?checkout=${encodeURIComponent(checkoutPlan)}`
+              : returnTo;
+          // Recarrega de verdade para o layout / player / APIs pegarem o cookie VIP.
+          window.location.assign(target);
         }}
       />
     </div>
