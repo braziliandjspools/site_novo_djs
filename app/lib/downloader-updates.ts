@@ -2,7 +2,7 @@
  * Manifesto de release do Downloader.
  * Preferência: variáveis no Vercel **se forem >= fallback embutido**.
  * - DOWNLOADER_LATEST_VERSION=1.0.0_public_beta
- * - DOWNLOADER_DOWNLOAD_URL=https://sitenovodjs.vercel.app/downloads/BRS-Downloader_1.0.0_public_beta_x64-setup.exe
+ * - DOWNLOADER_DOWNLOAD_URL=https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.0_public_beta_x64-setup.exe
  */
 
 export type DownloaderReleaseManifest = {
@@ -15,7 +15,7 @@ export type DownloaderReleaseManifest = {
 
 const FALLBACK_VERSION = "1.0.0_public_beta";
 const FALLBACK_DOWNLOAD_URL =
-  "https://sitenovodjs.vercel.app/downloads/BRS-Downloader_1.0.0_public_beta_x64-setup.exe";
+  "https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.0_public_beta_x64-setup.exe";
 const FALLBACK_NOTES =
   "BRS Downloader 1.0.0_public_beta: visual refinado, tipografia nova e experiência mais polida — primeira beta pública 1.0.";
 

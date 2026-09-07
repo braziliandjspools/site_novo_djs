@@ -38,7 +38,7 @@ npm run downloader:dev
 npm run downloader:build
 
 # Instalador Windows de produção (NSIS → release/BrazilianPacksDownloader_Setup.exe)
-# URL padrão: https://sitenovodjs.vercel.app (altere em scripts/build-downloader-installer.mjs ou via env)
+# URL padrão: https://brazilianremixservice.com.br (altere em scripts/build-downloader-installer.mjs ou via env)
 npm run downloader:release
 
 # Auditar secrets nos artefatos de build

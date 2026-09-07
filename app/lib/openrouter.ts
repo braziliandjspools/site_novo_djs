@@ -102,7 +102,7 @@ export async function generateBriefingIdea(input: BriefingIdeaInput): Promise<Br
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "https://brazilianpacks.com.br",
+      "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "https://brazilianremixservice.com.br",
       "X-Title": "Brazilian Remix Service Music Producer",
     },
     body: JSON.stringify({

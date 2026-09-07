@@ -37,7 +37,7 @@ export async function loginWithPassword(email: string, password: string, apiBase
 
   if (!data.token) {
     throw new Error(
-      "Servidor não devolveu token de acesso. Atualize o app ou confira se a URL aponta para sitenovodjs.vercel.app.",
+      "Servidor não devolveu token de acesso. Atualize o app ou confira se a URL aponta para brazilianremixservice.com.br.",
     );
   }
 

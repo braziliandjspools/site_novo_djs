@@ -265,11 +265,11 @@ export function LoginPage() {
                   onChange={(event) => setApiBaseUrl(event.target.value)}
                   onBlur={(event) => applyNormalizedUrl(event.target.value)}
                   className={inputClassName}
-                  placeholder="sitenovodjs.vercel.app"
+                  placeholder="brazilianremixservice.com.br"
                 />
                 <p className="text-[11px] leading-relaxed text-zinc-600">
                   {t("loginApiHint")}{" "}
-                  <span className="text-zinc-400">sitenovodjs.vercel.app/musicas/atualizacoes</span>
+                  <span className="text-zinc-400">brazilianremixservice.com.br/musicas/atualizacoes</span>
                 </p>
                 <Button
                   type="button"

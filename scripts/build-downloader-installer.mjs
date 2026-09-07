@@ -26,7 +26,7 @@ const TARGET_DIR = join(DOWNLOADER, "src-tauri/target");
 const TARGET_NSIS = join(TARGET_DIR, "release/bundle/nsis");
 const OUTPUT_NAME = "BrazilianPacksDownloader_Setup.exe";
 
-const PRODUCTION_SITE = (process.env.VITE_PRODUCTION_SITE_URL ?? "https://sitenovodjs.vercel.app").replace(/\/+$/, "");
+const PRODUCTION_SITE = (process.env.VITE_PRODUCTION_SITE_URL ?? "https://brazilianremixservice.com.br").replace(/\/+$/, "");
 
 const PRODUCTION_ENV = {
   VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? PRODUCTION_SITE,

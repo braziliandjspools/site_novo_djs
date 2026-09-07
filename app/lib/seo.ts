@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
 import { DEEMIX_ENABLED } from "./feature-flags";
-import { SITE_NAME, SITE_SHORT, SITE_TAGLINE } from "./branding";
+import { SITE_NAME, SITE_PRODUCTION_URL, SITE_SHORT, SITE_TAGLINE } from "./branding";
 
 /** URL canônica do site (produção). Sobrescreva com NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (() => {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, "");
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (vercel) {
-    return (vercel.startsWith("http") ? vercel : `https://${vercel}`).replace(/\/+$/, "");
-  }
-  return "https://sitenovodjs.vercel.app";
+  return SITE_PRODUCTION_URL;
 })();
 
 export const SITE_LOCALE = "pt_BR";
