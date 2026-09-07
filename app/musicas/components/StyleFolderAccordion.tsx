@@ -28,8 +28,6 @@ type StyleFolderAccordionProps = {
   highlightTrackId?: string;
   autoPlayTrackId?: string;
   scrollIntoView?: boolean;
-  /** Exibe coluna Pool na tabela desktop. */
-  poolColumn?: boolean;
 };
 
 type TracksResponse = {
@@ -56,7 +54,6 @@ export function StyleFolderAccordion({
   highlightTrackId,
   autoPlayTrackId,
   scrollIntoView = false,
-  poolColumn = false,
 }: StyleFolderAccordionProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -305,8 +302,6 @@ export function StyleFolderAccordion({
                 autoPlayTrackId={autoPlayTrackId}
                 layout="table"
                 folderCoverSrc={PLACEHOLDER.trackCover}
-                poolLabel={displayFolderName(folder.name)}
-                showPoolColumn={poolColumn}
                 continueContext={
                   monthSlug && monthName
                     ? {

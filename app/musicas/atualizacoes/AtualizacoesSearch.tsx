@@ -7,29 +7,23 @@ import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 import { hitHref, useAtualizacoesSearch } from "./AtualizacoesSearchContext";
 
 function HitIcon({ type }: { type: VipMusicSearchHit["type"] }) {
-  if (type === "month" || type === "year") return <Calendar className="h-3.5 w-3.5 text-[#00ff9d]" />;
-  if (type === "week" || type === "date") return <Calendar className="h-3.5 w-3.5 text-sky-400" />;
-  if (type === "style" || type === "pool") return <FolderOpen className="h-3.5 w-3.5 text-amber-400" />;
+  if (type === "month") return <Calendar className="h-3.5 w-3.5 text-[#00ff9d]" />;
+  if (type === "week") return <Calendar className="h-3.5 w-3.5 text-sky-400" />;
+  if (type === "style") return <FolderOpen className="h-3.5 w-3.5 text-amber-400" />;
   return <Music2 className="h-3.5 w-3.5 text-[#ff5500]" />;
 }
 
 function hitTypeLabel(type: VipMusicSearchHit["type"]) {
   if (type === "month") return "Mês";
-  if (type === "year") return "Ano";
   if (type === "week") return "Semana";
-  if (type === "date") return "Data";
   if (type === "style") return "Estilo";
-  if (type === "pool") return "Pool";
   return "Faixa";
 }
 
 function hitActionLabel(type: VipMusicSearchHit["type"]) {
   if (type === "month") return "Abrir mês";
-  if (type === "year") return "Abrir ano";
   if (type === "week") return "Abrir semana";
-  if (type === "date") return "Abrir data";
   if (type === "style") return "Abrir estilo";
-  if (type === "pool") return "Abrir pool";
   return "Ir para faixa";
 }
 
@@ -44,7 +38,7 @@ export function AtualizacoesSearch() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar data, pool, faixa..."
+          placeholder="Buscar mês, semana, estilo ou faixa..."
           className="w-full rounded-full border-0 bg-[#242424] py-3 pl-10 pr-10 text-sm text-white outline-none transition-colors placeholder:text-zinc-500 focus:bg-[#2a2a2a] focus:ring-2 focus:ring-white/10"
         />
         {query && (
@@ -103,12 +97,10 @@ export function AtualizacoesSearchResults() {
                   <HitIcon type={hit.type} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-white group-hover:text-[#00ff9d]" title={hit.label}>
+                  <span className="block truncate text-sm font-medium text-white group-hover:text-[#00ff9d]">
                     {hit.label}
                   </span>
-                  <span className="mt-0.5 block truncate text-[11px] text-zinc-500" title={hit.path}>
-                    {hit.path}
-                  </span>
+                  <span className="mt-0.5 block truncate text-[11px] text-zinc-500">{hit.path}</span>
                 </span>
                 <span className="flex flex-shrink-0 flex-col items-end gap-1">
                   <span className="rounded border border-zinc-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500">
