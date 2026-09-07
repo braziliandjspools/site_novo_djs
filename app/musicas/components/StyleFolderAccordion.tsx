@@ -129,7 +129,8 @@ export function StyleFolderAccordion({
       if (data.level === "folders" && data.items.length > 0) {
         setContentMode("folders");
         setChildFolders(data.items);
-        setTracks([]);
+        const directTracks = data.tracks ?? [];
+        setTracks(directTracks);
         setTotal(data.items.length);
         setHasMore(false);
         setLoaded(true);
@@ -383,6 +384,31 @@ export function StyleFolderAccordion({
                       }
                     />
                   ))
+                )}
+                {tracks.length > 0 && (
+                  <div className="mt-3 border-t border-zinc-800/80 pt-3">
+                    <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                      Faixas nesta pasta
+                    </p>
+                    <VipMusicTrackList
+                      folderId={folder.id}
+                      tracks={tracks}
+                      canPlay={canPlay}
+                      canDownload={canDownload}
+                      relativePath={relativePath}
+                      layout="table"
+                      continueContext={
+                        monthSlug && monthName
+                          ? {
+                              monthSlug,
+                              monthName,
+                              weekSlug,
+                              styleName: displayFolderName(folder.name),
+                            }
+                          : undefined
+                      }
+                    />
+                  </div>
                 )}
               </div>
             )}

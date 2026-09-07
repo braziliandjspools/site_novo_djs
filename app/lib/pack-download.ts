@@ -98,7 +98,16 @@ async function collectTracksRecursive(
     });
   }
 
-  const jobs: PackTrackJob[] = [];
+  const jobs: PackTrackJob[] = catalog.tracks.map((track: PreviewTrack) => {
+    const fileName = ensureAudioExtension(track.fileName ?? track.title);
+    return {
+      fileId: track.id,
+      fileName,
+      relativePath: relativePath ? `${relativePath}/${fileName}` : fileName,
+      title: track.title,
+    };
+  });
+
   for (const item of catalog.items) {
     const childPath = relativePath
       ? `${relativePath}/${displayFolderName(item.name)}`
