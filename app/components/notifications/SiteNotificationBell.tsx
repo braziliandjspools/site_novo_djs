@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   CreditCard,
@@ -8,11 +9,12 @@ import {
   Megaphone,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { SiteNotificationDto } from "../../lib/site-notices";
 
 const LOCAL_DISMISS_KEY = "bp_site_notif_dismissed";
 const LOCAL_READ_KEY = "bp_site_notif_read";
+const MOBILE_MQ = "(max-width: 767px)";
 
 function readLocalSet(key: string): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -58,11 +60,21 @@ type SiteNotificationBellProps = {
 
 export function SiteNotificationBell({ className = "", compact = false }: SiteNotificationBellProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const rootId = useId().replace(/:/g, "");
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<SiteNotificationDto[]>([]);
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const applyLocalState = useCallback((list: SiteNotificationDto[]) => {
     const dismissed = readLocalSet(LOCAL_DISMISS_KEY);
@@ -98,16 +110,40 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
   }, [load]);
 
   useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
     function onPointerDown(event: MouseEvent) {
       const target = event.target as Node | null;
       if (!target) return;
       const root = document.getElementById(`site-notification-bell-${rootId}`);
-      if (root && !root.contains(target)) setOpen(false);
+      const panel = document.getElementById(`site-notification-panel-${rootId}`);
+      if (root?.contains(target) || panel?.contains(target)) return;
+      setOpen(false);
     }
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, [open, rootId]);
+
+  useEffect(() => {
+    if (!open || !isMobile) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open, isMobile]);
 
   const unread = items.filter((item) => !item.read).length;
   const hasAlert = unread > 0;
@@ -183,11 +219,156 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
 
   const buttonSize = compact ? "h-9 w-9" : "h-10 w-10";
 
+  const panelBody = (
+    <>
+      <div className="flex items-center justify-between gap-2 px-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Notificações</p>
+        <div className="flex items-center gap-2">
+          {items.length > 0 && (
+            <button
+              type="button"
+              className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-300"
+              onClick={() => {
+                for (const item of items) markLocalDismiss(item.dedupeKey ?? item.id);
+                setItems([]);
+              }}
+            >
+              Limpar
+            </button>
+          )}
+          {isMobile && (
+            <button
+              type="button"
+              className="rounded-md p-1.5 text-zinc-400 hover:bg-white/5 hover:text-white"
+              aria-label="Fechar notificações"
+              onClick={() => setOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {loading && items.length === 0 ? (
+        <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-3 text-sm text-zinc-400">Carregando…</p>
+      ) : items.length === 0 ? (
+        <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-3 text-sm text-zinc-400">
+          Nenhuma notificação no momento.
+        </p>
+      ) : (
+        <ul
+          className={`mt-3 space-y-2 overflow-y-auto overscroll-contain pr-1 ${
+            isMobile ? "max-h-[min(60dvh,28rem)]" : "max-h-80"
+          }`}
+        >
+          {items.map((item) => (
+            <li key={item.id} className={`rounded-xl border px-3 py-3 text-sm ${severityClass(item.severity)}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1.5 font-semibold text-white">
+                    {kindIcon(item.kind)}
+                    <span className="truncate">{item.title}</span>
+                  </p>
+                  <p className="mt-1 break-words text-xs leading-relaxed opacity-90 [overflow-wrap:anywhere]">
+                    {item.body}
+                  </p>
+                  {item.action && (
+                    <button
+                      type="button"
+                      className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-[11px] font-semibold text-white hover:bg-white/10"
+                      onClick={() => handleAction(item)}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      {item.action.label}
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="rounded-md p-1 text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
+                  aria-label="Dispensar"
+                  onClick={() => handleDismiss(item)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="h-8 min-w-0 flex-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+          onClick={() => {
+            setOpen(false);
+            router.push("/portal");
+          }}
+        >
+          Portal
+        </button>
+        <button
+          type="button"
+          className="h-8 min-w-0 flex-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+          onClick={() => {
+            setOpen(false);
+            router.push("/plans");
+          }}
+        >
+          Planos
+        </button>
+      </div>
+    </>
+  );
+
+  const desktopPanel = open && !isMobile && (
+    <div
+      id={`site-notification-panel-${rootId}`}
+      role="dialog"
+      aria-label="Notificações"
+      className="absolute right-0 z-[60] mt-2 w-[22rem] max-w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+    >
+      {panelBody}
+    </div>
+  );
+
+  const mobilePanel =
+    open &&
+    isMobile &&
+    typeof document !== "undefined" &&
+    createPortal(
+      <>
+        <div
+          className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-[2px]"
+          aria-hidden
+          onClick={() => setOpen(false)}
+        />
+        <div
+          id={`site-notification-panel-${rootId}`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Notificações"
+          className="fixed left-3 right-3 z-[121] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+          style={{
+            top: "max(4.5rem, calc(env(safe-area-inset-top, 0px) + 3.75rem))",
+            width: "auto",
+            maxWidth: "calc(100vw - 1.5rem)",
+          }}
+        >
+          {panelBody}
+        </div>
+      </>,
+      document.body,
+    );
+
   return (
     <div id={`site-notification-bell-${rootId}`} className={`relative ${className}`}>
       <button
         type="button"
         onClick={handleOpenToggle}
+        aria-expanded={open}
+        aria-controls={`site-notification-panel-${rootId}`}
         className={`relative inline-flex ${buttonSize} items-center justify-center rounded-xl border transition-colors ${
           hasAlert
             ? "border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
@@ -206,94 +387,8 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 z-[60] mt-2 w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-          <div className="flex items-center justify-between gap-2 px-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Notificações
-            </p>
-            {items.length > 0 && (
-              <button
-                type="button"
-                className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-300"
-                onClick={() => {
-                  for (const item of items) markLocalDismiss(item.dedupeKey ?? item.id);
-                  setItems([]);
-                }}
-              >
-                Limpar
-              </button>
-            )}
-          </div>
-
-          {loading && items.length === 0 ? (
-            <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-3 text-sm text-zinc-400">
-              Carregando…
-            </p>
-          ) : items.length === 0 ? (
-            <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-3 text-sm text-zinc-400">
-              Nenhuma notificação no momento.
-            </p>
-          ) : (
-            <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
-              {items.map((item) => (
-                <li key={item.id} className={`rounded-xl border px-3 py-3 text-sm ${severityClass(item.severity)}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-1.5 font-semibold text-white">
-                        {kindIcon(item.kind)}
-                        <span className="truncate">{item.title}</span>
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed opacity-90">{item.body}</p>
-                      {item.action && (
-                        <button
-                          type="button"
-                          className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-[11px] font-semibold text-white hover:bg-white/10"
-                          onClick={() => handleAction(item)}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          {item.action.label}
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className="rounded-md p-1 text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
-                      aria-label="Dispensar"
-                      onClick={() => handleDismiss(item)}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="h-8 flex-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-              onClick={() => {
-                setOpen(false);
-                router.push("/portal");
-              }}
-            >
-              Portal
-            </button>
-            <button
-              type="button"
-              className="h-8 flex-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-              onClick={() => {
-                setOpen(false);
-                router.push("/plans");
-              }}
-            >
-              Planos
-            </button>
-          </div>
-        </div>
-      )}
+      {desktopPanel}
+      {mobilePanel}
     </div>
   );
 }

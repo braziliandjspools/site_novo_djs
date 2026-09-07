@@ -35,12 +35,12 @@ export function AdminApp() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap gap-2 border-b border-white/10 pb-4">
+    <div className="w-full min-w-0 space-y-6">
+      <div className="flex w-full min-w-0 flex-wrap gap-2 border-b border-white/10 pb-4">
         <button
           type="button"
           onClick={() => setActiveTab("users")}
-          className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${
+          className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider sm:px-4 ${
             activeTab === "users" ? "bg-[#FFDF00] text-black" : "text-gray-400 hover:text-white"
           }`}
         >
@@ -49,7 +49,7 @@ export function AdminApp() {
         <button
           type="button"
           onClick={() => setActiveTab("deliveries")}
-          className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${
+          className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider sm:px-4 ${
             activeTab === "deliveries" ? "bg-[#FFDF00] text-black" : "text-gray-400 hover:text-white"
           }`}
         >
@@ -58,7 +58,7 @@ export function AdminApp() {
         <button
           type="button"
           onClick={() => setActiveTab("notices")}
-          className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${
+          className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider sm:px-4 ${
             activeTab === "notices" ? "bg-[#FFDF00] text-black" : "text-gray-400 hover:text-white"
           }`}
         >

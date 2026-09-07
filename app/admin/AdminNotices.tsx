@@ -159,13 +159,13 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
         className="rounded-2xl border border-white/10 bg-[#181818] p-4 sm:p-5"
       >
         <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Novo aviso</p>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título"
-            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#009739]/50 sm:col-span-2"
+            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#009739]/50 sm:col-span-2"
           />
           <textarea
             required
@@ -173,12 +173,12 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
             onChange={(e) => setBody(e.target.value)}
             placeholder="Mensagem"
             rows={3}
-            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#009739]/50 sm:col-span-2"
+            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#009739]/50 sm:col-span-2"
           />
           <select
             value={severity}
             onChange={(e) => setSeverity(e.target.value as NoticeRow["severity"])}
-            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
+            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
           >
             {Object.entries(severityLabel).map(([value, label]) => (
               <option key={value} value={value}>
@@ -189,7 +189,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
           <select
             value={audience}
             onChange={(e) => setAudience(e.target.value as "GLOBAL" | "USER")}
-            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
+            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
           >
             <option value="GLOBAL">Global (todos)</option>
             <option value="USER">Usuário específico</option>
@@ -199,7 +199,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
               required
               value={portalUserId}
               onChange={(e) => setPortalUserId(e.target.value)}
-              className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white sm:col-span-2"
+              className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white sm:col-span-2"
             >
               <option value="">Selecione o cliente…</option>
               {users.map((user) => (
@@ -214,7 +214,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
         <button
           type="submit"
           disabled={saving}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#009739] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#00B347] disabled:opacity-60"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#009739] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#00B347] disabled:opacity-60 sm:w-auto"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Publicar aviso
@@ -234,18 +234,18 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
           {notices.map((notice) => (
             <li
               key={notice.id}
-              className={`rounded-xl border px-4 py-3 ${
+              className={`min-w-0 rounded-xl border px-4 py-3 ${
                 notice.active ? "border-white/10 bg-[#181818]" : "border-white/5 bg-[#121212] opacity-60"
               }`}
             >
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-white">{notice.title}</p>
+                    <p className="font-semibold text-white [overflow-wrap:anywhere]">{notice.title}</p>
                     <span className="rounded border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400">
                       {severityLabel[notice.severity]}
                     </span>
-                    <span className="rounded border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400">
+                    <span className="max-w-full rounded border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400 [overflow-wrap:anywhere]">
                       {notice.audience === "GLOBAL"
                         ? "Global"
                         : notice.user?.email ?? `User #${notice.portalUserId}`}
@@ -256,20 +256,20 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-zinc-400">{notice.body}</p>
+                  <p className="mt-1 text-sm text-zinc-400 [overflow-wrap:anywhere]">{notice.body}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                   <button
                     type="button"
                     onClick={() => void toggleActive(notice)}
-                    className="rounded-lg border border-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:bg-white/5"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:bg-white/5 sm:w-auto"
                   >
                     {notice.active ? "Desativar" : "Ativar"}
                   </button>
                   <button
                     type="button"
                     onClick={() => void removeNotice(notice.id)}
-                    className="rounded-lg border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-red-500/30 p-2 text-red-300 hover:bg-red-500/10 sm:w-auto"
                     aria-label="Excluir"
                   >
                     <Trash2 className="h-4 w-4" />

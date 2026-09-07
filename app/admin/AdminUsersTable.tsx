@@ -347,12 +347,12 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
   }).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
+    <div className="w-full min-w-0 space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-widest text-[#FFDF00]">Administração</p>
-          <h1 className="font-display text-3xl text-white">Clientes do portal</h1>
-          <p className="mt-1 text-sm text-gray-400">
+          <h1 className="font-display text-2xl text-white sm:text-3xl">Clientes do portal</h1>
+          <p className="mt-1 text-sm text-gray-400 [overflow-wrap:anywhere]">
             {total} clientes · lista ordenada pelo próximo vencimento
             {dueSoonCount > 0 ? (
               <span className="ml-2 font-semibold text-amber-300">
@@ -366,11 +366,11 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
             ) : null}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={() => void loadUsers()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-[#009739]/40 hover:text-white"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-[#009739]/40 hover:text-white sm:w-auto"
           >
             <RefreshCw className="h-4 w-4" />
             Atualizar
@@ -378,7 +378,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <button
             type="button"
             onClick={() => setShowCreate((value) => !value)}
-            className="inline-flex items-center gap-2 rounded-full bg-[#009739] px-4 py-2 text-sm font-semibold text-white hover:bg-[#00B347]"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#009739] px-4 py-2 text-sm font-semibold text-white hover:bg-[#00B347] sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Novo cliente
@@ -386,7 +386,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <button
             type="button"
             onClick={() => void handleLogout()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-red-500/40 hover:text-red-300"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-red-500/40 hover:text-red-300 sm:w-auto"
           >
             <LogOut className="h-4 w-4" />
             Sair
@@ -412,10 +412,10 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
       {showCreate && (
         <form
           onSubmit={(e) => void createUser(e)}
-          className="rounded-2xl border border-[#009739]/40 bg-[#009739]/10 p-6"
+          className="min-w-0 rounded-2xl border border-[#009739]/40 bg-[#009739]/10 p-4 sm:p-6"
         >
           <h2 className="font-display text-xl text-white">Cadastrar cliente</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["name", "Nome completo"],
               ["email", "E-mail"],
@@ -423,7 +423,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
               ["whatsapp", "WhatsApp"],
               ["nextDueAt", "Próx. vencimento"],
             ].map(([key, label]) => (
-              <label key={key} className="block text-xs text-gray-400">
+              <label key={key} className="block min-w-0 text-xs text-gray-400">
                 {label}
                 <input
                   type={key === "password" ? "password" : key === "nextDueAt" ? "date" : "text"}
@@ -434,7 +434,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                 />
               </label>
             ))}
-            <label className="block text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
+            <label className="block min-w-0 text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
               Serviços contratados
               <div className="mt-2 rounded-lg border border-white/10 bg-black/20 p-3">
                 <ServiceSelector
@@ -443,7 +443,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                 />
               </div>
             </label>
-            <label className="block text-xs text-gray-400">
+            <label className="block min-w-0 text-xs text-gray-400">
               Valor mensal
               <div className="mt-1">
                 <MoneyInput
@@ -456,7 +456,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <button
             type="submit"
             disabled={creating}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FFDF00] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-[#002776] disabled:opacity-60"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#FFDF00] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-[#002776] disabled:opacity-60 sm:w-auto"
           >
             {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Cadastrar
@@ -470,7 +470,128 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         </p>
       ) : (
         <>
-          <section className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0f1a2e] to-[#0a1220] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+          {/* Mobile: cards editáveis — ações sempre visíveis */}
+          <div className="space-y-4 md:hidden">
+            {users.map((user, index) => {
+              const draft = drafts[user.id];
+              if (!draft) return null;
+              const isSaving = savingId === user.id;
+              const urgency = getDueUrgency(draft.nextDueAt);
+              const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
+
+              return (
+                <article
+                  key={user.id}
+                  className={`w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0f1a2e] to-[#0a1220] p-4 shadow-[0_12px_40px_rgba(0,0,0,0.25)] ${rowUrgencyClass(urgency)}`}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <p className="font-mono text-[11px] font-bold text-[#FFDF00]">
+                      #{String(index + 1).padStart(2, "0")}
+                    </p>
+                    {urgencyLabel && (
+                      <span
+                        className={`inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                          urgency === "overdue"
+                            ? "bg-red-500/20 text-red-300"
+                            : "bg-amber-500/20 text-amber-200"
+                        }`}
+                      >
+                        {urgencyLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Nome
+                      <input
+                        value={draft.name}
+                        onChange={(e) => updateDraft(user.id, { name: e.target.value })}
+                        className={`${inputClass} mt-1`}
+                      />
+                    </label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      E-mail
+                      <input
+                        type="email"
+                        value={draft.email}
+                        onChange={(e) => updateDraft(user.id, { email: e.target.value })}
+                        className={`${inputClass} mt-1 [overflow-wrap:anywhere]`}
+                      />
+                    </label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      WhatsApp
+                      <input
+                        value={draft.whatsapp}
+                        onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
+                        className={`${inputClass} mt-1`}
+                      />
+                    </label>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Serviços</p>
+                      <div className="mt-1.5 rounded-lg border border-white/10 bg-black/20 p-3">
+                        <ServiceSelector
+                          value={draft.services}
+                          onChange={(services) => updateDraft(user.id, { services })}
+                        />
+                      </div>
+                    </div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Valor mensal
+                      <div className="mt-1">
+                        <MoneyInput
+                          value={draft.monthlyValue}
+                          onChange={(monthlyValue) => updateDraft(user.id, { monthlyValue })}
+                        />
+                      </div>
+                    </label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Próx. vencimento
+                      <input
+                        type="date"
+                        value={draft.nextDueAt}
+                        onChange={(e) => updateDraft(user.id, { nextDueAt: e.target.value })}
+                        className={`${inputClass} mt-1 font-mono`}
+                      />
+                    </label>
+                    <label className="inline-flex min-h-11 items-center gap-2 text-sm text-zinc-300">
+                      <input
+                        type="checkbox"
+                        checked={draft.active}
+                        onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
+                        className="h-4 w-4 accent-[#009739]"
+                      />
+                      Cliente ativo
+                    </label>
+                  </div>
+
+                  <div className="sticky bottom-0 mt-4 -mx-4 -mb-4 flex flex-col gap-2 border-t border-white/10 bg-[#0a1220]/95 px-4 py-3 backdrop-blur">
+                    <button
+                      type="button"
+                      onClick={() => void saveUser(user.id)}
+                      disabled={isSaving}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#009739]/40 bg-[#009739]/20 text-sm font-semibold text-[#00B347] hover:bg-[#009739]/30 disabled:opacity-50"
+                    >
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      Salvar alterações
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteUser(user.id, user.name)}
+                      disabled={isSaving}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 text-sm font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Desktop: tabela tradicional */}
+          <section className="hidden overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0f1a2e] to-[#0a1220] shadow-[0_20px_60px_rgba(0,0,0,0.35)] md:block">
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse text-left text-xs">
                 <thead className="sticky top-0 z-10">
@@ -504,14 +625,14 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                         <td className="px-3 py-3 align-top font-mono text-[11px] font-bold text-[#FFDF00]">
                           {String(index + 1).padStart(2, "0")}
                         </td>
-                        <td className="px-3 py-3 align-top min-w-[140px]">
+                        <td className="min-w-[140px] px-3 py-3 align-top">
                           <input
                             value={draft.name}
                             onChange={(e) => updateDraft(user.id, { name: e.target.value })}
                             className={inputClass}
                           />
                         </td>
-                        <td className="px-3 py-3 align-top min-w-[200px]">
+                        <td className="min-w-[200px] px-3 py-3 align-top">
                           <input
                             type="email"
                             value={draft.email}
@@ -519,21 +640,21 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                             className={inputClass}
                           />
                         </td>
-                        <td className="px-3 py-3 align-top min-w-[130px]">
+                        <td className="min-w-[130px] px-3 py-3 align-top">
                           <input
                             value={draft.whatsapp}
                             onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
                             className={inputClass}
                           />
                         </td>
-                        <td className="px-3 py-3 align-top min-w-[170px]">
+                        <td className="min-w-[170px] px-3 py-3 align-top">
                           <ServiceSelector
                             compact
                             value={draft.services}
                             onChange={(services) => updateDraft(user.id, { services })}
                           />
                         </td>
-                        <td className="px-3 py-3 align-top min-w-[140px]">
+                        <td className="min-w-[140px] px-3 py-3 align-top">
                           <MoneyInput
                             value={draft.monthlyValue}
                             onChange={(monthlyValue) => updateDraft(user.id, { monthlyValue })}
@@ -598,14 +719,14 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
             </div>
           </section>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <p className="text-xs text-zinc-500">
               {users.length} e-mail{users.length === 1 ? "" : "s"} na lista · um por linha no arquivo
             </p>
             <button
               type="button"
               onClick={exportEmailsTxt}
-              className="inline-flex items-center gap-2 rounded-full border border-[#FFDF00]/35 bg-[#FFDF00]/10 px-4 py-2 text-sm font-semibold text-[#FFDF00] hover:bg-[#FFDF00]/20"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[#FFDF00]/35 bg-[#FFDF00]/10 px-4 py-2 text-sm font-semibold text-[#FFDF00] hover:bg-[#FFDF00]/20 sm:w-auto"
             >
               <Download className="h-4 w-4" />
               Extrair e-mails (.txt)
