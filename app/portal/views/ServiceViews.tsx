@@ -8,7 +8,7 @@ import { formatDateBr, type PortalData } from "../portal-types";
 export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
 
-  const { catalogUrl, downloader } = data.pools;
+  const { catalogUrl, driveUrl, downloader, ftp } = data.pools;
 
   return (
     <div className="space-y-6">
@@ -51,6 +51,45 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
           Windows x64 · versão {downloader.version} · mesmo login da conta VIP
         </p>
       </PortalCard>
+
+      <PortalCard title="Google Drive">
+        <p className="mb-4 text-sm leading-relaxed text-zinc-400">
+          Mesmo acervo da plataforma VIP em /musicas/atualizacoes. Abra no navegador ou monte no PC com RaiDrive /
+          Google Drive para Desktop.
+        </p>
+        <a
+          href={driveUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:border-[#00ff9d]/40 hover:text-[#00ff9d]"
+        >
+          Abrir pasta no Google Drive
+          <ExternalLink className="h-4 w-4" />
+        </a>
+        <div className="mt-4">
+          <CopyField label="Link da pasta" value={driveUrl} variant="green" theme="dark" compact />
+        </div>
+      </PortalCard>
+
+      {ftp && (
+        <PortalCard title="FTP / FileZilla">
+          <p className="mb-4 text-sm leading-relaxed text-zinc-400">
+            Use estas credenciais no FileZilla (ou cliente FTP similar) para baixar o acervo em massa. Prefira{" "}
+            <span className="text-zinc-300">modo passivo</span> e o protocolo indicado abaixo.
+          </p>
+          <div className="space-y-4">
+            <CopyField label="Host" value={ftp.host} variant="green" theme="dark" compact />
+            <CopyField label="Porta" value={ftp.port} variant="green" theme="dark" compact />
+            <CopyField label="Protocolo" value={ftp.protocol.toUpperCase()} variant="green" theme="dark" compact />
+            <CopyField label="Usuário" value={ftp.user} variant="green" theme="dark" compact />
+            <CopyField label="Senha" value={ftp.password} variant="green" theme="dark" compact />
+          </div>
+          <p className="mt-4 text-xs text-zinc-500">
+            FileZilla → Arquivo → Gerenciador de Sites → Nova pasta/site → preencha host, porta, protocolo, usuário e
+            senha.
+          </p>
+        </PortalCard>
+      )}
     </div>
   );
 }

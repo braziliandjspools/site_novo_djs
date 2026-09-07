@@ -16,6 +16,7 @@ import { planDisplayName } from "./hotmart/types";
 import { HOTMART_PROVIDER } from "./hotmart/config";
 import { DOWNLOADER_NAME } from "./branding";
 import { getDownloaderReleaseManifest } from "./downloader-updates";
+import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -161,11 +162,35 @@ function getLicenseConfig() {
   };
 }
 
+function getVipFtpConfig(): {
+  host: string;
+  port: string;
+  user: string;
+  password: string;
+  protocol: "ftp" | "ftps" | "sftp";
+} | null {
+  const host = process.env.VIP_FTP_HOST?.trim() ?? "";
+  const user = process.env.VIP_FTP_USER?.trim() ?? "";
+  const password = process.env.VIP_FTP_PASSWORD?.trim() ?? "";
+  if (!host || !user || !password) return null;
+
+  const rawProtocol = (process.env.VIP_FTP_PROTOCOL?.trim().toLowerCase() || "ftp") as string;
+  const protocol: "ftp" | "ftps" | "sftp" =
+    rawProtocol === "ftps" || rawProtocol === "sftp" ? rawProtocol : "ftp";
+  const port = process.env.VIP_FTP_PORT?.trim() || (protocol === "sftp" ? "22" : "21");
+
+  return { host, port, user, password, protocol };
+}
+
 function getPoolsPortalPayload() {
   const config = getLicenseConfig();
   const release = getDownloaderReleaseManifest();
+  const folderId = GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID.trim();
   return {
     catalogUrl: config.pools.catalogUrl,
+    driveUrl: folderId
+      ? `https://drive.google.com/drive/folders/${folderId}`
+      : "https://drive.google.com",
     downloader: {
       name: DOWNLOADER_NAME,
       version: release?.version ?? "1.0.1_public_beta",
@@ -173,6 +198,7 @@ function getPoolsPortalPayload() {
         release?.downloadUrl ??
         "https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe",
     },
+    ftp: getVipFtpConfig(),
   };
 }
 
