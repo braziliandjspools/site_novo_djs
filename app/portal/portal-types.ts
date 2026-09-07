@@ -50,6 +50,11 @@ export type PortalData = {
   } | null;
   pools: {
     catalogUrl: string;
+    downloader: {
+      name: string;
+      version: string;
+      downloadUrl: string;
+    };
   } | null;
   musicProducerDeliveries: {
     enabled: boolean;

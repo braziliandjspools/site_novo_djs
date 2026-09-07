@@ -14,6 +14,8 @@ import { DEEMIX_ENABLED } from "./feature-flags";
 import { getActiveHotmartSubscriptionForUser } from "./hotmart/process-webhook";
 import { planDisplayName } from "./hotmart/types";
 import { HOTMART_PROVIDER } from "./hotmart/config";
+import { DOWNLOADER_NAME } from "./branding";
+import { getDownloaderReleaseManifest } from "./downloader-updates";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -159,6 +161,21 @@ function getLicenseConfig() {
   };
 }
 
+function getPoolsPortalPayload() {
+  const config = getLicenseConfig();
+  const release = getDownloaderReleaseManifest();
+  return {
+    catalogUrl: config.pools.catalogUrl,
+    downloader: {
+      name: DOWNLOADER_NAME,
+      version: release?.version ?? "1.0.1_public_beta",
+      downloadUrl:
+        release?.downloadUrl ??
+        "https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe",
+    },
+  };
+}
+
 export async function getPortalDataForUser(user: PortalUser) {
   const now = new Date();
   const config = getLicenseConfig();
@@ -220,6 +237,6 @@ export async function getPortalDataForUser(user: PortalUser) {
         }
       : null,
     allavsoft: userHasAllavsoft(user) ? config.allavsoft : null,
-    pools: userHasPools(user) ? config.pools : null,
+    pools: userHasPools(user) ? getPoolsPortalPayload() : null,
   };
 }

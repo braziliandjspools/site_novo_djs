@@ -8,6 +8,8 @@ import { formatDateBr, type PortalData } from "../portal-types";
 export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
 
+  const { catalogUrl, downloader } = data.pools;
+
   return (
     <div className="space-y-6">
       <PortalPageHeader title="Pools VIP" subtitle="Acervo de pools, remix services e curadoria." />
@@ -22,20 +24,32 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
           organizadas para DJs.
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {["Remix services", "Edits exclusivos", "Atualizações contínuas", "Google Drive + FTP"].map((item) => (
+          {["Remix services", "Edits exclusivos", "Atualizações contínuas", "Site + Downloader Windows"].map((item) => (
             <li key={item} className="flex items-center gap-2 text-sm text-zinc-300">
               <CheckCircle2 className="h-4 w-4 text-[#00ff9d]" />
               {item}
             </li>
           ))}
         </ul>
-        <Link
-          href="/musicas/atualizacoes"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#00e68a]"
-        >
-          Acessar acervo de músicas
-          <ExternalLink className="h-4 w-4" />
-        </Link>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            href={catalogUrl}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#00e68a]"
+          >
+            Acessar acervo de músicas
+            <ExternalLink className="h-4 w-4" />
+          </Link>
+          <a
+            href={downloader.downloadUrl}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:border-[#00ff9d]/40 hover:text-[#00ff9d]"
+          >
+            <Download className="h-4 w-4" />
+            Baixar {downloader.name}
+          </a>
+        </div>
+        <p className="mt-3 text-xs text-zinc-500">
+          Windows x64 · versão {downloader.version} · mesmo login da conta VIP
+        </p>
       </PortalCard>
     </div>
   );
