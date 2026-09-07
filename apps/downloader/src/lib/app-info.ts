@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.1_public_beta";
-export const APP_CORE_VERSION = "1.0.1_public_beta";
+export const WEBUI_VERSION = "1.0.2_public_beta";
+export const APP_CORE_VERSION = "1.0.2_public_beta";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.2_public_beta",
+    date: "2026-09-07",
+    items: [
+      "Corrige login/sessão com o domínio canônico www.brazilianremixservice.com.br",
+      "Evita perda do token quando o apex redireciona (308) para www",
+      "Atualiza URL padrão da API e dicas em Configurar servidor",
+    ],
+  },
   {
     version: "1.0.1_public_beta",
     date: "2026-09-07",

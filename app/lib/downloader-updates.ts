@@ -1,8 +1,8 @@
 /**
  * Manifesto de release do Downloader.
  * Preferência: variáveis no Vercel **se forem >= fallback embutido**.
- * - DOWNLOADER_LATEST_VERSION=1.0.1_public_beta
- * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe
+ * - DOWNLOADER_LATEST_VERSION=1.0.2_public_beta
+ * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.2_public_beta_x64-setup.exe
  */
 
 export type DownloaderReleaseManifest = {
@@ -13,11 +13,11 @@ export type DownloaderReleaseManifest = {
   platform: "windows";
 };
 
-const FALLBACK_VERSION = "1.0.1_public_beta";
+const FALLBACK_VERSION = "1.0.2_public_beta";
 const FALLBACK_DOWNLOAD_URL =
-  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe";
+  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.2_public_beta_x64-setup.exe";
 const FALLBACK_NOTES =
-  "BRS Downloader 1.0.1_public_beta: use www.brazilianremixservice.com.br (o domínio sem www redireciona e quebra a sessão).";
+  "BRS Downloader 1.0.2_public_beta: corrige sessão com www.brazilianremixservice.com.br (domínio sem www redirecionava e removia o token).";
 
 function cleanEnv(value: string | undefined) {
   const trimmed = value?.trim() ?? "";
@@ -50,7 +50,7 @@ export function getDownloaderReleaseManifest(): DownloaderReleaseManifest | null
     version: envIsCurrentOrNewer ? envVersion! : FALLBACK_VERSION,
     downloadUrl: envIsCurrentOrNewer ? envUrl! : FALLBACK_DOWNLOAD_URL,
     notes: envIsCurrentOrNewer ? (envNotes ?? FALLBACK_NOTES) : FALLBACK_NOTES,
-    publishedAt: envPublishedAt ?? "2026-09-07T16:45:00.000Z",
+    publishedAt: envPublishedAt ?? "2026-09-07T19:10:00.000Z",
     platform: "windows",
   };
 }
