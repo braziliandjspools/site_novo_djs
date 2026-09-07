@@ -2,7 +2,7 @@
  * Manifesto de release do Downloader.
  * Preferência: variáveis no Vercel **se forem >= fallback embutido**.
  * - DOWNLOADER_LATEST_VERSION=1.0.1_public_beta
- * - DOWNLOADER_DOWNLOAD_URL=https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe
+ * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe
  */
 
 export type DownloaderReleaseManifest = {
@@ -15,9 +15,9 @@ export type DownloaderReleaseManifest = {
 
 const FALLBACK_VERSION = "1.0.1_public_beta";
 const FALLBACK_DOWNLOAD_URL =
-  "https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe";
+  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe";
 const FALLBACK_NOTES =
-  "BRS Downloader 1.0.1_public_beta: servidor padrão e links atualizados para brazilianremixservice.com.br.";
+  "BRS Downloader 1.0.1_public_beta: use www.brazilianremixservice.com.br (o domínio sem www redireciona e quebra a sessão).";
 
 function cleanEnv(value: string | undefined) {
   const trimmed = value?.trim() ?? "";

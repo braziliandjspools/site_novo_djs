@@ -14,7 +14,7 @@ import { DEEMIX_ENABLED } from "./feature-flags";
 import { getActiveHotmartSubscriptionForUser } from "./hotmart/process-webhook";
 import { planDisplayName } from "./hotmart/types";
 import { HOTMART_PROVIDER } from "./hotmart/config";
-import { DOWNLOADER_NAME } from "./branding";
+import { DOWNLOADER_NAME, SITE_PRODUCTION_URL } from "./branding";
 import { getDownloaderReleaseManifest } from "./downloader-updates";
 import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 
@@ -196,7 +196,7 @@ function getPoolsPortalPayload() {
       version: release?.version ?? "1.0.1_public_beta",
       downloadUrl:
         release?.downloadUrl ??
-        "https://brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe",
+        `${SITE_PRODUCTION_URL}/downloads/BRS-Downloader_1.0.1_public_beta_x64-setup.exe`,
     },
     ftp: getVipFtpConfig(),
   };

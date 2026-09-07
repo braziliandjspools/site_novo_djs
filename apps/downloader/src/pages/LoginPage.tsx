@@ -265,11 +265,11 @@ export function LoginPage() {
                   onChange={(event) => setApiBaseUrl(event.target.value)}
                   onBlur={(event) => applyNormalizedUrl(event.target.value)}
                   className={inputClassName}
-                  placeholder="brazilianremixservice.com.br"
+                  placeholder="www.brazilianremixservice.com.br"
                 />
                 <p className="text-[11px] leading-relaxed text-zinc-600">
                   {t("loginApiHint")}{" "}
-                  <span className="text-zinc-400">brazilianremixservice.com.br/musicas/atualizacoes</span>
+                  <span className="text-zinc-400">www.brazilianremixservice.com.br</span>
                 </p>
                 <Button
                   type="button"

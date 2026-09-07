@@ -5,9 +5,15 @@ export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "1.0.1_public_bet
 export const DESKTOP_CLIENT_HEADER = "X-BP-Client";
 export const DESKTOP_CLIENT_ID = "downloader";
 
+const APEX_HOST = "brazilianremixservice.com.br";
+const CANONICAL_HOST = "www.brazilianremixservice.com.br";
+
 let resolvedApiBaseUrl: string | null = null;
 
-/** Aceita domínio, URL completa ou link /musicas/... — retorna origem https://host */
+/**
+ * Aceita domínio, URL completa ou link /musicas/... — retorna origem https://host.
+ * Reescreve apex → www (o 308 da Vercel remove Authorization e quebra a sessão).
+ */
 export function normalizeApiBaseUrl(value: string) {
   let trimmed = value.trim();
   if (!trimmed) return DEFAULT_API_BASE_URL;
@@ -22,6 +28,9 @@ export function normalizeApiBaseUrl(value: string) {
 
   try {
     const parsed = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+    if (parsed.hostname.toLowerCase() === APEX_HOST) {
+      parsed.hostname = CANONICAL_HOST;
+    }
     return `${parsed.protocol}//${parsed.host}`;
   } catch {
     return trimmed.replace(/\/+$/, "");
@@ -44,7 +53,7 @@ export async function resolveApiBaseUrl(): Promise<string> {
   if (resolvedApiBaseUrl) return resolvedApiBaseUrl;
 
   try {
-    const { getAppPreferences } = await import("../native/app-preferences");
+    const { getAppPreferences, setAppPreferences } = await import("../native/app-preferences");
     const prefs = await getAppPreferences();
     const override = prefs.apiBaseUrl?.trim();
     const normalizedOverride = override ? normalizeApiBaseUrl(override) : null;
@@ -54,9 +63,14 @@ export async function resolveApiBaseUrl(): Promise<string> {
       !isLocalhostUrl(DEFAULT_API_BASE_URL);
 
     resolvedApiBaseUrl =
-      normalizedOverride && !savedLocal ? normalizedOverride : DEFAULT_API_BASE_URL;
+      normalizedOverride && !savedLocal ? normalizedOverride : normalizeApiBaseUrl(DEFAULT_API_BASE_URL);
+
+    // Persist rewrite apex → www so a sessão não quebra no próximo boot.
+    if (override && normalizedOverride && normalizedOverride !== override && !savedLocal) {
+      await setAppPreferences({ ...prefs, apiBaseUrl: normalizedOverride }).catch(() => undefined);
+    }
   } catch {
-    resolvedApiBaseUrl = DEFAULT_API_BASE_URL;
+    resolvedApiBaseUrl = normalizeApiBaseUrl(DEFAULT_API_BASE_URL);
   }
 
   return resolvedApiBaseUrl;

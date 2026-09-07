@@ -20,9 +20,9 @@ export const APP_CHANGELOG: ChangelogEntry[] = [
     version: "1.0.1_public_beta",
     date: "2026-09-07",
     items: [
-      "Servidor padrão atualizado para brazilianremixservice.com.br",
-      "Links da plataforma e atualizações apontam para o novo domínio",
-      "Ajustes de textos de conexão e configuração de servidor",
+      "Servidor padrão atualizado para www.brazilianremixservice.com.br",
+      "Corrige sessão quando o domínio sem www redirecionava e removia o token",
+      "Links da plataforma e atualizações apontam para o domínio canônico",
     ],
   },
   {

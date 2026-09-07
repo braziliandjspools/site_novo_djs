@@ -25,7 +25,7 @@ export class NetworkError extends Error {
     const hint =
       apiBaseUrl.includes("localhost") || apiBaseUrl.includes("127.0.0.1")
         ? "Confirme que o site está rodando (npm run dev na raiz do projeto)."
-        : "Verifique a URL (ex.: brazilianremixservice.com.br) e sua conexão.";
+        : "Verifique a URL (ex.: www.brazilianremixservice.com.br) e sua conexão.";
     const suffix = detail ? ` (${detail})` : "";
     super(`Sem conexão com ${apiBaseUrl}. ${hint}${suffix}`);
     this.name = "NetworkError";
@@ -118,7 +118,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
       );
     }
     throw new Error(
-      "Resposta inválida do servidor. Use só o domínio (ex.: brazilianremixservice.com.br) em Configurar servidor.",
+      "Resposta inválida do servidor. Use www.brazilianremixservice.com.br em Configurar servidor.",
     );
   }
 
