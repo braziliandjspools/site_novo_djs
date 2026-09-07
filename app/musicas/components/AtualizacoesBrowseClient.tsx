@@ -91,30 +91,47 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       .finally(() => setLoading(false));
   }, [slugPath]);
 
+  const isYearFolder = Boolean(data && isYearFolderName(data.folderName));
+  const dateChildren = Boolean(data && childrenAreDateFolders(data.items));
+  const weekChildren = Boolean(data && childrenAreWeekFolders(data.items));
+
+  /** Ano com pastas DATA DD/MM/AAAA. */
   const isYearLevel =
     Boolean(data && data.level === "folders" && slugSegments.length === 1) &&
-    (isYearFolderName(data?.folderName ?? "") || childrenAreDateFolders(data?.items ?? []));
+    isYearFolder &&
+    dateChildren;
+
+  /** Ano com pools/estilos diretos (Drive ainda sem pastas DATA). */
+  const isYearPoolsLevel =
+    Boolean(data && data.level === "folders" && slugSegments.length === 1) &&
+    isYearFolder &&
+    !dateChildren &&
+    !weekChildren;
 
   const isDateLevel =
     Boolean(data && data.level === "folders" && slugSegments.length === 2) &&
     (isDateFolderName(data?.folderName ?? "") ||
-      (!childrenAreWeekFolders(data?.items ?? []) &&
-        data?.resolvedPath[0] &&
-        (isYearFolderName(data.resolvedPath[0].name) || childrenAreYearFolders(rootFolders))));
+      (Boolean(data?.resolvedPath[0] && isYearFolderName(data.resolvedPath[0].name)) &&
+        !weekChildren));
 
   const showingWeeks = useMemo(() => {
     if (!data || data.level !== "folders" || slugSegments.length !== 1) return false;
-    if (isYearLevel) return false;
+    if (isYearLevel || isYearPoolsLevel) return false;
     return childrenAreWeekFolders(data.items);
-  }, [data, slugSegments.length, isYearLevel]);
+  }, [data, slugSegments.length, isYearLevel, isYearPoolsLevel]);
 
   const showingLegacyStyles = Boolean(
-    data && data.level === "folders" && !showingWeeks && !isYearLevel && !isDateLevel,
+    data &&
+      data.level === "folders" &&
+      !showingWeeks &&
+      !isYearLevel &&
+      !isYearPoolsLevel &&
+      !isDateLevel,
   );
 
   /** Semanas irmãs (legado). */
   useEffect(() => {
-    if (!firstSlug || !secondSlug || isDateLevel || isYearLevel) {
+    if (!firstSlug || !secondSlug || isDateLevel || isYearLevel || isYearPoolsLevel) {
       setSiblingWeeks([]);
       return;
     }
@@ -135,15 +152,15 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return () => {
       cancelled = true;
     };
-  }, [firstSlug, secondSlug, isDateLevel, isYearLevel]);
+  }, [firstSlug, secondSlug, isDateLevel, isYearLevel, isYearPoolsLevel]);
 
   /** Datas do ano para Sources (quando em data ou ano). */
   useEffect(() => {
-    if (!firstSlug || (!isYearLevel && !isDateLevel)) {
-      if (!isYearLevel && !isDateLevel) setYearDates([]);
+    if (!firstSlug || (!isYearLevel && !isDateLevel && !isYearPoolsLevel)) {
+      if (!isYearLevel && !isDateLevel && !isYearPoolsLevel) setYearDates([]);
       return;
     }
-    if (isYearLevel && data) {
+    if ((isYearLevel || isYearPoolsLevel) && data) {
       setYearDates(data.items);
       return;
     }
@@ -166,13 +183,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return () => {
       cancelled = true;
     };
-  }, [firstSlug, isYearLevel, isDateLevel, data]);
+  }, [firstSlug, isYearLevel, isYearPoolsLevel, isDateLevel, data]);
 
   useEffect(() => {
-    if (!data || !poolSlug || !(showingLegacyStyles || isDateLevel)) return;
+    if (!data || !poolSlug || !(showingLegacyStyles || isDateLevel || isYearPoolsLevel)) return;
     const match = data.items.find((item) => matchStyleSlug(item.name, poolSlug));
     if (match) setOpenFolderId(match.id);
-  }, [data, poolSlug, showingLegacyStyles, isDateLevel]);
+  }, [data, poolSlug, showingLegacyStyles, isDateLevel, isYearPoolsLevel]);
 
   useEffect(() => {
     if (!data) return;
@@ -185,7 +202,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   }, [data, slugSegments, isDateLevel]);
 
   useEffect(() => {
-    if (!data || !openFolderId || !(showingLegacyStyles || isDateLevel)) return;
+    if (!data || !openFolderId || !(showingLegacyStyles || isDateLevel || isYearPoolsLevel)) return;
     const folder = data.items.find((item) => item.id === openFolderId);
     if (!folder) return;
     const params = new URLSearchParams({
@@ -196,14 +213,17 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       name: `${isDateLevel ? formatDateFolderLabel(data.folderName) : displayFolderName(data.folderName)} · ${displayFolderName(folder.name)}`,
       href: `${folderHref(slugSegments)}?${params.toString()}`,
     });
-  }, [data, openFolderId, showingLegacyStyles, isDateLevel, slugSegments]);
+  }, [data, openFolderId, showingLegacyStyles, isDateLevel, isYearPoolsLevel, slugSegments]);
 
   const { authenticated } = useMusicasSession();
   const playbackEnabled = Boolean(data?.canPlay);
 
-  const yearFolders = childrenAreYearFolders(rootFolders)
-    ? sortFoldersByYear(rootFolders, true)
-    : rootFolders.filter((f) => isYearFolderName(f.name));
+  const yearFolders = (() => {
+    const fromRoot = rootFolders.filter((f) => isYearFolderName(f.name));
+    if (fromRoot.length > 0) return sortFoldersByYear(fromRoot, true);
+    if (childrenAreYearFolders(rootFolders)) return sortFoldersByYear(rootFolders, true);
+    return [];
+  })();
 
   const yearTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
@@ -227,7 +247,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       : stylesReadKey(secondSlug ? `${firstSlug}/${secondSlug}` : firstSlug);
   const newChildIds = useNewFolderHighlights(highlightKey, childIds);
 
-  const dateListForSources = isYearLevel && data ? data.items : yearDates;
+  const dateListForSources =
+    (isYearLevel || isYearPoolsLevel) && data ? data.items : yearDates;
   const sortedDates = childrenAreDateFolders(dateListForSources)
     ? sortFoldersByDateFolder(dateListForSources, true)
     : dateListForSources;
@@ -238,17 +259,21 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       ? `${yearTitle}/${secondTitle}`
       : yearTitle;
 
-  const useDateLayout = isYearLevel || isDateLevel;
+  const useDateLayout = isYearLevel || isDateLevel || isYearPoolsLevel;
 
   return (
     <div className={`w-full ${useDateLayout ? "flex flex-col gap-5 md:flex-row md:items-start" : ""}`}>
       {useDateLayout && (
         <AtualizacoesSourcesNav
-          years={yearFolders.length > 0 ? yearFolders : rootFolders.filter((f) => isYearFolderName(f.name))}
+          years={yearFolders}
           dates={sortedDates}
           activeYearSlug={firstSlug || undefined}
-          activeDateSlug={isDateLevel ? secondSlug : undefined}
-          newDateIds={isYearLevel ? newChildIds : undefined}
+          activeDateSlug={
+            isDateLevel ? secondSlug : isYearPoolsLevel ? poolSlug ?? undefined : undefined
+          }
+          newDateIds={isYearLevel || isYearPoolsLevel ? newChildIds : undefined}
+          itemMode={isYearPoolsLevel ? "pools" : "dates"}
+          sourcesTitle={isYearPoolsLevel ? "Sources · Pools" : "Sources"}
         />
       )}
 
@@ -329,6 +354,25 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             </h1>
             <p className="mt-1 text-sm text-zinc-500">
               {data.items.length} data{data.items.length === 1 ? "" : "s"} · escolha em Sources ou abaixo
+            </p>
+            <div className="mt-3">
+              <SendPackToDownloaderButton slug={firstSlug} label="Enviar ano ao Downloader" />
+            </div>
+          </div>
+        )}
+
+        {isYearPoolsLevel && data && (
+          <div className="mb-4">
+            <h1 className="font-display text-2xl font-black text-white sm:text-3xl" title={currentTitle}>
+              {currentTitle}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              {data.items.length} pool{data.items.length === 1 ? "" : "s"} · escolha em Sources
+            </p>
+            <p className="mt-1 text-xs text-amber-400/90">
+              Dica: para o layout por data, crie pastas{" "}
+              <span className="font-mono">DATA DD/MM/AAAA</span> dentro do ano e pools dentro de cada
+              data.
             </p>
             <div className="mt-3">
               <SendPackToDownloaderButton slug={firstSlug} label="Enviar ano ao Downloader" />
@@ -458,6 +502,60 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Ano → pools diretos (sem pastas DATA ainda) */}
+        {!loading && !error && data && isYearPoolsLevel && (
+          <div className="mt-5 space-y-4">
+            <div className="flex flex-wrap gap-2 md:hidden">
+              {data.items.map((folder) => {
+                const label = displayFolderName(folder.name);
+                const active = openFolderId === folder.id;
+                return (
+                  <button
+                    key={folder.id}
+                    type="button"
+                    title={label}
+                    onClick={() =>
+                      setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                    }
+                    className={`max-w-[14rem] truncate rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      active
+                        ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]"
+                        : "border-white/10 bg-white/[0.03] text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="space-y-3">
+              {data.items.map((folder) => (
+                <StyleFolderAccordion
+                  key={folder.id}
+                  folder={folder}
+                  canPlay={playbackEnabled}
+                  canDownload={playbackEnabled}
+                  relativePath={`${displayFolderName(data.folderName)}/${displayFolderName(folder.name)}`}
+                  monthSlug={firstSlug}
+                  monthName={displayFolderName(data.folderName)}
+                  slugSegments={[firstSlug, slugifyFolderName(folder.name)]}
+                  isNew={newChildIds.has(folder.id)}
+                  isOpen={openFolderId === folder.id}
+                  highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}
+                  autoPlayTrackId={
+                    openFolderId === folder.id && playbackEnabled && faixaId ? faixaId : undefined
+                  }
+                  scrollIntoView={Boolean(poolSlug && matchStyleSlug(folder.name, poolSlug))}
+                  onToggle={() =>
+                    setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                  }
+                  poolColumn
+                />
+              ))}
+            </div>
           </div>
         )}
 

@@ -22,6 +22,12 @@ type AtualizacoesSourcesNavProps = {
   /** Contagem de pools por id da pasta de data (opcional). */
   poolCountByDateId?: Record<string, number>;
   newDateIds?: Set<string>;
+  /**
+   * `dates` = navega para /ano/data
+   * `pools` = fica no ano e usa ?pool= (Drive sem pastas DATA ainda)
+   */
+  itemMode?: "dates" | "pools";
+  sourcesTitle?: string;
 };
 
 export function AtualizacoesSourcesNav({
@@ -31,11 +37,14 @@ export function AtualizacoesSourcesNav({
   activeDateSlug,
   poolCountByDateId = {},
   newDateIds,
+  itemMode = "dates",
+  sourcesTitle = "Sources",
 }: AtualizacoesSourcesNavProps) {
   const sortedYears = sortFoldersByYear(years, true);
-  const sortedDates = childrenAreDateFolders(dates)
-    ? sortFoldersByDateFolder(dates, true)
-    : [...dates].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  const sortedDates =
+    itemMode === "dates" && childrenAreDateFolders(dates)
+      ? sortFoldersByDateFolder(dates, true)
+      : [...dates].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
   return (
     <aside className="w-full min-w-0 md:w-[260px] md:flex-shrink-0">
@@ -67,25 +76,33 @@ export function AtualizacoesSourcesNav({
           </div>
         )}
 
-        <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Sources</p>
+        <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">{sourcesTitle}</p>
 
         {sortedDates.length === 0 ? (
           <p className="mt-3 px-1 text-xs text-zinc-600">
             {activeYearSlug
-              ? "Nenhuma data neste ano. Use pastas DATA DD/MM/AAAA no Drive."
+              ? itemMode === "pools"
+                ? "Nenhum pool neste ano."
+                : "Nenhuma data neste ano. Use pastas DATA DD/MM/AAAA no Drive."
               : "Selecione um ano para ver as datas."}
           </p>
         ) : (
           <ul className="mt-2 max-h-[min(60vh,28rem)] space-y-1 overflow-y-auto overscroll-contain md:max-h-[calc(100dvh-14rem)]">
             {sortedDates.map((dateFolder) => {
               const dateSlug = slugifyFolderName(dateFolder.name);
-              const label = formatDateFolderLabel(dateFolder.name);
+              const label =
+                itemMode === "dates"
+                  ? formatDateFolderLabel(dateFolder.name)
+                  : displayFolderName(dateFolder.name);
               const fullName = displayFolderName(dateFolder.name);
               const active = activeDateSlug === dateSlug;
               const poolCount = poolCountByDateId[dateFolder.id];
-              const href = activeYearSlug
-                ? folderHref([activeYearSlug, dateSlug])
-                : folderHref([dateSlug]);
+              const href =
+                itemMode === "pools" && activeYearSlug
+                  ? `${folderHref([activeYearSlug])}?pool=${encodeURIComponent(dateSlug)}`
+                  : activeYearSlug
+                    ? folderHref([activeYearSlug, dateSlug])
+                    : folderHref([dateSlug]);
               const isNew = newDateIds?.has(dateFolder.id);
 
               return (
@@ -117,10 +134,14 @@ export function AtualizacoesSourcesNav({
                         {label}
                       </span>
                       <span className="block truncate text-[11px] text-zinc-500">
-                        {typeof poolCount === "number"
-                          ? `${poolCount} pool${poolCount === 1 ? "" : "s"}`
-                          : "Atualização"}
-                        {isNew ? " · Novo" : ""}
+                        {itemMode === "pools"
+                          ? isNew
+                            ? "Pool · Novo"
+                            : "Pool"
+                          : typeof poolCount === "number"
+                            ? `${poolCount} pool${poolCount === 1 ? "" : "s"}`
+                            : "Atualização"}
+                        {itemMode === "dates" && isNew ? " · Novo" : ""}
                       </span>
                     </span>
                   </Link>
