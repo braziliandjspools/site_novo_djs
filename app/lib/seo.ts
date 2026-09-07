@@ -5,7 +5,11 @@ import { SITE_NAME, SITE_PRODUCTION_URL, SITE_SHORT, SITE_TAGLINE } from "./bran
 /** URL canônica do site (produção). Sobrescreva com NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (() => {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/+$/, "");
+  if (fromEnv) {
+    const cleaned = fromEnv.replace(/\/+$/, "");
+    if (/^https?:\/\//i.test(cleaned)) return cleaned;
+    return `https://${cleaned}`;
+  }
   return SITE_PRODUCTION_URL;
 })();
 
