@@ -42,13 +42,24 @@ type VipMusicTrackListProps = {
 };
 
 const TABLE_GRID =
-  "grid grid-cols-[2.25rem_minmax(0,1.6fr)_minmax(0,1fr)_auto] items-center gap-x-3";
+  "grid grid-cols-[2.25rem_minmax(0,1.6fr)_minmax(7.5rem,0.85fr)_auto] items-center gap-x-3";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function formatDriveModifiedAt(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function downloadUrl(track: PreviewTrack) {
@@ -229,9 +240,11 @@ function TrackRow({
               <TrackDownloadStatus fileId={track.id} />
             </span>
           </div>
-          {track.artist && track.artist !== "Unknown Artist" && (
-            <p className="truncate text-[10px] leading-tight text-zinc-500">{track.artist}</p>
-          )}
+          {track.modifiedAt ? (
+            <p className="truncate text-[10px] leading-tight text-zinc-500">
+              {formatDriveModifiedAt(track.modifiedAt)}
+            </p>
+          ) : null}
         </button>
 
         {isActive && duration > 0 && !selectionMode && (
@@ -386,8 +399,7 @@ function TrackTableRow({
   isSendingToDownloader,
   onToggleSelected,
 }: TrackTableRowProps) {
-  const artistLabel =
-    track.artist && track.artist !== "Unknown Artist" ? track.artist : "—";
+  const modifiedLabel = formatDriveModifiedAt(track.modifiedAt);
 
   return (
     <article
@@ -479,8 +491,13 @@ function TrackTableRow({
           </button>
         </div>
 
-        {/* Artist */}
-        <p className="min-w-0 truncate text-sm text-zinc-400">{artistLabel}</p>
+        {/* Última modificação (Drive) */}
+        <p
+          className="min-w-0 truncate text-sm tabular-nums text-zinc-400"
+          title={track.modifiedAt ? new Date(track.modifiedAt).toLocaleString("pt-BR") : undefined}
+        >
+          {modifiedLabel}
+        </p>
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-1">
@@ -920,7 +937,7 @@ export function VipMusicTrackList({
               Música
             </span>
             <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              Artista
+              Última modificação
             </span>
             <span className="text-right text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
               Ações

@@ -17,6 +17,8 @@ export type PreviewTrack = {
   pack: string;
   /** Nome original do arquivo no Google Drive (com extensão). */
   fileName?: string;
+  /** ISO do `modifiedTime` do Google Drive, quando disponível via API. */
+  modifiedAt?: string | null;
   bpm: string | null;
   bpmFrom: number | null;
   bpmTo: number | null;
@@ -36,6 +38,7 @@ type DriveFile = {
   id: string;
   name: string;
   mimeType: string;
+  modifiedTime?: string;
 };
 
 type DriveFolder = {
@@ -211,6 +214,7 @@ function toPreviewTrack(file: DriveFile, packName: string): PreviewTrack {
   return {
     id: file.id,
     pack: packName,
+    modifiedAt: file.modifiedTime ?? null,
     ...parseTrackMeta(file.name),
   };
 }
@@ -222,7 +226,7 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
   do {
     const params = new URLSearchParams({
       q: `'${folderId}' in parents and trashed=false`,
-      fields: "nextPageToken,files(id,name,mimeType)",
+      fields: "nextPageToken,files(id,name,mimeType,modifiedTime)",
       pageSize: "100",
       orderBy: "folder,name",
       key: apiKey,

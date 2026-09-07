@@ -82,6 +82,7 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       id: file.id,
       pack: folderName,
       fileName: file.name,
+      modifiedAt: file.modifiedTime ?? null,
       ...parseTrackMeta(file.name),
     }))
     .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
@@ -145,6 +146,7 @@ export async function getVipMusicTracks(folderId: string, folderName: string): P
       id: file.id,
       pack: folderName,
       fileName: file.name,
+      modifiedAt: file.modifiedTime ?? null,
       ...parseTrackMeta(file.name),
     }))
     .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
