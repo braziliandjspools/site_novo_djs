@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useProtectedPlayer } from "../../hooks/useProtectedPlayer";
 import type { PreviewTrack } from "../../lib/google-drive";
-import { VIP_MUSIC_PREVIEW_SECONDS } from "../../lib/vip-music-access";
+import { VIP_MUSIC_PREVIEW_SECONDS } from "../../lib/vip-music-preview";
 
 type FolderPlaybackState = {
   tracks: PreviewTrack[];
