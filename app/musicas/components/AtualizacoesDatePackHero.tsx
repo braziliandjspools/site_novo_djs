@@ -4,12 +4,14 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { Calendar, FolderOpen, Music2 } from "lucide-react";
 import { PLACEHOLDER } from "../../lib/theme";
-import { formatDateFolderLabel } from "../../lib/vip-music-slugs";
+import { displayFolderName, formatDateFolderLabel, isDateFolderName } from "../../lib/vip-music-slugs";
 
 type AtualizacoesDatePackHeroProps = {
   folderName: string;
   yearLabel?: string;
-  poolCount: number;
+  /** Número de pools (visão de data) ou faixas (visão de pool) */
+  poolCount?: number;
+  trackCount?: number;
   isNew?: boolean;
   hasVip: boolean;
   actions?: ReactNode;
@@ -19,11 +21,19 @@ export function AtualizacoesDatePackHero({
   folderName,
   yearLabel,
   poolCount,
+  trackCount,
   isNew = false,
   hasVip,
   actions,
 }: AtualizacoesDatePackHeroProps) {
-  const dateLabel = formatDateFolderLabel(folderName);
+  const isDate = isDateFolderName(folderName);
+  const title = isDate ? formatDateFolderLabel(folderName) : displayFolderName(folderName);
+  const metaCount =
+    typeof trackCount === "number"
+      ? `${trackCount} faixa${trackCount === 1 ? "" : "s"}`
+      : typeof poolCount === "number"
+        ? `${poolCount} pool${poolCount === 1 ? "" : "s"}`
+        : null;
 
   return (
     <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#181818]">
@@ -53,26 +63,37 @@ export function AtualizacoesDatePackHero({
               </span>
             )}
             <span className="rounded-md border border-[#1ed760]/30 bg-[#1ed760]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#1ed760]">
+              {isDate ? "Data" : "Pool"}
+            </span>
+            <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
               Áudio
             </span>
           </div>
 
           <h1
             className="mt-2 truncate font-display text-2xl font-black tracking-tight text-white sm:text-3xl"
-            title={dateLabel}
+            title={title}
           >
-            {dateLabel}
+            {title}
           </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-zinc-500">
-            <span className="inline-flex items-center gap-1.5" title={dateLabel}>
-              <Calendar className="h-3.5 w-3.5 text-zinc-600" />
-              {dateLabel}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <FolderOpen className="h-3.5 w-3.5 text-zinc-600" />
-              {poolCount} pool{poolCount === 1 ? "" : "s"}
-            </span>
+            {isDate && (
+              <span className="inline-flex items-center gap-1.5" title={title}>
+                <Calendar className="h-3.5 w-3.5 text-zinc-600" />
+                {title}
+              </span>
+            )}
+            {metaCount && (
+              <span className="inline-flex items-center gap-1.5">
+                {typeof trackCount === "number" ? (
+                  <Music2 className="h-3.5 w-3.5 text-zinc-600" />
+                ) : (
+                  <FolderOpen className="h-3.5 w-3.5 text-zinc-600" />
+                )}
+                {metaCount}
+              </span>
+            )}
             {!hasVip && (
               <span className="inline-flex items-center gap-1.5 text-amber-400/90">
                 <Music2 className="h-3.5 w-3.5" />
