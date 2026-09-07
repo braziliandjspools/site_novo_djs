@@ -89,9 +89,9 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/plans",
     title: `Planos VIP | ${SITE_NAME}`,
     description:
-      "Assine o BRS Drive Mensal do Brazilian Remix Service via Hotmart: plataforma para DJs, packs organizados, atualizações e Downloader para Windows.",
+      "Assine o BRS Drive Mensal via Hotmart: acervo VIP, atualizações, plataforma para DJs e Downloader Windows. Pagamento seguro e acesso liberado automaticamente.",
     ogImage: "plans",
-    keywords: ["plano VIP DJ", "assinatura pools", "BRS Drive Mensal", "Hotmart"],
+    keywords: ["plano VIP DJ", "assinatura pools", "BRS Drive Mensal", "Hotmart", "Downloader DJ"],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.9,

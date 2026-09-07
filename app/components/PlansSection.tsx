@@ -78,8 +78,8 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
       <div className="mx-auto max-w-5xl">
         <SectionHeading
           badge="Assinatura"
-          title="BRS Drive Mensal"
-          subtitle="Assine com checkout seguro da Hotmart e libere a plataforma, packs organizados e o Downloader para Windows. O acesso é liberado automaticamente após a confirmação do pagamento."
+          title="Assine agora"
+          subtitle="BRS Drive Mensal com cobrança via Hotmart. Após a confirmação do pagamento, o acesso à plataforma e ao Downloader é liberado automaticamente na sua conta."
         />
         <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12">
           {plans.map((plan) => (
