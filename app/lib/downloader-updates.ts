@@ -1,11 +1,8 @@
 /**
  * Manifesto de release do Downloader.
  * Preferência: variáveis no Vercel **se forem >= fallback embutido**.
- * Env antigo (ex.: 0.4.0) não pode travar um release já publicado no código.
- * - DOWNLOADER_LATEST_VERSION=0.5.1_beta
- * - DOWNLOADER_DOWNLOAD_URL=https://sitenovodjs.vercel.app/downloads/BRS-Downloader_0.5.1_beta_x64-setup.exe
- * - DOWNLOADER_RELEASE_NOTES=...
- * - DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-07T15:00:00.000Z (opcional)
+ * - DOWNLOADER_LATEST_VERSION=1.0.0_public_beta
+ * - DOWNLOADER_DOWNLOAD_URL=https://sitenovodjs.vercel.app/downloads/BRS-Downloader_1.0.0_public_beta_x64-setup.exe
  */
 
 export type DownloaderReleaseManifest = {
@@ -16,11 +13,11 @@ export type DownloaderReleaseManifest = {
   platform: "windows";
 };
 
-const FALLBACK_VERSION = "0.5.1_beta";
+const FALLBACK_VERSION = "1.0.0_public_beta";
 const FALLBACK_DOWNLOAD_URL =
-  "https://sitenovodjs.vercel.app/downloads/BRS-Downloader_0.5.1_beta_x64-setup.exe";
+  "https://sitenovodjs.vercel.app/downloads/BRS-Downloader_1.0.0_public_beta_x64-setup.exe";
 const FALLBACK_NOTES =
-  "BRS Downloader 0.5.1_beta: notificações do sininho e do Windows traduzidas (pt-BR, en, es).";
+  "BRS Downloader 1.0.0_public_beta: visual refinado, tipografia nova e experiência mais polida — primeira beta pública 1.0.";
 
 function cleanEnv(value: string | undefined) {
   const trimmed = value?.trim() ?? "";
@@ -53,7 +50,7 @@ export function getDownloaderReleaseManifest(): DownloaderReleaseManifest | null
     version: envIsCurrentOrNewer ? envVersion! : FALLBACK_VERSION,
     downloadUrl: envIsCurrentOrNewer ? envUrl! : FALLBACK_DOWNLOAD_URL,
     notes: envIsCurrentOrNewer ? (envNotes ?? FALLBACK_NOTES) : FALLBACK_NOTES,
-    publishedAt: envPublishedAt ?? "2026-09-07T15:05:00.000Z",
+    publishedAt: envPublishedAt ?? "2026-09-07T15:35:00.000Z",
     platform: "windows",
   };
 }

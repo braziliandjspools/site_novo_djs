@@ -110,10 +110,10 @@ export function LanguagePicker({
             aria-checked={active}
             disabled={disabled}
             onClick={() => onChange(option)}
-            className={`flex flex-col items-center gap-2 rounded-2xl border px-4 py-5 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+            className={`flex flex-col items-center gap-2 rounded-2xl border px-4 py-5 text-center transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
               active
-                ? "border-[#1db954]/60 bg-[#1db954]/10"
-                : "border-white/[0.08] bg-[#181818]/80 hover:border-white/20 hover:bg-[#1f1f1f]"
+                ? "border-[#1db954]/55 bg-[#1db954]/12 shadow-[0_12px_36px_rgba(29,185,84,0.12)] scale-[1.02]"
+                : "border-white/[0.08] bg-[#181818]/80 hover:border-white/20 hover:bg-[#1f1f1f] hover:-translate-y-0.5"
             }`}
           >
             <span className="text-3xl leading-none" aria-hidden>

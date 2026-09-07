@@ -35,8 +35,8 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
             isOffline
               ? "bg-red-400"
               : isConnecting
-                ? "bg-zinc-500"
-                : "bg-[#1db954] shadow-[0_0_0_3px_rgba(29,185,84,0.18)]"
+                ? "animate-soft-pulse bg-zinc-500"
+                : "bg-[#1db954] shadow-[0_0_0_4px_rgba(29,185,84,0.18)]"
           }`}
           aria-hidden
         />

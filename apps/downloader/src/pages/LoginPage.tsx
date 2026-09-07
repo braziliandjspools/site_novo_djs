@@ -15,9 +15,9 @@ import { LanguagePicker } from "../i18n/LanguagePicker";
 const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 
 const inputClassName =
-  "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a]/90 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#1db954] focus:ring-1 focus:ring-[#1db954]/30";
+  "w-full rounded-xl border border-white/[0.1] bg-black/50 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1db954]/60 focus:bg-black/70 focus:ring-2 focus:ring-[#1db954]/20";
 
-const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500";
+const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500";
 
 export function LoginPage() {
   const { login, error: authError, refreshSession, sessionToken } = useAuth();
@@ -141,7 +141,11 @@ export function LoginPage() {
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
         draggable={false}
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/75" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/75 via-black/60 to-black/80" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,185,84,0.16),transparent_55%)]"
+        aria-hidden
+      />
 
       <LanguagePicker
         value={locale}
@@ -155,18 +159,24 @@ export function LoginPage() {
           <div className="flex justify-center">
             <BrsLogo className="h-14 w-auto max-w-[300px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]" />
           </div>
-          <p className="mt-3 text-sm text-zinc-300 drop-shadow">{DOWNLOADER_NAME}</p>
+          <p className="mt-3 text-sm font-medium tracking-wide text-zinc-300 drop-shadow">
+            {DOWNLOADER_NAME}
+          </p>
         </div>
 
         <form
           onSubmit={(event) => void handleSubmit(event)}
-          className="rounded-3xl border border-white/[0.08] bg-[#111111]/88 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md"
+          className="glass-panel rounded-3xl p-6 sm:p-7"
         >
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#1db954]">
             {t("loginVipAccount")}
           </p>
-          <h1 className="text-xl font-bold text-white">{t("loginTitle")}</h1>
-          <p className="mt-2 text-sm text-zinc-500">{t("loginSubtitle", { site: SITE_NAME })}</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-white">
+            {t("loginTitle")}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+            {t("loginSubtitle", { site: SITE_NAME })}
+          </p>
 
           {sessionToken && (
             <div className="mt-4 rounded-lg border border-[#1db954]/25 bg-[#1db954]/10 px-3 py-3">

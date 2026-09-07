@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "0.5.1_beta";
-export const APP_CORE_VERSION = "0.5.1_beta";
+export const WEBUI_VERSION = "1.0.0_public_beta";
+export const APP_CORE_VERSION = "1.0.0_public_beta";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
@@ -16,6 +16,16 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.0_public_beta",
+    date: "2026-09-07",
+    items: [
+      "Visual refinado: tipografia Sora/DM Sans, painéis e botões mais polidos",
+      "Login e onboarding de idioma com atmosfera renovada",
+      "Sidebar e shell com hierarquia mais clara e detalhes de movimento",
+      "Primeira beta pública 1.0 do BRS Downloader",
+    ],
+  },
   {
     version: "0.5.1_beta",
     date: "2026-09-07",

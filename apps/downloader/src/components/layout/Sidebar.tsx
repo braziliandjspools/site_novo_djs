@@ -69,11 +69,11 @@ export function Sidebar({
   const firstName = userName.split(" ")[0] ?? userName;
 
   return (
-    <aside className="flex h-full w-[256px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-[var(--bg-sidebar)]">
+    <aside className="flex h-full w-[268px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-[var(--bg-sidebar)]">
       <div className="br-stripe-thin" />
       <div className="px-5 py-6">
         <BrsLogo className="h-10 w-auto max-w-[220px] object-contain object-left" />
-        <p className="mt-2 text-[11px] font-medium tracking-[0.18em] text-zinc-500 uppercase">
+        <p className="mt-2.5 text-[10px] font-semibold tracking-[0.22em] text-zinc-500 uppercase">
           {DOWNLOADER_NAME}
         </p>
       </div>
@@ -83,7 +83,7 @@ export function Sidebar({
       </div>
 
       <nav className="mt-5 flex-1 space-y-1 overflow-y-auto px-3">
-        <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase">
+        <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.22em] text-zinc-600 uppercase">
           {t("navMenu")}
         </p>
         {NAV_ITEMS.map(({ id, labelKey, icon: Icon, countKey }) => {
@@ -95,13 +95,20 @@ export function Sidebar({
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
                 active
-                  ? "bg-[#1db954]/12 text-white"
+                  ? "bg-[#1db954]/14 text-white shadow-[inset_0_0_0_1px_rgba(29,185,84,0.18)]"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
-              <Icon className={`h-4 w-4 flex-shrink-0 ${active ? "text-[#1db954]" : ""}`} />
+              {active && (
+                <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[#1db954]" />
+              )}
+              <Icon
+                className={`h-4 w-4 flex-shrink-0 transition-colors ${
+                  active ? "text-[#1db954]" : "text-zinc-500 group-hover:text-zinc-300"
+                }`}
+              />
               <span className="flex-1">{t(labelKey)}</span>
               {badge > 0 && (
                 <span className="rounded-md bg-[#1db954] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
@@ -113,14 +120,14 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="border-t border-white/[0.06] px-5 py-4">
+      <div className="mx-3 mb-3 rounded-2xl border border-white/[0.06] bg-gradient-to-b from-[#161616] to-[#101010] px-4 py-4">
         <p className="truncate text-sm font-semibold text-[#1db954]">
           {t("navHello", { name: firstName })}
         </p>
         <button
           type="button"
           onClick={onLogout}
-          className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-zinc-500 transition-colors hover:text-white"
+          className="mt-3 inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-zinc-500 transition-colors hover:text-white"
         >
           <LogOut className="h-3.5 w-3.5" />
           {t("navLogout")}
