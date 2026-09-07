@@ -70,6 +70,96 @@ export function parseWeekNumber(name: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Pastas de ano: "BRS 2026", "BRS 2025". */
+export function isYearFolderName(name: string): boolean {
+  return /^brs\s+\d{4}\b/i.test(displayFolderName(name).trim());
+}
+
+export function parseYearFolder(name: string): number | null {
+  const match = displayFolderName(name).trim().match(/^brs\s+(\d{4})\b/i);
+  if (!match) return null;
+  const year = Number(match[1]);
+  return Number.isFinite(year) ? year : null;
+}
+
+/**
+ * Pastas de data: "DATA 07/09/2026", "DATA 07-09-2026", "07/09/2026".
+ * Retorna componentes numéricos (day, month, year).
+ */
+export function parseDateFolder(name: string): { day: number; month: number; year: number } | null {
+  const label = displayFolderName(name).trim();
+  const match = label.match(/^(?:data\s+)?(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/i);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (
+    !Number.isFinite(day) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(year) ||
+    day < 1 ||
+    day > 31 ||
+    month < 1 ||
+    month > 12
+  ) {
+    return null;
+  }
+  return { day, month, year };
+}
+
+export function isDateFolderName(name: string): boolean {
+  return parseDateFolder(name) != null;
+}
+
+/** Label amigável: 07/09/2026 */
+export function formatDateFolderLabel(name: string): string {
+  const parsed = parseDateFolder(name);
+  if (!parsed) return displayFolderName(name);
+  const dd = String(parsed.day).padStart(2, "0");
+  const mm = String(parsed.month).padStart(2, "0");
+  return `${dd}/${mm}/${parsed.year}`;
+}
+
+export function childrenAreYearFolders(folders: VipMusicFolder[]): boolean {
+  if (folders.length === 0) return false;
+  const years = folders.filter((folder) => isYearFolderName(folder.name)).length;
+  return years >= Math.max(1, Math.ceil(folders.length * 0.5));
+}
+
+export function childrenAreDateFolders(folders: VipMusicFolder[]): boolean {
+  if (folders.length === 0) return false;
+  const dates = folders.filter((folder) => isDateFolderName(folder.name)).length;
+  return dates >= Math.max(1, Math.ceil(folders.length * 0.5));
+}
+
+export function sortFoldersByDateFolder(folders: VipMusicFolder[], newestFirst = true): VipMusicFolder[] {
+  const dir = newestFirst ? -1 : 1;
+  return [...folders].sort((a, b) => {
+    const da = parseDateFolder(a.name);
+    const db = parseDateFolder(b.name);
+    if (da && db) {
+      if (da.year !== db.year) return (da.year - db.year) * dir;
+      if (da.month !== db.month) return (da.month - db.month) * dir;
+      if (da.day !== db.day) return (da.day - db.day) * dir;
+    }
+    if (da && !db) return -1;
+    if (!da && db) return 1;
+    return a.name.localeCompare(b.name, "pt-BR", { numeric: true }) * (newestFirst ? -1 : 1);
+  });
+}
+
+export function sortFoldersByYear(folders: VipMusicFolder[], newestFirst = true): VipMusicFolder[] {
+  const dir = newestFirst ? -1 : 1;
+  return [...folders].sort((a, b) => {
+    const ya = parseYearFolder(a.name);
+    const yb = parseYearFolder(b.name);
+    if (ya != null && yb != null && ya !== yb) return (ya - yb) * dir;
+    if (ya != null && yb == null) return -1;
+    if (ya == null && yb != null) return 1;
+    return a.name.localeCompare(b.name, "pt-BR", { numeric: true }) * (newestFirst ? -1 : 1);
+  });
+}
+
 export function parseMonthFolderDate(name: string): { year: number; month: number } | null {
   const label = displayFolderName(name)
     .normalize("NFD")
@@ -121,6 +211,8 @@ export function sortFoldersByMonthDate(folders: VipMusicFolder[], newestFirst = 
 }
 
 export function sortVipChildFolders(folders: VipMusicFolder[]): VipMusicFolder[] {
+  if (childrenAreDateFolders(folders)) return sortFoldersByDateFolder(folders, true);
+  if (childrenAreYearFolders(folders)) return sortFoldersByYear(folders, true);
   if (childrenAreWeekFolders(folders)) return sortFoldersByWeek(folders);
   const monthLike = folders.filter((folder) => parseMonthFolderDate(folder.name)).length;
   if (monthLike >= Math.ceil(folders.length * 0.5)) {

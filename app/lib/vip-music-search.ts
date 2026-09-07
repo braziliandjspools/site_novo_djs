@@ -1,12 +1,17 @@
 import { getVipMusicTracks, listVipMusicFolders } from "./vip-music-catalog";
 import {
+  childrenAreDateFolders,
   childrenAreWeekFolders,
+  childrenAreYearFolders,
   displayFolderName,
+  formatDateFolderLabel,
+  isDateFolderName,
+  isYearFolderName,
   slugifyFolderName,
 } from "./vip-music-slugs";
 
 export type VipMusicSearchHit = {
-  type: "month" | "week" | "style" | "track";
+  type: "month" | "week" | "style" | "track" | "year" | "date" | "pool";
   id: string;
   label: string;
   path: string;
@@ -27,14 +32,130 @@ function matches(text: string, query: string) {
   return normalize(text).includes(normalize(query));
 }
 
+async function searchPoolsUnderDate(options: {
+  year: { id: string; name: string };
+  date: { id: string; name: string };
+  yearSlug: string;
+  dateSlug: string;
+  yearLabel: string;
+  dateLabel: string;
+  q: string;
+  limit: number;
+  results: VipMusicSearchHit[];
+}) {
+  const { yearSlug, dateSlug, yearLabel, dateLabel, q, limit, results } = options;
+  const pools = await listVipMusicFolders(options.date.id);
+
+  for (const pool of pools) {
+    if (results.length >= limit) break;
+
+    const poolSlug = slugifyFolderName(pool.name);
+    const poolLabel = displayFolderName(pool.name);
+    const path = `${yearLabel} · ${dateLabel} · ${poolLabel}`;
+
+    if (matches(pool.name, q) || matches(poolLabel, q)) {
+      results.push({
+        type: "pool",
+        id: pool.id,
+        label: poolLabel,
+        path: `${yearLabel} · ${dateLabel}`,
+        monthSlug: yearSlug,
+        weekSlug: dateSlug,
+        styleSlug: poolSlug,
+        styleFolderId: pool.id,
+      });
+    }
+
+    const tracks = await getVipMusicTracks(pool.id, pool.name);
+    for (const track of tracks) {
+      if (results.length >= limit) break;
+      const haystack = [track.title, track.artist, track.pack, pool.name, options.date.name, options.year.name].join(
+        " ",
+      );
+      if (matches(haystack, q)) {
+        results.push({
+          type: "track",
+          id: track.id,
+          label: track.title,
+          path,
+          monthSlug: yearSlug,
+          weekSlug: dateSlug,
+          styleSlug: poolSlug,
+          styleFolderId: pool.id,
+        });
+      }
+    }
+  }
+}
+
 export async function searchVipMusic(query: string, limit = 50): Promise<VipMusicSearchHit[]> {
   const q = query.trim();
   if (q.length < 2) return [];
 
   const results: VipMusicSearchHit[] = [];
-  const months = await listVipMusicFolders();
+  const roots = await listVipMusicFolders();
+  const yearMode = childrenAreYearFolders(roots) || roots.some((f) => isYearFolderName(f.name));
 
-  for (const month of months) {
+  if (yearMode) {
+    const years = roots.filter((f) => isYearFolderName(f.name));
+    const yearList = years.length > 0 ? years : roots;
+
+    for (const year of yearList) {
+      if (results.length >= limit) break;
+
+      const yearSlug = slugifyFolderName(year.name);
+      const yearLabel = displayFolderName(year.name);
+
+      if (matches(year.name, q) || matches(yearLabel, q)) {
+        results.push({
+          type: "year",
+          id: year.id,
+          label: yearLabel,
+          path: "Acervo VIP",
+          monthSlug: yearSlug,
+        });
+      }
+
+      const dates = await listVipMusicFolders(year.id);
+      for (const date of dates) {
+        if (results.length >= limit) break;
+
+        const dateSlug = slugifyFolderName(date.name);
+        const dateLabel = isDateFolderName(date.name)
+          ? formatDateFolderLabel(date.name)
+          : displayFolderName(date.name);
+
+        if (matches(date.name, q) || matches(dateLabel, q) || matches(formatDateFolderLabel(date.name), q)) {
+          results.push({
+            type: "date",
+            id: date.id,
+            label: dateLabel,
+            path: yearLabel,
+            monthSlug: yearSlug,
+            weekSlug: dateSlug,
+          });
+        }
+
+        if (childrenAreDateFolders(dates) || isDateFolderName(date.name)) {
+          await searchPoolsUnderDate({
+            year,
+            date,
+            yearSlug,
+            dateSlug,
+            yearLabel,
+            dateLabel,
+            q,
+            limit,
+            results,
+          });
+        }
+      }
+    }
+
+    return results.slice(0, limit);
+  }
+
+  for (const month of roots) {
     if (results.length >= limit) break;
 
     const monthSlug = slugifyFolderName(month.name);

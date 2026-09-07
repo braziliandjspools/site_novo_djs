@@ -42,10 +42,15 @@ type VipMusicTrackListProps = {
   /** `table` = layout desktop em tabela (Atualizações). Mobile permanece o TrackRow atual. */
   layout?: "default" | "table";
   folderCoverSrc?: string;
+  /** Nome do pool/estilo exibido na coluna Pool (desktop table). */
+  poolLabel?: string;
+  showPoolColumn?: boolean;
 };
 
 const TABLE_GRID =
-  "grid grid-cols-[2.25rem_3.5rem_minmax(0,1.6fr)_minmax(0,1fr)_auto] items-center gap-x-3";
+  "grid grid-cols-[2.25rem_3.5rem_minmax(0,1.5fr)_minmax(0,0.9fr)_auto] items-center gap-x-3";
+const TABLE_GRID_WITH_POOL =
+  "grid grid-cols-[2.25rem_3.5rem_minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.7fr)_auto] items-center gap-x-3";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -225,7 +230,7 @@ function TrackRow({
         >
           <div className="flex min-w-0 items-center gap-1.5">
             {isPlaying && <PlayingBars />}
-            <p className={`min-w-0 truncate text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}>
+            <p className={`min-w-0 truncate text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`} title={track.title}>
               {track.title}
             </p>
             <span className="hidden sm:inline">
@@ -233,7 +238,9 @@ function TrackRow({
             </span>
           </div>
           {track.artist && track.artist !== "Unknown Artist" && (
-            <p className="truncate text-[10px] leading-tight text-zinc-500">{track.artist}</p>
+            <p className="truncate text-[10px] leading-tight text-zinc-500" title={track.artist}>
+              {track.artist}
+            </p>
           )}
         </button>
 
@@ -361,6 +368,8 @@ function TrackRow({
 
 type TrackTableRowProps = TrackRowProps & {
   folderCoverSrc: string;
+  poolLabel?: string;
+  showPoolColumn?: boolean;
 };
 
 function TrackTableRow({
@@ -391,9 +400,13 @@ function TrackTableRow({
   isSendingToDownloader,
   onToggleSelected,
   folderCoverSrc,
+  poolLabel,
+  showPoolColumn = false,
 }: TrackTableRowProps) {
   const artistLabel =
     track.artist && track.artist !== "Unknown Artist" ? track.artist : "—";
+  const poolDisplay = poolLabel?.trim() || track.pack || "—";
+  const gridClass = showPoolColumn ? TABLE_GRID_WITH_POOL : TABLE_GRID;
 
   return (
     <article
@@ -408,7 +421,7 @@ function TrackTableRow({
               : "hover:bg-white/[0.04]"
       }`}
     >
-      <div className={`${TABLE_GRID} px-3 py-2.5`}>
+      <div className={`${gridClass} px-3 py-2.5`}>
         {/* Index / select */}
         <div className="flex items-center justify-center">
           {selectionMode && canDownload ? (
@@ -490,6 +503,7 @@ function TrackTableRow({
           onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
           disabled={!canPlay && !selectionMode}
           className="min-w-0 text-left"
+          title={track.title}
         >
           <p
             className={`truncate text-sm font-medium leading-snug ${
@@ -506,7 +520,15 @@ function TrackTableRow({
         </button>
 
         {/* Artist */}
-        <p className="min-w-0 truncate text-sm text-zinc-400">{artistLabel}</p>
+        <p className="min-w-0 truncate text-sm text-zinc-400" title={artistLabel}>
+          {artistLabel}
+        </p>
+
+        {showPoolColumn && (
+          <p className="min-w-0 truncate text-sm text-zinc-500" title={poolDisplay}>
+            {poolDisplay}
+          </p>
+        )}
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-1">
@@ -606,6 +628,8 @@ export function VipMusicTrackList({
   continueContext,
   layout = "default",
   folderCoverSrc = PLACEHOLDER.trackCover,
+  poolLabel,
+  showPoolColumn = false,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -656,6 +680,7 @@ export function VipMusicTrackList({
         if (continueContext.weekSlug) segments.push(continueContext.weekSlug);
         const params = new URLSearchParams({
           estilo: styleSlug,
+          pool: styleSlug,
           faixa: id,
         });
         recordContinueFromTrack({
@@ -938,7 +963,7 @@ export function VipMusicTrackList({
       {useTable && (
         <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-[#181818]/80 md:block">
           <div
-            className={`${TABLE_GRID} sticky top-0 z-[1] border-b border-white/[0.06] bg-[#121212]/95 px-3 py-2.5 backdrop-blur`}
+            className={`${showPoolColumn ? TABLE_GRID_WITH_POOL : TABLE_GRID} sticky top-0 z-[1] border-b border-white/[0.06] bg-[#121212]/95 px-3 py-2.5 backdrop-blur`}
           >
             <span className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
               #
@@ -952,6 +977,11 @@ export function VipMusicTrackList({
             <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
               Artista
             </span>
+            {showPoolColumn && (
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+                Pool
+              </span>
+            )}
             <span className="text-right text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
               Ações
             </span>
@@ -962,6 +992,8 @@ export function VipMusicTrackList({
                 key={track.id}
                 {...rowPropsFor(track, index)}
                 folderCoverSrc={folderCoverSrc}
+                poolLabel={poolLabel}
+                showPoolColumn={showPoolColumn}
                 setDomAnchor={isDesktop}
               />
             ))}

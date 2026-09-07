@@ -25,7 +25,10 @@ export function hitHref(hit: VipMusicSearchHit, query?: string) {
   if (hit.weekSlug) segments.push(hit.weekSlug);
   const base = folderHref(segments);
   const params = new URLSearchParams();
-  if (hit.styleSlug) params.set("estilo", hit.styleSlug);
+  if (hit.styleSlug) {
+    params.set("pool", hit.styleSlug);
+    params.set("estilo", hit.styleSlug);
+  }
   if (hit.type === "track") params.set("faixa", hit.id);
   if (query?.trim()) params.set("q", query.trim());
   const qs = params.toString();
