@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "0.5.0_beta";
-export const APP_CORE_VERSION = "0.5.0_beta";
+export const WEBUI_VERSION = "0.5.1_beta";
+export const APP_CORE_VERSION = "0.5.1_beta";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.0";
 
@@ -16,6 +16,14 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "0.5.1_beta",
+    date: "2026-09-07",
+    items: [
+      "Notificações do sininho e do Windows traduzidas conforme o idioma",
+      "Avisos de plano e de atualização respeitam pt-BR, en e es",
+    ],
+  },
   {
     version: "0.5.0_beta",
     date: "2026-09-07",

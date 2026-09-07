@@ -9,10 +9,10 @@ O app consulta `GET /api/downloader/updates/latest?current=0.2.0` e avisa no **s
 3. No **Vercel → Environment Variables**, defina:
 
 ```
-DOWNLOADER_LATEST_VERSION=0.5.0_beta
-DOWNLOADER_DOWNLOAD_URL=https://seu-cdn/.../BRS-Downloader_0.5.0_beta_x64-setup.exe
-DOWNLOADER_RELEASE_NOTES=App em três idiomas (pt-BR, en, es) com troca de idioma em Configurações
-DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-07T20:00:00.000Z
+DOWNLOADER_LATEST_VERSION=0.5.1_beta
+DOWNLOADER_DOWNLOAD_URL=https://seu-cdn/.../BRS-Downloader_0.5.1_beta_x64-setup.exe
+DOWNLOADER_RELEASE_NOTES=Notificações traduzidas conforme o idioma (pt-BR, en, es)
+DOWNLOADER_RELEASE_PUBLISHED_AT=2026-09-07T15:05:00.000Z
 ```
 
 4. Faça redeploy do site.
