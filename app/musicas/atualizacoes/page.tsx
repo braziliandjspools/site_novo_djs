@@ -75,7 +75,7 @@ export default function AtualizacoesPage() {
 
       {!loading && !error && yearMode && (
         <div className="mt-2">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Anos</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Sources · Anos</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {(yearFolders.length > 0 ? yearFolders : folders).map((year) => {
               const slug = slugifyFolderName(year.name);
@@ -105,7 +105,7 @@ export default function AtualizacoesPage() {
                     <p className="truncate text-sm font-bold text-white" title={label}>
                       {label}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-zinc-500">Abrir Sources</p>
+                    <p className="mt-0.5 text-[11px] text-zinc-500">Abrir datas</p>
                   </div>
                 </Link>
               );

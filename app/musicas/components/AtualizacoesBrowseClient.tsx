@@ -10,6 +10,7 @@ import { PLACEHOLDER } from "../../lib/theme";
 import {
   childrenAreDateFolders,
   childrenAreWeekFolders,
+  childrenAreYearFolders,
   displayFolderName,
   folderHref,
   formatDateFolderLabel,
@@ -17,16 +18,20 @@ import {
   isYearFolderName,
   slugifyFolderName,
   sortFoldersByDateFolder,
+  sortFoldersByYear,
 } from "../../lib/vip-music-slugs";
+import { matchStyleSlug } from "../atualizacoes/AtualizacoesSearch";
+import { AtualizacoesDatePackHero } from "./AtualizacoesDatePackHero";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
-import { AtualizacoesPackView } from "./AtualizacoesPackView";
+import { AtualizacoesSourcesNav } from "./AtualizacoesSourcesNav";
+import { StyleFolderAccordion } from "./StyleFolderAccordion";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { pushRecentFolder } from "../lib/music-library-storage";
-import { weeksReadKey } from "../lib/read-state";
+import { stylesReadKey, weeksReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 
 type ResolveResponse = {
@@ -43,83 +48,17 @@ type AtualizacoesBrowseClientProps = {
   slugSegments: string[];
 };
 
-function isAudioFormatFolder(name: string) {
-  return /^(mp3|wav|flac|m4a|aac)$/i.test(displayFolderName(name).trim());
-}
-
-/** Se a pasta do pool só tem MP3/WAV/…, usa o formato preferido para a tabela flat. */
-function pickAudioFormatFolder(items: VipMusicFolder[]): VipMusicFolder | null {
-  if (items.length === 0) return null;
-  if (!items.every((item) => isAudioFormatFolder(item.name))) return null;
-  return (
-    items.find((item) => /^mp3$/i.test(displayFolderName(item.name).trim())) ??
-    items[0] ??
-    null
-  );
-}
-
-function SourceCards({
-  baseSegments,
-  items,
-  newIds,
-  asDates,
-}: {
-  baseSegments: string[];
-  items: VipMusicFolder[];
-  newIds: Set<string>;
-  asDates: boolean;
-}) {
-  const list = asDates ? sortFoldersByDateFolder(items, true) : items;
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {list.map((item) => {
-        const slug = slugifyFolderName(item.name);
-        const label = asDates ? formatDateFolderLabel(item.name) : displayFolderName(item.name);
-        const full = displayFolderName(item.name);
-        return (
-          <Link
-            key={item.id}
-            href={folderHref([...baseSegments, slug])}
-            title={full}
-            className="group overflow-hidden rounded-2xl border border-white/[0.06] bg-[#181818] transition hover:border-[#1ed760]/40"
-          >
-            <div className="relative aspect-square bg-zinc-900">
-              <Image
-                src={PLACEHOLDER.trackCover}
-                alt=""
-                fill
-                className="object-cover transition duration-300 group-hover:scale-105"
-                sizes="(max-width: 640px) 50vw, 25vw"
-              />
-              {newIds.has(item.id) && (
-                <span className="absolute left-2 top-2 rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                  Novo
-                </span>
-              )}
-            </div>
-            <div className="p-3">
-              <p className="truncate text-sm font-bold text-white" title={label}>
-                {label}
-              </p>
-              <p className="mt-0.5 truncate text-[11px] text-zinc-500">
-                {asDates ? "Abrir data" : "Abrir pool"}
-              </p>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
 export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseClientProps) {
   const searchParams = useSearchParams();
-  const faixaId = searchParams.get("faixa") ?? undefined;
+  const poolSlug = searchParams.get("pool") ?? searchParams.get("estilo");
+  const faixaId = searchParams.get("faixa");
   const [data, setData] = useState<ResolveResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [rootFolders, setRootFolders] = useState<VipMusicFolder[]>([]);
   const [siblingWeeks, setSiblingWeeks] = useState<VipMusicFolder[]>([]);
+  const [yearDates, setYearDates] = useState<VipMusicFolder[]>([]);
 
   const slugPath = slugSegments.join("/");
   const firstSlug = slugSegments[0] ?? "";
@@ -128,13 +67,17 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   useEffect(() => {
     void fetch("/api/musicas/tree", { cache: "no-store" })
       .then((res) => res.json())
-      .then((body) => setRootFolders((body as { folders?: VipMusicFolder[] }).folders ?? []))
+      .then((body) => {
+        setRootFolders((body as { folders?: VipMusicFolder[] }).folders ?? []);
+      })
       .catch(() => setRootFolders([]));
   }, []);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setOpenFolderId(null);
+
     void fetch(`/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}`, { cache: "no-store" })
       .then(async (res) => {
         const body = (await res.json()) as ResolveResponse & { error?: string };
@@ -148,14 +91,47 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       .finally(() => setLoading(false));
   }, [slugPath]);
 
+  const isYearFolder = Boolean(data && isYearFolderName(data.folderName));
+  const dateChildren = Boolean(data && childrenAreDateFolders(data.items));
+  const weekChildren = Boolean(data && childrenAreWeekFolders(data.items));
+
+  /** Ano com pastas DATA DD/MM/AAAA. */
+  const isYearLevel =
+    Boolean(data && data.level === "folders" && slugSegments.length === 1) &&
+    isYearFolder &&
+    dateChildren;
+
+  /** Ano com pools/estilos diretos (Drive ainda sem pastas DATA). */
+  const isYearPoolsLevel =
+    Boolean(data && data.level === "folders" && slugSegments.length === 1) &&
+    isYearFolder &&
+    !dateChildren &&
+    !weekChildren;
+
+  const isDateLevel =
+    Boolean(data && data.level === "folders" && slugSegments.length === 2) &&
+    (isDateFolderName(data?.folderName ?? "") ||
+      (Boolean(data?.resolvedPath[0] && isYearFolderName(data.resolvedPath[0].name)) &&
+        !weekChildren));
+
   const showingWeeks = useMemo(() => {
     if (!data || data.level !== "folders" || slugSegments.length !== 1) return false;
-    if (isYearFolderName(data.folderName)) return false;
+    if (isYearLevel || isYearPoolsLevel) return false;
     return childrenAreWeekFolders(data.items);
-  }, [data, slugSegments.length]);
+  }, [data, slugSegments.length, isYearLevel, isYearPoolsLevel]);
 
+  const showingLegacyStyles = Boolean(
+    data &&
+      data.level === "folders" &&
+      !showingWeeks &&
+      !isYearLevel &&
+      !isYearPoolsLevel &&
+      !isDateLevel,
+  );
+
+  /** Semanas irmãs (legado). */
   useEffect(() => {
-    if (!firstSlug || !secondSlug || showingWeeks || isYearFolderName(data?.folderName ?? "")) {
+    if (!firstSlug || !secondSlug || isDateLevel || isYearLevel || isYearPoolsLevel) {
       setSiblingWeeks([]);
       return;
     }
@@ -166,7 +142,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         if (!res.ok || cancelled) return;
         if (body.level === "folders" && childrenAreWeekFolders(body.items)) {
           setSiblingWeeks(body.items);
-        } else setSiblingWeeks([]);
+        } else {
+          setSiblingWeeks([]);
+        }
       })
       .catch(() => {
         if (!cancelled) setSiblingWeeks([]);
@@ -174,224 +152,476 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return () => {
       cancelled = true;
     };
-  }, [firstSlug, secondSlug, showingWeeks, data?.folderName]);
+  }, [firstSlug, secondSlug, isDateLevel, isYearLevel, isYearPoolsLevel]);
+
+  /** Datas do ano para Sources (quando em data ou ano). */
+  useEffect(() => {
+    if (!firstSlug || (!isYearLevel && !isDateLevel && !isYearPoolsLevel)) {
+      if (!isYearLevel && !isDateLevel && !isYearPoolsLevel) setYearDates([]);
+      return;
+    }
+    if ((isYearLevel || isYearPoolsLevel) && data) {
+      setYearDates(data.items);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/musicas/resolve?slug=${encodeURIComponent(firstSlug)}`, { cache: "no-store" })
+      .then(async (res) => {
+        const body = (await res.json()) as ResolveResponse & { error?: string };
+        if (!res.ok || cancelled) return;
+        if (body.level === "folders" && childrenAreDateFolders(body.items)) {
+          setYearDates(body.items);
+        } else if (body.level === "folders") {
+          setYearDates(body.items);
+        } else {
+          setYearDates([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setYearDates([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [firstSlug, isYearLevel, isYearPoolsLevel, isDateLevel, data]);
+
+  useEffect(() => {
+    if (!data || !poolSlug || !(showingLegacyStyles || isDateLevel || isYearPoolsLevel)) return;
+    const match = data.items.find((item) => matchStyleSlug(item.name, poolSlug));
+    if (match) setOpenFolderId(match.id);
+  }, [data, poolSlug, showingLegacyStyles, isDateLevel, isYearPoolsLevel]);
 
   useEffect(() => {
     if (!data) return;
     pushRecentFolder({
-      name: isDateFolderName(data.folderName)
+      name: isDateLevel
         ? formatDateFolderLabel(data.folderName)
         : displayFolderName(data.folderName),
       href: folderHref(slugSegments),
     });
-  }, [data, slugSegments]);
+  }, [data, slugSegments, isDateLevel]);
+
+  useEffect(() => {
+    if (!data || !openFolderId || !(showingLegacyStyles || isDateLevel || isYearPoolsLevel)) return;
+    const folder = data.items.find((item) => item.id === openFolderId);
+    if (!folder) return;
+    const params = new URLSearchParams({
+      pool: slugifyFolderName(folder.name),
+      estilo: slugifyFolderName(folder.name),
+    });
+    pushRecentFolder({
+      name: `${isDateLevel ? formatDateFolderLabel(data.folderName) : displayFolderName(data.folderName)} · ${displayFolderName(folder.name)}`,
+      href: `${folderHref(slugSegments)}?${params.toString()}`,
+    });
+  }, [data, openFolderId, showingLegacyStyles, isDateLevel, isYearPoolsLevel, slugSegments]);
 
   const { authenticated } = useMusicasSession();
   const playbackEnabled = Boolean(data?.canPlay);
 
+  const yearFolders = (() => {
+    const fromRoot = rootFolders.filter((f) => isYearFolderName(f.name));
+    if (fromRoot.length > 0) return sortFoldersByYear(fromRoot, true);
+    if (childrenAreYearFolders(rootFolders)) return sortFoldersByYear(rootFolders, true);
+    return [];
+  })();
+
   const yearTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
     : firstSlug.replace(/-/g, " ");
+  const secondTitle = data?.resolvedPath[1]
+    ? isDateFolderName(data.resolvedPath[1].name)
+      ? formatDateFolderLabel(data.resolvedPath[1].name)
+      : displayFolderName(data.resolvedPath[1].name)
+    : secondSlug?.replace(/-/g, " ");
   const currentTitle = data
     ? isDateFolderName(data.folderName)
       ? formatDateFolderLabel(data.folderName)
       : displayFolderName(data.folderName)
     : yearTitle;
 
-  const isYearView =
-    Boolean(data && data.level === "folders" && slugSegments.length === 1 && isYearFolderName(data.folderName));
-  const isDateView =
-    Boolean(data && data.level === "folders" && slugSegments.length === 2 && isDateFolderName(data.folderName));
-
-  const formatFolder =
-    data && data.level === "folders" && !isYearView && !isDateView && !showingWeeks
-      ? pickAudioFormatFolder(data.items)
-      : null;
-
-  const showPackTracks = Boolean(data && (data.level === "tracks" || formatFolder));
-  const showSourceCards =
-    Boolean(data && data.level === "folders") && (isYearView || isDateView) && !showingWeeks;
-  const showLegacyWeeks = showingWeeks;
-  const showLegacyFolderCards =
-    Boolean(data && data.level === "folders") &&
-    !showPackTracks &&
-    !showSourceCards &&
-    !showLegacyWeeks &&
-    !formatFolder;
-
   const childIds = data?.items.map((item) => item.id) ?? [];
-  const newChildIds = useNewFolderHighlights(
-    showLegacyWeeks ? weeksReadKey(firstSlug) : `atualizacoes:${slugPath}`,
-    childIds,
-  );
+  const highlightKey = isDateLevel
+    ? stylesReadKey(`${firstSlug}/${secondSlug}`)
+    : showingWeeks
+      ? weeksReadKey(firstSlug)
+      : stylesReadKey(secondSlug ? `${firstSlug}/${secondSlug}` : firstSlug);
+  const newChildIds = useNewFolderHighlights(highlightKey, childIds);
 
-  const cardsAreDates = Boolean(
-    data && (isDateView ? false : childrenAreDateFolders(data.items)),
-  );
+  const dateListForSources =
+    (isYearLevel || isYearPoolsLevel) && data ? data.items : yearDates;
+  const sortedDates = childrenAreDateFolders(dateListForSources)
+    ? sortFoldersByDateFolder(dateListForSources, true)
+    : dateListForSources;
+
+  const relativePoolBase = isDateLevel
+    ? `${yearTitle}/${formatDateFolderLabel(data?.folderName ?? "")}`
+    : secondTitle
+      ? `${yearTitle}/${secondTitle}`
+      : yearTitle;
+
+  const useDateLayout = isYearLevel || isDateLevel || isYearPoolsLevel;
 
   return (
-    <div className="w-full">
-      <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-        <Link
-          href="/musicas/atualizacoes"
-          className="font-medium text-zinc-400 transition-colors hover:text-white"
-        >
-          Atualizações
-        </Link>
-        {slugSegments.map((seg, index) => {
-          const href = folderHref(slugSegments.slice(0, index + 1));
-          const name = data?.resolvedPath[index]?.name ?? seg.replace(/-/g, " ");
-          const label = isDateFolderName(name) ? formatDateFolderLabel(name) : displayFolderName(name);
-          const isLast = index === slugSegments.length - 1;
-          return (
-            <span key={href} className="flex items-center gap-2">
-              <ChevronRight className="h-3 w-3" />
-              {isLast ? (
-                <span className="max-w-[14rem] truncate font-medium text-white" title={label}>
-                  {label}
-                </span>
-              ) : (
-                <Link
-                  href={href}
-                  className="max-w-[12rem] truncate font-medium text-zinc-400 hover:text-white"
-                  title={label}
-                >
-                  {label}
-                </Link>
-              )}
-            </span>
-          );
-        })}
-      </nav>
-
-      {loading && (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
-
-      {authenticated && data && !playbackEnabled && <VipUpgradeBanner />}
-
-      {/* Pack flat: hero + tabela (sem accordion) */}
-      {!loading && !error && data && showPackTracks && (
-        <AtualizacoesPackView
-          folderId={formatFolder?.id ?? data.folderId}
-          folderName={data.folderName}
-          yearLabel={data.resolvedPath[0] ? displayFolderName(data.resolvedPath[0].name) : undefined}
-          packSlug={slugPath}
-          relativePath={data.resolvedPath.map((p) => displayFolderName(p.name)).join("/")}
-          canPlay={playbackEnabled}
-          highlightTrackId={faixaId}
-          autoPlayTrackId={playbackEnabled ? faixaId : undefined}
-          continueContext={
-            data.resolvedPath[0]
-              ? {
-                  monthSlug: firstSlug,
-                  monthName: displayFolderName(data.resolvedPath[0].name),
-                  weekSlug: slugSegments.length >= 3 ? secondSlug : undefined,
-                  styleName: displayFolderName(data.folderName),
-                }
-              : undefined
+    <div className={`w-full ${useDateLayout ? "flex flex-col gap-5 md:flex-row md:items-start" : ""}`}>
+      {useDateLayout && (
+        <AtualizacoesSourcesNav
+          years={yearFolders}
+          dates={sortedDates}
+          activeYearSlug={firstSlug || undefined}
+          activeDateSlug={
+            isDateLevel ? secondSlug : isYearPoolsLevel ? poolSlug ?? undefined : undefined
           }
+          newDateIds={isYearLevel || isYearPoolsLevel ? newChildIds : undefined}
+          itemMode={isYearPoolsLevel ? "pools" : "dates"}
+          sourcesTitle={isYearPoolsLevel ? "Sources · Pools" : "Sources"}
         />
       )}
 
-      {/* Ano / Data: escolha via Sources (sidebar) + cards */}
-      {!loading && !error && data && showSourceCards && (
-        <div className="space-y-4">
-          <div>
+      <div className="min-w-0 flex-1">
+        <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+          <Link
+            href="/musicas/atualizacoes"
+            className="font-medium text-zinc-400 transition-colors hover:text-white"
+          >
+            Atualizações
+          </Link>
+          <ChevronRight className="h-3 w-3" />
+          {secondSlug ? (
+            <>
+              <Link
+                href={folderHref([firstSlug])}
+                className="max-w-[12rem] truncate font-medium text-zinc-400 transition-colors hover:text-white"
+                title={yearTitle}
+              >
+                {yearTitle}
+              </Link>
+              <ChevronRight className="h-3 w-3" />
+              <span className="max-w-[14rem] truncate font-medium text-white" title={secondTitle}>
+                {secondTitle}
+              </span>
+            </>
+          ) : (
+            <span className="max-w-[16rem] truncate font-medium text-white" title={currentTitle}>
+              {currentTitle}
+            </span>
+          )}
+        </nav>
+
+        {data && isDateLevel && (
+          <AtualizacoesDatePackHero
+            folderName={data.folderName}
+            yearLabel={yearTitle}
+            poolCount={data.items.length}
+            isNew={false}
+            hasVip={playbackEnabled}
+            actions={
+              secondSlug ? (
+                <SendPackToDownloaderButton
+                  slug={`${firstSlug}/${secondSlug}`}
+                  label="Enviar data ao Downloader"
+                />
+              ) : null
+            }
+          />
+        )}
+
+        {data && !isDateLevel && !isYearLevel && (
+          <AtualizacoesMonthHero
+            folderName={data.folderName}
+            styleCount={data.items.length}
+            hasVip={playbackEnabled}
+            mode={showingWeeks ? "weeks" : secondSlug ? "week-styles" : "styles"}
+            actions={
+              slugSegments.length === 1 ? (
+                <SendPackToDownloaderButton
+                  slug={firstSlug}
+                  label="Enviar mês inteiro ao Downloader"
+                />
+              ) : secondSlug && slugSegments.length === 2 ? (
+                <SendPackToDownloaderButton
+                  slug={`${firstSlug}/${secondSlug}`}
+                  label="Enviar semana ao Downloader"
+                />
+              ) : null
+            }
+          />
+        )}
+
+        {isYearLevel && data && (
+          <div className="mb-4">
+            <h1 className="font-display text-2xl font-black text-white sm:text-3xl" title={yearTitle}>
+              {yearTitle}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              {data.items.length} data{data.items.length === 1 ? "" : "s"} · escolha em Sources ou abaixo
+            </p>
+            <div className="mt-3">
+              <SendPackToDownloaderButton slug={firstSlug} label="Enviar ano ao Downloader" />
+            </div>
+          </div>
+        )}
+
+        {isYearPoolsLevel && data && (
+          <div className="mb-4">
             <h1 className="font-display text-2xl font-black text-white sm:text-3xl" title={currentTitle}>
               {currentTitle}
             </h1>
             <p className="mt-1 text-sm text-zinc-500">
-              {data.items.length}{" "}
-              {cardsAreDates ? (data.items.length === 1 ? "data" : "datas") : data.items.length === 1 ? "pool" : "pools"}
-              {" · "}
-              use Sources no menu lateral
+              {data.items.length} pool{data.items.length === 1 ? "" : "s"} · escolha em Sources
+            </p>
+            <p className="mt-1 text-xs text-amber-400/90">
+              Dica: para o layout por data, crie pastas{" "}
+              <span className="font-mono">DATA DD/MM/AAAA</span> dentro do ano e pools dentro de cada
+              data.
             </p>
             <div className="mt-3">
-              <SendPackToDownloaderButton
-                slug={slugPath}
-                label={isDateView ? "Enviar data ao Downloader" : "Enviar ano ao Downloader"}
-              />
+              <SendPackToDownloaderButton slug={firstSlug} label="Enviar ano ao Downloader" />
             </div>
           </div>
-          {data.items.length > 0 ? (
-            <SourceCards
-              baseSegments={slugSegments}
-              items={data.items}
-              newIds={newChildIds}
-              asDates={cardsAreDates}
-            />
-          ) : (
-            <p className="rounded-xl border border-zinc-800 bg-[#181818] px-4 py-10 text-center text-sm text-zinc-500">
-              Pasta vazia. Selecione um Source no menu lateral quando disponível.
-            </p>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Legado: semanas */}
-      {!loading && !error && data && showLegacyWeeks && (
-        <>
-          <AtualizacoesMonthHero
-            folderName={data.folderName}
-            styleCount={data.items.length}
-            hasVip={playbackEnabled}
-            mode="weeks"
-            actions={<SendPackToDownloaderButton slug={firstSlug} label="Enviar mês ao Downloader" />}
-          />
-          <WeekFolderGrid
-            monthSlug={firstSlug}
-            monthName={yearTitle}
-            weeks={data.items}
-            newWeekIds={newChildIds}
-          />
-          <AtualizacoesMonthFooterNav
-            monthSlug={firstSlug}
-            months={rootFolders}
-            weeks={data.items}
-            weekSlug={secondSlug}
-          />
-        </>
-      )}
+        {authenticated && !playbackEnabled && <VipUpgradeBanner />}
 
-      {/* Legado: pastas de estilo — cards, sem accordion */}
-      {!loading && !error && data && showLegacyFolderCards && (
-        <>
-          <AtualizacoesMonthHero
-            folderName={data.folderName}
-            styleCount={data.items.length}
-            hasVip={playbackEnabled}
-            mode={secondSlug ? "week-styles" : "styles"}
-            actions={<SendPackToDownloaderButton slug={slugPath} label="Enviar pasta ao Downloader" />}
-          />
-          {data.items.length > 0 ? (
-            <SourceCards
-              baseSegments={slugSegments}
-              items={data.items}
-              newIds={newChildIds}
-              asDates={false}
+        {loading && (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
+        {/* Ano → grid de datas (mobile; desktop tem Sources) */}
+        {!loading && !error && data && isYearLevel && (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {sortFoldersByDateFolder(data.items, true).map((dateFolder) => {
+              const dateSlug = slugifyFolderName(dateFolder.name);
+              const label = formatDateFolderLabel(dateFolder.name);
+              const full = displayFolderName(dateFolder.name);
+              return (
+                <Link
+                  key={dateFolder.id}
+                  href={folderHref([firstSlug, dateSlug])}
+                  title={full}
+                  className="group overflow-hidden rounded-2xl border border-white/[0.06] bg-[#181818] transition hover:border-[#1ed760]/40"
+                >
+                  <div className="relative aspect-square bg-zinc-900">
+                    <Image
+                      src={PLACEHOLDER.trackCover}
+                      alt=""
+                      fill
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                    />
+                    {newChildIds.has(dateFolder.id) && (
+                      <span className="absolute left-2 top-2 rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                        Novo
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <p className="truncate text-sm font-bold text-white" title={label}>
+                      {label}
+                    </p>
+                    <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={full}>
+                      {full}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Data → chips de pool + accordion/tabela */}
+        {!loading && !error && data && isDateLevel && (
+          <div className="mt-5 space-y-4">
+            {data.items.length === 0 ? (
+              <p className="rounded-xl border border-zinc-800 bg-[#1a1a1a] px-4 py-8 text-center text-sm text-zinc-500">
+                Nenhum pool nesta data. Adicione pastas de estilo/pool no Google Drive.
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {data.items.map((folder) => {
+                    const label = displayFolderName(folder.name);
+                    const active = openFolderId === folder.id;
+                    return (
+                      <button
+                        key={folder.id}
+                        type="button"
+                        title={label}
+                        onClick={() =>
+                          setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                        }
+                        className={`max-w-[14rem] truncate rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          active
+                            ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]"
+                            : newChildIds.has(folder.id)
+                              ? "border-[#1ed760]/30 bg-[#1ed760]/5 text-zinc-200"
+                              : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-white"
+                        }`}
+                      >
+                        {label}
+                        {newChildIds.has(folder.id) ? " · Novo" : ""}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3">
+                  {data.items.map((folder) => (
+                    <StyleFolderAccordion
+                      key={folder.id}
+                      folder={folder}
+                      canPlay={playbackEnabled}
+                      canDownload={playbackEnabled}
+                      relativePath={`${relativePoolBase}/${displayFolderName(folder.name)}`}
+                      monthSlug={firstSlug}
+                      monthName={yearTitle}
+                      weekSlug={secondSlug}
+                      slugSegments={[firstSlug, secondSlug, slugifyFolderName(folder.name)].filter(
+                        (part): part is string => Boolean(part),
+                      )}
+                      isNew={newChildIds.has(folder.id)}
+                      isOpen={openFolderId === folder.id}
+                      highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}
+                      autoPlayTrackId={
+                        openFolderId === folder.id && playbackEnabled && faixaId ? faixaId : undefined
+                      }
+                      scrollIntoView={Boolean(poolSlug && matchStyleSlug(folder.name, poolSlug))}
+                      onToggle={() =>
+                        setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                      }
+                      poolColumn
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Ano → pools diretos (sem pastas DATA ainda) */}
+        {!loading && !error && data && isYearPoolsLevel && (
+          <div className="mt-5 space-y-4">
+            <div className="flex flex-wrap gap-2 md:hidden">
+              {data.items.map((folder) => {
+                const label = displayFolderName(folder.name);
+                const active = openFolderId === folder.id;
+                return (
+                  <button
+                    key={folder.id}
+                    type="button"
+                    title={label}
+                    onClick={() =>
+                      setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                    }
+                    className={`max-w-[14rem] truncate rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      active
+                        ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]"
+                        : "border-white/10 bg-white/[0.03] text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="space-y-3">
+              {data.items.map((folder) => (
+                <StyleFolderAccordion
+                  key={folder.id}
+                  folder={folder}
+                  canPlay={playbackEnabled}
+                  canDownload={playbackEnabled}
+                  relativePath={`${displayFolderName(data.folderName)}/${displayFolderName(folder.name)}`}
+                  monthSlug={firstSlug}
+                  monthName={displayFolderName(data.folderName)}
+                  slugSegments={[firstSlug, slugifyFolderName(folder.name)]}
+                  isNew={newChildIds.has(folder.id)}
+                  isOpen={openFolderId === folder.id}
+                  highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}
+                  autoPlayTrackId={
+                    openFolderId === folder.id && playbackEnabled && faixaId ? faixaId : undefined
+                  }
+                  scrollIntoView={Boolean(poolSlug && matchStyleSlug(folder.name, poolSlug))}
+                  onToggle={() =>
+                    setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                  }
+                  poolColumn
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Legado: semanas */}
+        {!loading && !error && data && showingWeeks && (
+          <>
+            <WeekFolderGrid
+              monthSlug={firstSlug}
+              monthName={yearTitle}
+              weeks={data.items}
+              newWeekIds={newChildIds}
             />
-          ) : (
-            <p className="rounded-xl border border-zinc-800 bg-[#181818] px-4 py-10 text-center text-sm text-zinc-500">
-              Pasta vazia.
-            </p>
-          )}
-          <AtualizacoesMonthFooterNav
-            monthSlug={firstSlug}
-            months={rootFolders}
-            weeks={siblingWeeks}
-            weekSlug={secondSlug}
-          />
-        </>
-      )}
+            <AtualizacoesMonthFooterNav
+              monthSlug={firstSlug}
+              months={rootFolders}
+              weeks={showingWeeks ? data.items : siblingWeeks}
+              weekSlug={secondSlug}
+            />
+          </>
+        )}
+
+        {/* Legado: estilos */}
+        {!loading && !error && data && showingLegacyStyles && (
+          <>
+            <div className="space-y-3">
+              {data.items.length === 0 ? (
+                <p className="rounded-xl border border-zinc-800 bg-[#1a1a1a] px-4 py-8 text-center text-sm text-zinc-500">
+                  Nenhum estilo nesta pasta. Adicione subpastas de estilo no Google Drive.
+                </p>
+              ) : (
+                data.items.map((folder) => (
+                  <StyleFolderAccordion
+                    key={folder.id}
+                    folder={folder}
+                    canPlay={playbackEnabled}
+                    canDownload={playbackEnabled}
+                    relativePath={`${relativePoolBase}/${displayFolderName(folder.name)}`}
+                    monthSlug={firstSlug}
+                    monthName={yearTitle}
+                    weekSlug={secondSlug}
+                    slugSegments={[firstSlug, secondSlug, slugifyFolderName(folder.name)].filter(
+                      (part): part is string => Boolean(part),
+                    )}
+                    isNew={newChildIds.has(folder.id)}
+                    isOpen={openFolderId === folder.id}
+                    highlightTrackId={openFolderId === folder.id ? (faixaId ?? undefined) : undefined}
+                    autoPlayTrackId={
+                      openFolderId === folder.id && playbackEnabled && faixaId ? faixaId : undefined
+                    }
+                    scrollIntoView={Boolean(poolSlug && matchStyleSlug(folder.name, poolSlug))}
+                    onToggle={() =>
+                      setOpenFolderId((current) => (current === folder.id ? null : folder.id))
+                    }
+                  />
+                ))
+              )}
+            </div>
+            <AtualizacoesMonthFooterNav
+              monthSlug={firstSlug}
+              months={rootFolders}
+              weeks={siblingWeeks}
+              weekSlug={secondSlug}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }
