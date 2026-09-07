@@ -11,6 +11,9 @@ import {
   type PortalUser,
 } from "./portal-users";
 import { DEEMIX_ENABLED } from "./feature-flags";
+import { getActiveHotmartSubscriptionForUser } from "./hotmart/process-webhook";
+import { planDisplayName } from "./hotmart/types";
+import { HOTMART_PROVIDER } from "./hotmart/config";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -156,10 +159,26 @@ function getLicenseConfig() {
   };
 }
 
-export function getPortalDataForUser(user: PortalUser) {
+export async function getPortalDataForUser(user: PortalUser) {
   const now = new Date();
   const config = getLicenseConfig();
   const greeting = getGreeting(getGreetingHour(now));
+  const hotmart = await getActiveHotmartSubscriptionForUser(user.id);
+
+  const hotmartStatusLabel =
+    hotmart?.status === "ACTIVE"
+      ? "Ativo"
+      : hotmart?.status === "CANCELED"
+        ? "Cancelado (acesso até o fim do período)"
+        : hotmart?.status === "PAST_DUE"
+          ? "Em atraso"
+          : hotmart?.status === "REFUNDED"
+            ? "Reembolsado"
+            : hotmart?.status === "CHARGEBACK"
+              ? "Chargeback"
+              : hotmart?.status === "EXPIRED"
+                ? "Expirado"
+                : null;
 
   return {
     user: {
@@ -167,7 +186,7 @@ export function getPortalDataForUser(user: PortalUser) {
       email: user.email,
       whatsapp: user.whatsapp,
       plan: user.plan,
-      planLabel: getServicesLabel(user.services),
+      planLabel: hotmart ? planDisplayName(hotmart.planId) : getServicesLabel(user.services),
       services: user.services,
       servicesLabel: getServicesLabel(user.services),
       monthlyValue: user.monthlyValue,
@@ -175,6 +194,18 @@ export function getPortalDataForUser(user: PortalUser) {
       nextDueAt: user.nextDueAt.toISOString(),
       createdAt: user.createdAt.toISOString(),
       active: user.active,
+      subscription: hotmart
+        ? {
+            provider: HOTMART_PROVIDER,
+            providerLabel: "Hotmart",
+            planId: hotmart.planId,
+            planLabel: planDisplayName(hotmart.planId),
+            status: hotmart.status,
+            statusLabel: hotmartStatusLabel ?? hotmart.status,
+            currentPeriodEnd: hotmart.currentPeriodEnd?.toISOString() ?? null,
+            canceledAt: hotmart.canceledAt?.toISOString() ?? null,
+          }
+        : null,
     },
     musicProducerDeliveries: {
       enabled: user.musicProducerDeliveriesEnabled,

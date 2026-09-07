@@ -143,6 +143,23 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
 
 export function AccountView({ data }: { data: PortalData }) {
   const { user } = data;
+  const subscription = user.subscription;
+
+  const rows: [string, string][] = [
+    ["Nome completo", user.name],
+    ["E-mail", user.email],
+    ["WhatsApp", user.whatsapp],
+    ["Plano", subscription?.planLabel ?? user.planLabel],
+    ["Serviços", user.servicesLabel],
+    ["Status", subscription?.statusLabel ?? (user.active ? "Ativo" : "Inativo")],
+    ["Pagamento", subscription?.providerLabel ?? "Manual / suporte"],
+    ["Valor mensal", user.monthlyValueLabel],
+    [
+      subscription ? "Próxima renovação" : "Próximo vencimento",
+      formatDateBr(subscription?.currentPeriodEnd ?? user.nextDueAt),
+    ],
+    ["Cliente desde", formatDateBr(user.createdAt)],
+  ];
 
   return (
     <div className="space-y-6">
@@ -150,16 +167,7 @@ export function AccountView({ data }: { data: PortalData }) {
 
       <PortalCard title="Dados pessoais">
         <dl className="grid gap-4 sm:grid-cols-2">
-          {[
-            ["Nome completo", user.name],
-            ["E-mail", user.email],
-            ["WhatsApp", user.whatsapp],
-            ["Serviços", user.servicesLabel],
-            ["Valor mensal", user.monthlyValueLabel],
-            ["Próximo vencimento", formatDateBr(user.nextDueAt)],
-            ["Cliente desde", formatDateBr(user.createdAt)],
-            ["Status", user.active ? "Ativo" : "Inativo"],
-          ].map(([label, value]) => (
+          {rows.map(([label, value]) => (
             <div key={label} className="rounded-lg border border-zinc-800 bg-[#0a0a0a] px-4 py-3">
               <dt className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">{label}</dt>
               <dd className="mt-1 text-sm font-medium text-white">{value}</dd>

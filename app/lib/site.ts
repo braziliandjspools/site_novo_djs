@@ -58,8 +58,10 @@ export function whatsappUrl(message?: string) {
   return `${base}?text=${encodeURIComponent(message)}`;
 }
 
-export function checkoutUrl(planName: string) {
-  return whatsappUrl(`Olá! Quero assinar o plano ${planName} da ${SITE_NAME}.`);
+/** Checkout de planos VIP → página /plans (Hotmart). */
+export function checkoutUrl(planName?: string) {
+  void planName;
+  return "/plans";
 }
 
 export function deemixCheckoutUrl(product: "Deemix" | "Deemix Server") {

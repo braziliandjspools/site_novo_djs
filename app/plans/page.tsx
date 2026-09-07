@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MessageCircle } from "lucide-react";
 import { PlansSection } from "../components/PlansSection";
 import { SectionHeading } from "../components/SectionHeading";
+import { SITE_PLANS } from "../lib/plans";
 import { whatsappUrl } from "../lib/site";
 import { buildPageMetadata } from "../lib/seo";
 
 export const metadata: Metadata = buildPageMetadata("plans");
 
 export default function PlansPage() {
+  const plans = SITE_PLANS.filter((plan) => plan.id).map((plan) => ({
+    id: plan.id!,
+    name: plan.name,
+    price: plan.price,
+    period: plan.period,
+    badge: plan.badge,
+    features: plan.features,
+    highlight: plan.highlight,
+  }));
+
   return (
     <div className="flex min-h-screen flex-col">
       <section className="border-b border-white/5 px-4 pb-8 pt-12 sm:px-6 md:pt-16">
@@ -15,12 +27,14 @@ export default function PlansPage() {
           <SectionHeading
             badge="Planos"
             title="Acesso VIP ao acervo"
-            subtitle="Assine pelo WhatsApp e libere pools, atualizações, Google Drive, FTP e a plataforma de músicas."
+            subtitle="Assine o BRS Drive Mensal pela Hotmart e libere pools, atualizações, plataforma de músicas e o Downloader para Windows."
           />
         </div>
       </section>
 
-      <PlansSection className="!border-t-0" />
+      <Suspense fallback={<div className="min-h-[320px]" />}>
+        <PlansSection className="!border-t-0" plans={plans} />
+      </Suspense>
 
       <section className="px-4 py-12 text-center sm:px-6 md:py-16">
         <div className="mx-auto max-w-2xl">

@@ -8,14 +8,18 @@ import { PortalLogin } from "../../portal/PortalLogin";
 
 function getSafeReturnPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/musicas/home";
-  if (!value.startsWith("/musicas")) return "/musicas/home";
-  return value;
+  if (value.startsWith("/musicas") || value === "/plans" || value.startsWith("/plans?")) {
+    return value;
+  }
+  if (value.startsWith("/checkout/")) return value;
+  return "/musicas/home";
 }
 
 function MusicasEntrarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = getSafeReturnPath(searchParams.get("return"));
+  const checkoutPlan = searchParams.get("checkout");
 
   return (
     <div className="relative min-h-screen bg-[#0a0a0a]">
@@ -29,7 +33,11 @@ function MusicasEntrarContent() {
 
       <PortalLogin
         onSuccess={() => {
-          router.push(returnTo);
+          if (checkoutPlan && returnTo.startsWith("/plans")) {
+            router.push(`/plans?checkout=${encodeURIComponent(checkoutPlan)}`);
+          } else {
+            router.push(returnTo);
+          }
           router.refresh();
         }}
       />

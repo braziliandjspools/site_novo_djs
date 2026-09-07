@@ -20,6 +20,16 @@ export type PortalData = {
     nextDueAt: string;
     createdAt: string;
     active: boolean;
+    subscription?: {
+      provider: string;
+      providerLabel: string;
+      planId: string;
+      planLabel: string;
+      status: string;
+      statusLabel: string;
+      currentPeriodEnd: string | null;
+      canceledAt: string | null;
+    } | null;
   };
   greeting: string;
   datetime: string;

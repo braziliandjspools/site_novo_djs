@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { claimPendingHotmartPurchasesForUser } from "../../../lib/hotmart/process-webhook";
 import {
   createPortalToken,
   PORTAL_COOKIE,
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
 
   try {
     const user = await registerPortalUser({ name, email, whatsapp, password });
+    await claimPendingHotmartPurchasesForUser(user);
 
     const response = NextResponse.json({ ok: true });
     response.cookies.set(PORTAL_COOKIE, createPortalToken(user.id), portalCookieOptions());

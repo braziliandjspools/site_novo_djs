@@ -31,15 +31,85 @@ model PortalUser {
   createdAt                      DateTime   @default(now()) @map("created_at")
   updatedAt                      DateTime   @updatedAt @map("updated_at")
 
-  deliveries      MusicProducerDelivery[]
-  briefings       MusicProducerBriefing[]
-  downloadDevices DownloadDevice[]
-  downloadJobs    DownloadJob[]
-  siteNotices     SiteNotice[]
-  noticeReceipts  SiteNoticeReceipt[]
+  deliveries            MusicProducerDelivery[]
+  briefings             MusicProducerBriefing[]
+  downloadDevices       DownloadDevice[]
+  downloadJobs          DownloadJob[]
+  siteNotices           SiteNotice[]
+  noticeReceipts        SiteNoticeReceipt[]
+  hotmartSubscriptions  HotmartSubscription[]
 
   @@index([nextDueAt])
   @@map("portal_users")
+}
+
+enum HotmartSubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  REFUNDED
+  CHARGEBACK
+  PAST_DUE
+}
+
+/** Assinatura/compra Hotmart vinculada ao usuário do portal (acesso BRS). */
+model HotmartSubscription {
+  id                       String                    @id @default(cuid())
+  portalUserId             Int                       @map("portal_user_id")
+  portalUser               PortalUser                @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  planId                   String                    @map("plan_id")
+  status                   HotmartSubscriptionStatus @default(ACTIVE)
+  provider                 String                    @default("hotmart")
+  providerCustomerId       String?                   @map("provider_customer_id")
+  providerSubscriptionId   String?                   @map("provider_subscription_id")
+  providerProductId        String?                   @map("provider_product_id")
+  providerOfferId          String?                   @map("provider_offer_id")
+  providerTransactionId    String?                   @map("provider_transaction_id")
+  startedAt                DateTime?                 @map("started_at")
+  currentPeriodEnd         DateTime?                 @map("current_period_end")
+  canceledAt               DateTime?                 @map("canceled_at")
+  refundedAt               DateTime?                 @map("refunded_at")
+  lastPaymentAt            DateTime?                 @map("last_payment_at")
+  accessRevokedAt          DateTime?                 @map("access_revoked_at")
+  activationEmailSentAt    DateTime?                 @map("activation_email_sent_at")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
+
+  @@unique([providerSubscriptionId])
+  @@index([portalUserId, status])
+  @@index([providerTransactionId])
+  @@map("hotmart_subscriptions")
+}
+
+/** Eventos de webhook já processados (idempotência). */
+model HotmartWebhookEvent {
+  id            String   @id @default(cuid())
+  eventId       String   @unique @map("event_id")
+  event         String
+  transactionId String?  @map("transaction_id")
+  result        String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([transactionId])
+  @@map("hotmart_webhook_events")
+}
+
+/** Compra aprovada sem usuário BRS — associada no cadastro pelo e-mail. */
+model HotmartPendingPurchase {
+  id                     String    @id @default(cuid())
+  email                  String
+  buyerName              String?   @map("buyer_name")
+  planId                 String    @map("plan_id")
+  providerTransactionId  String    @unique @map("provider_transaction_id")
+  providerSubscriptionId String?   @map("provider_subscription_id")
+  providerProductId      String?   @map("provider_product_id")
+  providerOfferId        String?   @map("provider_offer_id")
+  currentPeriodEnd       DateTime? @map("current_period_end")
+  claimedAt              DateTime? @map("claimed_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  @@index([email, claimedAt])
+  @@map("hotmart_pending_purchases")
 }
 
 enum SiteNoticeAudience {

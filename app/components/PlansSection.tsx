@@ -1,48 +1,94 @@
-import { CheckCircle2 } from "lucide-react";
-import { checkoutUrl } from "../lib/site";
-import { SITE_PLANS } from "../lib/plans";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import { SectionHeading } from "./SectionHeading";
+
+type HotmartPlanCard = {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  badge: string | null;
+  features: string[];
+  highlight: boolean;
+};
 
 type PlansSectionProps = {
   id?: string;
   className?: string;
+  plans: HotmartPlanCard[];
 };
 
-export function PlansSection({ id = "planos", className = "" }: PlansSectionProps) {
+export function PlansSection({ id = "planos", className = "", plans }: PlansSectionProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    if (!checkout) return;
+    if (!plans.some((plan) => plan.id === checkout)) return;
+    void startCheckout(checkout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-start once after login redirect
+  }, [plans, searchParams]);
+
+  async function startCheckout(planId: string) {
+    setLoadingPlanId(planId);
+    try {
+      const res = await fetch(`/api/checkout/hotmart/${planId}?format=json`, {
+        cache: "no-store",
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        checkoutUrl?: string;
+        loginUrl?: string;
+        error?: string;
+      };
+
+      if (res.status === 401 && data.loginUrl) {
+        router.push(data.loginUrl);
+        return;
+      }
+
+      if (!res.ok || !data.checkoutUrl) {
+        return;
+      }
+
+      // URL externa Hotmart (checkout oficial)
+      window.location.href = data.checkoutUrl;
+    } finally {
+      setLoadingPlanId(null);
+    }
+  }
+
   return (
     <section id={id} className={`border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20 ${className}`}>
       <div className="mx-auto max-w-5xl">
         <SectionHeading
-          badge="Acesso"
-          title="Escolha seu acesso"
-          subtitle="Escolha o plano que melhor combina com a sua rotina e tenha acesso ao acervo Brazilian Remix Service, ferramentas inclusas e atualizações frequentes. Compare as opções e encontre a melhor forma de manter seu repertório sempre completo e organizado."
+          badge="Assinatura"
+          title="BRS Drive Mensal"
+          subtitle="Assine com checkout seguro da Hotmart e libere a plataforma, packs organizados e o Downloader para Windows. O acesso é liberado automaticamente após a confirmação do pagamento."
         />
-        <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12 sm:max-w-none sm:grid-cols-2 md:grid-cols-3 md:gap-6">
-          {SITE_PLANS.map((plan) => (
+        <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12">
+          {plans.map((plan) => (
             <div
-              key={plan.name}
+              key={plan.id}
               className={`relative rounded-2xl border p-6 text-center transition-all md:p-8 md:text-left ${
                 plan.highlight
                   ? "border-[#FFDF00]/60 bg-gradient-to-b from-[#009739]/20 to-transparent shadow-2xl shadow-[#009739]/20"
                   : "border-white/10 bg-[#282828] hover:border-[#009739]/40"
               }`}
             >
-              {plan.badge && plan.highlight && (
+              {plan.badge && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FFDF00] px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#002776]">
-                  {plan.badge}
-                </span>
-              )}
-              {plan.badge && !plan.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-[#009739]/50 bg-[#009739]/20 px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#00B347]">
                   {plan.badge}
                 </span>
               )}
               <h3 className="font-display text-lg text-white">{plan.name}</h3>
               <p className="mt-4 font-display text-4xl font-bold text-white">{plan.price}</p>
               <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">{plan.period}</p>
-              {plan.equivalent && (
-                <p className="mt-2 text-sm font-medium text-[#FFDF00]">{plan.equivalent}</p>
-              )}
               <ul className="mt-6 space-y-2.5">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start justify-center gap-2 text-sm text-gray-300 md:justify-start">
@@ -51,18 +97,25 @@ export function PlansSection({ id = "planos", className = "" }: PlansSectionProp
                   </li>
                 ))}
               </ul>
-              <a
-                href={checkoutUrl(plan.name)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`mt-8 block w-full rounded-lg py-3 text-center text-sm font-bold uppercase tracking-wide transition-all hover:scale-105 ${
-                  plan.highlight
-                    ? "bg-[#009739] text-white hover:bg-[#00B347]"
-                    : "border border-[#009739]/60 text-[#00B347] hover:bg-[#009739]/10"
-                }`}
+              <button
+                type="button"
+                onClick={() => void startCheckout(plan.id)}
+                disabled={loadingPlanId === plan.id}
+                className="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#009739] py-3 text-center text-sm font-bold uppercase tracking-wide text-white transition-all hover:scale-105 hover:bg-[#00B347] disabled:cursor-wait disabled:opacity-80"
               >
-                Comprar
-              </a>
+                {loadingPlanId === plan.id ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Abrindo checkout…
+                  </>
+                ) : (
+                  "Assinar agora"
+                )}
+              </button>
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#009739]" />
+                Pagamento processado com segurança pela Hotmart.
+              </p>
             </div>
           ))}
         </div>

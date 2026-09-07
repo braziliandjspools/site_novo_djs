@@ -8,5 +8,5 @@ export async function GET() {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  return NextResponse.json(getPortalDataForUser(user));
+  return NextResponse.json(await getPortalDataForUser(user));
 }
