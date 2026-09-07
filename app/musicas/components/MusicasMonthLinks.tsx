@@ -19,6 +19,41 @@ function statusClass(status: ReturnType<typeof parseMonthStatus>["status"]) {
   return "border-zinc-700 text-zinc-300";
 }
 
+function StatusBadge({
+  label,
+  status,
+  tone = "default",
+}: {
+  label: string;
+  status: ReturnType<typeof parseMonthStatus>["status"];
+  tone?: "default" | "hero";
+}) {
+  if (!label) return null;
+
+  if (tone === "hero") {
+    if (status === "em-atualizacao") {
+      return (
+        <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
+          {label}
+        </span>
+      );
+    }
+    return (
+      <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200/80">{label}</span>
+    );
+  }
+
+  if (status === "em-atualizacao") {
+    return (
+      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
+        {label}
+      </span>
+    );
+  }
+
+  return <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>;
+}
+
 type MusicasMonthLinksProps = {
   folders: VipMusicFolder[];
   newFolderIds: Set<string>;
@@ -43,20 +78,23 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
       <div className="flex w-full flex-col gap-2">
         {sorted.map((folder) => {
           const slug = slugifyFolderName(folder.name);
-          const { label } = parseMonthStatus(folder.name);
+          const { label, status } = parseMonthStatus(folder.name);
           const isNew = newFolderIds.has(folder.id);
           const name = displayFolderName(folder.name);
+          const updating = status === "em-atualizacao";
 
           return (
             <div
               key={folder.id}
-              className={`flex w-full items-center gap-2 rounded-lg bg-orange-600/20 px-3 py-2.5 transition-all hover:bg-orange-500/35 sm:px-4 sm:py-3 ${
-                isNew ? "ring-1 ring-orange-400/50" : ""
-              }`}
+              className={`flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 transition-all sm:px-4 sm:py-3 ${
+                updating
+                  ? "bg-amber-500/20 ring-1 ring-amber-400/40 hover:bg-amber-500/30"
+                  : "bg-orange-600/20 hover:bg-orange-500/35"
+              } ${isNew && !updating ? "ring-1 ring-orange-400/50" : ""}`}
             >
               <Link
                 href={folderHref([slug])}
-                className="flex min-w-0 flex-1 items-center justify-center gap-2 px-3 py-1.5 text-sm font-semibold text-orange-50 hover:text-white sm:text-base"
+                className="flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 px-3 py-1.5 text-sm font-semibold text-orange-50 hover:text-white sm:text-base"
               >
                 <span>{name}</span>
                 {isNew && (
@@ -64,12 +102,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                     Novas
                   </span>
                 )}
-                {!isNew && label ? (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200/80">{label}</span>
-                ) : null}
-                <span className="text-base font-bold text-orange-200/90" aria-hidden>
-                  &gt;
-                </span>
+                <StatusBadge label={label} status={status} tone="hero" />
               </Link>
               <SendPackToDownloaderButton
                 slug={slug}
@@ -104,19 +137,17 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
               isNew ? "border-[#1ed760]/60 text-white" : statusClass(status)
             }`}
           >
-            <Link href={folderHref([slug])} className="inline-flex items-center gap-2 py-1.5 hover:text-white">
+            <Link
+              href={folderHref([slug])}
+              className="inline-flex cursor-pointer items-center gap-2 py-1.5 hover:text-white"
+            >
               <span>{name}</span>
               {isNew && (
                 <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
                   Novas
                 </span>
               )}
-              {!isNew && label ? (
-                <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
-              ) : null}
-              <span className="font-bold opacity-80" aria-hidden>
-                &gt;
-              </span>
+              <StatusBadge label={label} status={status} />
             </Link>
             <SendPackToDownloaderButton
               slug={slug}

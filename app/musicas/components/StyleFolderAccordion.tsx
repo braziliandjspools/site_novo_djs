@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { ChevronDown, FolderOpen, Loader2, Volume2 } from "lucide-react";
+import { ChevronDown, FolderOpen, Loader2, MonitorDown, Volume2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
-import { displayFolderName, slugifyFolderName } from "../../lib/vip-music-slugs";
+import { displayFolderName, parseMonthStatus, slugifyFolderName } from "../../lib/vip-music-slugs";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import { sendFolderToDownloader } from "../lib/send-to-downloader";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
@@ -188,6 +188,7 @@ export function StyleFolderAccordion({
   }
 
   const label = displayFolderName(folder.name);
+  const folderStatus = parseMonthStatus(folder.name);
   const packSlugSegments =
     slugSegments && slugSegments.length > 0
       ? slugSegments
@@ -199,7 +200,11 @@ export function StyleFolderAccordion({
     <div
       id={`style-folder-${folder.id}`}
       className={`overflow-hidden border bg-black md:rounded-xl ${
-        isNew ? "border-[#1ed760]/50 shadow-[0_0_0_1px_rgba(30,215,96,0.15)]" : "border-zinc-800/90"
+        folderStatus.status === "em-atualizacao"
+          ? "border-amber-500/50 shadow-[0_0_0_1px_rgba(245,158,11,0.2)]"
+          : isNew
+            ? "border-[#1ed760]/50 shadow-[0_0_0_1px_rgba(30,215,96,0.15)]"
+            : "border-zinc-800/90"
       }`}
     >
       <div
@@ -208,16 +213,18 @@ export function StyleFolderAccordion({
             ? "border-l-[#00ff9d] bg-zinc-950"
             : isOpen
               ? "border-l-[#00ff9d] bg-zinc-950/80"
-              : isNew
-                ? "border-l-[#1ed760] bg-[#1ed760]/5 hover:bg-[#1ed760]/10"
-                : "border-l-transparent bg-black hover:border-l-[#00ff9d]/60 hover:bg-zinc-950/50"
+              : folderStatus.status === "em-atualizacao"
+                ? "border-l-amber-400 bg-amber-500/5 hover:bg-amber-500/10"
+                : isNew
+                  ? "border-l-[#1ed760] bg-[#1ed760]/5 hover:bg-[#1ed760]/10"
+                  : "border-l-transparent bg-black hover:border-l-[#00ff9d]/60 hover:bg-zinc-950/50"
         }`}
       >
         <button
           type="button"
           onClick={handleToggle}
           aria-expanded={isOpen}
-          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
         >
           <ChevronDown
             className={`h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] transition-transform duration-150 ${
@@ -236,7 +243,12 @@ export function StyleFolderAccordion({
           >
             {label}
           </span>
-          {isNew && !isPlayingFolder && (
+          {folderStatus.status === "em-atualizacao" && (
+            <span className="flex-shrink-0 rounded-sm bg-amber-400 px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-black">
+              Em atualização
+            </span>
+          )}
+          {isNew && !isPlayingFolder && folderStatus.status !== "em-atualizacao" && (
             <span className="flex-shrink-0 rounded-sm bg-[#1ed760] px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-black">
               Novo
             </span>
@@ -261,14 +273,12 @@ export function StyleFolderAccordion({
             disabled={sendingFolder}
             title="Enviar pasta inteira para o Downloader"
             aria-label={`Enviar pasta ${label} para o Downloader`}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition-colors hover:bg-[#1ed760]/20 disabled:opacity-50 sm:h-6 sm:w-6 sm:border-transparent sm:bg-transparent sm:text-zinc-500 sm:hover:bg-white/10 sm:hover:text-[#1ed760]"
+            className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition-colors hover:bg-[#1ed760]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:h-6 sm:w-6 sm:border-transparent sm:bg-transparent sm:text-zinc-500 sm:hover:bg-white/10 sm:hover:text-[#1ed760]"
           >
             {sendingFolder ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <span className="text-sm leading-none" aria-hidden>
-                👆
-              </span>
+              <MonitorDown className="h-3.5 w-3.5" />
             )}
           </button>
         )}

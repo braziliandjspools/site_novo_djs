@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import {
   displayFolderName,
   folderHref,
   parseMonthFolderDate,
+  parseMonthStatus,
   parseWeekNumber,
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
@@ -118,20 +120,23 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
               : false;
           const weekTitle =
             weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : label;
+          const weekStatus = parseMonthStatus(week.name);
 
           return (
             <div
               key={week.id}
               className={`group relative overflow-hidden rounded-2xl border transition-colors ${
-                isCurrent
-                  ? "border-[#1ed760]/45 bg-gradient-to-br from-[#1ed760]/12 via-[#1a1a1a] to-[#121212]"
-                  : "border-white/[0.06] bg-[#1a1a1a] hover:border-[#1ed760]/35 hover:bg-[#1f1f1f]"
+                weekStatus.status === "em-atualizacao"
+                  ? "border-amber-500/45 bg-gradient-to-br from-amber-500/12 via-[#1a1a1a] to-[#121212]"
+                  : isCurrent
+                    ? "border-[#1ed760]/45 bg-gradient-to-br from-[#1ed760]/12 via-[#1a1a1a] to-[#121212]"
+                    : "border-white/[0.06] bg-[#1a1a1a] hover:border-[#1ed760]/35 hover:bg-[#1f1f1f]"
               }`}
             >
               <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#1ed760]/10 blur-2xl" />
 
               <div className="relative flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-2 sm:p-5">
-                <Link href={href} className="min-w-0 flex-1">
+                <Link href={href} className="min-w-0 flex-1 cursor-pointer">
                   <div className="flex items-start gap-3 sm:gap-4">
                     <div
                       className={`flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl sm:h-16 sm:w-16 ${
@@ -149,12 +154,17 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                         <p className="break-words text-base font-black tracking-tight text-white group-hover:text-[#1ed760] sm:text-lg">
                           {weekTitle}
                         </p>
-                        {isCurrent && (
+                        {weekStatus.status === "em-atualizacao" && (
+                          <span className="rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                            Em atualização
+                          </span>
+                        )}
+                        {isCurrent && weekStatus.status !== "em-atualizacao" && (
                           <span className="rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
                             Esta semana
                           </span>
                         )}
-                        {isNew && !isCurrent && (
+                        {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
                           <span className="rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
                             Novo
                           </span>
@@ -166,9 +176,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                       </p>
                     </div>
 
-                    <span className="mt-2 hidden flex-shrink-0 text-base font-bold text-zinc-600 transition-colors group-hover:text-[#1ed760] sm:inline" aria-hidden>
-                      &gt;
-                    </span>
+                    <ChevronRight className="mt-2 hidden h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760] sm:block" />
                   </div>
 
                   <WeekDayStrip days={days} />

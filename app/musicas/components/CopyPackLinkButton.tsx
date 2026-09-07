@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Copy, Loader2 } from "lucide-react";
 import { buildPackDownloadUrl } from "../../lib/pack-download-link";
 import { useMusicasToast } from "./MusicasToast";
 
@@ -46,16 +46,14 @@ export function CopyPackLinkButton({
       disabled={busy || slugSegments.length === 0}
       title={label}
       aria-label={label}
-      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-base text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50 ${className}`}
+      className={`flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-white/10 hover:text-[#1ed760] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     >
       {busy ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
       ) : copied ? (
         <Check className="h-3.5 w-3.5 text-[#1ed760]" />
       ) : (
-        <span className="text-sm leading-none" aria-hidden>
-          👆
-        </span>
+        <Copy className="h-3.5 w-3.5" />
       )}
     </button>
   );
