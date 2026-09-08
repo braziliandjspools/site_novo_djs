@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Download, Loader2, MoreHorizontal, Pause, Play, Plus } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { PLACEHOLDER } from "../../lib/theme";
 import { MusicasTracksSkeleton } from "./MusicasSkeletons";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
+import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 
 export type CollectionVolumeItem = {
@@ -43,6 +44,7 @@ function VolumeBlock({
   canPlay: boolean;
   canDownload: boolean;
 }) {
+  const { playingFolderId, playingId, loadingId, toggleTrack, pause, isPlaying } = useVipMusicPlayer();
   const [tracks, setTracks] = useState<PreviewTrack[]>([]);
   const [total, setTotal] = useState(volume.trackCount);
   const [page, setPage] = useState(0);
@@ -50,6 +52,10 @@ function VolumeBlock({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const cover = volume.coverUrl?.trim() || PLACEHOLDER.trackCover;
+
+  const isThisAlbum = playingFolderId === volume.id;
+  const albumPlaying = isThisAlbum && isPlaying && Boolean(playingId);
+  const albumLoading = isThisAlbum && loadingId !== null && !playingId;
 
   const loadPage = useCallback(
     async (nextPage: number, append: boolean) => {
@@ -97,40 +103,90 @@ function VolumeBlock({
     void loadPage(1, false);
   }, [loadPage]);
 
+  const handlePlayAlbum = async () => {
+    if (!canPlay || tracks.length === 0) return;
+    if (albumPlaying) {
+      pause();
+      return;
+    }
+    const first = tracks[0];
+    if (first) await toggleTrack(volume.id, first.id);
+  };
+
+  const countLabel = `${total} ${total === 1 ? "música" : "músicas"}`;
+
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#141414]">
-      <div className="flex flex-wrap items-center gap-4 border-b border-zinc-800/80 px-4 py-4 sm:px-5">
-        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md shadow-lg ring-1 ring-white/10 sm:h-20 sm:w-20">
+    <section className="pb-10 sm:pb-14">
+      {/* Cabeçalho do álbum — padrão discografia Spotify */}
+      <div className="flex items-end gap-4 sm:gap-5">
+        <div className="relative h-[112px] w-[112px] flex-shrink-0 overflow-hidden rounded shadow-[0_8px_24px_rgba(0,0,0,0.5)] sm:h-[136px] sm:w-[136px]">
           <Image
             src={cover}
             alt=""
             fill
             className="object-cover"
-            sizes="80px"
+            sizes="136px"
             unoptimized={cover.startsWith("/api/")}
           />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Álbum / Volume</p>
-          <h2 className="mt-0.5 truncate text-lg font-black text-white sm:text-xl">{volume.displayName}</h2>
-          <p className="mt-1 text-xs text-zinc-500">
-            {total} {total === 1 ? "faixa" : "faixas"}
+
+        <div className="min-w-0 flex-1 pb-0.5">
+          <h2 className="truncate text-2xl font-black tracking-tight text-white sm:text-3xl md:text-4xl">
+            {volume.displayName}
+          </h2>
+          <p className="mt-1.5 truncate text-sm text-zinc-400">
+            Álbum <span className="text-zinc-600">•</span> {countLabel}
           </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 sm:gap-4">
+            <button
+              type="button"
+              onClick={() => void handlePlayAlbum()}
+              disabled={!canPlay || tracks.length === 0 || albumLoading}
+              aria-label={albumPlaying ? `Pausar ${volume.displayName}` : `Tocar ${volume.displayName}`}
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:scale-105 hover:bg-zinc-100 disabled:opacity-40"
+            >
+              {albumLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : albumPlaying ? (
+                <Pause className="h-5 w-5" fill="currentColor" />
+              ) : (
+                <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
+              )}
+            </button>
+
+            {canDownload ? (
+              <SendPackToDownloaderButton
+                slug={volume.downloaderSlug}
+                root="colecoes"
+                compact
+                label={`Baixar ${volume.displayName}`}
+                className="!h-10 !w-10 !rounded-full !border-zinc-500 !bg-transparent !text-zinc-400 hover:!border-white hover:!bg-transparent hover:!text-white"
+              />
+            ) : (
+              <span className="inline-flex h-10 w-10 items-center justify-center text-zinc-600" title="Download VIP">
+                <Download className="h-5 w-5" />
+              </span>
+            )}
+
+            <span className="inline-flex h-10 w-10 items-center justify-center text-zinc-600" aria-hidden>
+              <Plus className="h-5 w-5" />
+            </span>
+            <span className="inline-flex h-10 w-10 items-center justify-center text-zinc-600" aria-hidden>
+              <MoreHorizontal className="h-5 w-5" />
+            </span>
+          </div>
         </div>
-        <SendPackToDownloaderButton
-          slug={volume.downloaderSlug}
-          root="colecoes"
-          label="Enviar volume ao Downloader"
-        />
       </div>
 
-      <div className="p-2 sm:p-3">
+      {/* Faixas do álbum */}
+      <div className="mt-6">
         {loading && tracks.length === 0 ? (
           <MusicasTracksSkeleton rows={4} />
         ) : error && tracks.length === 0 ? (
-          <p className="px-3 py-6 text-center text-sm text-red-300">{error}</p>
+          <p className="py-6 text-sm text-red-300">{error}</p>
         ) : tracks.length === 0 ? (
-          <p className="px-3 py-6 text-center text-sm text-zinc-500">Nenhuma faixa neste volume.</p>
+          <p className="py-6 text-sm text-zinc-500">Nenhuma faixa neste álbum.</p>
         ) : (
           <VipMusicTrackList
             folderId={volume.id}
@@ -138,7 +194,7 @@ function VolumeBlock({
             canPlay={canPlay}
             canDownload={canDownload}
             relativePath={volume.relativePath}
-            layout="table"
+            layout="discography"
             hasMore={hasMore}
             onLoadMore={async () => loadPage(page + 1, true)}
           />
@@ -148,10 +204,9 @@ function VolumeBlock({
             type="button"
             disabled={loading}
             onClick={() => void loadPage(page + 1, true)}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 py-2.5 text-xs font-bold text-zinc-300 hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60"
+            className="mt-3 text-sm font-semibold text-zinc-400 transition hover:text-white disabled:opacity-60"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Carregar mais faixas
+            {loading ? "Carregando…" : "Mostrar mais faixas"}
           </button>
         )}
       </div>
@@ -159,7 +214,7 @@ function VolumeBlock({
   );
 }
 
-/** Lista estilo Spotify: volumes empilhados com faixas. */
+/** Discografia estilo Spotify: Álbum → faixas → próximo álbum. */
 export function CollectionVolumesView({ volumes, canPlay, canDownload }: CollectionVolumesViewProps) {
   if (volumes.length === 0) {
     return (
@@ -170,7 +225,7 @@ export function CollectionVolumesView({ volumes, canPlay, canDownload }: Collect
   }
 
   return (
-    <div className="space-y-6">
+    <div className="divide-y divide-white/[0.06]">
       {volumes.map((volume) => (
         <VolumeBlock key={volume.id} volume={volume} canPlay={canPlay} canDownload={canDownload} />
       ))}

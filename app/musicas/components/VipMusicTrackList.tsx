@@ -38,8 +38,8 @@ type VipMusicTrackListProps = {
     monthSlug: string;
     weekSlug?: string;
   };
-  /** `table` = layout desktop em tabela (Atualizações). Mobile permanece o TrackRow atual. */
-  layout?: "default" | "table";
+  /** `table` = Atualizações desktop; `discography` = coleções estilo Spotify. */
+  layout?: "default" | "table" | "discography";
   hasMore?: boolean;
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | void>;
 };
@@ -47,6 +47,9 @@ type VipMusicTrackListProps = {
 /** Colunas fixas: # | nome | Key | BPM | ações — Key/BPM não deslocam no play. */
 const TABLE_GRID =
   "grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] items-center gap-x-3";
+
+/** Discografia Spotify: # | título/artista | duração */
+const DISCOGRAPHY_GRID = "grid grid-cols-[2rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -356,6 +359,72 @@ function TrackRow({
           </span>
         </div>
       )}
+    </article>
+  );
+}
+
+function DiscographyTrackRow({
+  track,
+  index,
+  canPlay,
+  isActive,
+  isPlaying,
+  isLoading,
+  isBusy,
+  isHighlighted,
+  setDomAnchor = true,
+  duration,
+  onToggle,
+}: TrackRowProps) {
+  return (
+    <article
+      id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
+      className={`group/row rounded-md transition-colors hover:bg-white/[0.06] ${
+        isActive || isPlaying ? "bg-white/[0.04]" : ""
+      }`}
+    >
+      <button
+        type="button"
+        onClick={canPlay ? onToggle : undefined}
+        disabled={!canPlay || isBusy}
+        className={`${DISCOGRAPHY_GRID} w-full px-2 py-2.5 text-left sm:px-3`}
+      >
+        <div className="flex items-center justify-center">
+          {isLoading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-400" />
+          ) : isPlaying ? (
+            <PlayingBars />
+          ) : (
+            <>
+              <span className="font-mono text-[13px] tabular-nums text-zinc-500 group-hover/row:hidden">
+                {index + 1}
+              </span>
+              {canPlay ? (
+                <Play className="ml-0.5 hidden h-3.5 w-3.5 fill-white text-white group-hover/row:block" />
+              ) : (
+                <Lock className="hidden h-3.5 w-3.5 text-zinc-500 group-hover/row:block" />
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <p
+            className={`truncate text-sm font-semibold ${
+              isPlaying || isActive ? "text-[#1ed760]" : "text-white"
+            }`}
+          >
+            {track.title}
+          </p>
+          {track.artist ? (
+            <p className="mt-0.5 truncate text-xs text-zinc-400">{track.artist}</p>
+          ) : null}
+        </div>
+
+        <div className="text-right font-mono text-xs tabular-nums text-zinc-500">
+          {isActive && duration > 0 ? formatTime(duration) : "—:—"}
+        </div>
+      </button>
     </article>
   );
 }
@@ -815,6 +884,7 @@ export function VipMusicTrackList({
   if (tracks.length === 0) return null;
 
   const useTable = layout === "table";
+  const useDiscography = layout === "discography";
 
   const rowPropsFor = (track: PreviewTrack, index: number) => {
     const isActive = activeId === track.id;
@@ -855,7 +925,7 @@ export function VipMusicTrackList({
         <p className="mb-1 rounded-md bg-red-500/10 px-2 py-1 text-center text-[10px] text-red-400">{error}</p>
       )}
 
-      {canDownload && tracks.length > 1 && (
+      {canDownload && tracks.length > 1 && !useDiscography && (
         <div
           className={`mb-1 flex flex-wrap items-center gap-1.5 px-1.5 py-1.5 ${
             useTable
@@ -911,37 +981,61 @@ export function VipMusicTrackList({
         </div>
       )}
 
-      {/* Mobile (and default layout): stacked TrackRow */}
-      <div className={useTable ? "space-y-px md:hidden" : "space-y-px"}>
-        {tracks.map((track, index) => (
-          <TrackRow
-            key={track.id}
-            {...rowPropsFor(track, index)}
-            setDomAnchor={!useTable || !isDesktop}
-          />
-        ))}
-      </div>
-
-      {/* Desktop table — Atualizações only */}
-      {useTable && (
-        <div className={`hidden md:block ${poolPanelClass}`}>
-          <div className={`${poolTableHeadClass} ${TABLE_GRID}`}>
+      {useDiscography ? (
+        <div>
+          <div
+            className={`${DISCOGRAPHY_GRID} border-b border-white/[0.08] px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-zinc-500 sm:px-3`}
+          >
             <span className="text-center">#</span>
-            <span className="min-w-0">Nome</span>
-            <span className="text-center">Key</span>
-            <span className="text-center">BPM</span>
-            <span className="text-right">Ações</span>
+            <span>Título</span>
+            <span className="flex justify-end" aria-label="Duração">
+              <span className="sr-only">Duração</span>
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden>
+                <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8.75-3.75a.75.75 0 0 0-1.5 0v3.5c0 .192.168.1.5.75H11a.75.75 0 0 0 0-1.5H8.75V4.25z" />
+              </svg>
+            </span>
           </div>
-          <div>
+          <div className="mt-1">
             {tracks.map((track, index) => (
-              <TrackTableRow
-                key={track.id}
-                {...rowPropsFor(track, index)}
-                setDomAnchor={isDesktop}
-              />
+              <DiscographyTrackRow key={track.id} {...rowPropsFor(track, index)} />
             ))}
           </div>
         </div>
+      ) : (
+        <>
+          {/* Mobile (and default layout): stacked TrackRow */}
+          <div className={useTable ? "space-y-px md:hidden" : "space-y-px"}>
+            {tracks.map((track, index) => (
+              <TrackRow
+                key={track.id}
+                {...rowPropsFor(track, index)}
+                setDomAnchor={!useTable || !isDesktop}
+              />
+            ))}
+          </div>
+
+          {/* Desktop table — Atualizações only */}
+          {useTable && (
+            <div className={`hidden md:block ${poolPanelClass}`}>
+              <div className={`${poolTableHeadClass} ${TABLE_GRID}`}>
+                <span className="text-center">#</span>
+                <span className="min-w-0">Nome</span>
+                <span className="text-center">Key</span>
+                <span className="text-center">BPM</span>
+                <span className="text-right">Ações</span>
+              </div>
+              <div>
+                {tracks.map((track, index) => (
+                  <TrackTableRow
+                    key={track.id}
+                    {...rowPropsFor(track, index)}
+                    setDomAnchor={isDesktop}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
