@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
         source: "/images/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      {
+        source: "/downloads/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+          { key: "Content-Disposition", value: "attachment" },
+        ],
+      },
     ];
   },
 };
