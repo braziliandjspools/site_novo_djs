@@ -3,6 +3,7 @@ import { MessageCircle } from "lucide-react";
 import type { AppRoute } from "./Sidebar";
 import { Sidebar } from "./Sidebar";
 import { NotificationBell } from "./NotificationBell";
+import { UpdateAvailableModal } from "../UpdateAvailableModal";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo, PlanBillingInfo } from "../../context/AuthContext";
 import { useAppNotifications } from "../../hooks/useAppNotifications";
@@ -48,6 +49,7 @@ export function AppShell({
 
   return (
     <div className="flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
+      <UpdateAvailableModal />
       <Sidebar
         activeRoute={activeRoute}
         onNavigate={onNavigate}

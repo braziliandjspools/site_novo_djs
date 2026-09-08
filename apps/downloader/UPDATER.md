@@ -1,6 +1,6 @@
 # Atualizações do BRS Downloader
 
-O app consulta `GET /api/downloader/updates/latest?current=1.0.5_estable` e avisa no **sininho** quando houver versão mais nova.
+O app consulta `GET /api/downloader/updates/latest?current=1.0.6_estable` e avisa no **sininho** / popup quando houver versão mais nova.
 
 A partir da **1.0.4**, o botão **Baixar e atualizar** baixa o `.exe` **por dentro do app** (Rust) e abre o instalador — sem passar pelo navegador.
 

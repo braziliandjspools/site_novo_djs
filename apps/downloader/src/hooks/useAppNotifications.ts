@@ -40,7 +40,7 @@ export function useAppNotifications(billing?: PlanBillingInfo | null) {
     async function runCheck() {
       const prefs = await getAppPreferences();
       if (!prefs.checkAppUpdates) return;
-      const result = await checkForAppUpdates({ silent: true, notifyFeed: true });
+      const result = await checkForAppUpdates({ silent: true, notifyFeed: true, showModal: true });
       if (!cancelled) setUpdate(result);
     }
 
@@ -59,7 +59,7 @@ export function useAppNotifications(billing?: PlanBillingInfo | null) {
     update,
     updateDownloadUrl: update?.latest?.downloadUrl ?? null,
     refreshUpdateCheck: async () => {
-      const result = await checkForAppUpdates({ silent: false, notifyFeed: true });
+      const result = await checkForAppUpdates({ silent: false, notifyFeed: true, showModal: true });
       setUpdate(result);
       return result;
     },

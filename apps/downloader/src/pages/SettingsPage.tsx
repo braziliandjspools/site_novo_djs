@@ -520,7 +520,11 @@ export function SettingsPage() {
                 setUpdateBusy(true);
                 setUpdateMessage(null);
                 try {
-                  const result = await checkForAppUpdates({ silent: false, notifyFeed: true });
+                  const result = await checkForAppUpdates({
+                    silent: false,
+                    notifyFeed: true,
+                    showModal: true,
+                  });
                   setUpdateMessage(result.message);
                   setLatestDownloadUrl(result.latest?.downloadUrl ?? null);
                 } finally {

@@ -328,6 +328,8 @@ export const messagesEs = {
   updaterNewVersion: "Nueva versión {version} disponible",
   updaterNotes: "Novedades de esta versión",
   updaterDefaultBody: "Hay una actualización de BRS Downloader lista para instalar.",
+  updaterModalInstalled: "Estás en la {version}",
+  updaterModalLater: "Ahora no",
 
   // errors
   errorsGeneric: "Algo salió mal. Inténtalo de nuevo.",

@@ -14,6 +14,38 @@ fn filename_from_url(url: &str) -> String {
         .unwrap_or_else(|| "BRS-Downloader-update-setup.exe".to_string())
 }
 
+#[cfg(target_os = "windows")]
+fn powershell_single_quote(path: &str) -> String {
+    format!("'{}'", path.replace('\'', "''"))
+}
+
+/// Abre o instalador pedindo elevação (UAC). `Command::spawn` direto falha com os error 740.
+#[cfg(target_os = "windows")]
+fn launch_installer_elevated(path: &str) -> Result<(), String> {
+    let quoted = powershell_single_quote(path);
+    let status = std::process::Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-WindowStyle",
+            "Hidden",
+            "-Command",
+            &format!("Start-Process -FilePath {quoted} -Verb RunAs"),
+        ])
+        .status()
+        .map_err(|e| format!("Não foi possível abrir o instalador: {e}"))?;
+
+    if status.success() {
+        return Ok(());
+    }
+
+    Err(
+        "Não foi possível abrir o instalador com permissão de administrador. \
+         Confirme o UAC (Controle de Conta de Usuário) ou execute o arquivo baixado manualmente."
+            .into(),
+    )
+}
+
 /// Baixa o instalador via HTTP (sem abrir o navegador) e inicia o .exe.
 #[tauri::command]
 pub async fn download_and_launch_installer(url: String) -> Result<String, String> {
@@ -90,10 +122,18 @@ pub async fn download_and_launch_installer(url: String) -> Result<String, String
 
     #[cfg(target_os = "windows")]
     {
-        std::process::Command::new(&dest)
-            .spawn()
-            .map_err(|e| format!("Não foi possível abrir o instalador: {e}"))?;
-        return Ok(path_str);
+        match launch_installer_elevated(&path_str) {
+            Ok(()) => Ok(path_str),
+            Err(err) => {
+                // Garante que o usuário encontre o .exe mesmo se cancelar o UAC.
+                let _ = std::process::Command::new("explorer")
+                    .arg(format!("/select,{path_str}"))
+                    .spawn();
+                Err(format!(
+                    "{err} Abrimos a pasta do instalador — execute o arquivo e aceite a elevação (UAC)."
+                ))
+            }
+        }
     }
 
     #[cfg(not(target_os = "windows"))]

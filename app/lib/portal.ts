@@ -193,10 +193,10 @@ function getPoolsPortalPayload() {
       : "https://drive.google.com",
     downloader: {
       name: DOWNLOADER_NAME,
-      version: release?.version ?? "1.0.5_estable",
+      version: release?.version ?? "1.0.6_estable",
       downloadUrl:
         release?.downloadUrl ??
-        `${SITE_PRODUCTION_URL}/downloads/BRS-Downloader_1.0.5_estable_x64-setup.exe`,
+        `${SITE_PRODUCTION_URL}/downloads/BRS-Downloader_1.0.6_estable_x64-setup.exe`,
     },
     ftp: getVipFtpConfig(),
   };

@@ -5,6 +5,7 @@ import { tRuntime } from "../i18n/runtime";
 import { inAppNotificationFeed } from "./notifications/in-app-feed";
 import { isDesktopRuntime } from "./native/app-preferences";
 import { openPlatform } from "./open-site";
+import { presentUpdateModalFromCheck } from "./update-modal";
 import {
   isPermissionGranted,
   requestPermission,
@@ -52,8 +53,11 @@ async function notifySystem(title: string, body: string) {
 export async function checkForAppUpdates(options?: {
   silent?: boolean;
   notifyFeed?: boolean;
+  /** Abre o popup centralizado quando houver update (login / verificar agora). */
+  showModal?: boolean;
 }): Promise<UpdateCheckResult> {
   const notifyFeed = options?.notifyFeed !== false;
+  const showModal = options?.showModal !== false;
   try {
     const data = await apiFetch<LatestUpdateResponse>(
       `/api/downloader/updates/latest?current=${encodeURIComponent(APP_VERSION)}`,
@@ -80,12 +84,18 @@ export async function checkForAppUpdates(options?: {
       );
     }
 
-    return {
+    const result: UpdateCheckResult = {
       checked: true,
       updateAvailable: Boolean(data.updateAvailable && data.latest),
       message: data.message,
       latest: data.latest,
     };
+
+    if (showModal) {
+      presentUpdateModalFromCheck(result);
+    }
+
+    return result;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : tRuntime("notificationsUpdateCheckFailed");
@@ -118,6 +128,12 @@ export async function openUpdateDownload(downloadUrl: string) {
     await invoke<string>("download_and_launch_installer", { url: downloadUrl });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    // Fallback: se a elevação falhar, abre o download no navegador para instalação manual.
+    try {
+      await openPlatform(downloadUrl);
+    } catch {
+      /* ignore */
+    }
     inAppNotificationFeed.push({
       kind: "info",
       severity: "error",

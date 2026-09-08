@@ -335,6 +335,8 @@ export const messagesPtBR = {
   updaterNewVersion: "Nova versão {version} disponível",
   updaterNotes: "Novidades desta versão",
   updaterDefaultBody: "Há uma atualização do BRS Downloader pronta para instalar.",
+  updaterModalInstalled: "Você está na {version}",
+  updaterModalLater: "Agora não",
 
   // errors
   errorsGeneric: "Algo deu errado. Tente novamente.",
