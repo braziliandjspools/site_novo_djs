@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       trackCount: result.trackCount,
       sampleTitles: result.sampleTitles,
       root: result.folder.root,
-      downloadUrl: `/musicas/dl/${result.folder.slug}`,
+      downloadUrl: `/musicas/atualizacoes/${result.folder.slug}`,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao validar a pasta.";

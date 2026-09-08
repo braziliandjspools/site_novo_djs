@@ -26,7 +26,8 @@ export function parsePackLinkInput(input: string): { slug: string } | null {
   if (!trimmed) return null;
 
   const fromPath = (pathname: string) => {
-    const match = pathname.match(/\/musicas\/dl\/(.+?)\/?$/i);
+    const normalized = pathname.replace(/\/+$/, "") || "/";
+    const match = normalized.match(/^\/musicas\/(?:atualizacoes|dl)\/(.+)$/i);
     if (!match?.[1]) return null;
     try {
       return decodeURIComponent(match[1]).replace(/^\/+|\/+$/g, "");

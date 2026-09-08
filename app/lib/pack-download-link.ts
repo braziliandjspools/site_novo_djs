@@ -1,6 +1,10 @@
-import { slugifyFolderName } from "./vip-music-slugs";
+import { folderHref, slugifyFolderName } from "./vip-music-slugs";
 
-export const PACK_DOWNLOAD_PATH_PREFIX = "/musicas/dl";
+/** Path canônico do link de pasta (igual à URL do navegador no acervo). */
+export const PACK_DOWNLOAD_PATH_PREFIX = "/musicas/atualizacoes";
+
+/** Alias legado ainda aceito pelo Downloader. */
+export const PACK_DOWNLOAD_LEGACY_PATH_PREFIX = "/musicas/dl";
 
 export function buildPackDownloadPath(slugSegments: string[]): string {
   const clean = slugSegments
@@ -9,8 +13,7 @@ export function buildPackDownloadPath(slugSegments: string[]): string {
       return slug || segment.trim();
     })
     .filter(Boolean);
-  if (clean.length === 0) return PACK_DOWNLOAD_PATH_PREFIX;
-  return `${PACK_DOWNLOAD_PATH_PREFIX}/${clean.join("/")}`;
+  return folderHref(clean);
 }
 
 export function buildPackDownloadUrl(slugSegments: string[], origin?: string): string {
@@ -22,32 +25,33 @@ export function buildPackDownloadUrl(slugSegments: string[], origin?: string): s
   return path;
 }
 
-/** Extrai o slug de uma URL do Downloader ou de um path/slug cru. */
+function slugFromPackPathname(pathname: string): string | null {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  const match = normalized.match(/^\/musicas\/(?:atualizacoes|dl)\/(.+)$/i);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]).replace(/^\/+|\/+$/g, "");
+  } catch {
+    return match[1].replace(/^\/+|\/+$/g, "");
+  }
+}
+
+/** Extrai o slug de uma URL do acervo/Downloader ou de um path/slug cru. */
 export function parsePackDownloadInput(input: string): { slug: string } | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
-
-  const fromPath = (pathname: string) => {
-    const match = pathname.match(/\/musicas\/dl\/(.+?)\/?$/i);
-    if (!match?.[1]) return null;
-    try {
-      return decodeURIComponent(match[1]).replace(/^\/+|\/+$/g, "");
-    } catch {
-      return match[1].replace(/^\/+|\/+$/g, "");
-    }
-  };
 
   try {
     const url = new URL(trimmed);
     const q = url.searchParams.get("slug")?.trim();
     if (q) return { slug: q.replace(/^\/+|\/+$/g, "") };
-    const slug = fromPath(url.pathname);
+    const slug = slugFromPackPathname(url.pathname);
     if (slug) return { slug };
   } catch {
     /* não é URL absoluta */
   }
 
-  const relative = fromPath(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
+  const relative = slugFromPackPathname(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
   if (relative) return { slug: relative };
 
   if (/^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)+$/i.test(trimmed)) {
