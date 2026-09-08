@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { ChevronRight } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import {
@@ -13,6 +13,12 @@ import {
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import { matchStyleSlug } from "../atualizacoes/AtualizacoesSearch";
+import {
+  clearMusicasCache,
+  fetchMusicasJson,
+  peekMusicasCache,
+  setMusicasCache,
+} from "../lib/musicas-fetch-cache";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
@@ -26,6 +32,7 @@ import { pushRecentFolder } from "../lib/music-library-storage";
 import { stylesReadKey, weeksReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 import { poolPanelClass, poolTableHeadClass } from "./atualizacoes-pool-ui";
+import { MusicasListSkeleton, MusicasPageSkeleton, MusicasTracksSkeleton } from "./MusicasSkeletons";
 
 type ResolveResponse = {
   folderId: string;
@@ -44,42 +51,44 @@ type AtualizacoesBrowseClientProps = {
   slugSegments: string[];
 };
 
+function resolveUrl(slugPath: string, forceRefresh = false) {
+  const refresh = forceRefresh ? "&refresh=1" : "";
+  return `/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}${refresh}`;
+}
+
 export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseClientProps) {
   const searchParams = useSearchParams();
   const estiloSlug = searchParams.get("estilo");
   const faixaId = searchParams.get("faixa");
-  const [data, setData] = useState<ResolveResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const slugPath = slugSegments.join("/");
+  const monthSlug = slugSegments[0] ?? "";
+  const weekSlug = slugSegments[1];
+
+  const initialCache = peekMusicasCache<ResolveResponse>(resolveUrl(slugPath));
+  const [data, setData] = useState<ResolveResponse | null>(initialCache);
+  const [loading, setLoading] = useState(!initialCache);
   const [error, setError] = useState<string | null>(null);
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
   const [siblingWeeks, setSiblingWeeks] = useState<VipMusicFolder[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
-
-  const slugPath = slugSegments.join("/");
-  const monthSlug = slugSegments[0] ?? "";
-  const weekSlug = slugSegments[1];
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
-    void fetch("/api/musicas/tree", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((body) => {
-        setMonths((body as { folders?: VipMusicFolder[] }).folders ?? []);
-      })
+    void fetchMusicasJson<{ folders?: VipMusicFolder[] }>("/api/musicas/tree")
+      .then((body) => setMonths(body.folders ?? []))
       .catch(() => setMonths([]));
   }, []);
 
-  /** Semanas irmãs para o rodapé navegar 01→02→03… antes do próximo mês. */
   useEffect(() => {
     if (!monthSlug || !weekSlug) {
       setSiblingWeeks([]);
       return;
     }
     let cancelled = false;
-    void fetch(`/api/musicas/resolve?slug=${encodeURIComponent(monthSlug)}`, { cache: "no-store" })
-      .then(async (res) => {
-        const body = (await res.json()) as ResolveResponse & { error?: string };
-        if (!res.ok || cancelled) return;
+    void fetchMusicasJson<ResolveResponse>(resolveUrl(monthSlug))
+      .then((body) => {
+        if (cancelled) return;
         if (body.level === "folders" && childrenAreWeekFolders(body.items)) {
           setSiblingWeeks(body.items);
         } else {
@@ -94,26 +103,36 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     };
   }, [monthSlug, weekSlug]);
 
-  const loadBrowse = useCallback(async (options?: { keepOpen?: boolean; forceRefresh?: boolean }) => {
-    setLoading(true);
-    setError(null);
-    if (!options?.keepOpen) setOpenFolderId(null);
+  const loadBrowse = useCallback(
+    async (options?: { keepOpen?: boolean; forceRefresh?: boolean }) => {
+      const canonicalUrl = resolveUrl(slugPath);
+      const url = resolveUrl(slugPath, options?.forceRefresh);
+      const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
+      if (cached) {
+        startTransition(() => setData(cached));
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      if (!options?.keepOpen) setOpenFolderId(null);
 
-    try {
-      const refresh = options?.forceRefresh ? "&refresh=1" : "";
-      const res = await fetch(`/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}${refresh}`, {
-        cache: "no-store",
-      });
-      const body = (await res.json()) as ResolveResponse & { error?: string };
-      if (!res.ok) throw new Error(body.error ?? "Pasta não encontrada.");
-      setData(body);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Pasta não encontrada.");
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [slugPath]);
+      try {
+        if (options?.forceRefresh) clearMusicasCache("/api/musicas/");
+        const body = await fetchMusicasJson<ResolveResponse>(url, {
+          forceRefresh: options?.forceRefresh,
+        });
+        setMusicasCache(canonicalUrl, body);
+        setData(body);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Pasta não encontrada.");
+        if (!cached) setData(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [slugPath],
+  );
 
   useEffect(() => {
     void loadBrowse();
@@ -152,7 +171,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     });
   }, [data, openFolderId, showingStyles, slugSegments]);
 
-  const { authenticated, hasVip } = useMusicasSession();
+  const { hasVip } = useMusicasSession();
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
 
@@ -171,6 +190,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const newChildIds = useNewFolderHighlights(highlightKey, childIds);
 
   const relativeStyleBase = weekTitle ? `${monthTitle}/${weekTitle}` : monthTitle;
+  const showInitialSkeleton = loading && !data;
 
   return (
     <div className="w-full">
@@ -208,20 +228,24 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         )}
       </nav>
 
+      {showInitialSkeleton && <MusicasPageSkeleton />}
+
       {data && (
         <AtualizacoesMonthHero
           folderName={data.folderName}
           styleCount={data.items.length}
           hasVip={hasVip}
           mode={showingWeeks ? "weeks" : weekSlug ? "week-styles" : "styles"}
+          badgeActions={
+            <AtualizacoesDriveSyncButton
+              onSynced={async () => {
+                await loadBrowse({ keepOpen: true, forceRefresh: true });
+                setReloadToken((token) => token + 1);
+              }}
+            />
+          }
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              <AtualizacoesDriveSyncButton
-                onSynced={async () => {
-                  await loadBrowse({ keepOpen: true, forceRefresh: true });
-                  setReloadToken((token) => token + 1);
-                }}
-              />
               {slugSegments.length === 1 ? (
                 <SendPackToDownloaderButton
                   slug={monthSlug}
@@ -238,13 +262,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         />
       )}
 
-      {!hasVip && <VipUpgradeBanner />}
-
-      {loading && (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
-        </div>
-      )}
+      {!hasVip && data && <VipUpgradeBanner />}
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -252,7 +270,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         </div>
       )}
 
-      {!loading && !error && data && showingWeeks && (
+      {loading && data && (
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          Atualizando…
+        </p>
+      )}
+
+      {!error && data && showingWeeks && (
         <>
           <WeekFolderGrid
             monthSlug={monthSlug}
@@ -269,7 +293,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         </>
       )}
 
-      {!loading && !error && data && showingStyles && (
+      {!error && data && showingStyles && (
         <>
           {data.items.length === 0 ? (
             <p className="rounded-md border border-zinc-700 bg-black px-4 py-8 text-center text-sm text-zinc-500">
@@ -316,30 +340,36 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         </>
       )}
 
-      {!loading && !error && data && showingTracks && (
+      {!error && data && showingTracks && (
         <div className="overflow-hidden">
-          <VipMusicTrackList
-            folderId={data.folderId}
-            tracks={data.tracks ?? []}
-            canPlay={playbackEnabled}
-            canDownload={downloadEnabled}
-            relativePath={relativeStyleBase}
-            highlightTrackId={faixaId ?? undefined}
-            autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
-            layout="table"
-            continueContext={
-              monthSlug
-                ? {
-                    monthSlug,
-                    monthName: monthTitle,
-                    weekSlug,
-                    styleName: displayFolderName(data.folderName),
-                  }
-                : undefined
-            }
-          />
+          {(data.tracks?.length ?? 0) === 0 && loading ? (
+            <MusicasTracksSkeleton />
+          ) : (
+            <VipMusicTrackList
+              folderId={data.folderId}
+              tracks={data.tracks ?? []}
+              canPlay={playbackEnabled}
+              canDownload={downloadEnabled}
+              relativePath={relativeStyleBase}
+              highlightTrackId={faixaId ?? undefined}
+              autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
+              layout="table"
+              continueContext={
+                monthSlug
+                  ? {
+                      monthSlug,
+                      monthName: monthTitle,
+                      weekSlug,
+                      styleName: displayFolderName(data.folderName),
+                    }
+                  : undefined
+              }
+            />
+          )}
         </div>
       )}
+
+      {!error && !data && !loading && <MusicasListSkeleton rows={6} />}
     </div>
   );
 }

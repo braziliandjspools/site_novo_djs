@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
+import { clearMusicasCache } from "../lib/musicas-fetch-cache";
 import { useMusicasToast } from "./MusicasToast";
 
 type AtualizacoesDriveSyncButtonProps = {
@@ -28,6 +29,7 @@ export function AtualizacoesDriveSyncButton({
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Falha ao sincronizar.");
       }
+      clearMusicasCache("/api/musicas/");
       await onSynced?.();
       showToast(
         typeof data.folderCount === "number"

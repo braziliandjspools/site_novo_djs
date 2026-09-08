@@ -1,15 +1,16 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { Music2 } from "lucide-react";
 import { BRS_LOGO_SRC } from "../../components/BrsLogo";
-import { MusicasHeroDownloader } from "./MusicasHeroDownloader";
 
 type AtualizacoesAcervoHeroProps = {
   monthCount: number;
   hasVip: boolean;
+  badgeActions?: ReactNode;
 };
 
 /** Hero estilo capa de playlist (streaming). */
-export function AtualizacoesAcervoHero({ monthCount, hasVip }: AtualizacoesAcervoHeroProps) {
+export function AtualizacoesAcervoHero({ monthCount, hasVip, badgeActions }: AtualizacoesAcervoHeroProps) {
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl">
       <div
@@ -55,11 +56,8 @@ export function AtualizacoesAcervoHero({ monthCount, hasVip }: AtualizacoesAcerv
             >
               {hasVip ? "Premium ativo" : "Prévia 1 min"}
             </span>
+            {badgeActions}
           </div>
-        </div>
-
-        <div className="mx-auto w-full max-w-sm flex-shrink-0 sm:mx-0 sm:self-end">
-          <MusicasHeroDownloader />
         </div>
       </div>
     </section>

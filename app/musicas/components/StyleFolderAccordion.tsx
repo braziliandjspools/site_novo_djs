@@ -18,6 +18,7 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipMusicTrackList } from "./VipMusicTrackList";
+import { MusicasTracksSkeleton } from "./MusicasSkeletons";
 import {
   poolPanelClass,
   poolPanelHeaderClass,
@@ -26,6 +27,7 @@ import {
   poolTableHeadClass,
   folderActionSendClass,
 } from "./atualizacoes-pool-ui";
+import { fetchMusicasJson } from "../lib/musicas-fetch-cache";
 
 type StyleFolderAccordionProps = {
   folder: VipMusicFolder;
@@ -113,9 +115,11 @@ export function StyleFolderAccordion({
           limit: "50",
         });
         if (forceRefresh) params.set("refresh", "1");
-        const res = await fetch(`/api/musicas/tracks?${params.toString()}`, { cache: "no-store" });
-        const data = (await res.json()) as TracksResponse & { error?: string };
-        if (!res.ok) throw new Error(data.error ?? "Erro ao carregar faixas.");
+        const url = `/api/musicas/tracks?${params.toString()}`;
+        const data = await fetchMusicasJson<TracksResponse & { error?: string }>(url, {
+          forceRefresh,
+          ttlMs: 60_000,
+        });
 
         setContentMode("tracks");
         setTracks((prev) => (append ? [...prev, ...data.tracks] : data.tracks));
@@ -141,9 +145,11 @@ export function StyleFolderAccordion({
         folderName: folder.name,
       });
       if (forceRefresh) params.set("refresh", "1");
-      const res = await fetch(`/api/musicas/catalog?${params.toString()}`, { cache: "no-store" });
-      const data = (await res.json()) as CatalogResponse;
-      if (!res.ok) throw new Error(data.error ?? "Erro ao carregar pasta.");
+      const url = `/api/musicas/catalog?${params.toString()}`;
+      const data = await fetchMusicasJson<CatalogResponse>(url, {
+        forceRefresh,
+        ttlMs: 60_000,
+      });
 
       if (data.level === "folders" && data.items.length > 0) {
         setContentMode("folders");
@@ -382,8 +388,8 @@ export function StyleFolderAccordion({
               <p className="m-3 rounded-lg bg-red-500/10 px-3 py-2 text-center text-xs text-red-400">{error}</p>
             )}
             {loading && !loaded && (
-              <div className="flex justify-center py-6">
-                <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+              <div className="p-2">
+                <MusicasTracksSkeleton rows={6} />
               </div>
             )}
 

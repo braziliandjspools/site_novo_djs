@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Crown, Headphones, Loader2 } from "lucide-react";
+import { Crown, Headphones } from "lucide-react";
 import { BrsLogo } from "../../components/BrsLogo";
 import { checkoutUrl } from "../../lib/site";
 import { SITE_NAV_LINKS } from "../../lib/site-nav";
@@ -10,6 +10,7 @@ import { MusicasPageHeader } from "../MusicasShell";
 import { MusicasFaqSection } from "../components/MusicasFaqSection";
 import { MusicasLibraryDashboard } from "../components/MusicasLibraryDashboard";
 import { MusicasMonthLinks } from "../components/MusicasMonthLinks";
+import { MusicasListSkeleton } from "../components/MusicasSkeletons";
 import { useMusicasSession } from "../components/MusicasSessionContext";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
@@ -146,11 +147,11 @@ export default function MusicasHomePage() {
 
       <MusicasLibraryDashboard home={home} loading={loadingHome} />
 
-      {loadingTree && (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+      {loadingTree ? (
+        <div className="mt-10">
+          <MusicasListSkeleton rows={6} />
         </div>
-      )}
+      ) : null}
 
       {error && (
         <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>

@@ -12,6 +12,7 @@ import {
   sortFoldersByMonthDate,
   sortFoldersByYearCollection,
 } from "../../lib/vip-music-slugs";
+import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
@@ -21,6 +22,10 @@ import {
   poolRowTone,
   poolTableHeadClass,
 } from "./atualizacoes-pool-ui";
+
+function prefetchFolder(slug: string) {
+  prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(slug)}`);
+}
 
 function StatusBadge({
   label,
@@ -100,6 +105,8 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
               <div key={folder.id} className={`${poolRowBaseClass} ${MONTH_GRID} ${poolRowTone(index)}`}>
                 <Link
                   href={folderHref([slug])}
+                  onMouseEnter={() => prefetchFolder(slug)}
+                  onFocus={() => prefetchFolder(slug)}
                   className="group flex min-w-0 items-center gap-2 text-left"
                 >
                   <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
@@ -151,6 +158,8 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
           >
             <Link
               href={folderHref([slug])}
+              onMouseEnter={() => prefetchFolder(slug)}
+              onFocus={() => prefetchFolder(slug)}
               className="inline-flex cursor-pointer items-center gap-2 py-1.5 hover:text-white"
             >
               <span>{name}</span>

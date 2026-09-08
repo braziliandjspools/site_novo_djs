@@ -42,9 +42,9 @@ type VipMusicTrackListProps = {
   layout?: "default" | "table";
 };
 
-/** Colunas fixas: # | nome | BPM | ações — BPM não desloca no play. */
+/** Colunas fixas: # | nome | Key | BPM | ações — Key/BPM não deslocam no play. */
 const TABLE_GRID =
-  "grid grid-cols-[2.25rem_minmax(0,1fr)_3.75rem_5.5rem] items-center gap-x-3";
+  "grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] items-center gap-x-3";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -471,6 +471,11 @@ function TrackTableRow({
             </p>
           </button>
         </div>
+
+        {/* Key Camelot — antes do BPM */}
+        <p className="text-center font-mono text-xs tabular-nums text-zinc-400">
+          {track.musicalKey ?? "—"}
+        </p>
 
         {/* BPM — coluna de largura fixa no grid */}
         <p className="text-center font-mono text-xs tabular-nums text-zinc-400">
@@ -910,6 +915,7 @@ export function VipMusicTrackList({
           <div className={`${poolTableHeadClass} ${TABLE_GRID}`}>
             <span className="text-center">#</span>
             <span className="min-w-0">Nome</span>
+            <span className="text-center">Key</span>
             <span className="text-center">BPM</span>
             <span className="text-right">Ações</span>
           </div>

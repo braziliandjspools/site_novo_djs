@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import { HomeTrackRow } from "./HomeTrackRow";
+import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import {
@@ -78,11 +79,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
     : 0;
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
-      </div>
-    );
+    return <MusicasListSkeleton rows={5} />;
   }
 
   if (!home?.configured) return null;

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Layers, Loader2, Music2 } from "lucide-react";
+import { Layers, Music2 } from "lucide-react";
 import { MusicasPageHeader } from "../MusicasShell";
 import { CollectionAlbumGrid } from "../components/CollectionAlbumGrid";
+import { MusicasListSkeleton } from "../components/MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "../components/MusicasSessionContext";
 
@@ -76,9 +77,7 @@ export default function ColecoesPage() {
       </div>
 
       {loading ? (
-        <div className="flex min-h-[240px] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
-        </div>
+        <MusicasListSkeleton rows={8} />
       ) : error ? (
         <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-8 text-center text-sm text-red-300">
           {error}

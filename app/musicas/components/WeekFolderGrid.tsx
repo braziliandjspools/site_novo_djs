@@ -28,6 +28,7 @@ import {
   poolRowTone,
   poolTableHeadClass,
 } from "./atualizacoes-pool-ui";
+import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 
 type WeekFolderGridProps = {
   monthSlug: string;
@@ -109,7 +110,16 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                 key={week.id}
                 className={`${poolRowBaseClass} ${WEEK_GRID} ${poolRowTone(index, isCurrent)}`}
               >
-                <Link href={href} className="group flex min-w-0 items-center gap-2">
+                <Link
+                  href={href}
+                  onMouseEnter={() =>
+                    prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(`${monthSlug}/${weekSlug}`)}`)
+                  }
+                  onFocus={() =>
+                    prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(`${monthSlug}/${weekSlug}`)}`)
+                  }
+                  className="group flex min-w-0 items-center gap-2"
+                >
                   <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
                     {weekTitle}
                   </span>

@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { MusicasSessionProvider } from "./components/MusicasSessionContext";
 import { MusicasToastProvider } from "./components/MusicasToast";
 import { DownloaderSyncProvider } from "./components/DownloaderSyncContext";
 import { MusicasTopNav } from "./MusicasSidebar";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
+import { MusicasAuthShellSkeleton } from "./components/MusicasSkeletons";
 
 type MusicasAuthLayoutProps = {
   children: React.ReactNode;
@@ -79,11 +79,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
-      </div>
-    );
+    return <MusicasAuthShellSkeleton />;
   }
 
   return (

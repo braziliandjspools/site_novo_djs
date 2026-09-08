@@ -23,7 +23,7 @@ export function isDriveForceRefresh(): boolean {
 }
 
 /** Opções de `fetch` para a API / pasta pública do Drive. */
-export function driveListFetchInit(revalidateSeconds = 60): RequestInit {
+export function driveListFetchInit(revalidateSeconds = 120): RequestInit {
   if (isDriveForceRefresh()) {
     return { cache: "no-store" };
   }

@@ -8,6 +8,7 @@ import { BrsLogo } from "../components/BrsLogo";
 import { SITE_NAV_LINKS } from "../lib/site-nav";
 import { checkoutUrl } from "../lib/site";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
+import { MusicasHeaderDownloader } from "./components/MusicasHeaderDownloader";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 
 type MusicasTopNavProps = {
@@ -119,6 +120,7 @@ export function MusicasTopNav({
         </nav>
 
         <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+          <MusicasHeaderDownloader />
           <SiteNotificationBell />
 
           {!authenticated && (

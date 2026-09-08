@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { FolderOpen, Music2 } from "lucide-react";
 import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib/vip-music-slugs";
-import { MusicasHeroDownloader } from "./MusicasHeroDownloader";
 
 export function monthStatusClass(status: MonthStatus) {
   if (status === "completo") return "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40";
@@ -17,6 +16,8 @@ type AtualizacoesMonthHeroProps = {
   styleCount: number;
   hasVip: boolean;
   mode?: HeroMode;
+  /** Ex.: botão Sincronizar ao lado dos badges. */
+  badgeActions?: ReactNode;
   actions?: ReactNode;
 };
 
@@ -26,6 +27,7 @@ export function AtualizacoesMonthHero({
   styleCount,
   hasVip,
   mode = "styles",
+  badgeActions,
   actions,
 }: AtualizacoesMonthHeroProps) {
   const title = displayFolderName(folderName);
@@ -37,7 +39,7 @@ export function AtualizacoesMonthHero({
     mode === "weeks"
       ? "Escolha a semana e continue até as faixas."
       : mode === "week-styles"
-        ? "Abra um estilo para ouvir e enviar ao Downloader."
+        ? "Abra um estilo para ouvir e enviar packs ao Downloader."
         : "Abra a pasta, ouça e envie packs ao BRS Downloader.";
   const countLabel =
     mode === "weeks"
@@ -93,12 +95,9 @@ export function AtualizacoesMonthHero({
             >
               {hasVip ? "Premium ativo" : "Prévia 1 min"}
             </span>
+            {badgeActions}
           </div>
           {actions ? <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">{actions}</div> : null}
-        </div>
-
-        <div className="mx-auto w-full max-w-sm flex-shrink-0 sm:mx-0 sm:self-end">
-          <MusicasHeroDownloader />
         </div>
       </div>
     </section>

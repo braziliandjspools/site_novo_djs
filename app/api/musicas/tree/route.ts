@@ -3,7 +3,7 @@ import { withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
 import { listVipMusicFolders } from "../../../lib/vip-music-catalog";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export async function GET(request: Request) {
   const session = await getVipMusicSession();

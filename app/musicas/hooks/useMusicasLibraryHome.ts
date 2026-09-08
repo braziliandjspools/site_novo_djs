@@ -3,36 +3,51 @@
 import { useEffect, useState } from "react";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
+import { fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import { monthsReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 
 export function useMusicasLibraryHome() {
-  const [folders, setFolders] = useState<VipMusicFolder[]>([]);
-  const [home, setHome] = useState<VipMusicHomeSnapshot | null>(null);
-  const [loadingTree, setLoadingTree] = useState(true);
-  const [loadingHome, setLoadingHome] = useState(true);
+  const cachedTree = peekMusicasCache<{ folders?: VipMusicFolder[]; error?: string }>("/api/musicas/tree");
+  const cachedHome = peekMusicasCache<VipMusicHomeSnapshot>("/api/musicas/home");
+  const [folders, setFolders] = useState<VipMusicFolder[]>(cachedTree?.folders ?? []);
+  const [home, setHome] = useState<VipMusicHomeSnapshot | null>(cachedHome);
+  const [loadingTree, setLoadingTree] = useState(!cachedTree?.folders?.length);
+  const [loadingHome, setLoadingHome] = useState(!cachedHome);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     void Promise.all([
-      fetch("/api/musicas/tree", { cache: "no-store" })
-        .then((res) => res.json())
+      fetchMusicasJson<{ folders?: VipMusicFolder[]; error?: string }>("/api/musicas/tree")
         .then((treeData) => {
-          setFolders((treeData as { folders?: VipMusicFolder[] }).folders ?? []);
-          if ((treeData as { error?: string }).error) {
-            setError((treeData as { error?: string }).error ?? null);
+          if (cancelled) return;
+          setFolders(treeData.folders ?? []);
+          if (treeData.error) setError(treeData.error);
+        })
+        .catch(() => {
+          if (!cancelled && !cachedTree?.folders?.length) {
+            setError("Não foi possível carregar o acervo.");
           }
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingTree(false);
         }),
-      fetch("/api/musicas/home", { cache: "no-store" })
-        .then((res) => res.json())
-        .then((data) => setHome(data as VipMusicHomeSnapshot))
-        .catch(() => setHome(null)),
-    ])
-      .catch(() => setError("Não foi possível carregar o acervo."))
-      .finally(() => {
-        setLoadingTree(false);
-        setLoadingHome(false);
-      });
+      fetchMusicasJson<VipMusicHomeSnapshot>("/api/musicas/home", { ttlMs: 120_000 })
+        .then((data) => {
+          if (!cancelled) setHome(data);
+        })
+        .catch(() => {
+          if (!cancelled) setHome(null);
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingHome(false);
+        }),
+    ]);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once
   }, []);
 
   const folderIds = folders.map((folder) => folder.id);

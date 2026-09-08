@@ -20,6 +20,8 @@ export type PreviewTrack = {
   fileName?: string;
   /** ISO do `modifiedTime` do Google Drive, quando disponível via API. */
   modifiedAt?: string | null;
+  /** Key Camelot (ex.: 11A, 12B) extraída do nome. */
+  musicalKey: string | null;
   bpm: string | null;
   bpmFrom: number | null;
   bpmTo: number | null;
@@ -58,6 +60,7 @@ function parseMusicProducerTrackMeta(fileName: string): Omit<PreviewTrack, "id" 
   return {
     title,
     artist: "",
+    musicalKey: null,
     bpm: null,
     bpmFrom: null,
     bpmTo: null,
@@ -247,7 +250,15 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
     }
   }
 
-  // Título = nome completo (sem extensão/numeração/BPM de sufixo). Artista só para busca/metadados.
+  // Key Camelot no final: "... Dirty 11A" / "... 12B"
+  let musicalKey: string | null = null;
+  const camelotMatch = working.match(/\s+((?:[1-9]|1[0-2])[AaBb])\s*$/);
+  if (camelotMatch) {
+    musicalKey = camelotMatch[1].toUpperCase();
+    working = working.slice(0, camelotMatch.index).trim();
+  }
+
+  // Título = nome completo (sem extensão/numeração/BPM/key de sufixo). Artista só para busca/metadados.
   const dashIdx = working.indexOf(" - ");
   const artist = dashIdx > 0 ? working.slice(0, dashIdx).trim() : "";
   const title = working;
@@ -258,6 +269,7 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
   return {
     title,
     artist,
+    musicalKey,
     bpm,
     bpmFrom,
     bpmTo,
