@@ -119,6 +119,25 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
     });
   }, [data, slugSegments]);
 
+  const parentSegments = slugSegments.slice(0, -1);
+  const parentPathKey = parentSegments.join("/");
+  const homeHref = parentPathKey
+    ? collectionsHref(parentPathKey.split("/"))
+    : "/musicas/colecoes";
+  const currentSlug = slugSegments.at(-1) ?? "";
+  const siblingNavItems = useMemo(
+    () =>
+      siblings.map((item) => {
+        const parents = parentPathKey ? parentPathKey.split("/") : [];
+        return {
+          slug: item.slug,
+          label: item.displayName,
+          href: collectionsHref([...parents, item.slug]),
+        };
+      }),
+    [siblings, parentPathKey],
+  );
+
   if (loading) {
     return (
       <div className="flex min-h-[280px] items-center justify-center">
@@ -155,25 +174,6 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   );
   const showVolumes =
     data.level === "folders" && data.items.every((item) => item.level === "tracks");
-
-  const parentSegments = slugSegments.slice(0, -1);
-  const parentPathKey = parentSegments.join("/");
-  const homeHref = parentPathKey
-    ? collectionsHref(parentPathKey.split("/"))
-    : "/musicas/colecoes";
-  const currentSlug = slugSegments.at(-1) ?? "";
-  const siblingNavItems = useMemo(
-    () =>
-      siblings.map((item) => {
-        const parents = parentPathKey ? parentPathKey.split("/") : [];
-        return {
-          slug: item.slug,
-          label: item.displayName,
-          href: collectionsHref([...parents, item.slug]),
-        };
-      }),
-    [siblings, parentPathKey],
-  );
 
   return (
     <div className="w-full space-y-6">
