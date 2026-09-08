@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { collectionsHref } from "../../lib/vip-music-slugs";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
+import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { CollectionHero } from "./CollectionHero";
 import { CollectionAlbumGrid } from "./CollectionAlbumGrid";
 import { CollectionTracksPanel } from "./CollectionTracksPanel";
@@ -52,6 +53,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   const [data, setData] = useState<ResolveResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [siblings, setSiblings] = useState<{ slug: string; displayName: string }[]>([]);
 
   const slugPath = slugSegments.join("/");
 
@@ -78,6 +80,36 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
       });
     return () => controller.abort();
   }, [slugPath]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const parentPath = slugSegments.slice(0, -1).join("/");
+    const url =
+      slugSegments.length <= 1
+        ? "/api/musicas/colecoes"
+        : `/api/musicas/colecoes/resolve?slug=${encodeURIComponent(parentPath)}`;
+
+    void fetch(url, { cache: "no-store", signal: controller.signal })
+      .then(async (res) => {
+        const body = (await res.json()) as {
+          collections?: { slug: string; displayName: string }[];
+          items?: { slug: string; displayName: string }[];
+        };
+        if (!res.ok) throw new Error("fail");
+        if (body.collections) {
+          setSiblings(body.collections.map((item) => ({ slug: item.slug, displayName: item.displayName })));
+        } else if (body.items) {
+          setSiblings(body.items.map((item) => ({ slug: item.slug, displayName: item.displayName })));
+        } else {
+          setSiblings([]);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setSiblings([]);
+      });
+
+    return () => controller.abort();
+  }, [slugPath, slugSegments]);
 
   useEffect(() => {
     if (!data) return;
@@ -123,6 +155,25 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   );
   const showVolumes =
     data.level === "folders" && data.items.every((item) => item.level === "tracks");
+
+  const parentSegments = slugSegments.slice(0, -1);
+  const parentPathKey = parentSegments.join("/");
+  const homeHref = parentPathKey
+    ? collectionsHref(parentPathKey.split("/"))
+    : "/musicas/colecoes";
+  const currentSlug = slugSegments.at(-1) ?? "";
+  const siblingNavItems = useMemo(
+    () =>
+      siblings.map((item) => {
+        const parents = parentPathKey ? parentPathKey.split("/") : [];
+        return {
+          slug: item.slug,
+          label: item.displayName,
+          href: collectionsHref([...parents, item.slug]),
+        };
+      }),
+    [siblings, parentPathKey],
+  );
 
   return (
     <div className="w-full space-y-6">
@@ -219,6 +270,17 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
             coverUrl: item.coverUrl,
           }))}
           emptyLabel="Nenhum disco ou pasta nesta coleção."
+        />
+      )}
+
+      {siblingNavItems.length > 1 && (
+        <AtualizacoesMonthFooterNav
+          monthSlug={currentSlug}
+          months={[]}
+          siblings={siblingNavItems}
+          currentSiblingSlug={currentSlug}
+          homeHref={homeHref}
+          homeLabel="Home"
         />
       )}
     </div>

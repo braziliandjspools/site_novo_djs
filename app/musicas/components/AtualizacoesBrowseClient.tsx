@@ -72,6 +72,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [error, setError] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
   const [siblingWeeks, setSiblingWeeks] = useState<VipMusicFolder[]>([]);
+  const [siblingFolders, setSiblingFolders] = useState<VipMusicFolder[]>([]);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -102,6 +103,31 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       cancelled = true;
     };
   }, [monthSlug, weekSlug]);
+
+  /** Irmãos da pasta atual (para prev/next no rodapé ao abrir faixas ou subpastas). */
+  useEffect(() => {
+    if (slugSegments.length < 2) {
+      setSiblingFolders([]);
+      return;
+    }
+    const parentPath = slugSegments.slice(0, -1).join("/");
+    let cancelled = false;
+    void fetchMusicasJson<ResolveResponse>(resolveUrl(parentPath))
+      .then((body) => {
+        if (cancelled) return;
+        if (body.level === "folders" && body.items.length > 0) {
+          setSiblingFolders(body.items);
+        } else {
+          setSiblingFolders([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSiblingFolders([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slugPath, slugSegments]);
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {
@@ -198,6 +224,32 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         ? "week-styles"
         : "styles";
   const heroCount = showingTracks ? directTracks.length : (data?.items.length ?? 0);
+
+  const parentSegments = slugSegments.slice(0, -1);
+  const parentPathKey = parentSegments.join("/");
+  const homeParentHref = parentPathKey
+    ? folderHref(parentPathKey.split("/"))
+    : "/musicas/atualizacoes";
+  const currentFolderSlug = slugSegments.at(-1) ?? "";
+  const siblingNavItems = useMemo(
+    () =>
+      siblingFolders.map((folder) => {
+        const slug = slugifyFolderName(folder.name);
+        const parents = parentPathKey ? parentPathKey.split("/") : [];
+        return {
+          slug,
+          label: displayFolderName(folder.name),
+          href: folderHref([...parents, slug]),
+        };
+      }),
+    [siblingFolders, parentPathKey],
+  );
+  /** Prev/next entre pastas irmãs (ex.: Funk ↔ House) + Home na pasta pai. */
+  const useSiblingFolderNav =
+    slugSegments.length >= 2 &&
+    siblingNavItems.length > 1 &&
+    (showingTracks || showingStyles) &&
+    !(showingStyles && Boolean(weekSlug) && slugSegments.length === 2);
 
   return (
     <div className="w-full">
@@ -301,6 +353,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             months={months}
             weeks={showingWeeks ? data.items : siblingWeeks}
             weekSlug={weekSlug}
+            homeHref="/musicas/atualizacoes"
+            homeLabel="Home"
           />
         </>
       )}
@@ -339,12 +393,25 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               />
             </div>
           )}
-          <AtualizacoesMonthFooterNav
-            monthSlug={monthSlug}
-            months={months}
-            weeks={siblingWeeks}
-            weekSlug={weekSlug}
-          />
+          {useSiblingFolderNav ? (
+            <AtualizacoesMonthFooterNav
+              monthSlug={monthSlug}
+              months={months}
+              siblings={siblingNavItems}
+              currentSiblingSlug={currentFolderSlug}
+              homeHref={homeParentHref}
+              homeLabel="Home"
+            />
+          ) : (
+            <AtualizacoesMonthFooterNav
+              monthSlug={monthSlug}
+              months={months}
+              weeks={siblingWeeks}
+              weekSlug={weekSlug}
+              homeHref={weekSlug ? folderHref([monthSlug]) : "/musicas/atualizacoes"}
+              homeLabel="Home"
+            />
+          )}
         </>
       )}
 
@@ -376,6 +443,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     }
                   : undefined
               }
+            />
+          )}
+          {(useSiblingFolderNav || slugSegments.length >= 2) && (
+            <AtualizacoesMonthFooterNav
+              monthSlug={monthSlug}
+              months={months}
+              siblings={siblingNavItems.length > 1 ? siblingNavItems : undefined}
+              currentSiblingSlug={currentFolderSlug}
+              homeHref={homeParentHref}
+              homeLabel="Home"
             />
           )}
         </div>

@@ -15,12 +15,27 @@ type NavItem = {
   label: string;
 };
 
+type SiblingNavItem = {
+  slug: string;
+  label: string;
+  href: string;
+};
+
 type AtualizacoesMonthFooterNavProps = {
   monthSlug: string;
   months: VipMusicFolder[];
   /** Semanas do mês atual (quando estamos dentro de uma semana). */
   weeks?: VipMusicFolder[];
   weekSlug?: string;
+  /**
+   * Irmãos da pasta atual (ex.: estilos Funk/House).
+   * Quando informado, prev/next navegam entre essas pastas.
+   */
+  siblings?: SiblingNavItem[];
+  currentSiblingSlug?: string;
+  /** Destino do Home — pasta pai / padrão do nível. */
+  homeHref?: string;
+  homeLabel?: string;
 };
 
 function navButtonClass(enabled: boolean) {
@@ -51,6 +66,10 @@ export function AtualizacoesMonthFooterNav({
   months,
   weeks = [],
   weekSlug,
+  siblings,
+  currentSiblingSlug,
+  homeHref = "/musicas/atualizacoes",
+  homeLabel = "Home",
 }: AtualizacoesMonthFooterNavProps) {
   const monthItems = toMonthItems(months);
   const currentMonthIndex = monthItems.findIndex((month) => month.slug === monthSlug);
@@ -68,7 +87,16 @@ export function AtualizacoesMonthFooterNav({
   let next: NavItem | null = null;
   let ariaLabel = "Navegação entre meses";
 
-  if (weekItems.length > 0 && currentWeekIndex >= 0) {
+  if (siblings && siblings.length > 0 && currentSiblingSlug) {
+    ariaLabel = "Navegação entre pastas";
+    const index = siblings.findIndex((item) => item.slug === currentSiblingSlug);
+    if (index > 0) {
+      previous = { href: siblings[index - 1].href, label: siblings[index - 1].label };
+    }
+    if (index >= 0 && index < siblings.length - 1) {
+      next = { href: siblings[index + 1].href, label: siblings[index + 1].label };
+    }
+  } else if (weekItems.length > 0 && currentWeekIndex >= 0) {
     ariaLabel = "Navegação entre semanas e meses";
     if (currentWeekIndex > 0) {
       previous = {
@@ -126,12 +154,12 @@ export function AtualizacoesMonthFooterNav({
       )}
 
       <Link
-        href="/musicas/atualizacoes"
+        href={homeHref}
         className="col-span-2 inline-flex w-full items-center justify-center gap-1.5 border border-[#00ff9d]/40 bg-zinc-950 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#00ff9d] transition-colors hover:border-[#00ff9d] hover:bg-zinc-900 sm:col-span-1 sm:w-auto sm:flex-shrink-0 sm:text-xs"
-        title="Voltar para atualizações"
+        title={homeLabel}
       >
         <Home className="h-4 w-4 flex-shrink-0" />
-        <span>Home</span>
+        <span>{homeLabel}</span>
       </Link>
 
       {next ? (

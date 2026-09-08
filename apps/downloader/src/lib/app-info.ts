@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.4_public_beta";
-export const APP_CORE_VERSION = "1.0.4_public_beta";
+export const WEBUI_VERSION = "1.0.5_estable";
+export const APP_CORE_VERSION = "1.0.5_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.5_estable",
+    date: "2026-09-08",
+    items: [
+      "Coleções: download sempre preserva volumes/subpastas (ignora preferência de pastas planas)",
+      "Reconhece links /musicas/colecoes/... no import de pasta",
+      "Primeira versão estável pública",
+    ],
+  },
   {
     version: "1.0.4_public_beta",
     date: "2026-09-08",

@@ -37,7 +37,8 @@ const PRODUCTION_ENV = {
 
 function readVersion() {
   const conf = JSON.parse(readFileSync(join(DOWNLOADER, "src-tauri/tauri.conf.json"), "utf8"));
-  return conf.version ?? "0.1.0";
+  // Site/manifesto usam underscore (1.0.5_estable); Tauri usa hífen semver.
+  return String(conf.version ?? "0.1.0").replace(/-/g, "_");
 }
 
 function run(cmd, options = {}) {
