@@ -1,10 +1,15 @@
 import {
   listDriveFolderChildren,
   parseTrackMeta,
+  type PreviewPlaylist,
   type PreviewTrack,
 } from "./google-drive";
 import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
-import { sortVipChildFolders } from "./vip-music-slugs";
+import {
+  childrenAreWeekFolders,
+  displayFolderName,
+  sortVipChildFolders,
+} from "./vip-music-slugs";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const AUDIO_EXTENSIONS = /\.(mp3|wav|flac|m4a|aac|ogg)$/i;
@@ -223,4 +228,79 @@ export async function getVipMusicTracksPaginated(
     limit: safeLimit,
     hasMore: start + tracks.length < all.length,
   };
+}
+
+type LatestPreviewCandidate = {
+  id: string;
+  name: string;
+  modifiedAt: number;
+};
+
+/**
+ * Três pastas mais recentes do acervo VIP (estilo/pack) para o preview da home.
+ * Ordena por `modifiedTime` do Drive quando disponível; senão prioriza meses/semanas mais novos.
+ */
+export async function getLatestVipPreviewPlaylists(limit = 3): Promise<PreviewPlaylist[]> {
+  const { getPreviewPlaylists } = await import("./google-drive");
+
+  if (!isVipMusicCatalogConfigured()) {
+    return (await getPreviewPlaylists()).slice(0, limit);
+  }
+
+  const months = await listVipMusicFolders();
+  if (!months.length) {
+    return (await getPreviewPlaylists()).slice(0, limit);
+  }
+
+  const candidates: LatestPreviewCandidate[] = [];
+
+  for (const month of months.slice(0, 2)) {
+    const children = await listDriveFolderChildren(month.id);
+    const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
+    const modifiedById = new Map(
+      subfolders.map((folder) => [folder.id, folder.modifiedTime ? Date.parse(folder.modifiedTime) : 0]),
+    );
+
+    if (childrenAreWeekFolders(sorted)) {
+      for (const week of [...sorted].reverse()) {
+        const weekChildren = await listDriveFolderChildren(week.id);
+        for (const style of weekChildren.filter((item) => item.mimeType === FOLDER_MIME)) {
+          candidates.push({
+            id: style.id,
+            name: `${displayFolderName(week.name)} · ${displayFolderName(style.name)}`,
+            modifiedAt: style.modifiedTime ? Date.parse(style.modifiedTime) : modifiedById.get(week.id) ?? 0,
+          });
+        }
+      }
+    } else {
+      for (const style of sorted) {
+        candidates.push({
+          id: style.id,
+          name: displayFolderName(style.name),
+          modifiedAt: modifiedById.get(style.id) ?? 0,
+        });
+      }
+    }
+  }
+
+  const hasTimestamps = candidates.some((item) => item.modifiedAt > 0);
+  if (hasTimestamps) {
+    candidates.sort((a, b) => b.modifiedAt - a.modifiedAt);
+  }
+
+  const playlists: PreviewPlaylist[] = [];
+  for (const candidate of candidates) {
+    if (playlists.length >= limit) break;
+    const tracks = await getVipMusicTracks(candidate.id, candidate.name);
+    if (!tracks.length) continue;
+    playlists.push({
+      id: candidate.id,
+      name: candidate.name,
+      tracks: tracks.slice(0, 50),
+    });
+  }
+
+  if (playlists.length) return playlists;
+  return (await getPreviewPlaylists()).slice(0, limit);
 }

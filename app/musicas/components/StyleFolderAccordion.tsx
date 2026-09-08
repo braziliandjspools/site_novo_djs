@@ -18,6 +18,14 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipMusicTrackList } from "./VipMusicTrackList";
+import {
+  poolPanelClass,
+  poolPanelHeaderClass,
+  poolRowBaseClass,
+  poolRowTone,
+  poolTableHeadClass,
+  folderActionSendClass,
+} from "./atualizacoes-pool-ui";
 
 type StyleFolderAccordionProps = {
   folder: VipMusicFolder;
@@ -34,6 +42,12 @@ type StyleFolderAccordionProps = {
   highlightTrackId?: string;
   autoPlayTrackId?: string;
   scrollIntoView?: boolean;
+  /** Índice para zebrado preto/cinza quando listado em painel único. */
+  zebraIndex?: number;
+  /** Sem borda/radius próprios — fica dentro de um painel pai. */
+  embedded?: boolean;
+  /** Incrementa após sync forçado para recarregar faixas abertas. */
+  reloadToken?: number;
 };
 
 type TracksResponse = {
@@ -67,6 +81,9 @@ export function StyleFolderAccordion({
   highlightTrackId,
   autoPlayTrackId,
   scrollIntoView = false,
+  zebraIndex = 0,
+  embedded = false,
+  reloadToken = 0,
 }: StyleFolderAccordionProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -85,7 +102,7 @@ export function StyleFolderAccordion({
   const [sendingFolder, setSendingFolder] = useState(false);
 
   const loadTrackPage = useCallback(
-    async (nextPage: number, append: boolean) => {
+    async (nextPage: number, append: boolean, forceRefresh = false) => {
       setLoading(true);
       setError(null);
       try {
@@ -95,6 +112,7 @@ export function StyleFolderAccordion({
           page: String(nextPage),
           limit: "50",
         });
+        if (forceRefresh) params.set("refresh", "1");
         const res = await fetch(`/api/musicas/tracks?${params.toString()}`, { cache: "no-store" });
         const data = (await res.json()) as TracksResponse & { error?: string };
         if (!res.ok) throw new Error(data.error ?? "Erro ao carregar faixas.");
@@ -114,7 +132,7 @@ export function StyleFolderAccordion({
     [folder.id, folder.name],
   );
 
-  const loadContents = useCallback(async () => {
+  const loadContents = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
     try {
@@ -122,6 +140,7 @@ export function StyleFolderAccordion({
         folderId: folder.id,
         folderName: folder.name,
       });
+      if (forceRefresh) params.set("refresh", "1");
       const res = await fetch(`/api/musicas/catalog?${params.toString()}`, { cache: "no-store" });
       const data = (await res.json()) as CatalogResponse;
       if (!res.ok) throw new Error(data.error ?? "Erro ao carregar pasta.");
@@ -138,7 +157,7 @@ export function StyleFolderAccordion({
         return;
       }
 
-      await loadTrackPage(1, false);
+      await loadTrackPage(1, false, forceRefresh);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar pasta.");
       setLoading(false);
@@ -150,6 +169,15 @@ export function StyleFolderAccordion({
       void loadContents();
     }
   }, [isOpen, loaded, loading, loadContents]);
+
+  useEffect(() => {
+    if (!reloadToken || !isOpen) return;
+    setLoaded(false);
+    setTracks([]);
+    setChildFolders([]);
+    setContentMode("unknown");
+    void loadContents(true);
+  }, [reloadToken]); // eslint-disable-line react-hooks/exhaustive-deps -- só reage ao sync
 
   useEffect(() => {
     if (!highlightTrackId || !loaded || loading || contentMode !== "tracks" || !hasMore) return;
@@ -253,26 +281,30 @@ export function StyleFolderAccordion({
   return (
     <div
       id={`style-folder-${folder.id}`}
-      className={`overflow-hidden border bg-black md:rounded-xl ${
-        folderStatus.status === "em-atualizacao"
-          ? "border-amber-500/50 shadow-[0_0_0_1px_rgba(245,158,11,0.2)]"
-          : isNew
-            ? "border-[#1ed760]/50 shadow-[0_0_0_1px_rgba(30,215,96,0.15)]"
-            : "border-zinc-800/90"
-      }`}
+      className={
+        embedded
+          ? `border-b border-zinc-600 last:border-b-0 ${
+              folderStatus.status === "em-atualizacao"
+                ? "ring-1 ring-inset ring-amber-500/35"
+                : isNew
+                  ? "ring-1 ring-inset ring-[#1ed760]/35"
+                  : ""
+            }`
+          : `${poolPanelClass} ${
+              folderStatus.status === "em-atualizacao"
+                ? "border-amber-500/45"
+                : isNew
+                  ? "border-[#1ed760]/45"
+                  : ""
+            }`
+      }
     >
       <div
-        className={`group flex w-full items-center gap-2 border-l-2 px-2.5 py-2 transition-colors sm:px-3 md:px-4 md:py-2.5 ${
-          isPlayingFolder
-            ? "border-l-[#00ff9d] bg-zinc-950"
-            : isOpen
-              ? "border-l-[#00ff9d] bg-zinc-950/80"
-              : folderStatus.status === "em-atualizacao"
-                ? "border-l-amber-400 bg-amber-500/5 hover:bg-amber-500/10"
-                : isNew
-                  ? "border-l-[#1ed760] bg-[#1ed760]/5 hover:bg-[#1ed760]/10"
-                  : "border-l-transparent bg-black hover:border-l-[#00ff9d]/60 hover:bg-zinc-950/50"
-        }`}
+        className={`group flex w-full items-center gap-2 px-3 py-2.5 transition-colors sm:px-4 ${
+          isPlayingFolder || isOpen
+            ? "bg-[#1ed760]/10"
+            : poolRowTone(zebraIndex)
+        } ${embedded ? "" : "border-b border-zinc-600"}`}
       >
         <button
           type="button"
@@ -281,18 +313,18 @@ export function StyleFolderAccordion({
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
         >
           <ChevronDown
-            className={`h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d] transition-transform duration-150 ${
+            className={`h-3.5 w-3.5 flex-shrink-0 text-[#1ed760] transition-transform duration-150 ${
               isOpen ? "rotate-0" : "-rotate-90"
             }`}
           />
           {isPlayingFolder ? (
-            <Volume2 className="h-3.5 w-3.5 flex-shrink-0 animate-pulse text-[#00ff9d]" />
+            <Volume2 className="h-3.5 w-3.5 flex-shrink-0 animate-pulse text-[#1ed760]" />
           ) : (
-            <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d]/80 group-hover:text-[#00ff9d]" />
+            <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#1ed760]/80 group-hover:text-[#1ed760]" />
           )}
           <span
             className={`min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-[0.12em] ${
-              isPlayingFolder || isOpen ? "text-[#00ff9d]" : "text-zinc-200"
+              isPlayingFolder || isOpen ? "text-[#1ed760]" : "text-zinc-200"
             }`}
           >
             {label}
@@ -308,7 +340,7 @@ export function StyleFolderAccordion({
             </span>
           )}
           {isPlayingFolder && (
-            <span className="flex-shrink-0 border border-[#00ff9d]/50 px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-[#00ff9d]">
+            <span className="flex-shrink-0 border border-[#1ed760]/50 px-1.5 py-px text-[8px] font-bold uppercase tracking-[0.12em] text-[#1ed760]">
               ON
             </span>
           )}
@@ -317,7 +349,7 @@ export function StyleFolderAccordion({
               {contentMode === "folders" ? `${total} pastas` : total}
             </span>
           )}
-          {loading && !loaded && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#00ff9d]" />}
+          {loading && !loaded && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />}
         </button>
         {packSlugSegments.length > 0 && <CopyPackLinkButton slugSegments={packSlugSegments} />}
         {canDownload && (
@@ -327,7 +359,7 @@ export function StyleFolderAccordion({
             disabled={sendingFolder}
             title="Enviar pasta inteira para o Downloader"
             aria-label={`Enviar pasta ${label} para o Downloader`}
-            className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition-colors hover:bg-[#1ed760]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:h-6 sm:w-6 sm:border-transparent sm:bg-transparent sm:text-zinc-500 sm:hover:bg-white/10 sm:hover:text-[#1ed760]"
+            className={folderActionSendClass}
           >
             {sendingFolder ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -344,10 +376,10 @@ export function StyleFolderAccordion({
         }`}
         aria-hidden={!isOpen}
       >
-        <div className="min-h-0 overflow-hidden border-t border-zinc-800/80 bg-[#121212] md:bg-[#0c0c0c]">
-          <div className="p-0.5 md:p-3">
+        <div className="min-h-0 overflow-hidden bg-[#101010]">
+          <div className="p-0">
             {error && (
-              <p className="rounded-lg bg-red-500/10 px-3 py-2 text-center text-xs text-red-400">{error}</p>
+              <p className="m-3 rounded-lg bg-red-500/10 px-3 py-2 text-center text-xs text-red-400">{error}</p>
             )}
             {loading && !loaded && (
               <div className="flex justify-center py-6">
@@ -356,32 +388,42 @@ export function StyleFolderAccordion({
             )}
 
             {loaded && contentMode === "folders" && (
-              <div className="space-y-1.5">
+              <div>
                 {childFolders.length === 0 ? (
-                  <p className="py-6 text-center text-sm text-[#727272]">Nenhuma subpasta nesta pasta.</p>
+                  <p className="py-6 text-center text-sm text-zinc-500">Nenhuma subpasta nesta pasta.</p>
                 ) : (
-                  childFolders.map((child) => {
-                    const childSegments = [...packSlugSegments, slugifyFolderName(child.name)];
-                    return (
-                      <Link
-                        key={child.id}
-                        href={folderHref(childSegments)}
-                        className="group/folder flex items-center gap-2 rounded-lg border border-zinc-800/80 bg-black px-3 py-2.5 transition-colors hover:border-[#1ed760]/40 hover:bg-zinc-950"
-                      >
-                        <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#00ff9d]/80 group-hover/folder:text-[#00ff9d]" />
-                        <span className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-[0.12em] text-zinc-200 group-hover/folder:text-white">
-                          {displayFolderName(child.name)}
-                        </span>
-                        <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover/folder:text-[#1ed760]" />
-                      </Link>
-                    );
-                  })
+                  <>
+                    <div className={`${poolTableHeadClass} grid-cols-[minmax(0,1fr)_auto]`}>
+                      <span>Pasta</span>
+                      <span className="text-right">Abrir</span>
+                    </div>
+                    {childFolders.map((child, index) => {
+                      const childSegments = [...packSlugSegments, slugifyFolderName(child.name)];
+                      return (
+                        <Link
+                          key={child.id}
+                          href={folderHref(childSegments)}
+                          className={`${poolRowBaseClass} grid-cols-[minmax(0,1fr)_auto] ${poolRowTone(index)}`}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#1ed760]/80" />
+                            <span className="truncate text-sm font-semibold text-zinc-100">
+                              {displayFolderName(child.name)}
+                            </span>
+                          </span>
+                          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600" />
+                        </Link>
+                      );
+                    })}
+                  </>
                 )}
                 {tracks.length > 0 && (
-                  <div className="mt-3 border-t border-zinc-800/80 pt-3">
-                    <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                      Faixas nesta pasta
-                    </p>
+                  <div className="border-t border-zinc-700/70">
+                    <div className={poolPanelHeaderClass}>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                        Faixas nesta pasta
+                      </p>
+                    </div>
                     <VipMusicTrackList
                       folderId={folder.id}
                       tracks={tracks}
@@ -406,7 +448,7 @@ export function StyleFolderAccordion({
             )}
 
             {loaded && contentMode === "tracks" && tracks.length === 0 && !loading && (
-              <p className="py-6 text-center text-sm text-[#727272]">Nenhuma faixa nesta pasta.</p>
+              <p className="py-6 text-center text-sm text-zinc-500">Nenhuma faixa nesta pasta.</p>
             )}
             {loaded && contentMode === "tracks" && tracks.length > 0 && (
               <VipMusicTrackList
@@ -435,7 +477,7 @@ export function StyleFolderAccordion({
                 type="button"
                 disabled={loading}
                 onClick={() => void loadTrackPage(page + 1, true)}
-                className="flex w-full items-center justify-center gap-1.5 border-t border-zinc-800 bg-black py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:bg-zinc-950 hover:text-zinc-300 disabled:opacity-50 md:mt-2 md:rounded-lg md:border md:border-white/[0.06] md:bg-[#181818] md:py-2.5"
+                className="flex w-full items-center justify-center gap-1.5 border-t border-zinc-700/70 bg-[#141414] py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:bg-[#1c1c1c] hover:text-zinc-300 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Carregar mais 50

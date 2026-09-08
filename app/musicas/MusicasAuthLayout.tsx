@@ -1,24 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { MusicasSessionProvider } from "./components/MusicasSessionContext";
 import { MusicasToastProvider } from "./components/MusicasToast";
 import { DownloaderSyncProvider } from "./components/DownloaderSyncContext";
-import { MusicasMobileMenuButton, MusicasSidebar } from "./MusicasSidebar";
-import { MusicasUserMenu } from "./components/MusicasUserMenu";
+import { MusicasTopNav } from "./MusicasSidebar";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
-import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
-import { checkoutUrl } from "../lib/site";
+import { MusicasDownloaderDock } from "./components/MusicasDownloaderDock";
 
 type MusicasAuthLayoutProps = {
   children: React.ReactNode;
 };
 
 export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -28,9 +25,9 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   const didBootRef = useRef(false);
 
   const goToLogin = useCallback(() => {
-    const returnTo = encodeURIComponent(pathname || "/musicas/home");
-    router.push(`/musicas/entrar?return=${returnTo}`);
-  }, [pathname, router]);
+    const returnTo = pathname || "/musicas/home";
+    window.location.assign(`/musicas/entrar?return=${encodeURIComponent(returnTo)}`);
+  }, [pathname]);
 
   const checkAccess = useCallback(async (options?: { showLoader?: boolean }) => {
     if (options?.showLoader !== false) setLoading(true);
@@ -90,81 +87,33 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
     );
   }
 
-  const firstName = authenticated ? userName.split(" ")[0] : "Visitante";
-
   return (
     <MusicasSessionProvider value={sessionValue}>
       <DownloaderSyncProvider>
-      <MusicasToastProvider>
-      <VipMusicPlayerProvider canPlayFull={hasVip}>
-      <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-clip bg-black text-zinc-100">
-        <MusicasSidebar
-          authenticated={authenticated}
-          userName={userName}
-          hasVip={hasVip}
-          onLogout={() => void handleLogout()}
-          onLogin={goToLogin}
-          mobileOpen={mobileOpen}
-          onMobileOpenChange={setMobileOpen}
-        />
+        <MusicasToastProvider>
+          <VipMusicPlayerProvider canPlayFull={hasVip}>
+            <div className="flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#121212] text-zinc-100">
+              <MusicasTopNav
+                authenticated={authenticated}
+                userName={userName}
+                hasVip={hasVip}
+                onLogout={() => void handleLogout()}
+                onLogin={goToLogin}
+                mobileOpen={mobileOpen}
+                onMobileOpenChange={setMobileOpen}
+              />
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-black/80 px-3 py-3 backdrop-blur-md sm:gap-4 sm:px-6">
-            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <MusicasMobileMenuButton onClick={() => setMobileOpen(true)} />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-white sm:text-base">
-                  {authenticated ? (
-                    <>
-                      Olá, <span className="text-[#1ed760]">{firstName}</span>
-                    </>
-                  ) : (
-                    "BRS Music"
-                  )}
-                </p>
-                <p className="truncate text-[10px] text-zinc-500 sm:text-xs">
-                  {hasVip
-                    ? "Premium · Ouvir e baixar liberado"
-                    : authenticated
-                      ? "Prévia de 1 min · Assine o VIP para faixa completa"
-                      : "Prévia de 1 min · Assine em /plans para liberar tudo"}
-                </p>
-              </div>
+              <main className="min-w-0 flex-1 overflow-x-clip">
+                <div className="mx-auto w-full max-w-[1600px] px-3 pb-36 pt-4 sm:px-5 sm:pb-40 sm:pt-6 lg:px-8">
+                  {!authenticated && !hasVip && <MusicasGuestBanner />}
+                  {children}
+                </div>
+              </main>
+
+              <MusicasDownloaderDock />
             </div>
-
-            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
-              <SiteNotificationBell />
-              {!authenticated && (
-                <button
-                  type="button"
-                  onClick={goToLogin}
-                  className="hidden rounded-full px-4 py-2 text-sm font-bold text-zinc-300 transition-colors hover:text-white sm:inline-flex"
-                >
-                  Entrar
-                </button>
-              )}
-              {!hasVip && (
-                <a
-                  href={checkoutUrl("VIP")}
-                  className="inline-flex items-center justify-center rounded-full bg-[#1ed760] px-3 py-2 text-[11px] font-bold text-black transition-transform hover:scale-[1.03] sm:px-5 sm:text-sm"
-                >
-                  Assinar VIP
-                </a>
-              )}
-              {authenticated && (
-                <MusicasUserMenu userName={userName} hasVip={hasVip} onLogout={() => void handleLogout()} />
-              )}
-            </div>
-          </header>
-
-          <main className="min-w-0 flex-1 overflow-x-clip overflow-y-auto rounded-tl-none bg-gradient-to-b from-[#1f1f1f] to-[#121212] px-3 py-4 pb-8 sm:rounded-tl-2xl sm:px-6 sm:py-6 lg:px-8">
-            {!authenticated && !hasVip && <MusicasGuestBanner />}
-            {children}
-          </main>
-        </div>
-      </div>
-      </VipMusicPlayerProvider>
-      </MusicasToastProvider>
+          </VipMusicPlayerProvider>
+        </MusicasToastProvider>
       </DownloaderSyncProvider>
     </MusicasSessionProvider>
   );

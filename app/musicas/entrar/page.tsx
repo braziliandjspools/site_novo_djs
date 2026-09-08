@@ -19,6 +19,7 @@ function MusicasEntrarContent() {
   const searchParams = useSearchParams();
   const returnTo = getSafeReturnPath(searchParams.get("return"));
   const checkoutPlan = searchParams.get("checkout");
+  const initialMode = searchParams.get("modo") === "cadastro" ? "register" : "login";
 
   return (
     <div className="relative min-h-screen bg-[#0a0a0a]">
@@ -31,13 +32,14 @@ function MusicasEntrarContent() {
       </Link>
 
       <PortalLogin
+        initialMode={initialMode}
         onSuccess={() => {
           const target =
             checkoutPlan && returnTo.startsWith("/plans")
               ? `/plans?checkout=${encodeURIComponent(checkoutPlan)}`
               : returnTo;
-          // Recarrega de verdade para o layout / player / APIs pegarem o cookie VIP.
-          window.location.assign(target);
+          // Hard reload obrigatório para o cookie VIP valer na sessão/layout/APIs.
+          window.location.replace(target);
         }}
       />
     </div>

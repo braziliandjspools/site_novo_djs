@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -13,6 +13,7 @@ import {
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import { matchStyleSlug } from "../atualizacoes/AtualizacoesSearch";
+import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { StyleFolderAccordion } from "./StyleFolderAccordion";
@@ -24,6 +25,7 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { pushRecentFolder } from "../lib/music-library-storage";
 import { stylesReadKey, weeksReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
+import { poolPanelClass, poolTableHeadClass } from "./atualizacoes-pool-ui";
 
 type ResolveResponse = {
   folderId: string;
@@ -52,6 +54,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
   const [siblingWeeks, setSiblingWeeks] = useState<VipMusicFolder[]>([]);
+  const [reloadToken, setReloadToken] = useState(0);
 
   const slugPath = slugSegments.join("/");
   const monthSlug = slugSegments[0] ?? "";
@@ -91,23 +94,30 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     };
   }, [monthSlug, weekSlug]);
 
-  useEffect(() => {
+  const loadBrowse = useCallback(async (options?: { keepOpen?: boolean; forceRefresh?: boolean }) => {
     setLoading(true);
     setError(null);
-    setOpenFolderId(null);
+    if (!options?.keepOpen) setOpenFolderId(null);
 
-    void fetch(`/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}`, { cache: "no-store" })
-      .then(async (res) => {
-        const body = (await res.json()) as ResolveResponse & { error?: string };
-        if (!res.ok) throw new Error(body.error ?? "Pasta não encontrada.");
-        setData(body);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setData(null);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const refresh = options?.forceRefresh ? "&refresh=1" : "";
+      const res = await fetch(`/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}${refresh}`, {
+        cache: "no-store",
+      });
+      const body = (await res.json()) as ResolveResponse & { error?: string };
+      if (!res.ok) throw new Error(body.error ?? "Pasta não encontrada.");
+      setData(body);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Pasta não encontrada.");
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   }, [slugPath]);
+
+  useEffect(() => {
+    void loadBrowse();
+  }, [loadBrowse]);
 
   const showingWeeks = useMemo(() => {
     if (!data || data.level !== "folders" || slugSegments.length !== 1) return false;
@@ -205,17 +215,25 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           hasVip={hasVip}
           mode={showingWeeks ? "weeks" : weekSlug ? "week-styles" : "styles"}
           actions={
-            slugSegments.length === 1 ? (
-              <SendPackToDownloaderButton
-                slug={monthSlug}
-                label="Enviar mês inteiro ao Downloader"
+            <div className="flex flex-wrap items-center gap-2">
+              <AtualizacoesDriveSyncButton
+                onSynced={async () => {
+                  await loadBrowse({ keepOpen: true, forceRefresh: true });
+                  setReloadToken((token) => token + 1);
+                }}
               />
-            ) : weekSlug && slugSegments.length === 2 ? (
-              <SendPackToDownloaderButton
-                slug={`${monthSlug}/${weekSlug}`}
-                label="Enviar semana ao Downloader"
-              />
-            ) : null
+              {slugSegments.length === 1 ? (
+                <SendPackToDownloaderButton
+                  slug={monthSlug}
+                  label="Enviar mês inteiro ao Downloader"
+                />
+              ) : weekSlug && slugSegments.length === 2 ? (
+                <SendPackToDownloaderButton
+                  slug={`${monthSlug}/${weekSlug}`}
+                  label="Enviar semana ao Downloader"
+                />
+              ) : null}
+            </div>
           }
         />
       )}
@@ -253,13 +271,17 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {!loading && !error && data && showingStyles && (
         <>
-          <div className="space-y-3">
-            {data.items.length === 0 ? (
-              <p className="rounded-xl border border-zinc-800 bg-[#1a1a1a] px-4 py-8 text-center text-sm text-zinc-500">
-                Nenhum estilo nesta pasta. Adicione subpastas de estilo no Google Drive.
-              </p>
-            ) : (
-              data.items.map((folder) => (
+          {data.items.length === 0 ? (
+            <p className="rounded-md border border-zinc-700 bg-black px-4 py-8 text-center text-sm text-zinc-500">
+              Nenhum estilo nesta pasta. Adicione subpastas de estilo no Google Drive.
+            </p>
+          ) : (
+            <div className={poolPanelClass}>
+              <div className={`${poolTableHeadClass} grid-cols-[minmax(0,1fr)_auto]`}>
+                <span>Pasta</span>
+                <span className="text-right">Ações</span>
+              </div>
+              {data.items.map((folder, index) => (
                 <StyleFolderAccordion
                   key={folder.id}
                   folder={folder}
@@ -278,10 +300,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   }
                   scrollIntoView={Boolean(estiloSlug && matchStyleSlug(folder.name, estiloSlug))}
                   onToggle={() => setOpenFolderId((current) => (current === folder.id ? null : folder.id))}
+                  zebraIndex={index}
+                  embedded
+                  reloadToken={reloadToken}
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
           <AtualizacoesMonthFooterNav
             monthSlug={monthSlug}
             months={months}
@@ -292,7 +317,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!loading && !error && data && showingTracks && (
-        <div className="rounded-xl border border-zinc-800/90 bg-[#0c0c0c] p-2 md:p-3">
+        <div className="overflow-hidden">
           <VipMusicTrackList
             folderId={data.folderId}
             tracks={data.tracks ?? []}

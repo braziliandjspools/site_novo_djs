@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import { AtualizacoesAcervoHero } from "../components/AtualizacoesAcervoHero";
@@ -16,18 +16,25 @@ export default function AtualizacoesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void fetch("/api/musicas/tree", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        setFolders((data as { folders?: VipMusicFolder[] }).folders ?? []);
-        if ((data as { error?: string }).error) {
-          setError((data as { error?: string }).error ?? null);
-        }
-      })
-      .catch(() => setError("Não foi possível carregar os meses."))
-      .finally(() => setLoading(false));
+  const loadFolders = useCallback(async (forceRefresh = false) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const refresh = forceRefresh ? "?refresh=1" : "";
+      const res = await fetch(`/api/musicas/tree${refresh}`, { cache: "no-store" });
+      const data = (await res.json()) as { folders?: VipMusicFolder[]; error?: string };
+      setFolders(data.folders ?? []);
+      if (data.error) setError(data.error);
+    } catch {
+      setError("Não foi possível carregar os meses.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadFolders();
+  }, [loadFolders]);
 
   const newFolderIds = useNewFolderHighlights(
     monthsReadKey(),
@@ -50,7 +57,7 @@ export default function AtualizacoesPage() {
 
       {!loading && !error && (
         <>
-          <AtualizacoesSyncNotice />
+          <AtualizacoesSyncNotice onSynced={() => loadFolders(true)} />
           <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
         </>
       )}

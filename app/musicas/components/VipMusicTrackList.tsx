@@ -22,6 +22,7 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
+import { poolPanelClass, poolRowTone, poolTableHeadClass } from "./atualizacoes-pool-ui";
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -41,8 +42,9 @@ type VipMusicTrackListProps = {
   layout?: "default" | "table";
 };
 
+/** Colunas fixas: # | nome | BPM | ações — BPM não desloca no play. */
 const TABLE_GRID =
-  "grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3";
+  "grid grid-cols-[2.25rem_minmax(0,1fr)_3.75rem_5.5rem] items-center gap-x-3";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -389,17 +391,15 @@ function TrackTableRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative border-b border-white/[0.04] transition-colors last:border-b-0 ${
+      className={`group/row relative transition-colors ${
         isHighlighted
-          ? "bg-[#FFDF00]/5"
+          ? "bg-[#FFDF00]/10"
           : isSelected
-            ? "bg-[#1ed760]/8"
-            : isActive
-              ? "bg-white/[0.06]"
-              : "hover:bg-white/[0.04]"
+            ? "bg-[#1ed760]/10"
+            : poolRowTone(index, isActive)
       }`}
     >
-      <div className={`${TABLE_GRID} px-3 py-2.5`}>
+      <div className={`${TABLE_GRID} border-b border-zinc-800/80 px-3 py-2.5 last:border-b-0 sm:px-4`}>
         {/* Index / select */}
         <div className="flex items-center justify-center">
           {selectionMode && canDownload ? (
@@ -429,7 +429,7 @@ function TrackTableRow({
         </div>
 
         {/* Title + play */}
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3 overflow-hidden">
           {canPlay ? (
             <button
               type="button"
@@ -459,50 +459,27 @@ function TrackTableRow({
             type="button"
             onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
             disabled={!canPlay && !selectionMode}
-            className="min-w-0 text-left"
+            className="min-w-0 flex-1 overflow-hidden text-left"
           >
             <p
-              className={`break-words text-sm font-medium leading-snug ${
+              className={`truncate text-sm font-medium leading-snug ${
                 isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
               title={track.title}
             >
               {track.title}
             </p>
-            {isActive && duration > 0 && !selectionMode && (
-              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </p>
-            )}
           </button>
         </div>
 
-        {/* Actions */}
+        {/* BPM — coluna de largura fixa no grid */}
+        <p className="text-center font-mono text-xs tabular-nums text-zinc-400">
+          {track.bpm ?? "—"}
+        </p>
+
+        {/* Actions — largura reservada no grid; prev/next ficam na barra de progresso */}
         <div className="flex items-center justify-end gap-1">
           <TrackDownloadStatus fileId={track.id} />
-
-          {isActive && canPlay && !selectionMode && (
-            <>
-              <button
-                type="button"
-                onClick={onPrev}
-                disabled={!hasPrev}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
-                aria-label="Anterior"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onNext}
-                disabled={!hasNext}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
-                aria-label="Próxima"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </>
-          )}
 
           {canDownload && !selectionMode ? (
             <>
@@ -540,24 +517,49 @@ function TrackTableRow({
       </div>
 
       {isActive && canPlay && !selectionMode && (
-        <div className="px-3 pb-2.5 pl-[calc(2.25rem+2.75rem)]">
-          <div
-            role="slider"
-            tabIndex={0}
-            aria-label="Progresso"
-            className="h-3 cursor-pointer py-1"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              onSeek((e.clientX - rect.left) / rect.width);
-            }}
+        <div className="flex items-center gap-2 border-t border-zinc-800/50 px-3 pb-2.5 pt-1.5 pl-[calc(2.25rem+0.75rem+2.25rem)] sm:px-4">
+          <button
+            type="button"
+            onClick={onPrev}
+            disabled={!hasPrev}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
+            aria-label="Anterior"
           >
-            <div className="h-1 rounded-full bg-zinc-800">
-              <div
-                className={`h-full rounded-full ${isPlaying ? "bg-[#1ed760]" : "bg-zinc-500"}`}
-                style={{ width: `${progress}%` }}
-              />
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <div
+              role="slider"
+              tabIndex={0}
+              aria-label="Progresso"
+              className="h-3 cursor-pointer py-1"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                onSeek((e.clientX - rect.left) / rect.width);
+              }}
+            >
+              <div className="h-1 rounded-full bg-zinc-800">
+                <div
+                  className={`h-full rounded-full ${isPlaying ? "bg-[#1ed760]" : "bg-zinc-500"}`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
+            {duration > 0 && (
+              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </p>
+            )}
           </div>
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={!hasNext}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
+            aria-label="Próxima"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       )}
     </article>
@@ -904,19 +906,12 @@ export function VipMusicTrackList({
 
       {/* Desktop table — Atualizações only */}
       {useTable && (
-        <div className="hidden overflow-hidden rounded-xl border border-white/[0.06] bg-[#181818]/80 md:block">
-          <div
-            className={`${TABLE_GRID} sticky top-0 z-[1] border-b border-white/[0.06] bg-[#121212]/95 px-3 py-2.5 backdrop-blur`}
-          >
-            <span className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              #
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              Música
-            </span>
-            <span className="text-right text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              Ações
-            </span>
+        <div className={`hidden md:block ${poolPanelClass}`}>
+          <div className={`${poolTableHeadClass} ${TABLE_GRID}`}>
+            <span className="text-center">#</span>
+            <span className="min-w-0">Nome</span>
+            <span className="text-center">BPM</span>
+            <span className="text-right">Ações</span>
           </div>
           <div>
             {tracks.map((track, index) => (

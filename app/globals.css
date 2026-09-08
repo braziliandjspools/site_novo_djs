@@ -47,6 +47,12 @@ body {
     box-sizing: border-box;
   }
 
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   img,
   video,
   canvas,

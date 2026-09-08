@@ -5,12 +5,13 @@ import Link from "next/link";
 import { Eye, EyeOff, Loader2, LogIn, Sparkles, UserPlus } from "lucide-react";
 import { BrsLogo } from "../components/BrsLogo";
 
+type AuthMode = "login" | "register";
+
 type PortalLoginProps = {
   onSuccess: () => void;
   embedded?: boolean;
+  initialMode?: AuthMode;
 };
-
-type AuthMode = "login" | "register";
 
 const inputClassName =
   "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#00ff9d] focus:ring-1 focus:ring-[#00ff9d]/30";
@@ -91,8 +92,8 @@ function PasswordField({
   );
 }
 
-export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
-  const [mode, setMode] = useState<AuthMode>("login");
+export function PortalLogin({ onSuccess, embedded = false, initialMode = "login" }: PortalLoginProps) {
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -114,6 +115,7 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
       const res = await fetch("/api/portal/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ email, password }),
       });
       const raw = await res.text();
@@ -147,6 +149,7 @@ export function PortalLogin({ onSuccess, embedded = false }: PortalLoginProps) {
       const res = await fetch("/api/portal/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ name, email, whatsapp, password }),
       });
       const raw = await res.text();

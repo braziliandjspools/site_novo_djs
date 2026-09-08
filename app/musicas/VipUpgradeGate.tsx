@@ -1,17 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Crown, LogIn, Sparkles } from "lucide-react";
 import { checkoutUrl } from "../lib/site";
 import { useMusicasSession } from "./components/MusicasSessionContext";
 
 const SPOTIFY_GREEN = "#1ed760";
 
+function loginHref(pathname: string, mode?: "login" | "register") {
+  const params = new URLSearchParams({ return: pathname || "/musicas/home" });
+  if (mode === "register") params.set("modo", "cadastro");
+  return `/musicas/entrar?${params.toString()}`;
+}
+
 export function MusicasGuestBanner() {
-  const { openLogin } = useMusicasSession();
+  const pathname = usePathname();
 
   return (
-    <section className="relative mb-8 overflow-hidden rounded-lg bg-gradient-to-br from-[#1a3264] via-[#121212] to-[#0a0a0a] p-6 sm:p-8">
+    <section className="relative z-10 mb-8 overflow-hidden rounded-lg bg-gradient-to-br from-[#1a3264] via-[#121212] to-[#0a0a0a] p-6 sm:p-8">
       <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#1ed760]/20 blur-3xl" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
@@ -27,23 +34,28 @@ export function MusicasGuestBanner() {
             Downloader Windows.
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch">
+        <div className="relative z-10 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch">
           <Link
             href={checkoutUrl("VIP")}
-            className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold text-black transition-transform hover:scale-[1.02]"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold text-black transition-transform hover:scale-[1.02]"
             style={{ backgroundColor: SPOTIFY_GREEN }}
           >
             <Crown className="h-4 w-4" />
             Ver planos
           </Link>
-          <button
-            type="button"
-            onClick={openLogin}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-500 px-8 py-3.5 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/5"
+          <Link
+            href={loginHref(pathname, "login")}
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-500 px-8 py-3.5 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/5"
           >
             <LogIn className="h-4 w-4" />
             Já tenho conta
-          </button>
+          </Link>
+          <Link
+            href={loginHref(pathname, "register")}
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-700 px-8 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400 transition-colors hover:border-zinc-500 hover:text-white"
+          >
+            Criar conta
+          </Link>
         </div>
       </div>
     </section>
@@ -52,9 +64,10 @@ export function MusicasGuestBanner() {
 
 export function VipUpgradeBanner() {
   const { authenticated } = useMusicasSession();
+  const pathname = usePathname();
 
   return (
-    <div className="mb-6 flex flex-col gap-4 rounded-lg border border-zinc-800 bg-[#181818] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="relative z-10 mb-6 flex flex-col gap-4 rounded-lg border border-zinc-800 bg-[#181818] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1ed760]/15 text-[#1ed760]">
           <Crown className="h-5 w-5" />
@@ -70,14 +83,25 @@ export function VipUpgradeBanner() {
           </p>
         </div>
       </div>
-      <Link
-        href={checkoutUrl("VIP")}
-        className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-black hover:brightness-110"
-        style={{ backgroundColor: SPOTIFY_GREEN }}
-      >
-        <Crown className="h-4 w-4" />
-        Ver planos
-      </Link>
+      <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+        {!authenticated && (
+          <Link
+            href={loginHref(pathname, "login")}
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-600 px-5 py-2.5 text-sm font-bold text-white hover:border-white"
+          >
+            <LogIn className="h-4 w-4" />
+            Entrar
+          </Link>
+        )}
+        <Link
+          href={checkoutUrl("VIP")}
+          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-black hover:brightness-110"
+          style={{ backgroundColor: SPOTIFY_GREEN }}
+        >
+          <Crown className="h-4 w-4" />
+          Ver planos
+        </Link>
+      </div>
     </div>
   );
 }
@@ -102,10 +126,10 @@ export function VipUpgradeGate() {
             Ver planos
           </Link>
           <Link
-            href="/musicas/home"
+            href="/musicas/entrar?return=%2Fmusicas%2Fhome"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-600 px-5 py-3 text-sm font-bold text-white hover:border-white"
           >
-            Continuar ouvindo prévia
+            Entrar / Criar conta
           </Link>
         </div>
       </div>

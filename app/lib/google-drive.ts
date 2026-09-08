@@ -1,3 +1,4 @@
+import { driveListFetchInit } from "./drive-fetch-cache";
 import {
   GOOGLE_DRIVE_API_KEY,
   GOOGLE_DRIVE_MUSIC_PRODUCER_DELIVERIES_FOLDER_ID,
@@ -169,6 +170,9 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
   let editType: string | null = null;
 
   let working = base;
+
+  const isPlausibleBpm = (n: number) => n >= 60 && n <= 220;
+
   const metaMatch = working.match(/\((Mixshow Edit[^)]*)\)\s*$/i);
   if (metaMatch) {
     const meta = metaMatch[1];
@@ -179,8 +183,12 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
 
     const bpmMatch = meta.match(/(\d{2,3})\s*-\s*(\d{2,3})/);
     if (bpmMatch) {
-      bpmFrom = Number.parseInt(bpmMatch[1], 10);
-      bpmTo = Number.parseInt(bpmMatch[2], 10);
+      const from = Number.parseInt(bpmMatch[1], 10);
+      const to = Number.parseInt(bpmMatch[2], 10);
+      if (isPlausibleBpm(from) && isPlausibleBpm(to)) {
+        bpmFrom = from;
+        bpmTo = to;
+      }
     }
 
     editType = meta
@@ -191,15 +199,55 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
   } else {
     const bpmOnly = working.match(/\(([^)]*(\d{2,3})\s*-\s*(\d{2,3})[^)]*)\)\s*$/);
     if (bpmOnly) {
-      bpmFrom = Number.parseInt(bpmOnly[2], 10);
-      bpmTo = Number.parseInt(bpmOnly[3], 10);
+      const from = Number.parseInt(bpmOnly[2], 10);
+      const to = Number.parseInt(bpmOnly[3], 10);
+      if (isPlausibleBpm(from) && isPlausibleBpm(to)) {
+        bpmFrom = from;
+        bpmTo = to;
+      }
       const versionMatch = bpmOnly[1].match(/\b(Clean|Dirty)\b/i);
       if (versionMatch) version = versionMatch[1];
       working = working.slice(0, bpmOnly.index).trim();
     }
   }
 
-  // Título = nome completo do arquivo (sem extensão/numeração). Artista só para busca/metadados.
+  // BPM no final: "... 112 bpm" / "... 128BPM"
+  if (bpmFrom === null) {
+    const trailingBpm = working.match(/\s+(\d{2,3})\s*bpm\s*$/i);
+    if (trailingBpm) {
+      const n = Number.parseInt(trailingBpm[1], 10);
+      if (isPlausibleBpm(n)) {
+        bpmFrom = n;
+        working = working.slice(0, trailingBpm.index).trim();
+      }
+    }
+  }
+
+  // BPM em parênteses/colchetes no final: "... (128)" / "... [112]"
+  if (bpmFrom === null) {
+    const bracketBpm = working.match(/[\(\[]\s*(\d{2,3})\s*[\)\]]\s*$/);
+    if (bracketBpm) {
+      const n = Number.parseInt(bracketBpm[1], 10);
+      if (isPlausibleBpm(n)) {
+        bpmFrom = n;
+        working = working.slice(0, bracketBpm.index).trim();
+      }
+    }
+  }
+
+  // BPM numérico solto no final: "... [Dirty] 128"
+  if (bpmFrom === null) {
+    const looseBpm = working.match(/\s+(\d{2,3})\s*$/);
+    if (looseBpm) {
+      const n = Number.parseInt(looseBpm[1], 10);
+      if (isPlausibleBpm(n)) {
+        bpmFrom = n;
+        working = working.slice(0, looseBpm.index).trim();
+      }
+    }
+  }
+
+  // Título = nome completo (sem extensão/numeração/BPM de sufixo). Artista só para busca/metadados.
   const dashIdx = working.indexOf(" - ");
   const artist = dashIdx > 0 ? working.slice(0, dashIdx).trim() : "";
   const title = working;
@@ -222,6 +270,7 @@ function toPreviewTrack(file: DriveFile, packName: string): PreviewTrack {
   return {
     id: file.id,
     pack: packName,
+    fileName: file.name,
     modifiedAt: file.modifiedTime ?? null,
     ...parseTrackMeta(file.name),
   };
@@ -241,9 +290,7 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
     });
     if (pageToken) params.set("pageToken", pageToken);
 
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, driveListFetchInit(60));
 
     if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
 
@@ -325,7 +372,7 @@ async function fetchPublicFolderHtml(folderId: string) {
   ];
 
   for (const url of urls) {
-    const res = await fetch(url, { headers, next: { revalidate: 300 } });
+    const res = await fetch(url, { headers, ...driveListFetchInit(300) });
     if (res.ok) return res.text();
   }
 

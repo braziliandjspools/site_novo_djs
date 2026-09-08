@@ -1,63 +1,60 @@
-import { BRS_LOGO_SRC } from "../../components/BrsLogo";
 import Image from "next/image";
-
-const WELCOME_TEXT =
-  "🎉 Bem-vindo ao nosso acervo exclusivo! 🚀 Usuários VIP têm acesso a downloads ilimitados de todo o nosso conteúdo. Se você é um visitante, para baixar os arquivos e ter acesso completo, é necessário assinar um de nossos planos. Torne-se VIP e aproveite o melhor da música sem limites! ✨";
-
-const HERO_BG = "/images/atualizacoes-hero-bg.jpg";
+import { Music2 } from "lucide-react";
+import { BRS_LOGO_SRC } from "../../components/BrsLogo";
 
 type AtualizacoesAcervoHeroProps = {
   monthCount: number;
   hasVip: boolean;
 };
 
+/** Hero estilo capa de playlist (streaming). */
 export function AtualizacoesAcervoHero({ monthCount, hasVip }: AtualizacoesAcervoHeroProps) {
   return (
-    <section className="relative mb-8 w-full overflow-hidden rounded-md bg-[#0a0a0a]">
-      <Image
-        src={HERO_BG}
-        alt=""
-        fill
-        priority
-        className="object-cover object-center"
-        sizes="100vw"
-      />
+    <section className="relative mb-6 overflow-hidden rounded-2xl">
       <div
-        className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/35"
+        className="absolute inset-0 bg-gradient-to-b from-[#1ed760]/35 via-[#0d3d22] to-[#121212]"
         aria-hidden
       />
-      <div className="relative z-[1] flex flex-col gap-6 px-5 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="relative mb-4 h-14 w-full max-w-xs sm:h-16">
-            <Image
-              src={BRS_LOGO_SRC}
-              alt="Brazilian Remix Service (BRS)"
-              fill
-              className="object-contain object-left"
-              priority
-              sizes="320px"
-            />
-          </div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[#1ed760]">Acervo VIP</p>
-          <h1 className="mt-2 break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
-            Atualizações
-          </h1>
-          <p className="mt-4 max-w-3xl text-justify text-sm leading-relaxed text-zinc-200 sm:text-base">
-            {WELCOME_TEXT}
-          </p>
+      <div
+        className="absolute -left-20 top-0 h-72 w-72 rounded-full bg-[#1ed760]/20 blur-3xl"
+        aria-hidden
+      />
+      <div className="relative flex flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:gap-8 sm:px-8 sm:py-10">
+        <div className="relative mx-auto flex h-44 w-44 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-[#1ed760] to-[#0a5c2c] shadow-[0_20px_50px_rgba(0,0,0,0.55)] sm:mx-0 sm:h-52 sm:w-52">
+          <Image
+            src={BRS_LOGO_SRC}
+            alt=""
+            fill
+            className="object-contain p-6 opacity-95"
+            sizes="208px"
+            priority
+          />
+          <Music2 className="pointer-events-none absolute bottom-3 right-3 h-6 w-6 text-black/40" />
         </div>
 
-        <div className="flex flex-shrink-0 flex-wrap gap-2">
-          <span className="rounded-full bg-black/40 px-4 py-2 text-xs font-semibold text-zinc-200 ring-1 ring-white/10">
-            {monthCount} {monthCount === 1 ? "pasta" : "pastas"}
-          </span>
-          <span
-            className={`rounded-full px-4 py-2 text-xs font-bold ring-1 ring-white/10 ${
-              hasVip ? "bg-[#1ed760]/15 text-[#1ed760]" : "bg-black/40 text-zinc-400"
-            }`}
-          >
-            {hasVip ? "Premium ativo" : "Prévia 1 min"}
-          </span>
+        <div className="min-w-0 flex-1 text-center sm:pb-1 sm:text-left">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">Acervo VIP</p>
+          <h1 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl">
+            Atualizações
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
+            Navegue pelas pastas, ouça as faixas e envie packs ao BRS Downloader — layout em tela cheia para
+            explorar o acervo como em um streaming.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+            <span className="rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold tabular-nums text-white ring-1 ring-white/15">
+              {monthCount} {monthCount === 1 ? "pasta" : "pastas"}
+            </span>
+            <span
+              className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${
+                hasVip
+                  ? "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40"
+                  : "bg-black/35 text-zinc-300 ring-white/15"
+              }`}
+            >
+              {hasVip ? "Premium ativo" : "Prévia 1 min"}
+            </span>
+          </div>
         </div>
       </div>
     </section>

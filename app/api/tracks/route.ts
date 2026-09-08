@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getPreviewPlaylists } from "../../lib/google-drive";
+import { getLatestVipPreviewPlaylists } from "../../lib/vip-music-catalog";
 
 export const revalidate = 300;
 
 export async function GET() {
   try {
-    const playlists = await getPreviewPlaylists();
+    const playlists = await getLatestVipPreviewPlaylists(3);
     const tracks = playlists.flatMap((playlist) => playlist.tracks);
     return NextResponse.json({ playlists, tracks });
   } catch (error) {

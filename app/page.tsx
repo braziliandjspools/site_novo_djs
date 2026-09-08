@@ -22,7 +22,7 @@ import { SiteImage } from "./components/SiteImage";
 import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
 import { TrackShowcase } from "./components/TrackShowcase";
 import { ToolPromoSection } from "./components/ToolPromoSection";
-import { getPreviewPlaylists } from "./lib/google-drive";
+import { getLatestVipPreviewPlaylists } from "./lib/vip-music-catalog";
 import { getDownloaderReleaseManifest } from "./lib/downloader-updates";
 import { DOWNLOADER_NAME } from "./lib/branding";
 import { whatsappUrl } from "./lib/site";
@@ -133,7 +133,7 @@ const testimonials = [
 ];
 
 export default async function Home() {
-  const previewPlaylists = await getPreviewPlaylists().catch(() => []);
+  const previewPlaylists = await getLatestVipPreviewPlaylists(3).catch(() => []);
   const downloaderRelease = getDownloaderReleaseManifest();
   const downloaderUrl =
     downloaderRelease?.downloadUrl ??
@@ -344,7 +344,7 @@ export default async function Home() {
           <SectionHeading
             badge="Preview"
             title="Ouça algumas faixas do acervo"
-            subtitle="Confira uma seleção de faixas disponíveis no Brazilian Remix Service e conheça um pouco da variedade do nosso acervo. Ouça exemplos de remixes, edits, extended versions e outras versões pensadas para DJs e diferentes tipos de pista."
+            subtitle="Sempre as 3 pastas mais recentes do acervo — ouça remixes, edits e extended versions e conheça a variedade do Brazilian Remix Service."
           />
           <div className="mt-12">
             <TrackShowcase initialPlaylists={previewPlaylists} />

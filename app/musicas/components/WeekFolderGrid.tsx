@@ -18,10 +18,16 @@ import {
   formatPackWeekRangeLabel,
   getPackWeekDayRange,
   isCurrentPackWeek,
-  type CalendarDay,
 } from "../../lib/week-calendar";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
+import {
+  poolPanelClass,
+  poolPanelHeaderClass,
+  poolRowBaseClass,
+  poolRowTone,
+  poolTableHeadClass,
+} from "./atualizacoes-pool-ui";
 
 type WeekFolderGridProps = {
   monthSlug: string;
@@ -39,35 +45,7 @@ function useLiveNow(intervalMs = 1000) {
   return now;
 }
 
-function WeekDayStrip({ days }: { days: CalendarDay[] }) {
-  if (days.length === 0) return null;
-
-  return (
-    <div className="mt-4 flex flex-wrap gap-1.5">
-      {days.map((day) => (
-        <div
-          key={day.iso}
-          className={`flex min-w-[2.5rem] flex-1 flex-col items-center rounded-lg px-1 py-2 text-center transition-colors sm:min-w-0 ${
-            day.isToday
-              ? "bg-[#1ed760] text-black shadow-[0_0_20px_rgba(30,215,96,0.35)]"
-              : "bg-black/35 text-zinc-400"
-          }`}
-        >
-          <span
-            className={`text-[9px] font-bold uppercase tracking-wide ${
-              day.isToday ? "text-black/70" : "text-zinc-500"
-            }`}
-          >
-            {day.weekdayShort}
-          </span>
-          <span className={`mt-0.5 text-sm font-black tabular-nums ${day.isToday ? "text-black" : "text-white"}`}>
-            {day.day}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
+const WEEK_GRID = "grid-cols-[minmax(0,1fr)_auto_auto]";
 
 export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: WeekFolderGridProps) {
   const now = useLiveNow(1000);
@@ -75,7 +53,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
 
   if (weeks.length === 0) {
     return (
-      <p className="rounded-xl border border-zinc-800 bg-[#1a1a1a] px-4 py-8 text-center text-sm text-zinc-500">
+      <p className={`${poolPanelClass} px-4 py-8 text-center text-sm text-zinc-500`}>
         Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…
       </p>
     );
@@ -84,105 +62,76 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
   return (
     <div className="space-y-4">
       {monthDate && (
-        <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-white/[0.06] bg-gradient-to-r from-[#12261a] via-[#161616] to-[#121212] px-4 py-4 sm:px-5">
+        <div className={`${poolPanelClass} flex flex-wrap items-end justify-between gap-3 px-4 py-3`}>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#1ed760]">
-              Calendário em tempo real
-            </p>
-            <p className="mt-1 text-base font-semibold capitalize text-white sm:text-lg">
-              {formatLiveCalendarTitle(now)}
-            </p>
-            <p className="mt-1 text-xs text-zinc-500">
-              Semana 01 = dias 1–7 · Semana 02 = 8–14 · e assim por diante
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">Calendário</p>
+            <p className="mt-1 text-sm font-semibold capitalize text-white">{formatLiveCalendarTitle(now)}</p>
+            <p className="mt-0.5 text-xs text-zinc-500">Semana 01 = dias 1–7 · Semana 02 = 8–14…</p>
           </div>
-          <p className="rounded-xl border border-[#1ed760]/25 bg-black/40 px-3 py-2 font-mono text-sm font-bold tabular-nums text-[#1ed760]">
+          <p className="rounded border border-[#1ed760]/25 bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760]">
             {formatLiveClock(now)}
           </p>
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {weeks.map((week) => {
-          const weekSlug = slugifyFolderName(week.name);
-          const label = displayFolderName(week.name);
-          const weekNumber = parseWeekNumber(week.name);
-          const href = folderHref([monthSlug, weekSlug]);
-          const isNew = newWeekIds?.has(week.id);
-          const days =
-            weekNumber != null && monthDate
-              ? getPackWeekDayRange(monthDate.year, monthDate.month, weekNumber, now)
-              : [];
-          const rangeLabel = formatPackWeekRangeLabel(days);
-          const isCurrent =
-            weekNumber != null && monthDate
-              ? isCurrentPackWeek(monthDate.year, monthDate.month, weekNumber, now)
-              : false;
-          const weekTitle =
-            weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : label;
-          const weekStatus = parseMonthStatus(week.name);
+      <div className={poolPanelClass}>
+        <div className={poolPanelHeaderClass}>
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Semanas</h2>
+          <p className="text-[11px] text-zinc-500">{monthName}</p>
+        </div>
+        <div className={`${poolTableHeadClass} ${WEEK_GRID}`}>
+          <span>Nome</span>
+          <span className="hidden sm:inline">Período</span>
+          <span className="text-right">Ações</span>
+        </div>
+        <div>
+          {weeks.map((week, index) => {
+            const weekSlug = slugifyFolderName(week.name);
+            const label = displayFolderName(week.name);
+            const weekNumber = parseWeekNumber(week.name);
+            const href = folderHref([monthSlug, weekSlug]);
+            const isNew = newWeekIds?.has(week.id);
+            const days =
+              weekNumber != null && monthDate
+                ? getPackWeekDayRange(monthDate.year, monthDate.month, weekNumber, now)
+                : [];
+            const rangeLabel = formatPackWeekRangeLabel(days);
+            const isCurrent =
+              weekNumber != null && monthDate
+                ? isCurrentPackWeek(monthDate.year, monthDate.month, weekNumber, now)
+                : false;
+            const weekTitle =
+              weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : label;
+            const weekStatus = parseMonthStatus(week.name);
 
-          return (
-            <div
-              key={week.id}
-              className={`group relative overflow-hidden rounded-2xl border transition-colors ${
-                weekStatus.status === "em-atualizacao"
-                  ? "border-amber-500/45 bg-gradient-to-br from-amber-500/12 via-[#1a1a1a] to-[#121212]"
-                  : isCurrent
-                    ? "border-[#1ed760]/45 bg-gradient-to-br from-[#1ed760]/12 via-[#1a1a1a] to-[#121212]"
-                    : "border-white/[0.06] bg-[#1a1a1a] hover:border-[#1ed760]/35 hover:bg-[#1f1f1f]"
-              }`}
-            >
-              <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#1ed760]/10 blur-2xl" />
-
-              <div className="relative flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-2 sm:p-5">
-                <Link href={href} className="min-w-0 flex-1 cursor-pointer">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div
-                      className={`flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl sm:h-16 sm:w-16 ${
-                        isCurrent ? "bg-[#1ed760] text-black" : "bg-[#1ed760]/12 text-[#1ed760]"
-                      }`}
-                    >
-                      <span className="text-[9px] font-bold uppercase tracking-wider opacity-80">Sem</span>
-                      <span className="text-2xl font-black tabular-nums leading-none">
-                        {weekNumber != null ? String(weekNumber).padStart(2, "0") : "—"}
-                      </span>
-                    </div>
-
-                    <div className="min-w-0 flex-1 pt-0.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="break-words text-base font-black tracking-tight text-white group-hover:text-[#1ed760] sm:text-lg">
-                          {weekTitle}
-                        </p>
-                        {weekStatus.status === "em-atualizacao" && (
-                          <span className="rounded-md bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                            Em atualização
-                          </span>
-                        )}
-                        {isCurrent && weekStatus.status !== "em-atualizacao" && (
-                          <span className="rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                            Esta semana
-                          </span>
-                        )}
-                        {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
-                          <span className="rounded-md bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                            Novo
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        {monthName}
-                        {rangeLabel ? ` · ${rangeLabel}` : " · estilos e faixas"}
-                      </p>
-                    </div>
-
-                    <ChevronRight className="mt-2 hidden h-4 w-4 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-[#1ed760] sm:block" />
-                  </div>
-
-                  <WeekDayStrip days={days} />
+            return (
+              <div
+                key={week.id}
+                className={`${poolRowBaseClass} ${WEEK_GRID} ${poolRowTone(index, isCurrent)}`}
+              >
+                <Link href={href} className="group flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                    {weekTitle}
+                  </span>
+                  {weekStatus.status === "em-atualizacao" && (
+                    <span className="flex-shrink-0 rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      Em atualização
+                    </span>
+                  )}
+                  {isCurrent && weekStatus.status !== "em-atualizacao" && (
+                    <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      Esta semana
+                    </span>
+                  )}
+                  {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
+                    <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      Novo
+                    </span>
+                  )}
+                  <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
                 </Link>
-
-                <div className="flex flex-shrink-0 items-center justify-end gap-1 sm:pt-1">
+                <p className="hidden truncate text-xs text-zinc-500 sm:block">{rangeLabel || "—"}</p>
+                <div className="flex items-center justify-end gap-1">
                   <SendPackToDownloaderButton
                     slug={`${monthSlug}/${weekSlug}`}
                     compact
@@ -194,9 +143,9 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   />
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
