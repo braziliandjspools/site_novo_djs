@@ -41,7 +41,7 @@ type VipMusicTrackListProps = {
   /** `table` = Atualizações desktop; `discography` = coleções estilo Spotify. */
   layout?: "default" | "table" | "discography";
   hasMore?: boolean;
-  onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | void>;
+  onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
 };
 
 /** Colunas fixas: # | nome | Key | BPM | ações — Key/BPM não deslocam no play. */

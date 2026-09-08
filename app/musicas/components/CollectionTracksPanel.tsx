@@ -116,7 +116,10 @@ export function CollectionTracksPanel({
         canDownload={canDownload}
         relativePath={relativePath}
         hasMore={hasMore}
-        onLoadMore={async () => loadPage(page + 1, true)}
+        onLoadMore={async () => {
+          const result = await loadPage(page + 1, true);
+          return result ?? undefined;
+        }}
       />
       {hasMore && (
         <button

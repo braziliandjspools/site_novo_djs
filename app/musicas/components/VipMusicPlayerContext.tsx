@@ -8,7 +8,7 @@ import { VIP_MUSIC_PREVIEW_SECONDS } from "../../lib/vip-music-preview";
 type FolderPlaybackState = {
   tracks: PreviewTrack[];
   hasMore: boolean;
-  loadMore: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | void>;
+  loadMore: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
 };
 
 type VipMusicPlayerContextValue = {
