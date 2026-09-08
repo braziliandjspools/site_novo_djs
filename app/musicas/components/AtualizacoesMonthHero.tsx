@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { FolderOpen, Music2 } from "lucide-react";
 import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib/vip-music-slugs";
+import { MusicasHeroDownloader } from "./MusicasHeroDownloader";
 
 export function monthStatusClass(status: MonthStatus) {
   if (status === "completo") return "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40";
@@ -94,6 +95,10 @@ export function AtualizacoesMonthHero({
             </span>
           </div>
           {actions ? <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">{actions}</div> : null}
+        </div>
+
+        <div className="mx-auto w-full max-w-sm flex-shrink-0 sm:mx-0 sm:self-end">
+          <MusicasHeroDownloader />
         </div>
       </div>
     </section>

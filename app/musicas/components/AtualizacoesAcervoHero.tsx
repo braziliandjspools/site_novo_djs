@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Music2 } from "lucide-react";
 import { BRS_LOGO_SRC } from "../../components/BrsLogo";
+import { MusicasHeroDownloader } from "./MusicasHeroDownloader";
 
 type AtualizacoesAcervoHeroProps = {
   monthCount: number;
@@ -55,6 +56,10 @@ export function AtualizacoesAcervoHero({ monthCount, hasVip }: AtualizacoesAcerv
               {hasVip ? "Premium ativo" : "Prévia 1 min"}
             </span>
           </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-sm flex-shrink-0 sm:mx-0 sm:self-end">
+          <MusicasHeroDownloader />
         </div>
       </div>
     </section>

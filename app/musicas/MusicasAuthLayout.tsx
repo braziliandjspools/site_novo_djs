@@ -9,7 +9,6 @@ import { DownloaderSyncProvider } from "./components/DownloaderSyncContext";
 import { MusicasTopNav } from "./MusicasSidebar";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
-import { MusicasDownloaderDock } from "./components/MusicasDownloaderDock";
 
 type MusicasAuthLayoutProps = {
   children: React.ReactNode;
@@ -104,13 +103,11 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
               />
 
               <main className="min-w-0 flex-1 overflow-x-clip">
-                <div className="mx-auto w-full max-w-[1600px] px-3 pb-36 pt-4 sm:px-5 sm:pb-40 sm:pt-6 lg:px-8">
+                <div className="mx-auto w-full max-w-[1600px] px-3 pb-12 pt-4 sm:px-5 sm:pt-6 lg:px-8">
                   {!authenticated && !hasVip && <MusicasGuestBanner />}
                   {children}
                 </div>
               </main>
-
-              <MusicasDownloaderDock />
             </div>
           </VipMusicPlayerProvider>
         </MusicasToastProvider>
