@@ -88,7 +88,7 @@ function VolumeBlock({
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao carregar faixas.");
         if (!append) setTracks([]);
-        return null;
+        return undefined;
       } finally {
         setLoading(false);
       }
