@@ -16,7 +16,6 @@ import { planDisplayName } from "./hotmart/types";
 import { HOTMART_PROVIDER } from "./hotmart/config";
 import { DOWNLOADER_NAME, SITE_PRODUCTION_URL } from "./branding";
 import { getDownloaderReleaseManifest } from "./downloader-updates";
-import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -185,12 +184,8 @@ function getVipFtpConfig(): {
 function getPoolsPortalPayload() {
   const config = getLicenseConfig();
   const release = getDownloaderReleaseManifest();
-  const folderId = GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID.trim();
   return {
     catalogUrl: config.pools.catalogUrl,
-    driveUrl: folderId
-      ? `https://drive.google.com/drive/folders/${folderId}`
-      : "https://drive.google.com",
     downloader: {
       name: DOWNLOADER_NAME,
       version: release?.version ?? "1.0.6_estable",

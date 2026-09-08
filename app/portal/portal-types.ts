@@ -50,7 +50,6 @@ export type PortalData = {
   } | null;
   pools: {
     catalogUrl: string;
-    driveUrl: string;
     downloader: {
       name: string;
       version: string;
