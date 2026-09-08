@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Layers, Music2 } from "lucide-react";
-import { MusicasPageHeader } from "../MusicasShell";
 import { CollectionAlbumGrid } from "../components/CollectionAlbumGrid";
+import { CollectionHero } from "../components/CollectionHero";
 import { MusicasListSkeleton } from "../components/MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "../components/MusicasSessionContext";
@@ -15,6 +14,7 @@ type CollectionListItem = {
   slug: string;
   albumCount: number;
   trackCount: number;
+  coverUrl?: string | null;
 };
 
 type ListResponse = {
@@ -52,29 +52,18 @@ export default function ColecoesPage() {
   const totalTracks = collections.reduce((sum, item) => sum + item.trackCount, 0);
 
   return (
-    <div className="space-y-6">
-      <MusicasPageHeader
+    <div className="w-full space-y-6">
+      <CollectionHero
         title="Coleções"
-        subtitle="Discografias e coleções temáticas do acervo VIP."
+        eyebrow="Acervo VIP"
+        description="Discografias e coleções temáticas — abra uma coletânea para ver álbuns e faixas como no streaming."
+        albumCount={totalAlbums}
+        trackCount={totalTracks}
+        hasVip={hasVip}
       />
 
       {!hasVip && authenticated && <VipUpgradeBanner />}
       {!authenticated && <VipUpgradeBanner />}
-
-      <div className="flex flex-wrap gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
-          <Layers className="h-3.5 w-3.5 text-[#1ed760]" />
-          {collections.length} coleções
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
-          <Layers className="h-3.5 w-3.5 text-[#1ed760]" />
-          {totalAlbums} álbuns
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
-          <Music2 className="h-3.5 w-3.5 text-[#1ed760]" />
-          {totalTracks} faixas
-        </div>
-      </div>
 
       {loading ? (
         <MusicasListSkeleton rows={8} />
@@ -87,7 +76,8 @@ export default function ColecoesPage() {
           <p className="text-sm font-semibold text-amber-200">Pasta COLEÇÕES não encontrada</p>
           <p className="mx-auto mt-2 max-w-lg text-sm text-amber-100/80">
             No Google Drive do acervo VIP, crie a pasta <strong>COLEÇÕES</strong> com a estrutura:
-            Coleção → Discos/pastas → arquivos. Ou defina{" "}
+            Coleção → Discos/pastas → arquivos. Coloque uma imagem <strong>folder.jpg</strong> (ou .png) na
+            raiz de cada coleção para a capa. Ou defina{" "}
             <code className="rounded bg-black/30 px-1">GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID</code> no
             ambiente.
           </p>
@@ -102,6 +92,7 @@ export default function ColecoesPage() {
             trackCount: item.trackCount,
             hrefSegments: [item.slug],
             downloaderSlug: item.slug,
+            coverUrl: item.coverUrl,
           }))}
           emptyLabel="Ainda não há coleções nesta pasta do Drive."
         />

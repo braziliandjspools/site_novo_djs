@@ -1,4 +1,5 @@
 import { listDriveFolderChildren } from "./google-drive";
+import { findFolderCover, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
 import { GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID } from "./site";
 import {
   listVipMusicFolders,
@@ -18,6 +19,8 @@ export type CollectionListItem = {
   slug: string;
   albumCount: number;
   trackCount: number;
+  coverFileId: string | null;
+  coverUrl: string | null;
 };
 
 export type CollectionChildItem = {
@@ -28,6 +31,8 @@ export type CollectionChildItem = {
   folderCount: number;
   trackCount: number;
   level: "folders" | "tracks";
+  coverFileId: string | null;
+  coverUrl: string | null;
 };
 
 export type CollectionsResolveResult = {
@@ -43,6 +48,8 @@ export type CollectionsResolveResult = {
   tracks: VipMusicCatalogResponse["tracks"];
   albumCount: number;
   trackCount: number;
+  coverFileId: string | null;
+  coverUrl: string | null;
 };
 
 let cachedCollectionsRootId: string | null | undefined;
@@ -78,11 +85,14 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
 async function countFolderContents(folderId: string) {
   const children = await listDriveFolderChildren(folderId);
   const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
-  const tracks = children.filter((item) => item.mimeType !== FOLDER_MIME);
+  const tracks = children.filter((item) => isDriveAudioFile(item) && !isFolderCoverFile(item));
+  const cover = children.find((item) => isFolderCoverFile(item));
   return {
     folderCount: folders.length,
     trackCount: tracks.length,
     level: (folders.length > 0 ? "folders" : "tracks") as "folders" | "tracks",
+    coverFileId: cover?.id ?? null,
+    coverUrl: cover ? `/api/musicas/cover/${encodeURIComponent(cover.id)}` : null,
   };
 }
 
@@ -101,9 +111,13 @@ export async function listCollections(): Promise<{
     folders.map(async (folder) => {
       let albumCount = 0;
       let trackCount = 0;
+      let coverFileId: string | null = null;
+      let coverUrl: string | null = null;
       try {
         const stats = await countFolderContents(folder.id);
         albumCount = stats.folderCount;
+        coverFileId = stats.coverFileId;
+        coverUrl = stats.coverUrl;
         if (stats.level === "tracks") {
           trackCount = stats.trackCount;
         } else {
@@ -132,6 +146,8 @@ export async function listCollections(): Promise<{
         slug: slugifyFolderName(folder.name),
         albumCount,
         trackCount,
+        coverFileId,
+        coverUrl,
       } satisfies CollectionListItem;
     }),
   );
@@ -151,11 +167,15 @@ async function enrichChildren(folders: VipMusicFolder[]): Promise<CollectionChil
       let folderCount = 0;
       let trackCount = 0;
       let level: "folders" | "tracks" = "folders";
+      let coverFileId: string | null = null;
+      let coverUrl: string | null = null;
       try {
         const stats = await countFolderContents(folder.id);
         folderCount = stats.folderCount;
         trackCount = stats.trackCount;
         level = stats.level;
+        coverFileId = stats.coverFileId;
+        coverUrl = stats.coverUrl;
       } catch {
         /* keep zeros */
       }
@@ -168,6 +188,8 @@ async function enrichChildren(folders: VipMusicFolder[]): Promise<CollectionChil
         folderCount,
         trackCount,
         level,
+        coverFileId,
+        coverUrl,
       } satisfies CollectionChildItem;
     }),
   );
@@ -176,6 +198,8 @@ async function enrichChildren(folders: VipMusicFolder[]): Promise<CollectionChil
 export async function resolveCollectionsPath(slugParam: string): Promise<CollectionsResolveResult> {
   const rootId = await getCollectionsRootFolderId();
   const segments = slugParam.split("/").filter(Boolean);
+
+  const emptyCover = { coverFileId: null as string | null, coverUrl: null as string | null };
 
   if (!rootId) {
     return {
@@ -191,6 +215,7 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
       tracks: [],
       albumCount: 0,
       trackCount: 0,
+      ...emptyCover,
     };
   }
 
@@ -217,8 +242,8 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
   const target = resolvedPath.at(-1);
   const folderId = target?.id ?? rootId;
   const folderName = target?.name ?? "Coleções";
+  const cover = await findFolderCover(folderId);
 
-  // Detecção leve: se há subpastas, lista pastas; senão, é álbum de faixas.
   const childFolders = await listVipMusicFolders(folderId);
   if (childFolders.length === 0) {
     let trackCount = 0;
@@ -242,6 +267,8 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
       tracks: [],
       albumCount: 0,
       trackCount,
+      coverFileId: cover?.fileId ?? null,
+      coverUrl: cover?.coverUrl ?? null,
     };
   }
 
@@ -262,5 +289,7 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
     tracks: [],
     albumCount,
     trackCount,
+    coverFileId: cover?.fileId ?? null,
+    coverUrl: cover?.coverUrl ?? null,
   };
 }

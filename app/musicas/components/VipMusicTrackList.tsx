@@ -40,6 +40,8 @@ type VipMusicTrackListProps = {
   };
   /** `table` = layout desktop em tabela (Atualizações). Mobile permanece o TrackRow atual. */
   layout?: "default" | "table";
+  hasMore?: boolean;
+  onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | void>;
 };
 
 /** Colunas fixas: # | nome | Key | BPM | ações — Key/BPM não deslocam no play. */
@@ -581,6 +583,8 @@ export function VipMusicTrackList({
   autoPlayTrackId,
   continueContext,
   layout = "default",
+  hasMore = false,
+  onLoadMore,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -595,6 +599,7 @@ export function VipMusicTrackList({
     error,
     toggleTrack,
     seek,
+    setFolderPlayback,
   } = useVipMusicPlayer();
 
   const [focusedTrackId, setFocusedTrackId] = useState<string | null>(highlightTrackId ?? null);
@@ -605,8 +610,18 @@ export function VipMusicTrackList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [isDesktop, setIsDesktop] = useState(false);
   const autoPlayedRef = useRef<string | null>(null);
+  const loadMoreRef = useRef(onLoadMore);
+  loadMoreRef.current = onLoadMore;
   const isThisFolder = playingFolderId === folderId;
   const isGlobalBusy = loadingId !== null;
+
+  useEffect(() => {
+    setFolderPlayback(folderId, {
+      tracks,
+      hasMore,
+      loadMore: async () => loadMoreRef.current?.(),
+    });
+  }, [folderId, tracks, hasMore, setFolderPlayback]);
 
   useEffect(() => {
     if (layout !== "table") return;

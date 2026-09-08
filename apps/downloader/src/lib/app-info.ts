@@ -20,7 +20,7 @@ export const APP_CHANGELOG: ChangelogEntry[] = [
     version: "1.0.4_public_beta",
     date: "2026-09-08",
     items: [
-      "Reconhece links de pasta do navegador (/musicas/atualizacoes/...)",
+      "Reconhece links de pasta do navegador (/musicas/atualizacoes/... e /musicas/colecoes/...)",
       "Atualização baixa o instalador por dentro do app (sem abrir o navegador)",
       "Botão WhatsApp de suporte no header e em Configurações",
     ],

@@ -17,8 +17,8 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const raw = searchParams.get("slug") ?? searchParams.get("url") ?? "";
-  const root = searchParams.get("root") === "colecoes" ? "colecoes" : "vip";
-  const parsed = parsePackDownloadInput(raw) ?? (raw.trim() ? { slug: raw.trim() } : null);
+  const rootParam = searchParams.get("root") === "colecoes" ? "colecoes" : null;
+  const parsed = parsePackDownloadInput(raw) ?? (raw.trim() ? { slug: raw.trim(), root: "vip" as const } : null);
   if (!parsed?.slug) {
     return withDownloaderCorsJson(
       request,
@@ -27,11 +27,17 @@ export async function GET(request: Request) {
     );
   }
 
+  const root = rootParam ?? parsed.root;
+
   try {
     const result = await previewPackBySlug(parsed.slug, { root });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });
     }
+    const downloadUrl =
+      result.folder.root === "colecoes"
+        ? `/musicas/colecoes/${result.folder.slug}`
+        : `/musicas/atualizacoes/${result.folder.slug}`;
     return withDownloaderCorsJson(request, {
       ok: true,
       slug: result.folder.slug,
@@ -42,7 +48,7 @@ export async function GET(request: Request) {
       trackCount: result.trackCount,
       sampleTitles: result.sampleTitles,
       root: result.folder.root,
-      downloadUrl: `/musicas/atualizacoes/${result.folder.slug}`,
+      downloadUrl,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao validar a pasta.";

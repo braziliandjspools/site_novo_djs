@@ -25,40 +25,59 @@ export function buildPackDownloadUrl(slugSegments: string[], origin?: string): s
   return path;
 }
 
-function slugFromPackPathname(pathname: string): string | null {
+export type ParsedPackLink = {
+  slug: string;
+  root: "vip" | "colecoes";
+};
+
+function slugFromPackPathname(pathname: string): ParsedPackLink | null {
   const normalized = pathname.replace(/\/+$/, "") || "/";
-  const match = normalized.match(/^\/musicas\/(?:atualizacoes|dl)\/(.+)$/i);
-  if (!match?.[1]) return null;
+  const match = normalized.match(/^\/musicas\/(atualizacoes|dl|colecoes)\/(.+)$/i);
+  if (!match?.[2]) return null;
+  const section = match[1].toLowerCase();
+  const root = section === "colecoes" ? "colecoes" : "vip";
   try {
-    return decodeURIComponent(match[1]).replace(/^\/+|\/+$/g, "");
+    return {
+      slug: decodeURIComponent(match[2]).replace(/^\/+|\/+$/g, ""),
+      root,
+    };
   } catch {
-    return match[1].replace(/^\/+|\/+$/g, "");
+    return {
+      slug: match[2].replace(/^\/+|\/+$/g, ""),
+      root,
+    };
   }
 }
 
 /** Extrai o slug de uma URL do acervo/Downloader ou de um path/slug cru. */
-export function parsePackDownloadInput(input: string): { slug: string } | null {
+export function parsePackDownloadInput(input: string): ParsedPackLink | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
   try {
     const url = new URL(trimmed);
     const q = url.searchParams.get("slug")?.trim();
-    if (q) return { slug: q.replace(/^\/+|\/+$/g, "") };
-    const slug = slugFromPackPathname(url.pathname);
-    if (slug) return { slug };
+    const rootParam = url.searchParams.get("root")?.trim().toLowerCase();
+    if (q) {
+      return {
+        slug: q.replace(/^\/+|\/+$/g, ""),
+        root: rootParam === "colecoes" ? "colecoes" : "vip",
+      };
+    }
+    const fromPath = slugFromPackPathname(url.pathname);
+    if (fromPath) return fromPath;
   } catch {
     /* não é URL absoluta */
   }
 
   const relative = slugFromPackPathname(trimmed.startsWith("/") ? trimmed : `/${trimmed}`);
-  if (relative) return { slug: relative };
+  if (relative) return relative;
 
   if (/^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)+$/i.test(trimmed)) {
-    return { slug: trimmed };
+    return { slug: trimmed, root: "vip" };
   }
   if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/i.test(trimmed)) {
-    return { slug: trimmed };
+    return { slug: trimmed, root: "vip" };
   }
 
   return null;

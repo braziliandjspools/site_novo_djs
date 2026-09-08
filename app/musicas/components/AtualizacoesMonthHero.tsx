@@ -18,6 +18,7 @@ type AtualizacoesMonthHeroProps = {
   itemCount: number;
   hasVip: boolean;
   mode?: HeroMode;
+  coverUrl?: string | null;
   /** Ex.: botão Sincronizar ao lado dos badges. */
   badgeActions?: ReactNode;
   actions?: ReactNode;
@@ -29,11 +30,13 @@ export function AtualizacoesMonthHero({
   itemCount,
   hasVip,
   mode = "styles",
+  coverUrl,
   badgeActions,
   actions,
 }: AtualizacoesMonthHeroProps) {
   const title = displayFolderName(folderName);
   const { label, status } = parseMonthStatus(folderName);
+  const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
 
   const eyebrow =
     mode === "weeks"
@@ -81,12 +84,13 @@ export function AtualizacoesMonthHero({
       <div className="relative flex flex-col gap-5 px-4 py-7 sm:flex-row sm:items-end sm:gap-7 sm:px-8 sm:py-9">
         <div className="relative mx-auto h-36 w-36 flex-shrink-0 overflow-hidden rounded-lg shadow-[0_18px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/15 sm:mx-0 sm:h-44 sm:w-44">
           <Image
-            src={MUSICAS_HERO_COVER_SRC}
-            alt="BRS — Brazilian Remix Service"
+            src={cover}
+            alt={title}
             fill
             className="object-cover"
             sizes="176px"
             priority
+            unoptimized={cover.startsWith("/api/")}
           />
         </div>
 

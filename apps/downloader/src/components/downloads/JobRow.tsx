@@ -192,7 +192,9 @@ export const JobRow = memo(function JobRow({
           {paused && <p className="mt-1 text-xs text-amber-300">{t("jobsPausedNotice")}</p>}
 
           {job.relativePath && (
-            <p className="mt-1 truncate text-xs text-zinc-600">{job.relativePath}</p>
+            <p className="mt-1 truncate text-xs text-zinc-600">
+              {job.relativePath.replace(/^__BRS_TREE__\//, "")}
+            </p>
           )}
 
           {orgChips.length > 0 && (

@@ -75,11 +75,11 @@ pub async fn download_job_file(
 ) -> Result<DownloadResultPayload, String> {
     let prefs = read_preferences(&app)?;
     let base_dir = resolve_download_dir(&app)?;
-    let effective_relative = if prefs.preserve_folder_structure {
-        relative_path.as_deref()
-    } else {
-        None
-    };
+    let effective_owned = paths::effective_relative_path(
+        relative_path.as_deref(),
+        prefs.preserve_folder_structure,
+    );
+    let effective_relative = effective_owned.as_deref();
 
     let candidate = paths::build_destination_path(&base_dir, effective_relative, &file_name)?;
 
@@ -178,13 +178,13 @@ pub async fn cancel_download_job(
         } else {
             let prefs = read_preferences(&app)?;
             let base_dir = resolve_download_dir(&app)?;
+            let effective_owned = paths::effective_relative_path(
+                relative_path.as_deref(),
+                prefs.preserve_folder_structure,
+            );
             let resolved = resolve_destination_path(
                 &base_dir,
-                if prefs.preserve_folder_structure {
-                    relative_path.as_deref()
-                } else {
-                    None
-                },
+                effective_owned.as_deref(),
                 &file_name,
                 prefs.existing_file_behavior,
             )?;

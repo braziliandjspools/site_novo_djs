@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronRight, Disc3, Layers, Loader2, Music2 } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { collectionsHref } from "../../lib/vip-music-slugs";
-import { MusicasPageHeader } from "../MusicasShell";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
+import { CollectionHero } from "./CollectionHero";
 import { CollectionAlbumGrid } from "./CollectionAlbumGrid";
 import { CollectionTracksPanel } from "./CollectionTracksPanel";
+import { CollectionVolumesView } from "./CollectionVolumesView";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { pushRecentFolder } from "../lib/music-library-storage";
+import { withForcedFolderTree } from "../../lib/force-folder-tree";
 
 type CollectionChildItem = {
   id: string;
@@ -20,6 +22,7 @@ type CollectionChildItem = {
   folderCount: number;
   trackCount: number;
   level: "folders" | "tracks";
+  coverUrl?: string | null;
 };
 
 type ResolveResponse = {
@@ -33,6 +36,7 @@ type ResolveResponse = {
   items: CollectionChildItem[];
   albumCount: number;
   trackCount: number;
+  coverUrl?: string | null;
   canPlay?: boolean;
   canDownload?: boolean;
   message?: string;
@@ -113,26 +117,32 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
 
   const canPlay = Boolean(data.canPlay);
   const canDownload = Boolean(data.canDownload);
-  const parentSegments = slugSegments.slice(0, -1);
   const packSlug = slugSegments.join("/");
-  const relativePath = data.resolvedPath.map((part) => part.displayName).join(" / ");
+  const relativePath = withForcedFolderTree(
+    data.resolvedPath.map((part) => part.displayName).join("/"),
+  );
+  const showVolumes =
+    data.level === "folders" && data.items.every((item) => item.level === "tracks");
 
   return (
-    <div className="space-y-6">
-      <nav className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-        <Link href="/musicas/colecoes" className="hover:text-[#1ed760]">
+    <div className="w-full space-y-6">
+      <nav className="mb-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+        <Link
+          href="/musicas/colecoes"
+          className="font-medium text-zinc-400 transition-colors hover:text-white"
+        >
           Coleções
         </Link>
         {data.resolvedPath.map((part, index) => {
           const href = collectionsHref(slugSegments.slice(0, index + 1));
           const isLast = index === data.resolvedPath.length - 1;
           return (
-            <span key={part.id} className="inline-flex items-center gap-1.5">
-              <ChevronRight className="h-3.5 w-3.5" />
+            <span key={part.id} className="contents">
+              <ChevronRight className="h-3 w-3" />
               {isLast ? (
-                <span className="font-semibold text-zinc-300">{part.displayName}</span>
+                <span className="font-medium text-white">{part.displayName}</span>
               ) : (
-                <Link href={href} className="hover:text-[#1ed760]">
+                <Link href={href} className="font-medium text-zinc-400 transition-colors hover:text-white">
                   {part.displayName}
                 </Link>
               )}
@@ -141,51 +151,60 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
         })}
       </nav>
 
-      <MusicasPageHeader
+      <CollectionHero
         title={data.displayName}
-        subtitle={
+        eyebrow={data.level === "tracks" ? "Álbum" : "Coleção"}
+        description={
           data.level === "tracks"
-            ? `${data.trackCount} faixa${data.trackCount === 1 ? "" : "s"} nesta pasta`
-            : `${data.albumCount} pasta${data.albumCount === 1 ? "" : "s"} · ${data.trackCount} faixa${data.trackCount === 1 ? "" : "s"} listadas`
+            ? "Ouça as faixas e envie o álbum ao BRS Downloader."
+            : "Álbuns e volumes empilhados — ouça e envie a coletânea ao Downloader."
+        }
+        coverUrl={data.coverUrl}
+        albumCount={data.level === "folders" ? data.albumCount : undefined}
+        trackCount={data.trackCount}
+        hasVip={hasVip}
+        actions={
+          <SendPackToDownloaderButton
+            slug={packSlug}
+            root="colecoes"
+            label={
+              data.level === "tracks"
+                ? "Enviar álbum ao Downloader"
+                : "Enviar coletânea ao Downloader"
+            }
+          />
         }
       />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
-          {data.level === "tracks" ? (
-            <Disc3 className="h-3.5 w-3.5 text-[#1ed760]" />
-          ) : (
-            <Layers className="h-3.5 w-3.5 text-[#1ed760]" />
-          )}
-          {data.level === "tracks" ? "Álbum / pasta" : "Coleção / discografia"}
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-[#181818] px-3 py-1.5 text-xs text-zinc-300">
-          <Music2 className="h-3.5 w-3.5 text-[#1ed760]" />
-          {data.trackCount} faixas
-        </div>
-        <SendPackToDownloaderButton
-          slug={packSlug}
-          root="colecoes"
-          label={
-            data.level === "tracks"
-              ? "Enviar álbum ao Downloader"
-              : "Enviar coletânea ao Downloader"
-          }
-        />
-        {parentSegments.length > 0 && (
-          <Link
-            href={collectionsHref(parentSegments)}
-            className="inline-flex items-center gap-1 rounded-full border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-[#1ed760]/40 hover:text-white"
-          >
-            Voltar
-          </Link>
-        )}
-      </div>
 
       {!hasVip && authenticated && <VipUpgradeBanner />}
       {!authenticated && <VipUpgradeBanner />}
 
-      {data.level === "folders" ? (
+      {showVolumes ? (
+        <CollectionVolumesView
+          volumes={data.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            displayName: item.displayName,
+            slug: item.slug,
+            trackCount: item.trackCount,
+            coverUrl: item.coverUrl,
+            downloaderSlug: [...slugSegments, item.slug].join("/"),
+            relativePath: withForcedFolderTree(
+              [...data.resolvedPath.map((part) => part.displayName), item.displayName].join("/"),
+            ),
+          }))}
+          canPlay={canPlay}
+          canDownload={canDownload}
+        />
+      ) : data.level === "tracks" ? (
+        <CollectionTracksPanel
+          folderId={data.folderId}
+          folderName={data.folderName}
+          canPlay={canPlay}
+          canDownload={canDownload}
+          relativePath={relativePath}
+        />
+      ) : (
         <CollectionAlbumGrid
           items={data.items.map((item) => ({
             id: item.id,
@@ -197,16 +216,9 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
             hrefSegments: [...slugSegments, item.slug],
             downloaderSlug: [...slugSegments, item.slug].join("/"),
             isAlbum: true,
+            coverUrl: item.coverUrl,
           }))}
           emptyLabel="Nenhum disco ou pasta nesta coleção."
-        />
-      ) : (
-        <CollectionTracksPanel
-          folderId={data.folderId}
-          folderName={data.folderName}
-          canPlay={canPlay}
-          canDownload={canDownload}
-          relativePath={relativePath}
         />
       )}
     </div>

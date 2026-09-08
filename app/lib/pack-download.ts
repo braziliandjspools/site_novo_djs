@@ -11,6 +11,7 @@ import {
 import { getCollectionsRootFolderId } from "./vip-collections";
 import { ensureAudioExtension, type PreviewTrack } from "./google-drive";
 import { createDownloadJobsBatch, type DownloadJobInput } from "./downloader";
+import { withForcedFolderTree } from "./force-folder-tree";
 import { parsePackDownloadInput } from "./pack-download-link";
 
 export type PackRoot = "vip" | "colecoes";
@@ -65,13 +66,17 @@ export async function resolvePackFolderBySlug(
   if (!target) return null;
 
   const pathLabels = resolved.map((folder) => displayFolderName(folder.name));
+  const relativePath =
+    rootMode === "colecoes"
+      ? withForcedFolderTree(pathLabels.join("/"))
+      : pathLabels.join("/");
   return {
     slug: segments.join("/"),
     slugSegments: segments,
     folderId: target.id,
     folderName: target.name,
     displayName: displayFolderName(target.name),
-    relativePath: pathLabels.join("/"),
+    relativePath,
     pathLabels,
     root: rootMode,
   };
@@ -86,27 +91,27 @@ async function collectTracksRecursive(
   if (depth > 8) return [];
 
   const catalog = await getVipMusicCatalog(folderId, folderName);
-  if (catalog.level === "tracks") {
-    return catalog.tracks.map((track: PreviewTrack) => {
-      const fileName = ensureAudioExtension(track.fileName ?? track.title);
-      return {
-        fileId: track.id,
-        fileName,
-        relativePath: relativePath ? `${relativePath}/${fileName}` : fileName,
-        title: track.title,
-      };
-    });
-  }
-
-  const jobs: PackTrackJob[] = catalog.tracks.map((track: PreviewTrack) => {
-    const fileName = ensureAudioExtension(track.fileName ?? track.title);
+  const toJob = (track: PreviewTrack): PackTrackJob | null => {
+    const rawName = track.fileName ?? track.title;
+    // Capas `folder.*` não devem ir para a fila.
+    if (/^folder(\.|$)/i.test(rawName.trim())) return null;
+    const fileName = ensureAudioExtension(rawName);
     return {
       fileId: track.id,
       fileName,
-      relativePath: relativePath ? `${relativePath}/${fileName}` : fileName,
+      // Diretório apenas — o Downloader junta fileName no destino.
+      relativePath,
       title: track.title,
     };
-  });
+  };
+
+  if (catalog.level === "tracks") {
+    return catalog.tracks.map(toJob).filter((job): job is PackTrackJob => Boolean(job));
+  }
+
+  const jobs: PackTrackJob[] = catalog.tracks
+    .map(toJob)
+    .filter((job): job is PackTrackJob => Boolean(job));
 
   for (const item of catalog.items) {
     const childPath = relativePath

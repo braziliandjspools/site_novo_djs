@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     (typeof data.slug === "string" && data.slug) ||
     (typeof data.url === "string" && data.url) ||
     "";
-  const parsed = parsePackDownloadInput(raw) ?? (raw.trim() ? { slug: raw.trim() } : null);
+  const parsed = parsePackDownloadInput(raw) ?? (raw.trim() ? { slug: raw.trim(), root: "vip" as const } : null);
   if (!parsed?.slug) {
     return withDownloaderCorsJson(request, { error: "Informe o link ou slug da pasta." }, { status: 400 });
   }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     typeof data.targetDeviceId === "string" && data.targetDeviceId.trim()
       ? data.targetDeviceId.trim()
       : null;
-  const root = data.root === "colecoes" ? "colecoes" : "vip";
+  const root = data.root === "colecoes" || parsed.root === "colecoes" ? "colecoes" : "vip";
 
   try {
     const result = await importPackJobsBySlug(access.user.id, parsed.slug, { targetDeviceId, root });

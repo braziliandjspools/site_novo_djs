@@ -19,6 +19,7 @@ export type CollectionCardData = {
   folderCount?: number;
   /** Slug completo para enviar ao downloader (coleção ou álbum). */
   downloaderSlug?: string;
+  coverUrl?: string | null;
 };
 
 type CollectionAlbumGridProps = {
@@ -44,6 +45,7 @@ export function CollectionAlbumGrid({
         const href = collectionsHref(item.hrefSegments ?? [item.slug]);
         const albumsOrFolders = item.isAlbum ? (item.folderCount ?? 0) : item.albumCount;
         const packSlug = item.downloaderSlug ?? (item.hrefSegments ?? [item.slug]).join("/");
+        const cover = item.coverUrl?.trim() || PLACEHOLDER.trackCover;
 
         return (
           <div
@@ -53,11 +55,12 @@ export function CollectionAlbumGrid({
             <Link href={href} className="block">
               <div className="relative aspect-square overflow-hidden bg-zinc-900">
                 <Image
-                  src={PLACEHOLDER.trackCover}
+                  src={cover}
                   alt=""
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  unoptimized={cover.startsWith("/api/")}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-3 left-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#1ed760] text-black opacity-0 shadow-lg transition-opacity group-hover:opacity-100">

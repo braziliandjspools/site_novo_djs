@@ -10,9 +10,9 @@ import {
   displayFolderName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
+import { findFolderCover, folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
-const AUDIO_EXTENSIONS = /\.(mp3|wav|flac|m4a|aac|ogg)$/i;
 const MAX_TRACK_WALK_DEPTH = 12;
 
 export type VipMusicFolder = {
@@ -22,6 +22,7 @@ export type VipMusicFolder = {
 
 export type VipMusicCatalogItem = VipMusicFolder & {
   type: "folder";
+  coverUrl?: string | null;
 };
 
 export type VipMusicCatalogResponse = {
@@ -33,6 +34,7 @@ export type VipMusicCatalogResponse = {
   level: "folders" | "tracks";
   items: VipMusicCatalogItem[];
   tracks: PreviewTrack[];
+  coverUrl?: string | null;
 };
 
 type DriveChild = {
@@ -48,12 +50,6 @@ export function getVipMusicRootFolderId() {
 
 export function isVipMusicCatalogConfigured() {
   return Boolean(getVipMusicRootFolderId());
-}
-
-function isDriveAudioFile(file: DriveChild) {
-  if (file.mimeType === FOLDER_MIME) return false;
-  if (file.mimeType.startsWith("audio/")) return true;
-  return AUDIO_EXTENSIONS.test(file.name);
 }
 
 function toPreviewTrack(file: DriveChild, packName: string): PreviewTrack {
@@ -111,12 +107,22 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
   const children = await listDriveFolderChildren(folderId);
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
+  const coverFile = children.find((item) => isFolderCoverFile(item));
+  const coverUrl = coverFile ? folderCoverUrl(coverFile.id) : null;
 
   // Há subpastas: navega por pastas; se também houver áudio no mesmo nível, inclui as faixas.
   if (subfolders.length > 0) {
     const directTracks = audioFiles
       .map((file) => toPreviewTrack(file, folderName))
       .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+
+    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
+    const covers = await Promise.all(sorted.map((folder) => findFolderCover(folder.id)));
+    const items: VipMusicCatalogItem[] = sorted.map((folder, index) => ({
+      ...folder,
+      type: "folder" as const,
+      coverUrl: covers[index]?.coverUrl ?? null,
+    }));
 
     return {
       configured: true,
@@ -125,16 +131,9 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       folderId,
       folderName,
       level: "folders",
-      items: sortVipChildFolders(
-        subfolders.map((folder) => ({
-          id: folder.id,
-          name: folder.name,
-        })),
-      ).map((folder) => ({
-        ...folder,
-        type: "folder" as const,
-      })),
+      items,
       tracks: directTracks,
+      coverUrl,
     };
   }
 
@@ -152,6 +151,7 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
     level: "tracks",
     items: [],
     tracks,
+    coverUrl,
   };
 }
 
@@ -171,6 +171,7 @@ export async function getVipMusicCatalog(
       level: "folders",
       items: [],
       tracks: [],
+      coverUrl: null,
     };
   }
 
@@ -189,6 +190,7 @@ export async function getVipMusicCatalog(
       level: "folders",
       items: [],
       tracks: [],
+      coverUrl: null,
     };
   }
 }

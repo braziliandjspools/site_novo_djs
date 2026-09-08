@@ -6,6 +6,32 @@ use crate::app_prefs::ExistingFileBehavior;
 const PART_SUFFIX: &str = ".part";
 const MAX_SEGMENT_LEN: usize = 200;
 const MAX_RELATIVE_DEPTH: usize = 32;
+/// Prefixo enviado pelo site em coleções: força estrutura de pastas no disco.
+pub const FORCE_FOLDER_TREE_PREFIX: &str = "__BRS_TREE__/";
+
+/// Resolve o relativePath efetivo: coleções sempre preservam pastas.
+pub fn effective_relative_path(
+    relative_path: Option<&str>,
+    preserve_folder_structure: bool,
+) -> Option<String> {
+    let Some(raw) = relative_path.map(str::trim).filter(|value| !value.is_empty()) else {
+        return None;
+    };
+
+    if let Some(rest) = raw.strip_prefix(FORCE_FOLDER_TREE_PREFIX) {
+        let cleaned = rest.trim().trim_matches('/');
+        if cleaned.is_empty() {
+            return None;
+        }
+        return Some(cleaned.to_string());
+    }
+
+    if preserve_folder_structure {
+        Some(raw.to_string())
+    } else {
+        None
+    }
+}
 
 const WINDOWS_RESERVED: &[&str] = &[
     "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
@@ -262,6 +288,18 @@ mod tests {
         let result = build_destination_path(&base, Some("../secret"), "musica.mp3");
         assert!(result.is_err());
         let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn force_tree_prefix_ignores_preserve_false() {
+        let forced = effective_relative_path(Some("__BRS_TREE__/Coleção/Vol 1"), false);
+        assert_eq!(forced.as_deref(), Some("Coleção/Vol 1"));
+
+        let normal = effective_relative_path(Some("Julho/Funk"), false);
+        assert_eq!(normal, None);
+
+        let preserved = effective_relative_path(Some("Julho/Funk"), true);
+        assert_eq!(preserved.as_deref(), Some("Julho/Funk"));
     }
 
     #[test]

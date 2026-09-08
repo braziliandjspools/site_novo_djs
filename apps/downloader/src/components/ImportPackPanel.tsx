@@ -4,7 +4,7 @@ import { Button } from "./ui/Button";
 import { Panel } from "./ui/Panel";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
-import { importPackLink, parsePackLinkInput, previewPackLink, type PackPreview } from "../lib/api/pack-import";
+import { importPackLink, parsePackLinkInput, previewPackLink, stripForcedFolderTreePrefix, type PackPreview } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
 import { useLocale } from "../i18n/LocaleContext";
 
@@ -54,7 +54,9 @@ export function ImportPackPanel() {
     setError(null);
     setSuccess(null);
     try {
-      const result = await importPackLink(sessionToken, preview.slug);
+      const result = await importPackLink(sessionToken, preview.slug, {
+        root: preview.root === "colecoes" ? "colecoes" : "vip",
+      });
       setSuccess(
         result.count === 1
           ? t("importAddedOne")
@@ -119,7 +121,9 @@ export function ImportPackPanel() {
         {preview && (
           <div className="rounded-xl border border-white/[0.06] bg-[#141414] px-4 py-3">
             <p className="text-sm font-bold text-white">{preview.folderName}</p>
-            <p className="mt-0.5 truncate text-xs text-zinc-500">{preview.relativePath}</p>
+            <p className="mt-0.5 truncate text-xs text-zinc-500">
+              {stripForcedFolderTreePrefix(preview.relativePath) || preview.relativePath}
+            </p>
             <p className="mt-3 text-lg font-black tabular-nums text-[#1db954]">
               {preview.trackCount}{" "}
               <span className="text-sm font-semibold text-zinc-400">

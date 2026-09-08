@@ -94,7 +94,11 @@ const AUDIO_FILE_RE = /\.(mp3|wav|flac|aiff?|m4a|ogg|aac)$/i;
 
 function splitPath(relativePath: string | null | undefined): string[] {
   if (!relativePath?.trim()) return [];
-  return relativePath
+  const FORCE_FOLDER_TREE_PREFIX = "__BRS_TREE__/";
+  const cleaned = relativePath.trim().startsWith(FORCE_FOLDER_TREE_PREFIX)
+    ? relativePath.trim().slice(FORCE_FOLDER_TREE_PREFIX.length)
+    : relativePath.trim();
+  return cleaned
     .split(/[/\\]+/)
     .map((part) => part.trim())
     .filter(Boolean);

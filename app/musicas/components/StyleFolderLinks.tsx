@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, FolderOpen } from "lucide-react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
@@ -45,6 +46,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
           const resolveSlug = nextSegments.join("/");
           const isNew = newFolderIds?.has(folder.id);
           const label = displayFolderName(folder.name);
+          const cover = folder.coverUrl?.trim();
 
           return (
             <div
@@ -59,9 +61,22 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 onFocus={() =>
                   prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)
                 }
-                className="group flex min-w-0 items-center gap-2"
+                className="group flex min-w-0 items-center gap-2.5"
               >
-                <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#1ed760]/80" />
+                {cover ? (
+                  <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md ring-1 ring-white/10">
+                    <Image
+                      src={cover}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="36px"
+                      unoptimized={cover.startsWith("/api/")}
+                    />
+                  </span>
+                ) : (
+                  <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#1ed760]/80" />
+                )}
                 <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
                   {label}
                 </span>

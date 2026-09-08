@@ -13,6 +13,7 @@ export type ZipPackPlan = {
 };
 
 const INVALID_WIN_CHARS = /[<>:"/\\|?*\u0000]/g;
+const FORCE_FOLDER_TREE_PREFIX = "__BRS_TREE__/";
 
 export function sanitizeZipBaseName(name: string): string {
   const trimmed = name.trim().replace(/[.\s]+$/g, "");
@@ -24,7 +25,10 @@ export function sanitizeZipBaseName(name: string): string {
 
 export function splitRelativePath(relativePath: string | null | undefined): string[] {
   if (!relativePath?.trim()) return [];
-  return relativePath
+  const cleaned = relativePath.trim().startsWith(FORCE_FOLDER_TREE_PREFIX)
+    ? relativePath.trim().slice(FORCE_FOLDER_TREE_PREFIX.length)
+    : relativePath.trim();
+  return cleaned
     .split(/[/\\]+/)
     .map((part) => part.trim())
     .filter(Boolean);

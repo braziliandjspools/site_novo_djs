@@ -40,6 +40,7 @@ type ResolveResponse = {
   level: "folders" | "tracks";
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
+  coverUrl?: string | null;
   canPlay: boolean;
   canDownload?: boolean;
   canPlayFull?: boolean;
@@ -242,6 +243,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           itemCount={heroCount}
           hasVip={hasVip}
           mode={heroMode}
+          coverUrl={data.coverUrl}
           badgeActions={
             <AtualizacoesDriveSyncButton
               onSynced={async () => {

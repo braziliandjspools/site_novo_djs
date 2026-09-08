@@ -50,13 +50,24 @@ export function CollectionTracksPanel({
         const res = await fetch(`/api/musicas/tracks?${params.toString()}`, { cache: "no-store" });
         const data = (await res.json()) as TracksResponse;
         if (!res.ok) throw new Error(data.error ?? "Erro ao carregar faixas.");
-        setTracks((prev) => (append ? [...prev, ...data.tracks] : data.tracks));
+
+        let resolvedTracks: PreviewTrack[] = data.tracks;
+        if (append) {
+          setTracks((prev) => {
+            resolvedTracks = [...prev, ...data.tracks];
+            return resolvedTracks;
+          });
+        } else {
+          setTracks(data.tracks);
+        }
         setTotal(data.total);
         setPage(data.page);
         setHasMore(data.hasMore);
+        return { tracks: resolvedTracks, hasMore: data.hasMore };
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao carregar faixas.");
         if (!append) setTracks([]);
+        return null;
       } finally {
         setLoading(false);
       }
@@ -104,6 +115,8 @@ export function CollectionTracksPanel({
         canPlay={canPlay}
         canDownload={canDownload}
         relativePath={relativePath}
+        hasMore={hasMore}
+        onLoadMore={async () => loadPage(page + 1, true)}
       />
       {hasMore && (
         <button
