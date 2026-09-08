@@ -80,7 +80,25 @@ export function NotificationBell({ onOpenPortal, onOpenSettings }: NotificationB
       return;
     }
     if (action.type === "update") {
-      await openUpdateDownload(action.url);
+      inAppNotificationFeed.push({
+        kind: "update",
+        severity: "info",
+        title: t("notificationsUpdateDownloading"),
+        body: t("settingsDownloadingUpdate"),
+        dedupeKey: "update-downloading",
+      });
+      try {
+        await openUpdateDownload(action.url);
+        inAppNotificationFeed.push({
+          kind: "update",
+          severity: "success",
+          title: t("notificationsUpdateDownloadStarted"),
+          body: action.url,
+          dedupeKey: `update-downloaded:${action.url}`,
+        });
+      } catch {
+        /* erro já notificado em openUpdateDownload */
+      }
       return;
     }
     if (action.type === "url") {

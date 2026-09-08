@@ -7,6 +7,7 @@ use tauri_plugin_autostart::MacosLauncher;
 
 mod api_client;
 mod app_prefs;
+mod app_update;
 mod auth;
 mod download;
 mod tray;
@@ -52,6 +53,7 @@ pub fn run() {
             tray::show_main_window_command,
             tray::update_tray_state,
             api_client::desktop_api_fetch,
+            app_update::download_and_launch_installer,
         ])
         .setup(|app| {
             tray::setup_tray(app.handle())?;

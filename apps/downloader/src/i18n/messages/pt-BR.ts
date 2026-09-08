@@ -280,6 +280,9 @@ export const messagesPtBR = {
   settingsUpToDate: "Você já está na versão mais recente.",
   settingsUpdateAvailable: "Versão {version} disponível",
   settingsDownloadUpdate: "Baixar atualização",
+  settingsDownloadingUpdate: "Baixando atualização…",
+  settingsSupportWhatsApp: "Suporte no WhatsApp",
+  settingsSupportWhatsAppDesc: "Fale com nossa equipe pelo WhatsApp.",
   settingsApiUrl: "URL do site (API)",
   settingsApiUrlDesc: "Só mude se o suporte pedir.",
   settingsWebuiVersion: "Versão da interface",
@@ -314,9 +317,12 @@ export const messagesPtBR = {
   notificationsDownloadsFailed: "Falhas no download",
   notificationsDownloadsFailedBody: "{count} arquivos falharam",
   notificationsDownloadUpdate: "Baixar e atualizar",
+  notificationsUpdateDownloadFailed: "Falha ao baixar a atualização",
+  notificationsUpdateDownloading: "Baixando instalador…",
+  notificationsUpdateDownloadStarted: "Instalador baixado — conclua a instalação na janela que abriu.",
   notificationsUpdateCheckFailed: "Falha ao verificar atualizações",
   notificationsUpdateSystemTitle: "Atualização {version}",
-  notificationsUpdateSystemBody: "Abra o sininho do app para baixar e instalar.",
+  notificationsUpdateSystemBody: "Abra o sininho do app para baixar e instalar por dentro do Downloader.",
 
   // plan notices
   planExpiredBody:

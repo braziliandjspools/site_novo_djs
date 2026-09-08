@@ -1,10 +1,10 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.3_public_beta";
-export const APP_CORE_VERSION = "1.0.3_public_beta";
+export const WEBUI_VERSION = "1.0.4_public_beta";
+export const APP_CORE_VERSION = "1.0.4_public_beta";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
-export const RUSTC_VERSION = "1.98.0";
+export const RUSTC_VERSION = "1.98.1";
 
 export type ChangelogEntry = {
   version: string;
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.4_public_beta",
+    date: "2026-09-08",
+    items: [
+      "Reconhece links de pasta do navegador (/musicas/atualizacoes/...)",
+      "Atualização baixa o instalador por dentro do app (sem abrir o navegador)",
+      "Botão WhatsApp de suporte no header e em Configurações",
+    ],
+  },
   {
     version: "1.0.3_public_beta",
     date: "2026-09-07",

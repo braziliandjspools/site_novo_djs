@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Sora } from "next/font/google";
 import "./globals.css";
+import { BackToTopButton } from "./components/BackToTopButton";
 import { MarketingChrome } from "./components/MarketingChrome";
 import { JsonLd } from "./components/JsonLd";
 import { BRS_LOGO_SRC } from "./lib/branding";
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-full w-full max-w-[100vw] flex-col overflow-x-clip bg-[#121212] text-white font-sans" suppressHydrationWarning>
         <MarketingChrome>{children}</MarketingChrome>
+        <BackToTopButton />
       </body>
     </html>
   );

@@ -273,6 +273,9 @@ export const messagesEn = {
   settingsUpToDate: "You're already on the latest version.",
   settingsUpdateAvailable: "Version {version} available",
   settingsDownloadUpdate: "Download update",
+  settingsDownloadingUpdate: "Downloading update…",
+  settingsSupportWhatsApp: "WhatsApp support",
+  settingsSupportWhatsAppDesc: "Talk to our team on WhatsApp.",
   settingsApiUrl: "Site URL (API)",
   settingsApiUrlDesc: "Only change this if support asks you to.",
   settingsWebuiVersion: "Interface version",
@@ -307,9 +310,12 @@ export const messagesEn = {
   notificationsDownloadsFailed: "Download failures",
   notificationsDownloadsFailedBody: "{count} files failed",
   notificationsDownloadUpdate: "Download and update",
+  notificationsUpdateDownloadFailed: "Failed to download the update",
+  notificationsUpdateDownloading: "Downloading installer…",
+  notificationsUpdateDownloadStarted: "Installer downloaded — finish setup in the window that opened.",
   notificationsUpdateCheckFailed: "Could not check for updates",
   notificationsUpdateSystemTitle: "Update {version}",
-  notificationsUpdateSystemBody: "Open the app bell to download and install.",
+  notificationsUpdateSystemBody: "Open the app bell to download and install inside the Downloader.",
 
   // plan notices
   planExpiredBody:

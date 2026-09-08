@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, ExternalLink, FolderOpen, Info, Loader2, LogOut, User } from "lucide-react";
+import { Download, ExternalLink, FolderOpen, Info, Loader2, LogOut, MessageCircle, User } from "lucide-react";
 import { Panel } from "../components/ui/Panel";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
@@ -8,7 +8,13 @@ import { APP_VERSION, DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBas
 import { APP_CHANGELOG, APP_CORE_VERSION, RUSTC_VERSION, WEBUI_VERSION } from "../lib/app-info";
 import { checkForAppUpdates, openUpdateDownload } from "../lib/updater";
 import { openPlatform } from "../lib/open-site";
-import { BP_MUSICAS_URL, BP_PRIVACY_CONDUCT_URL, BP_PRIVACY_COOKIES_URL, BP_PRIVACY_DOWNLOADER_URL } from "../lib/site";
+import {
+  BP_MUSICAS_URL,
+  BP_PRIVACY_CONDUCT_URL,
+  BP_PRIVACY_COOKIES_URL,
+  BP_PRIVACY_DOWNLOADER_URL,
+  supportWhatsAppUrl,
+} from "../lib/site";
 import { downloadManager } from "../lib/download/download-manager";
 import { notificationManager } from "../lib/notifications/notification-manager";
 import {
@@ -527,9 +533,28 @@ export function SettingsPage() {
             {updateBusy ? t("settingsCheckingUpdates") : t("settingsCheckUpdatesNow")}
           </Button>
           {latestDownloadUrl && (
-            <Button variant="primary" onClick={() => void openUpdateDownload(latestDownloadUrl)}>
-              <Download className="h-4 w-4" />
-              {t("settingsDownloadUpdate")}
+            <Button
+              variant="primary"
+              disabled={updateBusy}
+              onClick={() => {
+                void (async () => {
+                  setUpdateBusy(true);
+                  setUpdateMessage(t("settingsDownloadingUpdate"));
+                  try {
+                    await openUpdateDownload(latestDownloadUrl);
+                    setUpdateMessage(t("notificationsUpdateDownloadStarted"));
+                  } catch (error) {
+                    setUpdateMessage(
+                      error instanceof Error ? error.message : t("notificationsUpdateDownloadFailed"),
+                    );
+                  } finally {
+                    setUpdateBusy(false);
+                  }
+                })();
+              }}
+            >
+              {updateBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {updateBusy ? t("settingsDownloadingUpdate") : t("settingsDownloadUpdate")}
             </Button>
           )}
         </div>
@@ -572,6 +597,16 @@ export function SettingsPage() {
           <ExternalLink className="h-4 w-4" />
           {t("settingsAppOnline")}
         </button>
+
+        <button
+          type="button"
+          onClick={() => void openPlatform(supportWhatsAppUrl())}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#25D366]/40 bg-[#25D366]/15 px-5 py-3 text-sm font-bold tracking-wide text-[#25D366] transition-colors hover:bg-[#25D366]/25"
+        >
+          <MessageCircle className="h-4 w-4" />
+          {t("settingsSupportWhatsApp")}
+        </button>
+        <p className="mt-2 text-xs text-zinc-500">{t("settingsSupportWhatsAppDesc")}</p>
 
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between gap-4 border-b border-zinc-800 pb-2">

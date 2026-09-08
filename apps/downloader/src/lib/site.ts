@@ -5,6 +5,15 @@ export const SITE_SHORT = "BRS";
 export const DOWNLOADER_NAME = "BRS Downloader";
 export const BRS_LOGO_SRC = "/images/brs-logo.jpg";
 
+export const SUPPORT_WHATSAPP_NUMBER = "5551935052274";
+
+export function supportWhatsAppUrl(message?: string) {
+  const text =
+    message?.trim() ||
+    "Olá! Preciso de suporte com o BRS Downloader.";
+  return `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+}
+
 /** URL da plataforma de músicas no site (configurável via .env). */
 export const BP_MUSICAS_URL = DEFAULT_BP_SITE_URL;
 

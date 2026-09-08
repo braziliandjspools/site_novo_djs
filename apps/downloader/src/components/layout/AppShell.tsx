@@ -1,10 +1,14 @@
 import type { ReactNode } from "react";
+import { MessageCircle } from "lucide-react";
 import type { AppRoute } from "./Sidebar";
 import { Sidebar } from "./Sidebar";
 import { NotificationBell } from "./NotificationBell";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo, PlanBillingInfo } from "../../context/AuthContext";
 import { useAppNotifications } from "../../hooks/useAppNotifications";
+import { openPlatform } from "../../lib/open-site";
+import { supportWhatsAppUrl } from "../../lib/site";
+import { useLocale } from "../../i18n/LocaleContext";
 
 type AppShellProps = {
   activeRoute: AppRoute;
@@ -40,6 +44,7 @@ export function AppShell({
   children,
 }: AppShellProps) {
   useAppNotifications(billing);
+  const { t } = useLocale();
 
   return (
     <div className="flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
@@ -70,7 +75,17 @@ export function AppShell({
               </p>
             )}
           </div>
-          <div className="relative z-[60] flex-shrink-0">
+          <div className="relative z-[60] flex flex-shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void openPlatform(supportWhatsAppUrl())}
+              title={t("settingsSupportWhatsApp")}
+              aria-label={t("settingsSupportWhatsApp")}
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#25D366]/35 bg-[#25D366]/15 px-3 text-sm font-semibold text-[#25D366] transition-colors hover:bg-[#25D366]/25"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </button>
             <NotificationBell
               onOpenPortal={() => onNavigate("portal")}
               onOpenSettings={() => onNavigate("settings")}

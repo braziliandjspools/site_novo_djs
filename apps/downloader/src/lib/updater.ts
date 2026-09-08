@@ -108,7 +108,25 @@ export async function checkForAppUpdates(options?: {
 }
 
 export async function openUpdateDownload(downloadUrl: string) {
-  await openPlatform(downloadUrl);
+  if (!isDesktopRuntime()) {
+    await openPlatform(downloadUrl);
+    return;
+  }
+
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke<string>("download_and_launch_installer", { url: downloadUrl });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    inAppNotificationFeed.push({
+      kind: "info",
+      severity: "error",
+      title: tRuntime("notificationsUpdateDownloadFailed"),
+      body: message,
+      dedupeKey: "update-download-error",
+    });
+    throw error instanceof Error ? error : new Error(message);
+  }
 }
 
 export function isNewerThanInstalled(remoteVersion: string) {
