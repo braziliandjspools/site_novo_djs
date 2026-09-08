@@ -23,9 +23,9 @@ const AtualizacoesSearchContext = createContext<AtualizacoesSearchContextValue |
 export function hitHref(hit: VipMusicSearchHit, query?: string) {
   const segments = [hit.monthSlug];
   if (hit.weekSlug) segments.push(hit.weekSlug);
+  if (hit.styleSlug) segments.push(hit.styleSlug);
   const base = folderHref(segments);
   const params = new URLSearchParams();
-  if (hit.styleSlug) params.set("estilo", hit.styleSlug);
   if (hit.type === "track") params.set("faixa", hit.id);
   if (query?.trim()) params.set("q", query.trim());
   const qs = params.toString();

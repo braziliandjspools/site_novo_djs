@@ -10,11 +10,12 @@ export function monthStatusClass(status: MonthStatus) {
   return "bg-zinc-900 text-zinc-500 ring-zinc-700";
 }
 
-type HeroMode = "weeks" | "week-styles" | "styles";
+type HeroMode = "weeks" | "week-styles" | "styles" | "tracks";
 
 type AtualizacoesMonthHeroProps = {
   folderName: string;
-  styleCount: number;
+  /** Contagem contextual: semanas, estilos ou faixas. */
+  itemCount: number;
   hasVip: boolean;
   mode?: HeroMode;
   /** Ex.: botão Sincronizar ao lado dos badges. */
@@ -25,7 +26,7 @@ type AtualizacoesMonthHeroProps = {
 /** Hero de pasta estilo capa de playlist. */
 export function AtualizacoesMonthHero({
   folderName,
-  styleCount,
+  itemCount,
   hasVip,
   mode = "styles",
   badgeActions,
@@ -35,21 +36,33 @@ export function AtualizacoesMonthHero({
   const { label, status } = parseMonthStatus(folderName);
 
   const eyebrow =
-    mode === "weeks" ? "Pack do mês" : mode === "week-styles" ? "Semana" : "Estilos";
+    mode === "weeks"
+      ? "Pack do mês"
+      : mode === "tracks"
+        ? "Pack"
+        : mode === "week-styles"
+          ? "Semana"
+          : "Estilos";
   const description =
     mode === "weeks"
       ? "Escolha a semana e continue até as faixas."
-      : mode === "week-styles"
-        ? "Abra um estilo para ouvir e enviar packs ao Downloader."
-        : "Abra a pasta, ouça e envie packs ao BRS Downloader.";
+      : mode === "tracks"
+        ? "Ouça as faixas e envie packs ao BRS Downloader."
+        : mode === "week-styles"
+          ? "Abra uma pasta para ouvir e enviar packs ao Downloader."
+          : "Abra a pasta, ouça e envie packs ao BRS Downloader.";
   const countLabel =
     mode === "weeks"
-      ? styleCount === 1
+      ? itemCount === 1
         ? "semana"
         : "semanas"
-      : styleCount === 1
-        ? "estilo"
-        : "estilos";
+      : mode === "tracks"
+        ? itemCount === 1
+          ? "faixa"
+          : "faixas"
+        : itemCount === 1
+          ? "pasta"
+          : "pastas";
 
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl">
@@ -91,8 +104,8 @@ export function AtualizacoesMonthHero({
           </div>
           <p className="mt-2 max-w-2xl text-sm text-white/65">{description}</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15">
-              {styleCount} {countLabel}
+            <span className="rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold tabular-nums text-white ring-1 ring-white/15">
+              {itemCount} {countLabel}
             </span>
             <span
               className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${

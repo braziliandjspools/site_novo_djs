@@ -629,10 +629,8 @@ export function VipMusicTrackList({
         const styleSlug = slugifyFolderName(continueContext.styleName);
         const segments = [continueContext.monthSlug];
         if (continueContext.weekSlug) segments.push(continueContext.weekSlug);
-        const params = new URLSearchParams({
-          estilo: styleSlug,
-          faixa: id,
-        });
+        segments.push(styleSlug);
+        const params = new URLSearchParams({ faixa: id });
         recordContinueFromTrack({
           ...track,
           styleFolderId: folderId,
