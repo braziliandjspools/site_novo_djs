@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
+import { MusicasTracksSkeleton } from "./MusicasSkeletons";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 
 type CollectionTracksPanelProps = {
@@ -72,11 +73,7 @@ export function CollectionTracksPanel({
   }, [loadPage]);
 
   if (loading && tracks.length === 0) {
-    return (
-      <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-zinc-800 bg-[#181818]">
-        <Loader2 className="h-7 w-7 animate-spin text-[#1ed760]" />
-      </div>
-    );
+    return <MusicasTracksSkeleton rows={6} />;
   }
 
   if (error && tracks.length === 0) {

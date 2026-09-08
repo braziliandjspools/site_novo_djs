@@ -1,5 +1,7 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+
 function SkeletonPulse({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-white/10 ${className}`} />;
 }
@@ -49,32 +51,43 @@ export function MusicasListSkeleton({ rows = 6 }: { rows?: number }) {
 
 export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
   return (
-    <div className="overflow-hidden rounded-md border border-zinc-700/70 bg-black" aria-busy="true">
-      <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] gap-x-3 border-b border-zinc-700/60 bg-[#0a0a0a] px-4 py-2">
-        <SkeletonPulse className="mx-auto h-3 w-4" />
-        <SkeletonPulse className="h-3 w-16" />
-        <SkeletonPulse className="mx-auto h-3 w-6" />
-        <SkeletonPulse className="mx-auto h-3 w-8" />
-        <SkeletonPulse className="ml-auto h-3 w-10" />
+    <div className="space-y-3" aria-busy="true" aria-live="polite" aria-label="Carregando músicas">
+      <div className="flex items-start gap-3 rounded-md border border-zinc-700/60 bg-[#141414] px-4 py-3">
+        <Loader2 className="mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-[#1ed760]" aria-hidden />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-zinc-100">As músicas estão carregando…</p>
+          <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+            Pode demorar um pouco se a pasta tiver muitos arquivos.
+          </p>
+        </div>
       </div>
-      {Array.from({ length: rows }).map((_, index) => (
-        <div
-          key={index}
-          className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] items-center gap-x-3 border-b border-zinc-800 px-4 py-3"
-        >
-          <SkeletonPulse className="mx-auto h-3 w-5" />
-          <div className="flex min-w-0 items-center gap-3">
-            <SkeletonPulse className="h-9 w-9 flex-shrink-0 rounded-full" />
-            <SkeletonPulse className="h-4 w-full max-w-xs" />
-          </div>
+      <div className="overflow-hidden rounded-md border border-zinc-700/70 bg-black">
+        <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] gap-x-3 border-b border-zinc-700/60 bg-[#0a0a0a] px-4 py-2">
+          <SkeletonPulse className="mx-auto h-3 w-4" />
+          <SkeletonPulse className="h-3 w-16" />
           <SkeletonPulse className="mx-auto h-3 w-6" />
           <SkeletonPulse className="mx-auto h-3 w-8" />
-          <div className="flex justify-end gap-1">
-            <SkeletonPulse className="h-7 w-7 rounded-md" />
-            <SkeletonPulse className="h-7 w-7 rounded-md" />
-          </div>
+          <SkeletonPulse className="ml-auto h-3 w-10" />
         </div>
-      ))}
+        {Array.from({ length: rows }).map((_, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] items-center gap-x-3 border-b border-zinc-800 px-4 py-3"
+          >
+            <SkeletonPulse className="mx-auto h-3 w-5" />
+            <div className="flex min-w-0 items-center gap-3">
+              <SkeletonPulse className="h-9 w-9 flex-shrink-0 rounded-full" />
+              <SkeletonPulse className="h-4 w-full max-w-xs" />
+            </div>
+            <SkeletonPulse className="mx-auto h-3 w-6" />
+            <SkeletonPulse className="mx-auto h-3 w-8" />
+            <div className="flex justify-end gap-1">
+              <SkeletonPulse className="h-7 w-7 rounded-md" />
+              <SkeletonPulse className="h-7 w-7 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
