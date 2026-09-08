@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { Music2 } from "lucide-react";
-import { BRS_LOGO_SRC } from "../../components/BrsLogo";
+import { MUSICAS_HERO_BG_SRC, MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
 
 type AtualizacoesAcervoHeroProps = {
   monthCount: number;
@@ -13,25 +12,28 @@ type AtualizacoesAcervoHeroProps = {
 export function AtualizacoesAcervoHero({ monthCount, hasVip, badgeActions }: AtualizacoesAcervoHeroProps) {
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl">
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-[#1ed760]/35 via-[#0d3d22] to-[#121212]"
+      <Image
+        src={MUSICAS_HERO_BG_SRC}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
         aria-hidden
       />
-      <div
-        className="absolute -left-20 top-0 h-72 w-72 rounded-full bg-[#1ed760]/20 blur-3xl"
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/35" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/30" aria-hidden />
+
       <div className="relative flex flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:gap-8 sm:px-8 sm:py-10">
-        <div className="relative mx-auto flex h-44 w-44 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-[#1ed760] to-[#0a5c2c] shadow-[0_20px_50px_rgba(0,0,0,0.55)] sm:mx-0 sm:h-52 sm:w-52">
+        <div className="relative mx-auto h-44 w-44 flex-shrink-0 overflow-hidden rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.55)] ring-1 ring-white/15 sm:mx-0 sm:h-52 sm:w-52">
           <Image
-            src={BRS_LOGO_SRC}
-            alt=""
+            src={MUSICAS_HERO_COVER_SRC}
+            alt="BRS — Brazilian Remix Service"
             fill
-            className="object-contain p-6 opacity-95"
+            className="object-cover"
             sizes="208px"
             priority
           />
-          <Music2 className="pointer-events-none absolute bottom-3 right-3 h-6 w-6 text-black/40" />
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:pb-1 sm:text-left">

@@ -1,6 +1,7 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
-import { FolderOpen, Music2 } from "lucide-react";
 import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib/vip-music-slugs";
+import { MUSICAS_HERO_BG_SRC, MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
 
 export function monthStatusClass(status: MonthStatus) {
   if (status === "completo") return "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40";
@@ -50,23 +51,30 @@ export function AtualizacoesMonthHero({
         ? "estilo"
         : "estilos";
 
-  const gradient =
-    mode === "weeks"
-      ? "from-[#1ed760]/40 via-[#12382a] to-[#121212]"
-      : mode === "week-styles"
-        ? "from-sky-500/35 via-[#152536] to-[#121212]"
-        : "from-amber-500/30 via-[#2a2114] to-[#121212]";
-
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl">
-      <div className={`absolute inset-0 bg-gradient-to-b ${gradient}`} aria-hidden />
+      <Image
+        src={MUSICAS_HERO_BG_SRC}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/30" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/25" aria-hidden />
+
       <div className="relative flex flex-col gap-5 px-4 py-7 sm:flex-row sm:items-end sm:gap-7 sm:px-8 sm:py-9">
-        <div className="relative mx-auto flex h-36 w-36 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-black/30 shadow-[0_18px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10 sm:mx-0 sm:h-44 sm:w-44">
-          {mode === "styles" || mode === "week-styles" ? (
-            <FolderOpen className="h-16 w-16 text-[#1ed760]/90" strokeWidth={1.25} />
-          ) : (
-            <Music2 className="h-16 w-16 text-[#1ed760]/90" strokeWidth={1.25} />
-          )}
+        <div className="relative mx-auto h-36 w-36 flex-shrink-0 overflow-hidden rounded-lg shadow-[0_18px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/15 sm:mx-0 sm:h-44 sm:w-44">
+          <Image
+            src={MUSICAS_HERO_COVER_SRC}
+            alt="BRS — Brazilian Remix Service"
+            fill
+            className="object-cover"
+            sizes="176px"
+            priority
+          />
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">
