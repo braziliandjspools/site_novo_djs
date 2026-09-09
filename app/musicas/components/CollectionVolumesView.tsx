@@ -1,14 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-import { Download, Loader2, MoreHorizontal, Pause, Play, Plus } from "lucide-react";
-import type { PreviewTrack } from "../../lib/google-drive";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Copy, ExternalLink, ListMusic, MonitorDown, Share2 } from "lucide-react";
 import { PLACEHOLDER } from "../../lib/theme";
-import { MusicasTracksSkeleton } from "./MusicasSkeletons";
+import { collectionsHref } from "../../lib/vip-music-slugs";
+import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
-import { useVipMusicPlayer } from "./VipMusicPlayerContext";
-import { VipMusicTrackList } from "./VipMusicTrackList";
+import { useDownloaderSync } from "./DownloaderSyncContext";
+import { useMusicasSession } from "./MusicasSessionContext";
+import { useMusicasToast } from "./MusicasToast";
 
 export type CollectionVolumeItem = {
   id: string;
@@ -19,6 +22,7 @@ export type CollectionVolumeItem = {
   coverUrl?: string | null;
   downloaderSlug: string;
   relativePath: string;
+  hrefSegments: string[];
 };
 
 type CollectionVolumesViewProps = {
@@ -27,211 +31,153 @@ type CollectionVolumesViewProps = {
   canDownload: boolean;
 };
 
-type TracksResponse = {
-  tracks: PreviewTrack[];
-  total: number;
-  page: number;
-  hasMore: boolean;
-  error?: string;
-};
+/** Lista de álbuns estilo biblioteca de streaming (capa + meta + ações). */
+export function CollectionVolumesView({ volumes, canDownload }: CollectionVolumesViewProps) {
+  const router = useRouter();
+  const { authenticated, openLogin, hasVip } = useMusicasSession();
+  const sync = useDownloaderSync();
+  const { showToast } = useMusicasToast();
 
-function VolumeBlock({
-  volume,
-  canPlay,
-  canDownload,
-}: {
-  volume: CollectionVolumeItem;
-  canPlay: boolean;
-  canDownload: boolean;
-}) {
-  const { playingFolderId, playingId, loadingId, toggleTrack, pause, isPlaying } = useVipMusicPlayer();
-  const [tracks, setTracks] = useState<PreviewTrack[]>([]);
-  const [total, setTotal] = useState(volume.trackCount);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const cover = volume.coverUrl?.trim() || PLACEHOLDER.trackCover;
-
-  const isThisAlbum = playingFolderId === volume.id;
-  const albumPlaying = isThisAlbum && isPlaying && Boolean(playingId);
-  const albumLoading = isThisAlbum && loadingId !== null && !playingId;
-
-  const loadPage = useCallback(
-    async (nextPage: number, append: boolean) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams({
-          folderId: volume.id,
-          folderName: volume.name,
-          page: String(nextPage),
-          limit: "50",
-        });
-        const res = await fetch(`/api/musicas/tracks?${params.toString()}`, { cache: "no-store" });
-        const data = (await res.json()) as TracksResponse;
-        if (!res.ok) throw new Error(data.error ?? "Erro ao carregar faixas.");
-
-        let resolvedTracks: PreviewTrack[] = data.tracks;
-        if (append) {
-          setTracks((prev) => {
-            resolvedTracks = [...prev, ...data.tracks];
-            return resolvedTracks;
-          });
-        } else {
-          setTracks(data.tracks);
-        }
-        setTotal(data.total);
-        setPage(data.page);
-        setHasMore(data.hasMore);
-        return { tracks: resolvedTracks, hasMore: data.hasMore };
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao carregar faixas.");
-        if (!append) setTracks([]);
-        return undefined;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [volume.id, volume.name],
-  );
-
-  useEffect(() => {
-    setTracks([]);
-    setPage(0);
-    setHasMore(false);
-    void loadPage(1, false);
-  }, [loadPage]);
-
-  const handlePlayAlbum = async () => {
-    if (!canPlay || tracks.length === 0) return;
-    if (albumPlaying) {
-      pause();
-      return;
-    }
-    const first = tracks[0];
-    if (first) await toggleTrack(volume.id, first.id);
-  };
-
-  const countLabel = `${total} ${total === 1 ? "música" : "músicas"}`;
-
-  return (
-    <section className="pb-10 sm:pb-14">
-      {/* Cabeçalho do álbum — padrão discografia Spotify */}
-      <div className="flex items-end gap-4 sm:gap-5">
-        <div className="relative h-[112px] w-[112px] flex-shrink-0 overflow-hidden rounded shadow-[0_8px_24px_rgba(0,0,0,0.5)] sm:h-[136px] sm:w-[136px]">
-          <Image
-            src={cover}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="136px"
-            unoptimized={cover.startsWith("/api/")}
-          />
-        </div>
-
-        <div className="min-w-0 flex-1 pb-0.5">
-          <h2 className="truncate text-2xl font-black tracking-tight text-white sm:text-3xl md:text-4xl">
-            {volume.displayName}
-          </h2>
-          <p className="mt-1.5 truncate text-sm text-zinc-400">
-            Álbum <span className="text-zinc-600">•</span> {countLabel}
-          </p>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3 sm:gap-4">
-            <button
-              type="button"
-              onClick={() => void handlePlayAlbum()}
-              disabled={!canPlay || tracks.length === 0 || albumLoading}
-              aria-label={albumPlaying ? `Pausar ${volume.displayName}` : `Tocar ${volume.displayName}`}
-              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:scale-105 hover:bg-zinc-100 disabled:opacity-40"
-            >
-              {albumLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : albumPlaying ? (
-                <Pause className="h-5 w-5" fill="currentColor" />
-              ) : (
-                <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
-              )}
-            </button>
-
-            {canDownload ? (
-              <SendPackToDownloaderButton
-                slug={volume.downloaderSlug}
-                root="colecoes"
-                compact
-                label={`Baixar ${volume.displayName}`}
-                className="!h-10 !w-10 !rounded-full !border-zinc-500 !bg-transparent !text-zinc-400 hover:!border-white hover:!bg-transparent hover:!text-white"
-              />
-            ) : (
-              <span className="inline-flex h-10 w-10 items-center justify-center text-zinc-600" title="Download VIP">
-                <Download className="h-5 w-5" />
-              </span>
-            )}
-
-            <span className="inline-flex h-10 w-10 items-center justify-center text-zinc-600" aria-hidden>
-              <Plus className="h-5 w-5" />
-            </span>
-            <span className="inline-flex h-10 w-10 items-center justify-center text-zinc-600" aria-hidden>
-              <MoreHorizontal className="h-5 w-5" />
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Faixas do álbum */}
-      <div className="mt-6">
-        {loading && tracks.length === 0 ? (
-          <MusicasTracksSkeleton rows={4} />
-        ) : error && tracks.length === 0 ? (
-          <p className="py-6 text-sm text-red-300">{error}</p>
-        ) : tracks.length === 0 ? (
-          <p className="py-6 text-sm text-zinc-500">Nenhuma faixa neste álbum.</p>
-        ) : (
-          <VipMusicTrackList
-            folderId={volume.id}
-            tracks={tracks}
-            canPlay={canPlay}
-            canDownload={canDownload}
-            relativePath={volume.relativePath}
-            layout="discography"
-            hasMore={hasMore}
-            onLoadMore={async () => {
-              const result = await loadPage(page + 1, true);
-              return result ?? undefined;
-            }}
-          />
-        )}
-        {hasMore && (
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => void loadPage(page + 1, true)}
-            className="mt-3 text-sm font-semibold text-zinc-400 transition hover:text-white disabled:opacity-60"
-          >
-            {loading ? "Carregando…" : "Mostrar mais faixas"}
-          </button>
-        )}
-      </div>
-    </section>
-  );
-}
-
-/** Discografia estilo Spotify: Álbum → faixas → próximo álbum. */
-export function CollectionVolumesView({ volumes, canPlay, canDownload }: CollectionVolumesViewProps) {
   if (volumes.length === 0) {
     return (
-      <p className="rounded-2xl border border-zinc-800 bg-[#181818] px-4 py-10 text-center text-sm text-zinc-500">
+      <p className="rounded-2xl border border-zinc-800/80 bg-[#181818]/60 px-4 py-10 text-center text-sm text-zinc-500">
         Nenhum álbum ou volume nesta coleção.
       </p>
     );
   }
 
+  async function sendAlbum(slug: string, name: string) {
+    if (!authenticated) {
+      openLogin();
+      return;
+    }
+    if (!hasVip) {
+      showToast("Plano VIP necessário para usar o Downloader.", "error");
+      return;
+    }
+    try {
+      showToast("Enviando…");
+      const result = await sendPackSlugToDownloader(slug, {
+        target: sync?.selectedTarget,
+        devices: sync?.devices,
+        root: "colecoes",
+      });
+      showToast(
+        result.count === 1
+          ? "Adicionado à fila do Downloader"
+          : `${result.count} faixas adicionadas à fila`,
+      );
+      await sync?.refresh();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : `Erro ao enviar ${name}.`, "error");
+    }
+  }
+
   return (
-    <div className="divide-y divide-white/[0.06]">
-      {volumes.map((volume) => (
-        <VolumeBlock key={volume.id} volume={volume} canPlay={canPlay} canDownload={canDownload} />
-      ))}
-    </div>
+    <section className="space-y-3">
+      <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">Álbuns</h2>
+      <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-xl border border-white/[0.06] bg-[#141414]/80">
+        {volumes.map((volume) => {
+          const href = collectionsHref(volume.hrefSegments);
+          const cover = volume.coverUrl?.trim() || PLACEHOLDER.trackCover;
+          const countLabel = `${volume.trackCount} ${volume.trackCount === 1 ? "faixa" : "faixas"}`;
+
+          const actions: CollectionMenuAction[] = [
+            {
+              id: "open",
+              label: "Abrir álbum",
+              icon: ExternalLink,
+              onClick: () => router.push(href),
+            },
+            {
+              id: "tracks",
+              label: "Ver todas as faixas",
+              icon: ListMusic,
+              onClick: () => router.push(href),
+            },
+            {
+              id: "downloader",
+              label: "Enviar álbum ao Downloader",
+              icon: MonitorDown,
+              onClick: () => void sendAlbum(volume.downloaderSlug, volume.displayName),
+              disabled: !canDownload,
+            },
+            {
+              id: "copy",
+              label: "Copiar link",
+              icon: Copy,
+              onClick: () => {
+                const absoluteUrl = `${window.location.origin}${href}`;
+                void navigator.clipboard
+                  .writeText(absoluteUrl)
+                  .then(() => showToast("Link copiado"))
+                  .catch(() => showToast("Não foi possível copiar o link.", "error"));
+              },
+            },
+            {
+              id: "share",
+              label: "Compartilhar",
+              icon: Share2,
+              onClick: () => {
+                const absoluteUrl = `${window.location.origin}${href}`;
+                void (async () => {
+                  try {
+                    if (navigator.share) {
+                      await navigator.share({ title: volume.displayName, url: absoluteUrl });
+                    } else {
+                      await navigator.clipboard.writeText(absoluteUrl);
+                      showToast("Link copiado para compartilhar");
+                    }
+                  } catch (err) {
+                    if (err instanceof Error && err.name === "AbortError") return;
+                    showToast("Não foi possível compartilhar.", "error");
+                  }
+                })();
+              },
+            },
+          ];
+
+          return (
+            <li key={volume.id} className="flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-4 sm:px-4">
+              <Link
+                href={href}
+                className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded shadow-md ring-1 ring-white/10 sm:h-16 sm:w-16"
+              >
+                <Image
+                  src={cover}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                  unoptimized={cover.startsWith("/api/")}
+                />
+              </Link>
+
+              <Link href={href} className="min-w-0 flex-1 outline-none">
+                <p className="truncate text-sm font-bold text-white sm:text-base">{volume.displayName}</p>
+                <p className="mt-0.5 truncate text-xs text-zinc-500">{countLabel}</p>
+              </Link>
+
+              <div className="flex flex-shrink-0 items-center gap-0.5 sm:gap-1">
+                {canDownload ? (
+                  <SendPackToDownloaderButton
+                    slug={volume.downloaderSlug}
+                    root="colecoes"
+                    compact
+                    label={`Enviar ${volume.displayName} ao Downloader`}
+                    className="!h-10 !w-10 !rounded-full !border-transparent !bg-transparent !text-zinc-400 hover:!bg-white/10 hover:!text-[#1ed760]"
+                  />
+                ) : null}
+                <CollectionContextMenu
+                  label={`Opções · ${volume.displayName}`}
+                  buttonClassName="!text-zinc-400"
+                  actions={actions}
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

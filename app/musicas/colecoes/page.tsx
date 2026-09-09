@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { CollectionAlbumGrid } from "../components/CollectionAlbumGrid";
 import { CollectionHero } from "../components/CollectionHero";
+import { CollectionsNavFooter } from "../components/CollectionsNavFooter";
 import { MusicasListSkeleton } from "../components/MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "../components/MusicasSessionContext";
@@ -48,18 +51,40 @@ export default function ColecoesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const totalAlbums = collections.reduce((sum, item) => sum + item.albumCount, 0);
-  const totalTracks = collections.reduce((sum, item) => sum + item.trackCount, 0);
+  const collectionCount = collections.length;
 
   return (
     <div className="w-full space-y-6">
+      <nav className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+        <Link
+          href="/musicas/atualizacoes"
+          className="font-medium text-zinc-400 transition-colors hover:text-white"
+        >
+          Atualizações
+        </Link>
+        <ChevronRight className="h-3 w-3" />
+        <span className="font-medium text-white">Coleções</span>
+      </nav>
+
       <CollectionHero
         title="Coleções"
         eyebrow="Acervo VIP"
-        description="Discografias e coleções temáticas — abra uma coletânea para ver álbuns e faixas como no streaming."
-        albumCount={totalAlbums}
-        trackCount={totalTracks}
+        description="Explore discografias, coleções especiais, décadas, remix services e séries completas."
         hasVip={hasVip}
+        stats={
+          loading
+            ? [{ label: "Carregando…" }]
+            : [
+                {
+                  label: `${collectionCount} ${collectionCount === 1 ? "coleção" : "coleções"}`,
+                },
+                { label: "Atualizações frequentes" },
+                {
+                  label: hasVip ? "Premium ativo" : "Prévia 1 min",
+                  accent: hasVip,
+                },
+              ]
+        }
       />
 
       {!hasVip && authenticated && <VipUpgradeBanner />}
@@ -83,20 +108,26 @@ export default function ColecoesPage() {
           </p>
         </section>
       ) : (
-        <CollectionAlbumGrid
-          items={collections.map((item) => ({
-            id: item.id,
-            displayName: item.displayName,
-            slug: item.slug,
-            albumCount: item.albumCount,
-            trackCount: item.trackCount,
-            hrefSegments: [item.slug],
-            downloaderSlug: item.slug,
-            coverUrl: item.coverUrl,
-          }))}
-          emptyLabel="Ainda não há coleções nesta pasta do Drive."
-        />
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">Coleções</h2>
+          <CollectionAlbumGrid
+            variant="catalog"
+            items={collections.map((item) => ({
+              id: item.id,
+              displayName: item.displayName,
+              slug: item.slug,
+              albumCount: item.albumCount,
+              trackCount: item.trackCount,
+              hrefSegments: [item.slug],
+              downloaderSlug: item.slug,
+              coverUrl: item.coverUrl,
+            }))}
+            emptyLabel="Ainda não há coleções nesta pasta do Drive."
+          />
+        </section>
       )}
+
+      <CollectionsNavFooter href="/musicas/atualizacoes" label="Voltar para Atualizações" />
     </div>
   );
 }
