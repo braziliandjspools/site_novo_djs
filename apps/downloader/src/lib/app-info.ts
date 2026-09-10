@@ -73,7 +73,7 @@ export const APP_CHANGELOG: ChangelogEntry[] = [
     version: "1.0.0_public_beta",
     date: "2026-09-07",
     items: [
-      "Visual refinado: tipografia Sora/DM Sans, painéis e botões mais polidos",
+      "Visual refinado: tipografia Google Sans Flex, painéis e botões mais polidos",
       "Login e onboarding de idioma com atmosfera renovada",
       "Sidebar e shell com hierarquia mais clara e detalhes de movimento",
       "Primeira beta pública 1.0 do BRS Downloader",
