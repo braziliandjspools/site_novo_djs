@@ -7,6 +7,10 @@ export const UNKNOWN_ARTIST_LABEL = "Artista desconhecido";
 
 const AUDIO_EXTENSION_RE = /\.(mp3|wav|flac|m4a|aac)$/i;
 
+/** Sufixo de versão comum em pools DJ: (Original Mix), (Extended Version), etc. */
+const MIX_PAREN_RE =
+  /\s*(\(([^)]*(?:Mix|Edit|Version|Remix|Extended|Original|Radio|Club|Dub|Instrumental|Clean|Dirty)[^)]*)\))\s*$/i;
+
 export type TrackDisplayInput = {
   title?: string | null;
   artist?: string | null;
@@ -29,13 +33,20 @@ export function isConfusingTrackName(name: string): boolean {
   if (/_{2,}/.test(s)) return true;
   if (/--/.test(s)) return true;
   if ((s.match(/_/g) ?? []).length >= 3) return true;
-  // Sequência de símbolos (exceto hífen simples / pontuação musical comum)
   if (/[^a-zA-Z0-9À-ÿ\s&'.,()!?/+-]{3,}/.test(s)) return true;
   return false;
 }
 
 function normalizeCompare(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function wordCount(value: string) {
+  return value.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function hasFeatToken(value: string) {
+  return /\b(feat\.?|ft\.?)\b/i.test(value);
 }
 
 /** Remove `Artista - ` do início do título quando bate com o artist (só apresentação). */
@@ -53,14 +64,18 @@ export function stripDuplicatedArtistPrefix(title: string, artist: string): stri
 
 function hasCleanStructuredMeta(title: string, artist: string): boolean {
   if (!title.trim() || !artist.trim()) return false;
+  if (title.includes(" - ")) return false;
   if (stripDuplicatedArtistPrefix(title, artist)) return false;
   if (normalizeCompare(title) === normalizeCompare(artist)) return false;
   return true;
 }
 
 /**
- * Separa apenas no padrão confiável `" - "` (espaço-hífen-espaço).
- * Preserva hífens internos (ex.: AC-DC).
+ * Separa no padrão confiável `" - "` (espaço-hífen-espaço).
+ *
+ * Dois formatos comuns em pools:
+ * - Artista - Música (versão)
+ * - Música - Artista (versão)  ← comum em atualizações BR
  */
 export function safeSplitArtistTitle(raw: string): TrackDisplayMetadata | null {
   if (isConfusingTrackName(raw)) return null;
@@ -69,38 +84,55 @@ export function safeSplitArtistTitle(raw: string): TrackDisplayMetadata | null {
   const idx = raw.indexOf(sep);
   if (idx <= 0) return null;
 
-  const artist = raw.slice(0, idx).trim();
-  const title = raw.slice(idx + sep.length).trim();
-  if (!artist || !title) return null;
-  if (isConfusingTrackName(artist) || isConfusingTrackName(title)) return null;
+  const left = raw.slice(0, idx).trim();
+  const right = raw.slice(idx + sep.length).trim();
+  if (!left || !right) return null;
+  if (isConfusingTrackName(left) || isConfusingTrackName(right)) return null;
 
-  return { title, artist };
+  const rightMix = right.match(MIX_PAREN_RE);
+  const leftHasFeat = hasFeatToken(left);
+  const leftHasComma = left.includes(",");
+  const rightHasComma = right.includes(",");
+
+  // Título - Artista(s) (Mix): ex. "All Night Long - Volkoder (Original Mix)"
+  // Não inverter bandas com vírgula à esquerda (Earth, Wind & Fire - September).
+  if (rightMix && !leftHasFeat && !leftHasComma) {
+    const artistCore = right.slice(0, rightMix.index).trim();
+    const version = rightMix[1];
+    const artistWords = wordCount(artistCore);
+
+    if (artistCore && (rightHasComma || artistWords <= 2)) {
+      return {
+        title: `${left} ${version}`.replace(/\s+/g, " ").trim(),
+        artist: artistCore,
+      };
+    }
+  }
+
+  // Padrão clássico: Artista - Música
+  return { title: right, artist: left };
 }
 
 /**
  * Campos derivados para UI / Media Session.
  *
  * Prioridade:
- * 1. metadados estruturados (com remoção de prefixo duplicado);
- * 2. parser seguro do nome (`" - "`);
- * 3. nome original + "Artista desconhecido".
+ * 1. metadados estruturados limpos (ex.: tags ID3 já separadas);
+ * 2. parser seguro do nome completo (`" - "`, inclusive Title - Artist);
+ * 3. remoção de prefixo duplicado;
+ * 4. nome original + "Artista desconhecido".
  */
 export function getTrackDisplayMetadata(track: TrackDisplayInput): TrackDisplayMetadata {
   const artistField = (track.artist ?? "").trim();
   const titleField = stripAudioExtensionForDisplay((track.title ?? "").trim());
   const fileField = stripAudioExtensionForDisplay((track.fileName ?? "").trim());
+  const parseSource = titleField || fileField;
 
-  if (artistField && titleField) {
-    const deduped = stripDuplicatedArtistPrefix(titleField, artistField);
-    if (deduped) {
-      return { title: deduped, artist: artistField };
-    }
-    if (hasCleanStructuredMeta(titleField, artistField)) {
-      return { title: titleField, artist: artistField };
-    }
+  // 1) Tags / meta já separados (título sem " - ")
+  if (artistField && titleField && hasCleanStructuredMeta(titleField, artistField)) {
+    return { title: titleField, artist: artistField };
   }
 
-  const parseSource = titleField || fileField;
   if (!parseSource) {
     return { title: "Faixa", artist: artistField || UNKNOWN_ARTIST_LABEL };
   }
@@ -109,12 +141,18 @@ export function getTrackDisplayMetadata(track: TrackDisplayInput): TrackDisplayM
     return { title: parseSource, artist: UNKNOWN_ARTIST_LABEL };
   }
 
-  const parsed = safeSplitArtistTitle(parseSource);
-  if (parsed) {
-    return {
-      title: parsed.title,
-      artist: artistField || parsed.artist,
-    };
+  // 2) Parser seguro do nome completo (corrige artist errado do parseTrackMeta)
+  if (parseSource.includes(" - ")) {
+    const parsed = safeSplitArtistTitle(parseSource);
+    if (parsed) return parsed;
+  }
+
+  // 3) Dedupe legado: title ainda traz "Artista - Música"
+  if (artistField && titleField) {
+    const deduped = stripDuplicatedArtistPrefix(titleField, artistField);
+    if (deduped) {
+      return { title: deduped, artist: artistField };
+    }
   }
 
   return {

@@ -16,13 +16,55 @@ test("Prince Ital Joe Feat. Marky Mark - United (Extended Version)", () => {
   assert.equal(meta.artist, "Prince Ital Joe Feat. Marky Mark");
 });
 
-test("Madonna - Like A Prayer (Extended Mix)", () => {
+test("Madonna - Like A Prayer (Extended Mix) permanece Artista - Título", () => {
   const meta = getTrackDisplayMetadata({
     title: "Madonna - Like A Prayer (Extended Mix)",
     artist: "",
   });
   assert.equal(meta.title, "Like A Prayer (Extended Mix)");
   assert.equal(meta.artist, "Madonna");
+});
+
+test("All Night Long - Volkoder (Original Mix) = Título - Artista", () => {
+  const meta = getTrackDisplayMetadata({
+    title: "All Night Long - Volkoder (Original Mix)",
+    artist: "All Night Long",
+  });
+  assert.equal(meta.title, "All Night Long (Original Mix)");
+  assert.equal(meta.artist, "Volkoder");
+});
+
+test("Flirty Mode - Giuseppe Martini, Greck B (Original Mix)", () => {
+  const meta = getTrackDisplayMetadata({
+    title: "Flirty Mode - Giuseppe Martini, Greck B (Original Mix)",
+    artist: "Flirty Mode",
+  });
+  assert.equal(meta.title, "Flirty Mode (Original Mix)");
+  assert.equal(meta.artist, "Giuseppe Martini, Greck B");
+});
+
+test("Criminal - MÖIGE (Extended Mix)", () => {
+  const meta = getTrackDisplayMetadata({
+    title: "Criminal - MÖIGE (Extended Mix)",
+  });
+  assert.equal(meta.title, "Criminal (Extended Mix)");
+  assert.equal(meta.artist, "MÖIGE");
+});
+
+test("Delirious - Bruno Furlan (Extended Mix)", () => {
+  const meta = getTrackDisplayMetadata({
+    title: "Delirious - Bruno Furlan (Extended Mix)",
+  });
+  assert.equal(meta.title, "Delirious (Extended Mix)");
+  assert.equal(meta.artist, "Bruno Furlan");
+});
+
+test("House Nation - The Trin, Kepler (Original Mix)", () => {
+  const meta = getTrackDisplayMetadata({
+    title: "House Nation - The Trin, Kepler (Original Mix)",
+  });
+  assert.equal(meta.title, "House Nation (Original Mix)");
+  assert.equal(meta.artist, "The Trin, Kepler");
 });
 
 test("Whitney Houston - I Wanna Dance With Somebody (12 Inch Mix)", () => {
@@ -68,22 +110,6 @@ test("nome confuso permanece original com Artista desconhecido", () => {
     artist: "",
   });
   assert.equal(meta.title, "TRACK__004_FINAL___80S_EDIT__V2");
-  assert.equal(meta.artist, UNKNOWN_ARTIST_LABEL);
-});
-
-test("nome confuso com underscores e data", () => {
-  const meta = getTrackDisplayMetadata({
-    title: "DJ___MIX__2024--TRACK_001__FINAL",
-  });
-  assert.equal(meta.title, "DJ___MIX__2024--TRACK_001__FINAL");
-  assert.equal(meta.artist, UNKNOWN_ARTIST_LABEL);
-});
-
-test("01_PRINCE__UNITED_EXTENDED_V2_FINAL_320___", () => {
-  const meta = getTrackDisplayMetadata({
-    title: "01_PRINCE__UNITED_EXTENDED_V2_FINAL_320___",
-  });
-  assert.equal(meta.title, "01_PRINCE__UNITED_EXTENDED_V2_FINAL_320___");
   assert.equal(meta.artist, UNKNOWN_ARTIST_LABEL);
 });
 

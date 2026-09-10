@@ -223,8 +223,13 @@ export async function getVipMusicTracksPaginated(
   const start = (safePage - 1) * safeLimit;
   const pageTracks = all.slice(start, start + safeLimit);
 
-  const { enrichTracksWithDriveTags } = await import("./audio-file-tags");
-  const tracks = await enrichTracksWithDriveTags(pageTracks);
+  // Tags embutidas baixam ~1MB/faixa via a function da Vercel (Fast Origin Transfer).
+  // Desligado por padrão — o display usa getTrackDisplayMetadata no nome do arquivo.
+  // Ative com VIP_MUSIC_ENRICH_DRIVE_TAGS=1 se precisar de capa/artista das tags.
+  const enrichTags = process.env.VIP_MUSIC_ENRICH_DRIVE_TAGS === "1";
+  const tracks = enrichTags
+    ? await (await import("./audio-file-tags")).enrichTracksWithDriveTags(pageTracks)
+    : pageTracks;
 
   return {
     tracks,

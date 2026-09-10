@@ -168,28 +168,30 @@ function TrackRow({
   onToggleSelected,
 }: TrackRowProps) {
   const display = getTrackDisplayMetadata(track);
-  const artistLine = [display.artist, track.album?.trim()].filter(Boolean).join(" · ");
+  const artistLine = display.artist;
+  const a11yName = `${display.title} — ${display.artist}`;
 
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`rounded-md border transition-colors ${
+      className={`border-b border-zinc-800/60 transition-colors last:border-b-0 ${
         isHighlighted
-          ? "border-[#FFDF00]/40 bg-[#FFDF00]/5"
+          ? "bg-[#FFDF00]/5"
           : isSelected
-            ? "border-[#1ed760]/30 bg-[#1ed760]/5"
+            ? "bg-[#1ed760]/5"
             : isActive
-              ? "border-zinc-700 bg-white/[0.04]"
-              : "border-transparent hover:border-zinc-800 hover:bg-white/[0.03]"
+              ? "bg-white/[0.04]"
+              : "hover:bg-white/[0.03]"
       }`}
     >
-      <div className="flex min-w-0 items-center gap-1.5 px-1.5 py-1">
+      {/* grid: # | play | título — minmax(0,1fr) habilita ellipsis */}
+      <div className="grid grid-cols-[28px_40px_minmax(0,1fr)] items-center gap-x-1.5 px-1.5 py-1.5 sm:grid-cols-[32px_44px_minmax(0,1fr)_auto] sm:gap-x-2 sm:px-2 sm:py-2">
         {selectionMode && canDownload ? (
           <button
             type="button"
             onClick={onToggleSelected}
             aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
-            className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+            className={`mx-auto flex h-7 w-7 items-center justify-center rounded border transition-colors ${
               isSelected
                 ? "border-[#1ed760] bg-[#1ed760] text-black"
                 : "border-zinc-600 bg-transparent text-transparent hover:border-zinc-400"
@@ -198,7 +200,7 @@ function TrackRow({
             {isSelected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
           </button>
         ) : (
-          <span className="w-5 flex-shrink-0 text-center font-mono text-[9px] text-zinc-600">
+          <span className="text-center font-mono text-[10px] tabular-nums text-zinc-600 sm:text-[11px]">
             {String(index + 1).padStart(2, "0")}
           </span>
         )}
@@ -208,24 +210,24 @@ function TrackRow({
             type="button"
             onClick={onToggle}
             disabled={isBusy || selectionMode}
-            aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
-            className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
+            aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
+            className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
               isPlaying
                 ? "bg-white text-black"
                 : "bg-white/10 text-white hover:bg-white/20"
             } ${selectionMode ? "opacity-60" : ""}`}
           >
             {isLoading ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : isPlaying ? (
-              <Pause className="h-3 w-3" fill="currentColor" />
+              <Pause className="h-3.5 w-3.5" fill="currentColor" />
             ) : (
-              <Play className="ml-0.5 h-3 w-3" fill="currentColor" />
+              <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />
             )}
           </button>
         ) : (
-          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
-            <Lock className="h-2.5 w-2.5" />
+          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-zinc-500">
+            <Lock className="h-3 w-3" />
           </div>
         )}
 
@@ -233,100 +235,100 @@ function TrackRow({
           type="button"
           onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
           disabled={!canPlay && !selectionMode}
-          className="min-w-0 flex-1 text-left"
+          className="min-w-0 overflow-hidden text-left"
+          aria-label={a11yName}
+          title={`${display.title} — ${display.artist}`}
         >
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-1.5">
-              {isPlaying && <PlayingBars />}
-              <p
-                className={`min-w-0 break-words text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}
-                title={display.title}
-              >
-                {display.title}
-              </p>
-              <span className="hidden sm:inline">
-                <TrackDownloadStatus fileId={track.id} />
-              </span>
-            </div>
-            <p className="mt-0.5 truncate text-[10px] text-zinc-500" title={artistLine}>
-              {artistLine}
+          <div className="flex min-w-0 items-center gap-1.5">
+            {isPlaying ? <PlayingBars /> : null}
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-white sm:text-[15px]">
+              {display.title}
             </p>
+            <span className="hidden shrink-0 sm:inline">
+              <TrackDownloadStatus fileId={track.id} />
+            </span>
           </div>
+          <p className="mt-0.5 truncate text-[0.82rem] leading-tight text-white/55" title={artistLine}>
+            {artistLine}
+            {track.album?.trim() ? (
+              <span className="hidden text-white/35 sm:inline"> · {track.album.trim()}</span>
+            ) : null}
+          </p>
         </button>
 
-        {isActive && duration > 0 && !selectionMode && (
-          <span className="hidden flex-shrink-0 font-mono text-[9px] tabular-nums text-zinc-500 sm:inline">
-            {formatTime(currentTime)}
-          </span>
-        )}
-
-        {isActive && canPlay && !selectionMode && (
-          <div className="hidden flex-shrink-0 items-center sm:flex">
-            <button
-              type="button"
-              onClick={onPrev}
-              disabled={!hasPrev}
-              className="flex h-6 w-6 items-center justify-center text-zinc-500 hover:text-white disabled:opacity-30"
-              aria-label="Anterior"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={onNext}
-              disabled={!hasNext}
-              className="flex h-6 w-6 items-center justify-center text-zinc-500 hover:text-white disabled:opacity-30"
-              aria-label="Próxima"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* Desktop: ícones na mesma linha */}
-        {canDownload && !selectionMode ? (
-          <div className="hidden flex-shrink-0 items-center gap-0.5 sm:flex">
-            <button
-              type="button"
-              onClick={onSendToDownloader}
-              disabled={isSendingToDownloader}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
-              title="Enviar para o Downloader"
-              aria-label={`Enviar ${display.title} para o Downloader`}
-            >
-              {isSendingToDownloader ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <MonitorDown className="h-3.5 w-3.5" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={onDownload}
-              disabled={isDownloading}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
-              title={`Baixar ${resolveDownloadFilename(track)}`}
-              aria-label={`Baixar ${display.title}`}
-            >
-              {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-            </button>
-          </div>
-        ) : !canDownload ? (
-          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-zinc-700">
-            <Lock className="h-3 w-3" />
-          </div>
-        ) : null}
+        {/* Desktop: ações + seek controls na mesma linha */}
+        <div className="hidden items-center gap-1 sm:flex">
+          {isActive && duration > 0 && !selectionMode ? (
+            <span className="mr-1 font-mono text-[10px] tabular-nums text-zinc-500">
+              {formatTime(currentTime)}
+            </span>
+          ) : null}
+          {isActive && canPlay && !selectionMode ? (
+            <>
+              <button
+                type="button"
+                onClick={onPrev}
+                disabled={!hasPrev}
+                className="flex h-7 w-7 items-center justify-center text-zinc-500 hover:text-white disabled:opacity-30"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                disabled={!hasNext}
+                className="flex h-7 w-7 items-center justify-center text-zinc-500 hover:text-white disabled:opacity-30"
+                aria-label="Próxima"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </>
+          ) : null}
+          {canDownload && !selectionMode ? (
+            <>
+              <button
+                type="button"
+                onClick={onSendToDownloader}
+                disabled={isSendingToDownloader}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
+                title="Enviar para o Downloader"
+                aria-label={`Enviar ${display.title} ao Downloader`}
+              >
+                {isSendingToDownloader ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MonitorDown className="h-4 w-4" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={onDownload}
+                disabled={isDownloading}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
+                title={`Baixar ${resolveDownloadFilename(track)}`}
+                aria-label={`Baixar ${display.title}`}
+              >
+                {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              </button>
+            </>
+          ) : !canDownload ? (
+            <div className="flex h-8 w-8 items-center justify-center text-zinc-700">
+              <Lock className="h-3.5 w-3.5" />
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      {/* Mobile: ações sempre visíveis, linha própria — não corta / não some */}
+      {/* Mobile: Downloader | Baixar — grid 1fr 1fr, sem scroll horizontal */}
       {canDownload && !selectionMode ? (
-        <div className="flex items-center gap-2 px-1.5 pb-1.5 pl-9 sm:hidden">
+        <div className="grid grid-cols-2 gap-2 px-1.5 pb-1.5 sm:hidden">
           <button
             type="button"
             onClick={onSendToDownloader}
             disabled={isSendingToDownloader}
-            className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#1ed760]/35 bg-[#1ed760]/10 px-2 py-1.5 text-[11px] font-bold text-[#1ed760] disabled:opacity-50"
-            aria-label={`Enviar ${display.title} para o Downloader`}
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-[#1ed760]/35 bg-[#1ed760]/10 px-2 text-[11px] font-bold text-[#1ed760] disabled:opacity-50"
+            aria-label={`Enviar ${display.title} ao Downloader`}
           >
             {isSendingToDownloader ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -339,7 +341,7 @@ function TrackRow({
             type="button"
             onClick={onDownload}
             disabled={isDownloading}
-            className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-600 bg-zinc-900 px-2 py-1.5 text-[11px] font-bold text-zinc-200 disabled:opacity-50"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-zinc-600 bg-zinc-900 px-2 text-[11px] font-bold text-zinc-200 disabled:opacity-50"
             aria-label={`Baixar ${display.title}`}
           >
             {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
@@ -348,13 +350,13 @@ function TrackRow({
         </div>
       ) : null}
 
-      {isActive && canPlay && !selectionMode && (
-        <div className="flex items-center gap-2 px-1.5 pb-1.5 pl-9">
+      {isActive && canPlay && !selectionMode ? (
+        <div className="flex items-center gap-2 px-1.5 pb-1.5 sm:pl-[calc(32px+44px+0.5rem)]">
           <div
             role="slider"
             tabIndex={0}
             aria-label="Progresso"
-            className="h-3 flex-1 cursor-pointer py-1"
+            className="h-3 min-w-0 flex-1 cursor-pointer py-1"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               onSeek((e.clientX - rect.left) / rect.width);
@@ -371,7 +373,7 @@ function TrackRow({
             {duration > 0 ? formatTime(duration) : ""}
           </span>
         </div>
-      )}
+      ) : null}
     </article>
   );
 }
@@ -390,7 +392,6 @@ function DiscographyTrackRow({
   onToggle,
 }: TrackRowProps) {
   const display = getTrackDisplayMetadata(track);
-  const artistLine = [display.artist, track.album?.trim()].filter(Boolean).join(" · ");
 
   return (
     <article
@@ -404,6 +405,8 @@ function DiscographyTrackRow({
         onClick={canPlay ? onToggle : undefined}
         disabled={!canPlay || isBusy}
         className={`${DISCOGRAPHY_GRID} w-full px-2 py-2.5 text-left sm:px-3`}
+        aria-label={`${display.title} — ${display.artist}`}
+        title={`${display.title} — ${display.artist}`}
       >
         <div className="flex items-center justify-center">
           {isLoading ? (
@@ -424,7 +427,7 @@ function DiscographyTrackRow({
           )}
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 overflow-hidden">
           <p
             className={`truncate text-sm font-semibold ${
               isPlaying || isActive ? "text-[#1ed760]" : "text-white"
@@ -432,9 +435,7 @@ function DiscographyTrackRow({
           >
             {display.title}
           </p>
-          <p className="mt-0.5 truncate text-xs text-zinc-400" title={artistLine}>
-            {artistLine}
-          </p>
+          <p className="mt-0.5 truncate text-xs text-zinc-400">{display.artist}</p>
         </div>
 
         <div className="text-right font-mono text-xs tabular-nums text-zinc-500">
@@ -476,7 +477,7 @@ function TrackTableRow({
   onToggleSelected,
 }: TrackTableRowProps) {
   const display = getTrackDisplayMetadata(track);
-  const artistLine = [display.artist, track.album?.trim()].filter(Boolean).join(" · ");
+  const a11yName = `${display.title} — ${display.artist}`;
 
   return (
     <article
@@ -489,7 +490,7 @@ function TrackTableRow({
             : poolRowTone(index, isActive)
       }`}
     >
-      <div className={`${TABLE_GRID} border-b border-zinc-800/80 px-3 py-2.5 last:border-b-0 sm:px-4`}>
+      <div className={`${TABLE_GRID} border-b border-zinc-800/80 px-3 py-2 last:border-b-0 sm:px-4`}>
         {/* Index / select */}
         <div className="flex items-center justify-center">
           {selectionMode && canDownload ? (
@@ -525,7 +526,7 @@ function TrackTableRow({
               type="button"
               onClick={onToggle}
               disabled={isBusy || selectionMode}
-              aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
+              aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
               className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                 isPlaying
                   ? "bg-[#1ed760] text-black shadow-lg shadow-[#1ed760]/25"
@@ -550,18 +551,17 @@ function TrackTableRow({
             onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
             disabled={!canPlay && !selectionMode}
             className="min-w-0 flex-1 overflow-hidden text-left"
+            aria-label={a11yName}
+            title={a11yName}
           >
             <p
               className={`truncate text-sm font-medium leading-snug ${
                 isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
-              title={display.title}
             >
               {display.title}
             </p>
-            <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={artistLine}>
-              {artistLine}
-            </p>
+            <p className="mt-0.5 truncate text-[11px] text-zinc-500">{display.artist}</p>
           </button>
         </div>
 
