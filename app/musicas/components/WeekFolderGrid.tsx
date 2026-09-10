@@ -22,8 +22,11 @@ import {
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
+  packListAccentBarClass,
+  packListPanelClass,
+  packListRowTone,
+  poolPanelHeaderBrClass,
   poolPanelClass,
-  poolPanelHeaderClass,
 } from "./atualizacoes-pool-ui";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 
@@ -70,13 +73,14 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
         </div>
       )}
 
-      <div className={poolPanelClass}>
-        <div className={poolPanelHeaderClass}>
+      <div className={packListPanelClass}>
+        <div className="br-stripe-thin" />
+        <div className={poolPanelHeaderBrClass}>
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Semanas</h2>
           <p className="text-[11px] text-zinc-500">{monthName}</p>
         </div>
         <ul className="divide-y divide-white/[0.06]">
-          {weeks.map((week) => {
+          {weeks.map((week, index) => {
             const weekSlug = slugifyFolderName(week.name);
             const label = displayFolderName(week.name);
             const weekNumber = parseWeekNumber(week.name);
@@ -98,10 +102,9 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
             return (
               <li
                 key={week.id}
-                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${
-                  isCurrent ? "player-track-row-active" : "bg-black/35"
-                }`}
+                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${packListRowTone(index, isCurrent)}`}
               >
+                <span className={packListAccentBarClass} aria-hidden />
                 <Link
                   href={href}
                   onMouseEnter={() =>

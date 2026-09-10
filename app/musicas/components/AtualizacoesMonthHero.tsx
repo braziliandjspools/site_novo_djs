@@ -24,7 +24,7 @@ type AtualizacoesMonthHeroProps = {
   actions?: ReactNode;
 };
 
-/** Hero de pasta estilo capa de playlist. */
+/** Hero de pasta — mesma linguagem BR suave da raiz, em todos os níveis. */
 export function AtualizacoesMonthHero({
   folderName,
   itemCount,
@@ -68,7 +68,7 @@ export function AtualizacoesMonthHero({
           : "pastas";
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-2xl">
+    <section className="relative mb-6 overflow-hidden rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
       <Image
         src={MUSICAS_HERO_BG_SRC}
         alt=""
@@ -78,24 +78,43 @@ export function AtualizacoesMonthHero({
         className="object-cover object-center"
         aria-hidden
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/30" aria-hidden />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/25" aria-hidden />
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-[#009739]/28 via-[#002776]/25 to-black/70"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/25" aria-hidden />
+      <div
+        className="pointer-events-none absolute -left-10 top-0 h-36 w-36 rounded-full bg-[#1ed760]/10 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -right-6 bottom-0 h-32 w-32 rounded-full bg-[#6B9FFF]/10 blur-3xl"
+        aria-hidden
+      />
 
-      <div className="relative flex flex-col gap-5 px-4 py-7 sm:flex-row sm:items-end sm:gap-7 sm:px-8 sm:py-9">
-        <div className="relative mx-auto h-36 w-36 flex-shrink-0 overflow-hidden rounded-lg shadow-[0_18px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/15 sm:mx-0 sm:h-44 sm:w-44">
-          <Image
-            src={cover}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="176px"
-            priority
-            unoptimized={cover.startsWith("/api/")}
+      <div className="br-stripe-thin relative z-10" />
+
+      <div className="relative z-10 flex flex-col gap-5 px-4 py-7 sm:flex-row sm:items-end sm:gap-7 sm:px-8 sm:py-9">
+        <div className="relative mx-auto h-36 w-36 flex-shrink-0 sm:mx-0 sm:h-44 sm:w-44">
+          <div
+            className="absolute -inset-[2px] rounded-lg bg-gradient-to-br from-[#009739]/75 to-[#002776]/75 opacity-80"
+            aria-hidden
           />
+          <div className="relative h-full w-full overflow-hidden rounded-[8px] shadow-[0_18px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/15">
+            <Image
+              src={cover}
+              alt={title}
+              fill
+              className="object-cover"
+              sizes="176px"
+              priority
+              unoptimized={cover.startsWith("/api/")}
+            />
+          </div>
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">
-          <p className="text-eyebrow text-white/70">{eyebrow}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7dffb0]">{eyebrow}</p>
           <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <h1 className="text-page-title break-words text-white">{title}</h1>
             {label && mode === "weeks" && (
@@ -104,16 +123,16 @@ export function AtualizacoesMonthHero({
               </span>
             )}
           </div>
-          <p className="text-secondary mt-2 max-w-2xl">{description}</p>
+          <p className="mt-2 max-w-2xl text-sm text-zinc-300">{description}</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="text-badge rounded-full bg-black/35 px-3 py-1.5 tabular-nums text-white ring-1 ring-white/15">
+            <span className="text-badge rounded-full bg-[#009739]/18 px-3 py-1.5 tabular-nums text-[#7dffb0] ring-1 ring-[#1ed760]/30">
               {itemCount} {countLabel}
             </span>
             <span
               className={`text-badge rounded-full px-3 py-1.5 ring-1 ${
                 hasVip
-                  ? "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40"
-                  : "bg-black/35 text-zinc-300 ring-white/15"
+                  ? "bg-[#1ed760]/18 text-[#1ed760] ring-[#1ed760]/35"
+                  : "bg-[#002776]/40 text-[#9ec0ff] ring-[#6B9FFF]/30"
               }`}
             >
               {hasVip ? "Premium ativo" : "Só navegação"}

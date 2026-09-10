@@ -9,8 +9,11 @@ import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
+  packListAccentBarClass,
+  packListPanelClass,
+  packListRowTone,
   poolPanelClass,
-  poolPanelHeaderClass,
+  poolPanelHeaderBrClass,
 } from "./atualizacoes-pool-ui";
 
 type StyleFolderLinksProps = {
@@ -29,13 +32,14 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
   }
 
   return (
-    <div className={poolPanelClass}>
-      <div className={poolPanelHeaderClass}>
+    <div className={packListPanelClass}>
+      <div className="br-stripe-thin" />
+      <div className={poolPanelHeaderBrClass}>
         <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Pastas</h2>
         <p className="text-[11px] text-zinc-500">{folders.length} pasta{folders.length === 1 ? "" : "s"}</p>
       </div>
       <ul className="divide-y divide-white/[0.06]">
-        {folders.map((folder) => {
+        {folders.map((folder, index) => {
           const folderSlug = slugifyFolderName(folder.name);
           const nextSegments = [...slugSegments, folderSlug];
           const href = folderHref(nextSegments);
@@ -45,7 +49,11 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
           const cover = folder.coverUrl?.trim();
 
           return (
-            <li key={folder.id} className="flex w-full min-w-0 items-center gap-2 bg-black/35 px-3 py-3 sm:px-4">
+            <li
+              key={folder.id}
+              className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${packListRowTone(index)}`}
+            >
+              <span className={packListAccentBarClass} aria-hidden />
               <Link
                 href={href}
                 onMouseEnter={() =>

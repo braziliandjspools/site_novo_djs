@@ -115,10 +115,13 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
 
   const navigateToHit = useCallback(
     (hit: VipMusicSearchHit) => {
-      const href = hitHref(hit, query);
-      router.push(href, { scroll: true });
+      // Fecha resultados e limpa a busca antes de abrir o destino.
+      setQueryState("");
+      setResults([]);
+      setError(null);
+      router.push(hitHref(hit), { scroll: true });
     },
-    [query, router],
+    [router],
   );
 
   const hitsForMonth = useCallback(

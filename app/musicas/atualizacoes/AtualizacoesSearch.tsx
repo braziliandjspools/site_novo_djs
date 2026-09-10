@@ -60,7 +60,7 @@ export function AtualizacoesSearch() {
 }
 
 export function AtualizacoesSearchResults() {
-  const { query, results, loading, error, isActive } = useAtualizacoesSearch();
+  const { query, results, loading, error, isActive, navigateToHit } = useAtualizacoesSearch();
 
   if (!isActive) return null;
 
@@ -90,7 +90,11 @@ export function AtualizacoesSearchResults() {
           {results.map((hit) => (
             <li key={`${hit.type}-${hit.id}`}>
               <Link
-                href={hitHref(hit, query)}
+                href={hitHref(hit)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  navigateToHit(hit);
+                }}
                 className="group flex w-full items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-[#00ff9d]/5"
               >
                 <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-zinc-900 group-hover:bg-[#009739]/20">

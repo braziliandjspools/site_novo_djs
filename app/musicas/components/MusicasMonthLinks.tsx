@@ -16,8 +16,10 @@ import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
-  poolPanelClass,
-  poolPanelHeaderClass,
+  packListAccentBarClass,
+  packListPanelClass,
+  packListRowTone,
+  poolPanelHeaderBrClass,
 } from "./atualizacoes-pool-ui";
 
 function prefetchFolder(slug: string) {
@@ -79,14 +81,14 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
 
   if (variant === "hero") {
     return (
-      <div className={`${poolPanelClass} border-[#009739]/25 bg-gradient-to-b from-[#009739]/10 via-transparent to-[#002776]/10`}>
+      <div className={packListPanelClass}>
         <div className="br-stripe-thin" />
-        <div className={`${poolPanelHeaderClass} bg-gradient-to-r from-[#009739]/15 via-[#FFDF00]/5 to-[#002776]/20`}>
+        <div className={poolPanelHeaderBrClass}>
           <div>
             <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Pastas do Drive</h2>
             <p className="mt-0.5 text-[11px] text-zinc-400">Abra a pasta · cada nível em página nova</p>
           </div>
-          <p className="rounded-full bg-[#FFDF00]/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#FFDF00] ring-1 ring-[#FFDF00]/30">
+          <p className="rounded-full bg-[#009739]/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#7dffb0] ring-1 ring-[#1ed760]/30">
             {sorted.length} pasta{sorted.length === 1 ? "" : "s"}
           </p>
         </div>
@@ -96,22 +98,14 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
             const { label, status } = parseMonthStatus(folder.name);
             const isNew = newFolderIds.has(folder.id);
             const name = displayFolderName(folder.name);
-            const rowTone =
-              index % 3 === 0
-                ? "bg-[#009739]/10"
-                : index % 3 === 1
-                  ? "bg-[#002776]/25"
-                  : "bg-[#FFDF00]/5";
+            const rowTone = packListRowTone(index);
 
             return (
               <li
                 key={folder.id}
-                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 transition-colors hover:bg-white/[0.04] sm:px-4 ${rowTone}`}
+                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 transition-colors sm:px-4 ${rowTone}`}
               >
-                <span
-                  className="h-8 w-1 flex-shrink-0 rounded-full bg-gradient-to-b from-[#009739] via-[#FFDF00] to-[#6B9FFF]"
-                  aria-hidden
-                />
+                <span className={packListAccentBarClass} aria-hidden />
                 <Link
                   href={folderHref([slug])}
                   onMouseEnter={() => prefetchFolder(slug)}
