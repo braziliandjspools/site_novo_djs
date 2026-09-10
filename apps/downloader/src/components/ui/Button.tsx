@@ -9,13 +9,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#1db954] text-black shadow-[0_8px_24px_rgba(29,185,84,0.28)] hover:bg-[#1ed760] hover:shadow-[0_10px_28px_rgba(29,185,84,0.35)] active:scale-[0.98] disabled:hover:bg-[#1db954] disabled:shadow-none",
+    "bg-[#1ed760] text-black shadow-[0_6px_18px_rgba(30,215,96,0.22)] hover:bg-[#3dff86] active:scale-[0.98] disabled:hover:bg-[#1ed760] disabled:shadow-none",
   secondary:
-    "border border-[#1db954]/40 bg-[#1db954]/10 text-[#1db954] hover:bg-[#1db954]/18 hover:border-[#1db954]/65 active:scale-[0.98] disabled:opacity-50",
+    "border border-[#1ed760]/35 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/16 hover:border-[#1ed760]/55 active:scale-[0.98] disabled:opacity-50",
   ghost:
     "text-zinc-300 hover:bg-white/[0.06] hover:text-white active:scale-[0.98] disabled:opacity-50",
   danger:
-    "border border-red-500/40 bg-red-500/12 text-red-300 hover:bg-red-500/22 active:scale-[0.98] disabled:opacity-50",
+    "border border-red-500/35 bg-red-500/10 text-red-300 hover:bg-red-500/18 active:scale-[0.98] disabled:opacity-50",
 };
 
 export function Button({
@@ -28,7 +28,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-[0.75rem] font-extrabold tracking-[-0.01em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

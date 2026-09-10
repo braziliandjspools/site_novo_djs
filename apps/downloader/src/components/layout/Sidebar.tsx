@@ -69,23 +69,19 @@ export function Sidebar({
   const firstName = userName.split(" ")[0] ?? userName;
 
   return (
-    <aside className="flex h-full w-[268px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-[var(--bg-sidebar)]">
+    <aside className="flex h-full w-[220px] flex-shrink-0 flex-col border-r border-white/[0.05] bg-[var(--bg-sidebar)]">
       <div className="br-stripe-thin" />
-      <div className="px-5 py-6">
-        <BrsLogo className="h-10 w-auto max-w-[220px] object-contain object-left" />
-        <p className="text-eyebrow mt-2.5 text-zinc-500">
-          {DOWNLOADER_NAME}
-        </p>
+      <div className="px-4 py-4">
+        <BrsLogo className="h-8 w-auto max-w-[180px] object-contain object-left" />
+        <p className="text-eyebrow mt-2 text-zinc-500">{DOWNLOADER_NAME}</p>
       </div>
 
       <div className="px-3">
         <ConnectionStatus device={device} connectionState={connectionState} error={syncError} />
       </div>
 
-      <nav className="mt-5 flex-1 space-y-1 overflow-y-auto px-3">
-        <p className="text-eyebrow px-3 pb-2 text-zinc-600">
-          {t("navMenu")}
-        </p>
+      <nav className="mt-4 flex-1 space-y-0.5 overflow-y-auto px-2.5">
+        <p className="text-eyebrow px-2.5 pb-1.5 text-zinc-600">{t("navMenu")}</p>
         {NAV_ITEMS.map(({ id, labelKey, icon: Icon, countKey }) => {
           const active = activeRoute === id;
           const badge = countKey && counts ? counts[countKey] : 0;
@@ -95,23 +91,23 @@ export function Sidebar({
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
-              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[17px] font-medium leading-[1.4] tracking-[-0.01em] transition-all duration-200 ${
+              className={`group relative flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-[0.78rem] font-bold leading-snug tracking-[-0.01em] transition-all duration-200 ${
                 active
-                  ? "bg-[#1db954]/14 text-white shadow-[inset_0_0_0_1px_rgba(29,185,84,0.18)]"
+                  ? "bg-[#1ed760]/12 text-white shadow-[inset_0_0_0_1px_rgba(30,215,96,0.16)]"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
               {active && (
-                <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[#1db954]" />
+                <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-[#1ed760]" />
               )}
               <Icon
-                className={`h-4 w-4 flex-shrink-0 transition-colors ${
-                  active ? "text-[#1db954]" : "text-zinc-500 group-hover:text-zinc-300"
+                className={`h-3.5 w-3.5 flex-shrink-0 transition-colors ${
+                  active ? "text-[#1ed760]" : "text-zinc-500 group-hover:text-zinc-300"
                 }`}
               />
               <span className="flex-1">{t(labelKey)}</span>
               {badge > 0 && (
-                <span className="rounded-md bg-[#1db954] px-1.5 py-0.5 text-[10px] font-bold leading-none text-black">
+                <span className="rounded-full bg-[#1ed760] px-1.5 py-0.5 text-[0.6rem] font-extrabold leading-none text-black">
                   {badge}
                 </span>
               )}
@@ -120,16 +116,16 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="mx-3 mb-3 rounded-2xl border border-white/[0.06] bg-gradient-to-b from-[#161616] to-[#101010] px-4 py-4">
-        <p className="truncate text-sm font-semibold text-[#1db954]">
+      <div className="mx-2.5 mb-2.5 rounded-2xl border border-white/[0.06] bg-[var(--bg-card)] px-3 py-3">
+        <p className="truncate text-[0.75rem] font-extrabold text-[#1ed760]">
           {t("navHello", { name: firstName })}
         </p>
         <button
           type="button"
           onClick={onLogout}
-          className="mt-3 inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-zinc-500 transition-colors hover:text-white"
+          className="mt-2 inline-flex cursor-pointer items-center gap-1.5 text-[0.68rem] font-bold text-zinc-500 transition-colors hover:text-white"
         >
-          <LogOut className="h-3.5 w-3.5" />
+          <LogOut className="h-3 w-3" />
           {t("navLogout")}
         </button>
       </div>

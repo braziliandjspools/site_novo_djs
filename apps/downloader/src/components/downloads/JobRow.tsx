@@ -69,21 +69,21 @@ function statusLabelKey(status: string): MessageKey | null {
 
 function StatusIcon({ status, isActive }: { status: string; isActive: boolean }) {
   if (isActive || status === "DOWNLOADING") {
-    return <Loader2 className="h-4 w-4 animate-spin text-[#1db954]" />;
+    return <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />;
   }
   if (status === "COMPLETED") {
-    return <CheckCircle2 className="h-4 w-4 text-[#1db954]" />;
+    return <CheckCircle2 className="h-3.5 w-3.5 text-[#1ed760]" />;
   }
   if (status === "FAILED") {
-    return <XCircle className="h-4 w-4 text-red-400" />;
+    return <XCircle className="h-3.5 w-3.5 text-red-400" />;
   }
   if (status === "PAUSED") {
-    return <Pause className="h-4 w-4 text-amber-400" />;
+    return <Pause className="h-3.5 w-3.5 text-amber-400" />;
   }
   if (status === "PENDING" || status === "RECEIVED") {
-    return <MonitorDown className="h-4 w-4 text-zinc-500" />;
+    return <MonitorDown className="h-3.5 w-3.5 text-zinc-500" />;
   }
-  return <Download className="h-4 w-4 text-zinc-500" />;
+  return <Download className="h-3.5 w-3.5 text-zinc-500" />;
 }
 
 export const JobRow = memo(function JobRow({
@@ -130,8 +130,8 @@ export const JobRow = memo(function JobRow({
 
   return (
     <article
-      className={`rounded-2xl border bg-[#1f1f1f] px-4 py-3.5 ${
-        selected ? "border-[#1db954]/40" : "border-white/[0.06]"
+      className={`rounded-2xl border bg-[var(--bg-card)] px-3.5 py-3 ${
+        selected ? "border-[#1ed760]/40" : "border-white/[0.06]"
       }`}
       draggable={draggable && canReorder}
       onDragStart={draggable && canReorder ? onDragStart : undefined}
@@ -139,14 +139,14 @@ export const JobRow = memo(function JobRow({
       onDrop={draggable ? onDrop : undefined}
       onDragEnd={draggable ? onDragEnd : undefined}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2.5">
         {selectable && (
-          <label className="mt-3 flex cursor-pointer items-center">
+          <label className="mt-2.5 flex cursor-pointer items-center">
             <input
               type="checkbox"
               checked={selected}
               onChange={() => onToggleSelect?.()}
-              className="h-4 w-4 rounded border-zinc-600 bg-[#121212] accent-[#1db954]"
+              className="h-3.5 w-3.5 rounded border-zinc-600 bg-[#121212] accent-[#1ed760]"
               aria-label={t("jobsSelectAria", { name: job.fileName })}
             />
           </label>
@@ -154,31 +154,31 @@ export const JobRow = memo(function JobRow({
 
         {draggable && canReorder && (
           <div
-            className="mt-2 cursor-grab text-zinc-600 active:cursor-grabbing"
+            className="mt-1.5 cursor-grab text-zinc-600 active:cursor-grabbing"
             title={t("jobsDragToReorder")}
             aria-hidden
           >
-            <GripVertical className="h-4 w-4" />
+            <GripVertical className="h-3.5 w-3.5" />
           </div>
         )}
 
-        <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#1db954]/10">
+        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#1ed760]/10">
           <StatusIcon status={job.status} isActive={isActive} />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-bold text-white">{job.fileName}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="truncate text-[0.78rem] font-extrabold text-white">{job.fileName}</p>
             <span
-              className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
+              className={`rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold tracking-wide uppercase ${
                 job.status === "COMPLETED"
-                  ? "bg-[#1db954]/15 text-[#1db954]"
+                  ? "bg-[#1ed760]/15 text-[#1ed760]"
                   : job.status === "FAILED"
                     ? "bg-red-500/15 text-red-400"
                     : job.status === "PAUSED"
                       ? "bg-amber-500/15 text-amber-300"
                       : downloading
-                        ? "bg-[#1db954]/10 text-[#1db954]"
+                        ? "bg-[#1ed760]/10 text-[#1ed760]"
                         : "bg-white/5 text-zinc-400"
               }`}
             >
@@ -187,12 +187,12 @@ export const JobRow = memo(function JobRow({
           </div>
 
           {waiting && !isActive && (
-            <p className="mt-1 text-xs text-zinc-500">{t("jobsWaitingSlot")}</p>
+            <p className="mt-1 text-[0.68rem] text-zinc-500">{t("jobsWaitingSlot")}</p>
           )}
-          {paused && <p className="mt-1 text-xs text-amber-300">{t("jobsPausedNotice")}</p>}
+          {paused && <p className="mt-1 text-[0.68rem] text-amber-300">{t("jobsPausedNotice")}</p>}
 
           {job.relativePath && (
-            <p className="mt-1 truncate text-xs text-zinc-600">
+            <p className="mt-1 truncate text-[0.65rem] text-zinc-600">
               {job.relativePath.replace(/^__BRS_TREE__\//, "")}
             </p>
           )}

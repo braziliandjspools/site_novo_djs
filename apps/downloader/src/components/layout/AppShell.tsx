@@ -62,30 +62,30 @@ export function AppShell({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="relative z-50 flex flex-shrink-0 items-start justify-between gap-4 border-b border-white/[0.06] bg-[#121212]/90 px-7 py-5 backdrop-blur-md">
+        <header className="relative z-50 flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.05] bg-[#0e1014]/92 px-5 py-3.5 backdrop-blur-xl">
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/50 to-transparent"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1ed760]/40 to-transparent"
             aria-hidden
           />
           <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-[-0.03em] text-white sm:text-2xl">
+            <h1 className="truncate text-[0.95rem] font-extrabold tracking-[-0.02em] text-white sm:text-[1.05rem]">
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-[var(--text-muted)]">
+              <p className="mt-0.5 max-w-2xl truncate text-[0.72rem] leading-snug text-[var(--text-muted)]">
                 {subtitle}
               </p>
             )}
           </div>
-          <div className="relative z-[60] flex flex-shrink-0 items-center gap-2">
+          <div className="relative z-[60] flex flex-shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => void openPlatform(supportWhatsAppUrl())}
               title={t("settingsSupportWhatsApp")}
               aria-label={t("settingsSupportWhatsApp")}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#25D366]/35 bg-[#25D366]/15 px-3 text-sm font-semibold text-[#25D366] transition-colors hover:bg-[#25D366]/25"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#25D366]/30 bg-[#25D366]/12 px-2.5 text-[0.7rem] font-bold text-[#25D366] transition-colors hover:bg-[#25D366]/22"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">WhatsApp</span>
             </button>
             <NotificationBell
@@ -95,7 +95,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-7 py-7">
+        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
           <div className="animate-fade-up">{children}</div>
         </main>
       </div>

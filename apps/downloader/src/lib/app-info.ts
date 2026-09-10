@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.7_estable";
-export const APP_CORE_VERSION = "1.0.7_estable";
+export const WEBUI_VERSION = "1.0.8_estable";
+export const APP_CORE_VERSION = "1.0.8_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,14 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.8_estable",
+    date: "2026-09-10",
+    items: [
+      "Novo visual: tipografia Nunito arredondada, textos menores e interface mais limpa",
+      "Sidebar, login, home e fila com densidade moderna e botões arredondados",
+    ],
+  },
   {
     version: "1.0.7_estable",
     date: "2026-09-10",

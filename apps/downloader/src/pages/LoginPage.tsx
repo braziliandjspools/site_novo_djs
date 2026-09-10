@@ -15,9 +15,9 @@ import { LanguagePicker } from "../i18n/LanguagePicker";
 const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 
 const inputClassName =
-  "w-full rounded-xl border border-white/[0.1] bg-black/50 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1db954]/60 focus:bg-black/70 focus:ring-2 focus:ring-[#1db954]/20";
+  "w-full rounded-2xl border border-white/[0.08] bg-black/45 px-3.5 py-2.5 text-[0.8rem] font-semibold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1ed760]/55 focus:bg-black/60 focus:ring-2 focus:ring-[#1ed760]/15";
 
-const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500";
+const labelClassName = "mb-1.5 block text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-zinc-500";
 
 export function LoginPage() {
   const { login, error: authError, refreshSession, sessionToken } = useAuth();
@@ -154,33 +154,33 @@ export function LoginPage() {
         className="absolute right-4 top-4 z-20"
       />
 
-      <div className="relative z-10 w-full max-w-md animate-fade-up">
-        <div className="mb-8 text-center">
+      <div className="relative z-10 w-full max-w-[22rem] animate-fade-up">
+        <div className="mb-5 text-center">
           <div className="flex justify-center">
-            <BrsLogo className="h-14 w-auto max-w-[300px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]" />
+            <BrsLogo className="h-11 w-auto max-w-[240px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]" />
           </div>
-          <p className="mt-3 text-sm font-medium tracking-wide text-zinc-300 drop-shadow">
+          <p className="mt-2 text-[0.75rem] font-bold tracking-wide text-zinc-300 drop-shadow">
             {DOWNLOADER_NAME}
           </p>
         </div>
 
         <form
           onSubmit={(event) => void handleSubmit(event)}
-          className="glass-panel rounded-3xl p-6 sm:p-7"
+          className="glass-panel rounded-[1.35rem] p-5"
         >
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#1db954]">
+          <p className="mb-1 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-[#1ed760]">
             {t("loginVipAccount")}
           </p>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-white">
+          <h1 className="font-display text-[1.2rem] font-extrabold tracking-tight text-white">
             {t("loginTitle")}
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+          <p className="mt-1.5 text-[0.75rem] leading-relaxed text-zinc-500">
             {t("loginSubtitle", { site: SITE_NAME })}
           </p>
 
           {sessionToken && (
-            <div className="mt-4 rounded-lg border border-[#1db954]/25 bg-[#1db954]/10 px-3 py-3">
-              <p className="text-sm text-zinc-200">
+            <div className="mt-3 rounded-2xl border border-[#1ed760]/25 bg-[#1ed760]/10 px-3 py-2.5">
+              <p className="text-[0.75rem] text-zinc-200">
                 {reconnecting ? t("loginRestoringSession") : t("loginSavedSessionHint")}
               </p>
               <Button
@@ -196,7 +196,7 @@ export function LoginPage() {
             </div>
           )}
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-5 space-y-3">
             <div>
               <label htmlFor="email" className={labelClassName}>
                 {t("loginEmail")}
@@ -245,7 +245,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => setShowAdvanced((current) => !current)}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-zinc-300"
+              className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold text-zinc-500 hover:text-zinc-300"
             >
               <Server className="h-3.5 w-3.5" />
               {showAdvanced ? t("loginHideServer") : t("loginAdvancedServer")}
@@ -291,16 +291,16 @@ export function LoginPage() {
           </div>
 
           {displayError && (
-            <p className="mt-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{displayError}</p>
+            <p className="mt-3 rounded-2xl bg-red-500/10 px-3 py-2 text-[0.75rem] text-red-400">{displayError}</p>
           )}
 
-          <Button type="submit" disabled={submitting} className="mt-6 w-full">
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+          <Button type="submit" disabled={submitting} className="mt-5 w-full py-2">
+            {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogIn className="h-3.5 w-3.5" />}
             {t("loginEnter")}
           </Button>
         </form>
 
-        <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-zinc-400 drop-shadow">
+        <p className="mt-5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center text-[0.68rem] text-zinc-400 drop-shadow">
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}

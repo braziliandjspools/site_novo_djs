@@ -60,18 +60,18 @@ const QUICK_LINKS: {
     labelKey: "navQueue",
     descriptionKey: "homeQuickQueueDesc",
     icon: ListOrdered,
-    accent: "text-violet-300",
-    iconBg: "bg-violet-500/15 text-violet-300",
-    borderHover: "hover:border-violet-400/40 hover:bg-violet-500/5",
+    accent: "text-teal-300",
+    iconBg: "bg-teal-500/15 text-teal-300",
+    borderHover: "hover:border-teal-400/40 hover:bg-teal-500/5",
   },
   {
     route: "completed",
     labelKey: "navCompleted",
     descriptionKey: "homeQuickCompletedDesc",
     icon: CheckCircle2,
-    accent: "text-[#1db954]",
-    iconBg: "bg-[#1db954]/15 text-[#1db954]",
-    borderHover: "hover:border-[#1db954]/40 hover:bg-[#1db954]/5",
+    accent: "text-[#1ed760]",
+    iconBg: "bg-[#1ed760]/15 text-[#1ed760]",
+    borderHover: "hover:border-[#1ed760]/40 hover:bg-[#1ed760]/5",
   },
   {
     route: "history",
@@ -126,19 +126,19 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(29,185,84,0.12),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 p-7 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+      <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[var(--bg-card)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(30,215,96,0.1),transparent_55%)]" />
+        <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <BrsLogo className="mb-5 h-12 w-auto max-w-[280px] object-contain object-left sm:h-14" />
-            <p className="text-eyebrow text-[#1db954]">
+            <BrsLogo className="mb-3 h-9 w-auto max-w-[220px] object-contain object-left sm:h-10" />
+            <p className="text-eyebrow text-[#1ed760]">
               {t("homeWelcomeEyebrow")}
             </p>
-            <h1 className="text-page-title mt-2 text-[#1db954]">
+            <h1 className="text-page-title mt-1.5 text-[#1ed760]">
               {t("homeWelcome", { name: firstName })}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">
+            <p className="mt-2 max-w-xl text-[0.78rem] leading-relaxed text-zinc-400">
               {t("homeIntro", { site: SITE_NAME })}
             </p>
           </div>
@@ -198,7 +198,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
           label={t("homeStatsQueue")}
           value={counts.queue || pendingCount}
           hint={t("homeStatQueueHint")}
-          tone="violet"
+          tone="teal"
         />
         <StatCard
           label={t("homeStatsCompleted")}
@@ -326,27 +326,27 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
 
 const STAT_TONES = {
   sky: {
-    card: "border-sky-500/25 bg-gradient-to-br from-sky-500/20 to-[#1f1f1f]",
+    card: "border-sky-500/25 bg-gradient-to-br from-sky-500/15 to-[var(--bg-card)]",
     label: "text-sky-300/80",
     value: "text-sky-200",
   },
-  violet: {
-    card: "border-violet-500/25 bg-gradient-to-br from-violet-500/20 to-[#1f1f1f]",
-    label: "text-violet-300/80",
-    value: "text-violet-200",
+  teal: {
+    card: "border-teal-500/25 bg-gradient-to-br from-teal-500/15 to-[var(--bg-card)]",
+    label: "text-teal-300/80",
+    value: "text-teal-200",
   },
   green: {
-    card: "border-[#1db954]/25 bg-gradient-to-br from-[#1db954]/20 to-[#1f1f1f]",
-    label: "text-[#1db954]/80",
-    value: "text-[#1db954]",
+    card: "border-[#1ed760]/25 bg-gradient-to-br from-[#1ed760]/15 to-[var(--bg-card)]",
+    label: "text-[#1ed760]/80",
+    value: "text-[#1ed760]",
   },
   emerald: {
-    card: "border-emerald-500/25 bg-gradient-to-br from-emerald-500/20 to-[#1f1f1f]",
+    card: "border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 to-[var(--bg-card)]",
     label: "text-emerald-300/80",
     value: "text-emerald-300",
   },
   amber: {
-    card: "border-amber-500/25 bg-gradient-to-br from-amber-500/20 to-[#1f1f1f]",
+    card: "border-amber-500/25 bg-gradient-to-br from-amber-500/15 to-[var(--bg-card)]",
     label: "text-amber-300/80",
     value: "text-amber-300",
   },
@@ -365,10 +365,10 @@ function StatCard({
 }) {
   const colors = STAT_TONES[tone];
   return (
-    <div className={`rounded-2xl border px-4 py-4 ${colors.card}`}>
-      <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${colors.label}`}>{label}</p>
-      <p className={`mt-2 text-2xl font-black ${colors.value}`}>{value}</p>
-      <p className="mt-1 text-xs text-zinc-500">{hint}</p>
+    <div className={`rounded-2xl border px-3.5 py-3 ${colors.card}`}>
+      <p className={`text-[0.6rem] font-extrabold uppercase tracking-[0.12em] ${colors.label}`}>{label}</p>
+      <p className={`mt-1.5 text-xl font-black tracking-tight ${colors.value}`}>{value}</p>
+      <p className="mt-1 text-[0.68rem] text-zinc-500">{hint}</p>
     </div>
   );
 }
