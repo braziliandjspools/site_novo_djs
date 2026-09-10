@@ -75,11 +75,11 @@ No PC, abra o **FileZilla**:
 
 ## 4. Ligar ao portal (`/portal/pools`)
 
-No projeto Vercel → Settings → Environment Variables:
+No projeto (Vercel **e/ou** Dokploy) → Environment Variables:
 
-| Env Vercel | Valor |
+| Env do site | Valor |
 |---|---|
-| `VIP_FTP_HOST` | IP ou domínio do VPS |
+| `VIP_FTP_HOST` | domínio FTP (ex. `ftp.brazilianremixservice.com.br`) ou IP do VPS |
 | `VIP_FTP_PORT` | `21` |
 | `VIP_FTP_PROTOCOL` | `ftp` |
 | `VIP_FTP_USER` | mesmo `FTP_USER` |
@@ -89,7 +89,26 @@ Redeploy o site. Em `/portal/pools` as credenciais FTP passam a aparecer no card
 
 O código que lê essas vars está em `app/lib/portal.ts` (`getVipFtpConfig`).
 
-## 5. Firewall (exemplo UFW)
+## 5. DNS na Cloudflare (obrigatório se usar domínio)
+
+Crie um registro **A** (ou AAAA) para o FTP:
+
+| Tipo | Nome | Conteúdo | Proxy |
+|---|---|---|---|
+| `A` | `ftp` | IP público do VPS | **DNS only** (nuvem **cinza**) |
+
+**Não use proxy laranja (Proxied).** A Cloudflare não encaminha FTP/portas passivas direito — o FileZilla falha com timeout ou “connection refused” se o proxy estiver ligado.
+
+Depois:
+
+1. Espere o DNS propagar (`ping ftp.seudominio.com` deve mostrar o IP do VPS).
+2. Em `infra/vip-ftp/.env`, use o **mesmo host** em `FTP_PASV_ADDRESS` (ex. `ftp.brazilianremixservice.com.br`).
+3. Reinicie o FTP: `docker compose up -d --force-recreate ftp`.
+4. No site, `VIP_FTP_HOST` = o mesmo hostname.
+
+Se preferir só o IP (sem subdomínio), pule o DNS e use o IP em `FTP_PASV_ADDRESS` e `VIP_FTP_HOST`.
+
+## 6. Firewall (exemplo UFW)
 
 ```bash
 sudo ufw allow 21/tcp
