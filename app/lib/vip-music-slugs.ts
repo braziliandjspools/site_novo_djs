@@ -70,6 +70,143 @@ export function parseWeekNumber(name: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+export type ParsedDayFolder = {
+  day: number;
+  month?: number;
+  year?: number;
+};
+
+const MONTH_TOKEN_INDEX: Record<string, number> = {
+  ...MONTH_INDEX,
+  jan: 1,
+  fev: 2,
+  mar: 3,
+  abr: 4,
+  mai: 5,
+  jun: 6,
+  jul: 7,
+  ago: 8,
+  set: 9,
+  out: 10,
+  nov: 11,
+  dez: 12,
+};
+
+/**
+ * Detecta pastas de dia: "DIA 10", "10", "10-09-2026", "2026-09-10", "10 SET".
+ * Usado na hierarquia Mês > Dia > Pool (ex.: SETEMBRO > DIA 10 > FUNK).
+ */
+export function parseDayFolder(name: string): ParsedDayFolder | null {
+  const label = displayFolderName(name)
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .trim();
+  if (!label || isWeekFolderName(name)) return null;
+
+  let match = label.match(/^dia\s*0*(\d{1,2})\b/i);
+  if (match) {
+    const day = Number(match[1]);
+    if (day >= 1 && day <= 31) return { day };
+  }
+
+  match = label.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return { day, month, year };
+  }
+
+  match = label.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?$/);
+  if (match) {
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    let year = match[3] ? Number(match[3]) : undefined;
+    if (year != null && year < 100) year += 2000;
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) return { day, month, year };
+  }
+
+  match = label.match(
+    /^(\d{1,2})\s+(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\b(?:\s+(\d{4}))?/i,
+  );
+  if (match) {
+    const day = Number(match[1]);
+    const month = MONTH_TOKEN_INDEX[match[2].toLowerCase()];
+    const year = match[3] ? Number(match[3]) : undefined;
+    if (day >= 1 && day <= 31 && month) return { day, month, year };
+  }
+
+  match = label.match(/^0*(\d{1,2})$/);
+  if (match) {
+    const day = Number(match[1]);
+    if (day >= 1 && day <= 31) return { day };
+  }
+
+  return null;
+}
+
+export function isDayFolderName(name: string): boolean {
+  return parseDayFolder(name) != null;
+}
+
+/** Chave ISO YYYY-MM-DD para agrupar/ordenar pastas de dia. */
+export function dayFolderIsoKey(
+  name: string,
+  monthHint?: { year: number; month: number } | null,
+): string | null {
+  const parsed = parseDayFolder(name);
+  if (!parsed) return null;
+  const year = parsed.year ?? monthHint?.year;
+  const month = parsed.month ?? monthHint?.month;
+  if (!year || !month) return null;
+  return `${year}-${String(month).padStart(2, "0")}-${String(parsed.day).padStart(2, "0")}`;
+}
+
+export function formatDayFolderHeading(
+  name: string,
+  monthHint?: { year: number; month: number } | null,
+): string {
+  const iso = dayFolderIsoKey(name, monthHint);
+  if (iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+  return displayFolderName(name);
+}
+
+/** Maioria dos filhos parece dia → hierarquia Mês > Dia > Pool/estilo. */
+export function childrenAreDayFolders(folders: VipMusicFolder[]): boolean {
+  if (folders.length === 0) return false;
+  if (childrenAreWeekFolders(folders)) return false;
+  const days = folders.filter((folder) => isDayFolderName(folder.name)).length;
+  return days >= Math.max(1, Math.ceil(folders.length * 0.5));
+}
+
+export function sortFoldersByDay(
+  folders: VipMusicFolder[],
+  monthHint?: { year: number; month: number } | null,
+  newestFirst = true,
+): VipMusicFolder[] {
+  const dir = newestFirst ? -1 : 1;
+  return [...folders].sort((a, b) => {
+    const ka = dayFolderIsoKey(a.name, monthHint);
+    const kb = dayFolderIsoKey(b.name, monthHint);
+    if (ka && kb && ka !== kb) return ka.localeCompare(kb) * dir;
+    const pa = parseDayFolder(a.name);
+    const pb = parseDayFolder(b.name);
+    if (pa && pb && pa.day !== pb.day) return (pa.day - pb.day) * dir;
+    if (pa && !pb) return -1;
+    if (!pa && pb) return 1;
+    return a.name.localeCompare(b.name, "pt-BR", { numeric: true }) * dir;
+  });
+}
+
 export function parseMonthFolderDate(name: string): { year: number; month: number } | null {
   const label = displayFolderName(name)
     .normalize("NFD")
@@ -156,6 +293,7 @@ export function sortFoldersByMonthDate(folders: VipMusicFolder[], newestFirst = 
 
 export function sortVipChildFolders(folders: VipMusicFolder[]): VipMusicFolder[] {
   if (childrenAreWeekFolders(folders)) return sortFoldersByWeek(folders);
+  if (childrenAreDayFolders(folders)) return sortFoldersByDay(folders, null, true);
   const monthLike = folders.filter((folder) => parseMonthFolderDate(folder.name)).length;
   if (monthLike >= Math.ceil(folders.length * 0.5)) {
     return sortFoldersByMonthDate(folders, true);

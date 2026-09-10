@@ -1,6 +1,7 @@
 import { getVipMusicTracks, listVipMusicFolders } from "./vip-music-catalog";
 import { getTrackDisplayMetadata } from "./track-display-metadata";
 import {
+  childrenAreDayFolders,
   childrenAreWeekFolders,
   displayFolderName,
   slugifyFolderName,
@@ -53,7 +54,7 @@ export async function searchVipMusic(query: string, limit = 50): Promise<VipMusi
 
     const monthChildren = await listVipMusicFolders(month.id);
 
-    if (childrenAreWeekFolders(monthChildren)) {
+    if (childrenAreDayFolders(monthChildren) || childrenAreWeekFolders(monthChildren)) {
       for (const week of monthChildren) {
         if (results.length >= limit) break;
 

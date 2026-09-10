@@ -6,9 +6,14 @@ import {
 } from "./google-drive";
 import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 import {
+  childrenAreDayFolders,
   childrenAreWeekFolders,
+  dayFolderIsoKey,
   displayFolderName,
+  formatDayFolderHeading,
+  parseMonthFolderDate,
   slugifyFolderName,
+  sortFoldersByDay,
   sortVipChildFolders,
 } from "./vip-music-slugs";
 import { findFolderCover, folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
@@ -132,9 +137,14 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       .map((file) => toPreviewTrack(file, folderName))
       .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 
-    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
-    // Semanas/meses: sem capa — evita N+1 listagens no Drive.
-    const loadCovers = !childrenAreWeekFolders(sorted) && sorted.length <= 48;
+    const folderList = subfolders.map((folder) => ({ id: folder.id, name: folder.name }));
+    const monthDate = parseMonthFolderDate(folderName);
+    const sorted = childrenAreDayFolders(folderList)
+      ? sortFoldersByDay(folderList, monthDate, true)
+      : sortVipChildFolders(folderList);
+    // Semanas/dias/meses: sem capa — evita N+1 listagens no Drive.
+    const loadCovers =
+      !childrenAreWeekFolders(sorted) && !childrenAreDayFolders(sorted) && sorted.length <= 48;
     const covers = loadCovers
       ? await Promise.all(sorted.map((folder) => findFolderCover(folder.id)))
       : sorted.map(() => null);
@@ -260,9 +270,9 @@ export async function getVipMusicTracksPaginated(
   };
 }
 
-export const VIP_MUSIC_FEED_PAGE_SIZE = 8;
-/** Página de faixas no feed; o bloco completa o restante automaticamente. */
-export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 100;
+export const VIP_MUSIC_FEED_PAGE_SIZE = 3;
+/** Faixas por pool no feed (Carregar mais completa o restante). */
+export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 30;
 
 export type VipMusicFeedPack = {
   id: string;
@@ -270,6 +280,8 @@ export type VipMusicFeedPack = {
   slugSegments: string[];
   monthName: string;
   weekName: string | null;
+  dayKey: string;
+  dayLabel: string;
   modifiedAt: string | null;
   coverUrl: string | null;
   tracks: PreviewTrack[];
@@ -278,7 +290,16 @@ export type VipMusicFeedPack = {
   tracksHasMore?: boolean;
 };
 
+export type VipMusicFeedDay = {
+  key: string;
+  label: string;
+  monthName: string;
+  dayName: string | null;
+  packs: VipMusicFeedPack[];
+};
+
 export type VipMusicFeedResponse = {
+  days: VipMusicFeedDay[];
   packs: VipMusicFeedPack[];
   page: number;
   pageSize: number;
@@ -292,13 +313,24 @@ type FeedCandidate = {
   slugSegments: string[];
   monthName: string;
   weekName: string | null;
+  dayKey: string;
+  dayLabel: string;
   modifiedAt: number;
 };
 
-async function listVipMusicFeedCandidates(options?: {
+type FeedDayBucket = {
+  key: string;
+  label: string;
+  monthName: string;
+  dayName: string | null;
+  sortAt: number;
+  candidates: FeedCandidate[];
+};
+
+async function listVipMusicFeedDayBuckets(options?: {
   monthSlug?: string;
   weekSlug?: string;
-}): Promise<FeedCandidate[]> {
+}): Promise<FeedDayBucket[]> {
   const months = await listVipMusicFolders();
   if (!months.length) return [];
 
@@ -308,17 +340,67 @@ async function listVipMusicFeedCandidates(options?: {
     ? months.filter((month) => slugifyFolderName(month.name) === monthSlug)
     : months.slice(0, 3);
 
-  const candidates: FeedCandidate[] = [];
+  const buckets = new Map<string, FeedDayBucket>();
+
+  const pushCandidate = (candidate: FeedCandidate) => {
+    const existing = buckets.get(candidate.dayKey);
+    if (existing) {
+      existing.candidates.push(candidate);
+      existing.sortAt = Math.max(existing.sortAt, candidate.modifiedAt);
+      return;
+    }
+    buckets.set(candidate.dayKey, {
+      key: candidate.dayKey,
+      label: candidate.dayLabel,
+      monthName: candidate.monthName,
+      dayName: candidate.weekName,
+      sortAt: candidate.modifiedAt,
+      candidates: [candidate],
+    });
+  };
 
   for (const month of scopedMonths) {
     const monthName = displayFolderName(month.name);
     const monthSeg = slugifyFolderName(month.name);
+    const monthDate = parseMonthFolderDate(month.name);
     const children = await listDriveFolderChildren(month.id);
     const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
-    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
+    const folderList = subfolders.map((folder) => ({ id: folder.id, name: folder.name }));
     const modifiedById = new Map(
       subfolders.map((folder) => [folder.id, folder.modifiedTime ? Date.parse(folder.modifiedTime) : 0]),
     );
+
+    if (childrenAreDayFolders(folderList)) {
+      const days = sortFoldersByDay(folderList, monthDate, true);
+      const scopedDays = weekSlug
+        ? days.filter((day) => slugifyFolderName(day.name) === weekSlug)
+        : days;
+      for (const day of scopedDays) {
+        const dayName = displayFolderName(day.name);
+        const daySeg = slugifyFolderName(day.name);
+        const dayKey =
+          dayFolderIsoKey(day.name, monthDate) ?? `${monthSeg}__${daySeg}`;
+        const dayLabel = formatDayFolderHeading(day.name, monthDate);
+        const dayChildren = await listDriveFolderChildren(day.id);
+        for (const style of dayChildren.filter((item) => item.mimeType === FOLDER_MIME)) {
+          pushCandidate({
+            id: style.id,
+            name: displayFolderName(style.name),
+            slugSegments: [monthSeg, daySeg, slugifyFolderName(style.name)],
+            monthName,
+            weekName: dayName,
+            dayKey,
+            dayLabel,
+            modifiedAt: style.modifiedTime
+              ? Date.parse(style.modifiedTime)
+              : modifiedById.get(day.id) ?? 0,
+          });
+        }
+      }
+      continue;
+    }
+
+    const sorted = sortVipChildFolders(folderList);
 
     if (childrenAreWeekFolders(sorted)) {
       const weeks = weekSlug
@@ -327,37 +409,72 @@ async function listVipMusicFeedCandidates(options?: {
       for (const week of weeks) {
         const weekName = displayFolderName(week.name);
         const weekSeg = slugifyFolderName(week.name);
+        const dayKey = `${monthSeg}__${weekSeg}`;
+        const dayLabel = weekName;
         const weekChildren = await listDriveFolderChildren(week.id);
         for (const style of weekChildren.filter((item) => item.mimeType === FOLDER_MIME)) {
-          candidates.push({
+          pushCandidate({
             id: style.id,
             name: displayFolderName(style.name),
             slugSegments: [monthSeg, weekSeg, slugifyFolderName(style.name)],
             monthName,
             weekName,
-            modifiedAt: style.modifiedTime ? Date.parse(style.modifiedTime) : modifiedById.get(week.id) ?? 0,
+            dayKey,
+            dayLabel,
+            modifiedAt: style.modifiedTime
+              ? Date.parse(style.modifiedTime)
+              : modifiedById.get(week.id) ?? 0,
           });
         }
       }
     } else {
       for (const style of sorted) {
-        candidates.push({
+        const styleSeg = slugifyFolderName(style.name);
+        const modifiedAt = modifiedById.get(style.id) ?? 0;
+        const dayKey =
+          modifiedAt > 0
+            ? new Date(modifiedAt).toISOString().slice(0, 10)
+            : `${monthSeg}__${styleSeg}`;
+        const dayLabel =
+          modifiedAt > 0
+            ? new Date(modifiedAt).toLocaleDateString("pt-BR", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })
+            : monthName;
+        pushCandidate({
           id: style.id,
           name: displayFolderName(style.name),
-          slugSegments: [monthSeg, slugifyFolderName(style.name)],
+          slugSegments: [monthSeg, styleSeg],
           monthName,
           weekName: null,
-          modifiedAt: modifiedById.get(style.id) ?? 0,
+          dayKey,
+          dayLabel,
+          modifiedAt,
         });
       }
     }
   }
 
-  const hasTimestamps = candidates.some((item) => item.modifiedAt > 0);
-  if (hasTimestamps) {
-    candidates.sort((a, b) => b.modifiedAt - a.modifiedAt);
-  }
-  return candidates;
+  return [...buckets.values()].sort((a, b) => {
+    const aIso = /^\d{4}-\d{2}-\d{2}$/.test(a.key);
+    const bIso = /^\d{4}-\d{2}-\d{2}$/.test(b.key);
+    if (aIso && bIso) return b.key.localeCompare(a.key);
+    if (aIso && !bIso) return -1;
+    if (!aIso && bIso) return 1;
+    if (a.sortAt !== b.sortAt) return b.sortAt - a.sortAt;
+    return a.label.localeCompare(b.label, "pt-BR");
+  });
+}
+
+async function listVipMusicFeedCandidates(options?: {
+  monthSlug?: string;
+  weekSlug?: string;
+}): Promise<FeedCandidate[]> {
+  const buckets = await listVipMusicFeedDayBuckets(options);
+  return buckets.flatMap((bucket) => bucket.candidates);
 }
 
 export async function getVipMusicUpdatesFeed(options?: {
@@ -367,47 +484,61 @@ export async function getVipMusicUpdatesFeed(options?: {
   weekSlug?: string;
 }): Promise<VipMusicFeedResponse> {
   const pageSizeRaw = options?.pageSize ?? VIP_MUSIC_FEED_PAGE_SIZE;
-  const pageSize = Number.isInteger(pageSizeRaw) && pageSizeRaw > 0 ? Math.min(pageSizeRaw, 12) : VIP_MUSIC_FEED_PAGE_SIZE;
+  const pageSize =
+    Number.isInteger(pageSizeRaw) && pageSizeRaw > 0 ? Math.min(pageSizeRaw, 7) : VIP_MUSIC_FEED_PAGE_SIZE;
   const pageRaw = options?.page ?? 1;
   const page = Number.isInteger(pageRaw) && pageRaw > 0 ? pageRaw : 1;
 
-  const candidates = await listVipMusicFeedCandidates({
+  const buckets = await listVipMusicFeedDayBuckets({
     monthSlug: options?.monthSlug,
     weekSlug: options?.weekSlug,
   });
-  const total = candidates.length;
+  const total = buckets.length;
   const start = (page - 1) * pageSize;
-  const slice = candidates.slice(start, start + pageSize);
+  const slice = buckets.slice(start, start + pageSize);
 
-  const packs = await mapPool(slice, 3, async (candidate) => {
-    const pageResult = await getVipMusicTracksPaginated(
-      candidate.id,
-      candidate.name,
-      1,
-      VIP_MUSIC_FEED_TRACKS_PAGE_SIZE,
-    );
-    const totalSizeBytes = pageResult.tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0);
+  const days = await mapPool(slice, 2, async (bucket) => {
+    const packs = await mapPool(bucket.candidates, 3, async (candidate) => {
+      const pageResult = await getVipMusicTracksPaginated(
+        candidate.id,
+        candidate.name,
+        1,
+        VIP_MUSIC_FEED_TRACKS_PAGE_SIZE,
+      );
+      const totalSizeBytes = pageResult.tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0);
+      return {
+        id: candidate.id,
+        name: candidate.name,
+        slugSegments: candidate.slugSegments,
+        monthName: candidate.monthName,
+        weekName: candidate.weekName,
+        dayKey: candidate.dayKey,
+        dayLabel: candidate.dayLabel,
+        modifiedAt: candidate.modifiedAt > 0 ? new Date(candidate.modifiedAt).toISOString() : null,
+        coverUrl: null,
+        tracks: pageResult.tracks,
+        trackCount: pageResult.total,
+        totalSizeBytes,
+        tracksHasMore: pageResult.hasMore,
+      } satisfies VipMusicFeedPack;
+    });
+
     return {
-      id: candidate.id,
-      name: candidate.name,
-      slugSegments: candidate.slugSegments,
-      monthName: candidate.monthName,
-      weekName: candidate.weekName,
-      modifiedAt: candidate.modifiedAt > 0 ? new Date(candidate.modifiedAt).toISOString() : null,
-      coverUrl: null,
-      tracks: pageResult.tracks,
-      trackCount: pageResult.total,
-      totalSizeBytes,
-      tracksHasMore: pageResult.hasMore,
-    } satisfies VipMusicFeedPack;
+      key: bucket.key,
+      label: bucket.label,
+      monthName: bucket.monthName,
+      dayName: bucket.dayName,
+      packs,
+    } satisfies VipMusicFeedDay;
   });
 
   return {
-    packs,
+    days,
+    packs: days.flatMap((day) => day.packs),
     page,
     pageSize,
     total,
-    hasMore: start + packs.length < total,
+    hasMore: start + days.length < total,
   };
 }
 

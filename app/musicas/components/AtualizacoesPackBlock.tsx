@@ -121,12 +121,6 @@ export function AtualizacoesPackBlock({
     }
   }, [hasMore, loadingMore, pack.id, pack.name, page]);
 
-  // Completa automaticamente até listar todas as faixas do pack.
-  useEffect(() => {
-    if (!hasMore || loadingMore || loadError) return;
-    void loadMore();
-  }, [hasMore, loadError, loadMore, loadingMore, tracks.length]);
-
   const fileCount = total;
   const totalSize = formatBytes(pack.totalSizeBytes ?? tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0));
 
@@ -205,30 +199,24 @@ export function AtualizacoesPackBlock({
           />
           <div className="border-t border-[color:var(--pool-border)] px-4 py-3 text-center">
             {loadError ? <p className="mb-2 text-xs text-red-500">{loadError}</p> : null}
-            {loadingMore || hasMore ? (
-              <p className="inline-flex items-center gap-2 text-[11px] text-[color:var(--pool-text-muted)]">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Carregando todas as faixas…
-              </p>
-            ) : (
-              <p className="text-[11px] text-[color:var(--pool-text-muted)]">
-                {tracks.length} faixa{tracks.length === 1 ? "" : "s"}
-                {" · "}
-                <Link href={href} className="font-semibold text-[#009739] hover:underline">
-                  Abrir pasta
-                </Link>
-              </p>
-            )}
-            {loadError && hasMore ? (
+            {hasMore ? (
               <button
                 type="button"
                 disabled={loadingMore}
                 onClick={() => void loadMore()}
-                className="mt-2 inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--pool-border)] bg-[var(--pool-surface-2)] px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[color:var(--pool-text)] transition-colors hover:border-[#1ed760]/50 hover:text-[#009739] disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[color:var(--pool-border)] bg-[var(--pool-surface-2)] px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[color:var(--pool-text)] transition-colors hover:border-[#1ed760]/50 hover:text-[#009739] disabled:opacity-50"
               >
-                Tentar novamente
+                {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                Carregar mais
               </button>
             ) : null}
+            <p className="mt-2 text-[11px] text-[color:var(--pool-text-muted)]">
+              Mostrando {tracks.length} de {fileCount} faixas
+              {" · "}
+              <Link href={href} className="font-semibold text-[#009739] hover:underline">
+                Abrir pasta
+              </Link>
+            </p>
           </div>
         </>
       ) : (
