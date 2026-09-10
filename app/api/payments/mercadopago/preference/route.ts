@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertCheckoutPayloadTrusted } from "../../../../lib/billing/plan-catalog";
+import { diagnoseMercadoPagoEnv } from "../../../../lib/mercadopago/env";
 import {
   createMercadoPagoCheckoutPreference,
   sanitizeMercadoPagoErrorMessage,
@@ -22,24 +23,82 @@ type PreferenceBody = {
   duration?: unknown;
 };
 
+function classifyPreferenceError(message: string): {
+  status: number;
+  error: string;
+  code: string;
+} {
+  if (/obrigatória ausente:\s*MERCADO_PAGO_ACCESS_TOKEN/i.test(message)) {
+    return { status: 503, error: "Falta MERCADO_PAGO_ACCESS_TOKEN na Vercel (Production).", code: "missing_access_token" };
+  }
+  if (/obrigatória ausente:\s*MERCADO_PAGO_WEBHOOK_SECRET/i.test(message)) {
+    return { status: 503, error: "Falta MERCADO_PAGO_WEBHOOK_SECRET na Vercel (Production).", code: "missing_webhook_secret" };
+  }
+  if (/obrigatória ausente:\s*MERCADO_PAGO_MODE|invalid_MERCADO_PAGO_MODE|deve ser exatamente/i.test(message)) {
+    return { status: 503, error: "MERCADO_PAGO_MODE inválido. Use exatamente: production", code: "invalid_mode" };
+  }
+  if (/NEXT_PUBLIC_SITE_URL|SITE_URL|deve usar HTTPS/i.test(message)) {
+    return {
+      status: 503,
+      error: "NEXT_PUBLIC_SITE_URL ausente ou sem HTTPS. Use https://www.brazilianremixservice.com.br",
+      code: "invalid_site_url",
+    };
+  }
+  if (/TEST-\.\.\.|teste \(TEST/i.test(message) || /Access Token de teste/i.test(message)) {
+    return {
+      status: 503,
+      error: "Token de teste com MODE=production. Em Credenciais, copie o Access Token de Produção.",
+      code: "test_token_production_mode",
+    };
+  }
+  if (/Remova NEXT_PUBLIC_/i.test(message)) {
+    return {
+      status: 503,
+      error: "Remova variáveis NEXT_PUBLIC_MERCADO_PAGO_* (secrets não podem ser públicas).",
+      code: "public_secret_leak",
+    };
+  }
+  if (/init_point|sandbox_init_point/i.test(message)) {
+    return {
+      status: 502,
+      error:
+        "Mercado Pago não retornou URL de checkout. Confira se o Access Token é de produção e MODE=production.",
+      code: "missing_checkout_url",
+    };
+  }
+  if (/Prisma|database|P1001|P1017|Can't reach/i.test(message)) {
+    return {
+      status: 502,
+      error: "Falha ao gravar o pedido no banco. Verifique DATABASE_URL na Vercel.",
+      code: "database_error",
+    };
+  }
+
+  return {
+    status: 502,
+    error: "Não foi possível iniciar o pagamento. Tente novamente.",
+    code: "preference_failed",
+  };
+}
+
 export async function POST(request: Request) {
   let body: PreferenceBody;
   try {
     body = (await request.json()) as PreferenceBody;
   } catch {
-    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+    return NextResponse.json({ error: "JSON inválido.", code: "invalid_json" }, { status: 400 });
   }
 
   const trusted = assertCheckoutPayloadTrusted(body);
   if (!trusted.ok) {
-    return NextResponse.json({ error: trusted.error }, { status: 400 });
+    return NextResponse.json({ error: trusted.error, code: "invalid_plan" }, { status: 400 });
   }
 
   const user = await getAuthenticatedPortalUser();
   if (!user) {
     const loginUrl = `/musicas/entrar?return=${encodeURIComponent("/plans")}&checkout=${encodeURIComponent(trusted.plan.id)}`;
     return NextResponse.json(
-      { error: "Faça login para continuar o checkout.", loginUrl },
+      { error: "Faça login para continuar o checkout.", loginUrl, code: "unauthorized" },
       { status: 401 },
     );
   }
@@ -51,11 +110,40 @@ export async function POST(request: Request) {
   });
   if (!rate.ok) {
     return NextResponse.json(
-      { error: "Muitas tentativas de checkout. Aguarde e tente novamente." },
+      { error: "Muitas tentativas de checkout. Aguarde e tente novamente.", code: "rate_limited" },
       {
         status: 429,
         headers: { "Retry-After": String(rate.retryAfterSec) },
       },
+    );
+  }
+
+  const diag = diagnoseMercadoPagoEnv();
+  if (!diag.ok) {
+    console.error("[mercadopago/preference] env diagnostic:", diag.issues.join(","));
+    const classified = classifyPreferenceError(
+      diag.issues[0] === "test_token_with_production_mode"
+        ? "Access Token de teste"
+        : diag.issues[0] === "missing_MERCADO_PAGO_ACCESS_TOKEN"
+          ? "obrigatória ausente: MERCADO_PAGO_ACCESS_TOKEN"
+          : diag.issues[0] === "missing_MERCADO_PAGO_WEBHOOK_SECRET"
+            ? "obrigatória ausente: MERCADO_PAGO_WEBHOOK_SECRET"
+            : diag.issues[0] === "missing_MERCADO_PAGO_MODE" || diag.issues[0] === "invalid_MERCADO_PAGO_MODE"
+              ? "deve ser exatamente"
+              : diag.issues[0] === "missing_NEXT_PUBLIC_SITE_URL" ||
+                  diag.issues[0] === "site_url_must_be_https" ||
+                  diag.issues[0] === "invalid_site_url"
+                ? "NEXT_PUBLIC_SITE_URL"
+                : diag.issues.join(","),
+    );
+    return NextResponse.json(
+      {
+        error: classified.error,
+        code: classified.code,
+        issues: diag.issues,
+        present: diag.present,
+      },
+      { status: 503 },
     );
   }
 
@@ -69,7 +157,6 @@ export async function POST(request: Request) {
       },
     });
 
-    // Resposta mínima — sem Access Token nem payload integral do Mercado Pago.
     return NextResponse.json({
       checkoutUrl: result.checkoutUrl,
       orderId: result.orderId,
@@ -77,19 +164,10 @@ export async function POST(request: Request) {
   } catch (err) {
     const message = sanitizeMercadoPagoErrorMessage(err);
     console.error("[mercadopago/preference] route error:", message);
-
-    const isConfig =
-      /variável de ambiente|obrigatória ausente|NEXT_PUBLIC_SITE_URL|deve usar HTTPS|MERCADO_PAGO_MODE|COLLECTOR_ID inválido|Remova NEXT_PUBLIC_/i.test(
-        message,
-      );
-
+    const classified = classifyPreferenceError(message);
     return NextResponse.json(
-      {
-        error: isConfig
-          ? "Checkout Mercado Pago ainda não configurado. Verifique as variáveis na Vercel (Access Token, Webhook Secret, MODE e SITE_URL)."
-          : "Não foi possível iniciar o pagamento. Tente novamente.",
-      },
-      { status: isConfig ? 503 : 502 },
+      { error: classified.error, code: classified.code },
+      { status: classified.status },
     );
   }
 }
