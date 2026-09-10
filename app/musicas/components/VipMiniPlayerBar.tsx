@@ -29,13 +29,13 @@ export function VipMiniPlayerBar() {
     track.coverUrl?.trim() || player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-800 bg-[#181818]/95 px-3 py-2 backdrop-blur-md sm:px-6">
-      <div className="mx-auto flex max-w-6xl items-center gap-3">
+    <div className="player-shell fixed bottom-0 left-0 right-0 z-50 rounded-none border-x-0 border-b-0 px-3 py-2.5 sm:px-6">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 font-[family-name:var(--font-player)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={coverSrc}
           alt=""
-          className="h-10 w-10 flex-shrink-0 rounded object-cover"
+          className="h-11 w-11 flex-shrink-0 rounded-lg object-cover ring-1 ring-white/10"
         />
         <button
           type="button"
@@ -45,7 +45,7 @@ export function VipMiniPlayerBar() {
               void player.toggleTrack(player.playingFolderId, track.id);
             }
           }}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1ed760] text-black"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-[0_8px_20px_rgba(30,215,96,0.28)] transition-transform hover:scale-[1.04]"
         >
           {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 pl-0.5" />}
         </button>
@@ -57,16 +57,16 @@ export function VipMiniPlayerBar() {
           <p className="text-track-artist truncate" title={artistLine}>
             {artistLine}
           </p>
-          <div className="mt-1 flex items-center gap-2">
+          <div className="mt-1.5 flex items-center gap-2">
             <div
-              className="h-1 flex-1 cursor-pointer rounded-full bg-zinc-800"
+              className="player-progress-track flex-1 cursor-pointer"
               onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 const ratio = (event.clientX - rect.left) / rect.width;
                 void player.seek(ratio);
               }}
             >
-              <div className="h-1 rounded-full bg-[#1ed760]" style={{ width: `${player.progress}%` }} />
+              <div className="player-progress-fill" style={{ width: `${player.progress}%` }} />
             </div>
             <span className="text-[10px] tabular-nums text-zinc-500">
               {formatTime(player.currentTime)} / {formatTime(player.duration)}
@@ -79,13 +79,13 @@ export function VipMiniPlayerBar() {
             <>
               <Link
                 href={`/api/musicas/download/${track.id}`}
-                className="rounded-full border border-zinc-700 p-2 text-zinc-300 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.03] p-2 text-zinc-300 transition-colors hover:border-[#1ed760]/40 hover:text-white"
                 title="Baixar"
               >
                 <Download className="h-4 w-4" />
               </Link>
               <span
-                className="rounded-full border border-[#1ed760]/40 bg-[#1ed760]/10 p-2 text-[#1ed760]"
+                className="rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/10 p-2 text-[#1ed760]"
                 title="Enviar via lista"
               >
                 <MonitorDown className="h-4 w-4" />

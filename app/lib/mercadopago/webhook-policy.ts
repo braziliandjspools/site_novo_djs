@@ -39,6 +39,17 @@ function dateAtUtcNoon(year: number, month: number, day: number) {
   return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 }
 
+/** Soma dias no calendário de São Paulo (vencimento do portal). */
+export function addDaysSaoPaulo(from: Date, days: number): Date {
+  if (!Number.isInteger(days) || days < 1) {
+    throw new Error("Duração inválida.");
+  }
+  const { year, month, day } = getSaoPauloDateParts(from);
+  const base = dateAtUtcNoon(year, month, day);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base;
+}
+
 /** Soma meses no calendário de São Paulo (vencimento do portal). */
 export function addMonthsSaoPaulo(from: Date, months: number): Date {
   if (!Number.isInteger(months) || months < 1) {
@@ -64,10 +75,12 @@ export function userHasActiveVipAccess(input: {
 /**
  * Se não tem acesso ativo: conta a partir da aprovação.
  * Se tem acesso ativo: estende a partir do vencimento atual.
+ * Prefere durationDays (planos diários/teste); senão usa durationMonths.
  */
 export function computeVipAccessPeriodEnd(input: {
   now: Date;
-  durationMonths: number;
+  durationDays?: number;
+  durationMonths?: number;
   hasActiveAccess: boolean;
   currentExpiresAt: Date | null;
 }): Date {
@@ -77,7 +90,14 @@ export function computeVipAccessPeriodEnd(input: {
     input.currentExpiresAt.getTime() > input.now.getTime()
       ? input.currentExpiresAt
       : input.now;
-  return addMonthsSaoPaulo(base, input.durationMonths);
+
+  if (input.durationDays != null && input.durationDays > 0) {
+    return addDaysSaoPaulo(base, input.durationDays);
+  }
+  if (input.durationMonths != null && input.durationMonths > 0) {
+    return addMonthsSaoPaulo(base, input.durationMonths);
+  }
+  throw new Error("Duração do plano inválida.");
 }
 
 export function normalizeMoneyAmount(value: { toFixed: (d: number) => string } | string | number): string {

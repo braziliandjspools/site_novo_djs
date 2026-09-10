@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import {
   CheckCircle2,
+  Clock3,
   Download,
   FolderOpen,
   Headphones,
+  HelpCircle,
   Lock,
   MessageCircle,
   Monitor,
@@ -12,6 +14,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Wallet,
   Zap,
 } from "lucide-react";
 import { PlansSection } from "../components/PlansSection";
@@ -56,29 +59,63 @@ const benefits = [
   },
 ];
 
+const includedDetails = [
+  { title: "+241 GB de acervo", text: "Volume atual do Drive VIP, em constante crescimento." },
+  { title: "+33.697 faixas", text: "Edits, extended, clean/dirty e materiais para a pista." },
+  { title: "~592 pastas", text: "Organização por mês, semana, estilo e coleções." },
+  { title: "Login único", text: "Mesma conta no site, na plataforma /musicas e no Downloader." },
+];
+
 const paymentPoints = [
-  "Checkout oficial do Mercado Pago, com criptografia e proteção da compra",
-  "Cartão, Pix e demais meios disponíveis no checkout Mercado Pago",
+  "Checkout oficial do Mercado Pago (cartão, Pix e demais meios disponíveis)",
   "Pagamento único por período — renovação manual quando o acesso vencer",
-  "Comprovante e histórico de pagamento na sua conta Mercado Pago",
-  "A {site} libera o acesso só após a confirmação do pagamento — sem liberação falsa por redirect",
+  "Plano teste de 3 dias (R$ 1,00) para validar produção sem compromisso longo",
+  "Comprovante e histórico ficam na sua conta Mercado Pago",
+  "A {site} libera o acesso só após a confirmação oficial do pagamento — o redirect não libera plano",
 ].map((text) => text.replace("{site}", SITE_NAME));
 
 const howItWorks = [
   {
     step: "01",
     title: "Escolha o plano",
-    text: "Selecione 1 mês (R$ 38,00), 3 meses (R$ 102,60) ou 1 ano (R$ 384,00) e clique em Pagar com Mercado Pago.",
+    text: "Use o Teste 3 dias (R$ 1,00) para validar produção, ou escolha 1 mês, 3 meses ou 1 ano.",
   },
   {
     step: "02",
     title: "Pague no Mercado Pago",
-    text: "Você precisa estar logado. Em seguida o site prepara o pagamento e redireciona ao checkout seguro do Mercado Pago.",
+    text: "Faça login na BRS. O site cria a Preference no servidor e redireciona ao checkout seguro.",
   },
   {
     step: "03",
     title: "Acesso liberado",
-    text: "Com o pagamento aprovado, plataforma, packs e Downloader ficam disponíveis automaticamente.",
+    text: "O webhook confirma o pagamento. Plataforma, packs e Downloader liberam automaticamente.",
+  },
+];
+
+const faqs = [
+  {
+    q: "O plano Teste 3 dias é cobrança real?",
+    a: "Sim. É R$ 1,00 em produção no Mercado Pago, com acesso VIP completo por 3 dias — ideal para testar checkout, webhook e liberação.",
+  },
+  {
+    q: "O redirect de sucesso já libera o VIP?",
+    a: "Não. Só o webhook validado no servidor libera o acesso. A página /pagamento apenas consulta o status interno.",
+  },
+  {
+    q: "Posso renovar depois?",
+    a: "Sim. A renovação é manual: quando o período acabar, escolha de novo o plano em /plans.",
+  },
+  {
+    q: "O Downloader usa o mesmo login?",
+    a: "Sim. Conta VIP, plataforma /musicas e BRS Downloader Windows usam o mesmo e-mail e senha.",
+  },
+  {
+    q: "Quais formas de pagamento aceitam?",
+    a: "As disponíveis no Checkout Pro do Mercado Pago (cartão, Pix e outras opções da sua conta MP).",
+  },
+  {
+    q: "E se o pagamento ficar pendente?",
+    a: "Aguarde a confirmação. Pix e alguns meios podem demorar alguns minutos. O acesso entra assim que o status approved chegar no webhook.",
   },
 ];
 
@@ -93,6 +130,7 @@ export default function PlansPage() {
     features: plan.features,
     highlight: plan.highlight,
     description: plan.description,
+    isTestPlan: plan.isTestPlan,
   }));
 
   return (
@@ -104,7 +142,7 @@ export default function PlansPage() {
           <SectionHeading
             badge="Planos"
             title="BRS Drive VIP"
-            subtitle="Acesso completo ao acervo VIP, plataforma para DJs e Downloader para Windows. Pagamento único com renovação manual — preço e duração definidos no servidor."
+            subtitle="Acervo VIP, plataforma para DJs e Downloader Windows. Pagamento único via Mercado Pago, com renovação manual. Inclui plano teste de 3 dias para validar produção."
           />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold tracking-[-0.01em] text-zinc-400">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
@@ -112,11 +150,11 @@ export default function PlansPage() {
               Mercado Pago
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
-              <Monitor className="h-3.5 w-3.5 text-[#FFDF00]" />
-              Downloader
+              <Clock3 className="h-3.5 w-3.5 text-[#6B9FFF]" />
+              Teste 3 dias · R$ 1
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-[#6B9FFF]" />
+              <Sparkles className="h-3.5 w-3.5 text-[#FFDF00]" />
               1 · 3 · 12 meses
             </span>
           </div>
@@ -126,6 +164,24 @@ export default function PlansPage() {
       <Suspense fallback={<div className="min-h-[320px]" />}>
         <PlansSection className="!border-t-0" plans={plans} />
       </Suspense>
+
+      <section className="border-b border-white/5 px-4 py-12 sm:px-6 md:py-16">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            badge="Números"
+            title="O que você acessa com o VIP"
+            subtitle="Volume atual do acervo — em constante atualização."
+          />
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {includedDetails.map((item) => (
+              <div key={item.title} className="site-panel p-5 text-center md:text-left">
+                <p className="font-display text-xl font-semibold text-white">{item.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-400">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="border-b border-white/5 site-section-green px-4 py-14 sm:px-6 md:py-20">
         <div className="mx-auto max-w-5xl">
@@ -155,7 +211,7 @@ export default function PlansPage() {
               centered={false}
               badge="Pagamento"
               title="Checkout seguro pelo Mercado Pago"
-              subtitle="O Mercado Pago processa a assinatura. A Brazilian Remix Service libera o acesso à plataforma e ao Downloader assim que o pagamento é confirmado."
+              subtitle="O Mercado Pago processa a cobrança. A Brazilian Remix Service libera o acesso à plataforma e ao Downloader assim que o pagamento é confirmado."
             />
             <ul className="mt-8 space-y-3">
               {paymentPoints.map((point) => (
@@ -182,11 +238,20 @@ export default function PlansPage() {
                 Não processamos cartão no nosso site. O redirect de sucesso não libera o plano — a liberação
                 depende exclusivamente da confirmação oficial do pagamento no Mercado Pago.
               </p>
-              <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
-                <ShieldCheck className="h-8 w-8 flex-shrink-0 text-[#009739]" />
-                <div>
-                  <p className="text-sm font-semibold text-white">Pagamento processado pelo Mercado Pago</p>
-                  <p className="text-xs text-zinc-500">1 mês R$ 38 · 3 meses R$ 102,60 · 1 ano R$ 384</p>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+                  <ShieldCheck className="h-8 w-8 flex-shrink-0 text-[#009739]" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Pagamento via Mercado Pago</p>
+                    <p className="text-xs text-zinc-500">Teste R$ 1 · 1m R$ 38 · 3m R$ 102,60 · 1 ano R$ 384</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 rounded-xl border border-[#6B9FFF]/25 bg-[#002776]/20 px-4 py-3">
+                  <Wallet className="h-8 w-8 flex-shrink-0 text-[#6B9FFF]" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Plano teste production</p>
+                    <p className="text-xs text-zinc-400">3 dias de VIP por R$ 1,00 — mesmo fluxo dos planos oficiais.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -213,20 +278,46 @@ export default function PlansPage() {
         </div>
       </section>
 
+      <section className="border-b border-white/5 px-4 py-14 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            badge="FAQ"
+            title="Perguntas frequentes"
+            subtitle="Respostas rápidas sobre planos, teste e liberação de acesso."
+          />
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {faqs.map((item) => (
+              <div key={item.q} className="site-panel p-5 md:p-6">
+                <div className="mb-3 flex items-start gap-2">
+                  <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#009739]" />
+                  <h3 className="font-display text-base font-semibold text-white">{item.q}</h3>
+                </div>
+                <p className="text-sm leading-relaxed text-zinc-400">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="px-4 py-14 text-center sm:px-6 md:py-16">
         <div className="mx-auto max-w-2xl">
           <SectionHeading
             title="Ainda tem dúvidas?"
-            subtitle="Fale com a gente pelo WhatsApp sobre o BRS Drive Mensal, liberação de acesso, Downloader e renovação."
+            subtitle="Fale conosco pelo WhatsApp sobre planos, teste de 3 dias, liberação de acesso, Downloader e renovação."
           />
-          <a
-            href={whatsappUrl("Olá! Vim pela página de planos e quero saber mais sobre o BRS Drive Mensal.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="site-btn site-btn-primary mt-8"
-          >
-            <MessageCircle size={18} /> Falar no WhatsApp
-          </a>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a href="#planos" className="site-btn site-btn-primary">
+              <Monitor size={18} /> Ver planos
+            </a>
+            <a
+              href={whatsappUrl("Olá! Vim pela página de planos e quero saber mais sobre o BRS Drive VIP.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-btn site-btn-ghost"
+            >
+              <MessageCircle size={18} /> Falar no WhatsApp
+            </a>
+          </div>
         </div>
       </section>
     </div>

@@ -105,7 +105,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4">
+        <div className="site-panel p-4">
           <p className="text-eyebrow text-zinc-500">Biblioteca</p>
           <p className="mt-2 text-2xl font-bold tracking-[-0.03em] text-white">
             {formatStat(home.stats.trackCount)} <span className="text-sm font-semibold text-zinc-500">faixas</span>
@@ -115,7 +115,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
           </p>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4">
+        <div className="site-panel p-4">
           <p className="text-eyebrow text-zinc-500">Sincronização</p>
           <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#1ed760]">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#1ed760]" />
@@ -136,7 +136,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
         )}
 
         {hasVip && (
-          <div className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4">
+          <div className="site-panel p-4">
             <p className="text-eyebrow text-zinc-500">Downloader</p>
             <p className="mt-2 text-sm font-semibold text-white">
               {onlineDevices.length ? `${onlineDevices[0]?.deviceName ?? "PC"} conectado` : "Nenhum PC online"}

@@ -16,6 +16,7 @@ type PlanCard = {
   features: string[];
   highlight: boolean;
   description?: string;
+  isTestPlan?: boolean;
 };
 
 type PlansSectionProps = {
@@ -121,22 +122,30 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
         <SectionHeading
           badge="Assinatura"
           title="Escolha seu plano"
-          subtitle="Pagamento único via Mercado Pago, com renovação manual. O navegador envia só o plano — preço e duração são confirmados no servidor."
+          subtitle="Pagamento único via Mercado Pago, com renovação manual. Há um plano de teste de 3 dias (R$ 1,00) para validar produção. O navegador envia só o planId — preço e duração vêm do servidor."
         />
-        <div className="mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-3">
+        <div className="mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((plan) => {
             const isThisLoading = loadingPlanId === plan.id;
             return (
               <div
                 key={plan.id}
                 className={`relative flex flex-col site-panel p-6 text-center transition-all md:p-7 md:text-left ${
-                  plan.highlight
-                    ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
-                    : "hover:border-[#009739]/35"
+                  plan.isTestPlan
+                    ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
+                    : plan.highlight
+                      ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
+                      : "hover:border-[#009739]/35"
                 }`}
               >
                 {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FFDF00] px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#002776]">
+                  <span
+                    className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wide ${
+                      plan.isTestPlan
+                        ? "bg-[#6B9FFF] text-[#002776]"
+                        : "bg-[#FFDF00] text-[#002776]"
+                    }`}
+                  >
                     {plan.badge}
                   </span>
                 )}
@@ -175,7 +184,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
-                      Pagar com Mercado Pago
+                      {plan.isTestPlan ? "Testar com Mercado Pago" : "Pagar com Mercado Pago"}
                     </>
                   )}
                 </button>
@@ -186,7 +195,9 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
                 ) : null}
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#009739]" />
-                  Checkout seguro no Mercado Pago. O acesso só libera após confirmação oficial.
+                  {plan.isTestPlan
+                    ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
+                    : "Checkout seguro. Acesso só após confirmação oficial."}
                 </p>
               </div>
             );

@@ -71,6 +71,7 @@ export function buildMercadoPagoPreferenceBody(input: {
     metadata: {
       brs_plan_id: input.plan.id,
       brs_portal_user_id: String(input.payer.id),
+      brs_duration_days: String(input.plan.durationDays),
       brs_duration_months: String(input.plan.durationMonths),
     },
   };

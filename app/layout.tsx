@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Google_Sans_Flex } from "next/font/google";
+import { DM_Sans, Sora } from "next/font/google";
 import "./globals.css";
 import { BackToTopButton } from "./components/BackToTopButton";
 import { MarketingChrome } from "./components/MarketingChrome";
@@ -12,11 +12,20 @@ import {
   websiteJsonLd,
 } from "./lib/seo";
 
-/** Tipografia única do app — Google Sans Flex. */
-const appFont = Google_Sans_Flex({
+/** Corpo / UI — DM Sans. */
+const dmSans = DM_Sans({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-app",
+  adjustFontFallback: false,
+  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
+});
+
+/** Títulos / display — Sora. */
+const sora = Sora({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sora",
   adjustFontFallback: false,
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
@@ -28,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${appFont.variable} h-full w-full max-w-[100vw] overflow-x-clip antialiased`}
+      className={`${dmSans.variable} ${sora.variable} h-full w-full max-w-[100vw] overflow-x-clip antialiased`}
     >
       <head>
         <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />

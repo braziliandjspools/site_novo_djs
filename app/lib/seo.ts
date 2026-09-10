@@ -89,9 +89,16 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/plans",
     title: `Planos VIP | ${SITE_NAME}`,
     description:
-      "Assine o BRS Drive VIP via Mercado Pago: acervo VIP, atualizações, plataforma para DJs e Downloader Windows. Pagamento seguro e acesso liberado automaticamente.",
+      "Assine o BRS Drive VIP via Mercado Pago: teste 3 dias (R$ 1), 1 mês, 3 meses ou 1 ano. Acervo VIP, plataforma /musicas e Downloader Windows. Acesso liberado após confirmação oficial.",
     ogImage: "plans",
-    keywords: ["plano VIP DJ", "assinatura pools", "BRS Drive VIP", "Mercado Pago", "Downloader DJ"],
+    keywords: [
+      "plano VIP DJ",
+      "assinatura pools",
+      "BRS Drive VIP",
+      "Mercado Pago",
+      "Downloader DJ",
+      "teste 3 dias",
+    ],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.9,

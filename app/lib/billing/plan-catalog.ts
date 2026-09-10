@@ -2,15 +2,17 @@
  * Catálogo canônico de planos BRS — fonte de verdade no servidor.
  * O frontend só pode enviar `planId`. Preço, duração e descrição
  * são sempre resolvidos daqui (nunca confiar no navegador).
- *
- * Não há tabela de planos no Neon; este módulo é a configuração central segura.
  */
 
 export const PLAN_CURRENCY = "BRL" as const;
 
 export type PlanRenewalType = "manual";
 
-export type CanonicalPlanId = "brs-drive-1m" | "brs-drive-3m" | "brs-drive-12m";
+export type CanonicalPlanId =
+  | "brs-drive-3d"
+  | "brs-drive-1m"
+  | "brs-drive-3m"
+  | "brs-drive-12m";
 
 /** Alias legado Hotmart → plano canônico de 1 mês. */
 export const LEGACY_PLAN_ID_ALIASES: Record<string, CanonicalPlanId> = {
@@ -18,48 +20,81 @@ export const LEGACY_PLAN_ID_ALIASES: Record<string, CanonicalPlanId> = {
 };
 
 export type CanonicalPlan = {
-  /** Identificador imutável. */
   id: CanonicalPlanId;
   title: string;
   description: string;
   /** Valor total cobrado, string decimal (nunca float). */
   amountBrl: string;
   currency: typeof PLAN_CURRENCY;
+  /**
+   * Duração em dias (fonte para liberação de acesso).
+   * Planos mensais usam 30/90/365; teste usa 3.
+   */
+  durationDays: number;
+  /** Compat UI/legado — 0 no plano de teste. */
   durationMonths: number;
   durationLabel: string;
   active: boolean;
   renewalType: PlanRenewalType;
   badge: string | null;
   highlight: boolean;
+  /** Plano de teste production (valor baixo, duração curta). */
+  isTestPlan: boolean;
   features: string[];
-  /** Ex.: "R$ 32,00/mês" — só exibição. */
   equivalentMonthlyLabel: string | null;
 };
 
 /**
  * Valores oficiais (pagamentos únicos, renovação manual):
- * - 1 mês: R$ 38,00
- * - 3 meses: 10% off em cada mês → 38 × 3 × 0,9 = R$ 102,60
- * - 1 ano: R$ 32,00/mês → 32 × 12 = R$ 384,00
+ * - Teste 3 dias: R$ 1,00 (produção Mercado Pago)
+ * - 1 mês: R$ 38,00 (~30 dias)
+ * - 3 meses: 10% off → R$ 102,60 (~90 dias)
+ * - 1 ano: R$ 32,00/mês → R$ 384,00 (~365 dias)
  */
 export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
+  {
+    id: "brs-drive-3d",
+    title: "BRS Drive — Teste 3 dias",
+    description:
+      "Plano de teste em produção no Mercado Pago. Acesso VIP completo por 3 dias para validar checkout, webhook e liberação automática.",
+    amountBrl: "1.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 3,
+    durationMonths: 0,
+    durationLabel: "3 dias",
+    active: true,
+    renewalType: "manual",
+    badge: "Teste",
+    highlight: false,
+    isTestPlan: true,
+    equivalentMonthlyLabel: null,
+    features: [
+      "Acesso VIP completo por 3 dias",
+      "Mesmo fluxo de pagamento dos planos oficiais",
+      "Libera plataforma + Downloader",
+      "Ideal para validar produção Mercado Pago",
+    ],
+  },
   {
     id: "brs-drive-1m",
     title: "BRS Drive — 1 mês",
     description: "Acesso VIP completo por 30 dias. Pagamento único com renovação manual.",
     amountBrl: "38.00",
     currency: PLAN_CURRENCY,
+    durationDays: 30,
     durationMonths: 1,
     durationLabel: "1 mês",
     active: true,
     renewalType: "manual",
     badge: "Popular",
     highlight: true,
+    isTestPlan: false,
     equivalentMonthlyLabel: "R$ 38,00/mês",
     features: [
-      "Acervo VIP completo",
+      "Acervo VIP completo (+241 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
+      "Atualizações mensais",
       "Renovação manual ao fim do período",
     ],
   },
@@ -69,15 +104,17 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     description: "Trimestral com 10% de desconto em cada mês. Pagamento único com renovação manual.",
     amountBrl: "102.60",
     currency: PLAN_CURRENCY,
+    durationDays: 90,
     durationMonths: 3,
     durationLabel: "3 meses",
     active: true,
     renewalType: "manual",
     badge: "10% off",
     highlight: false,
+    isTestPlan: false,
     equivalentMonthlyLabel: "R$ 34,20/mês",
     features: [
-      "Acervo VIP completo",
+      "Acervo VIP completo (+241 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
       "Economia de 10% vs. mensal",
@@ -90,15 +127,17 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     description: "Anual equivalente a R$ 32,00 por mês. Pagamento único com renovação manual.",
     amountBrl: "384.00",
     currency: PLAN_CURRENCY,
+    durationDays: 365,
     durationMonths: 12,
     durationLabel: "12 meses",
     active: true,
     renewalType: "manual",
     badge: "Melhor valor",
     highlight: false,
+    isTestPlan: false,
     equivalentMonthlyLabel: "R$ 32,00/mês",
     features: [
-      "Acervo VIP completo",
+      "Acervo VIP completo (+241 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
       "Menor custo mensal equivalente",
@@ -129,7 +168,6 @@ export function resolveCanonicalPlanId(planId: string): CanonicalPlanId | null {
   return found?.id ?? null;
 }
 
-/** Resolve plano ativo pelo id (ou alias legado). Ignora qualquer preço vindo do cliente. */
 export function getCanonicalPlanById(planId: string): CanonicalPlan | null {
   const id = resolveCanonicalPlanId(planId);
   if (!id) return null;
@@ -142,10 +180,6 @@ export function listActiveCanonicalPlans(): CanonicalPlan[] {
   return CANONICAL_PLANS.filter((plan) => plan.active);
 }
 
-/**
- * DTO seguro para UI: o cliente recebe preço já resolvido no servidor,
- * mas o checkout só deve reenviar `planId`.
- */
 export type PublicPlanCard = {
   id: CanonicalPlanId;
   name: string;
@@ -156,8 +190,10 @@ export type PublicPlanCard = {
   features: string[];
   highlight: boolean;
   description: string;
+  durationDays: number;
   durationMonths: number;
   renewalType: PlanRenewalType;
+  isTestPlan: boolean;
 };
 
 export function toPublicPlanCard(plan: CanonicalPlan): PublicPlanCard {
@@ -171,8 +207,10 @@ export function toPublicPlanCard(plan: CanonicalPlan): PublicPlanCard {
     features: [...plan.features],
     highlight: plan.highlight,
     description: plan.description,
+    durationDays: plan.durationDays,
     durationMonths: plan.durationMonths,
     renewalType: plan.renewalType,
+    isTestPlan: plan.isTestPlan,
   };
 }
 
@@ -180,23 +218,20 @@ export function listPublicPlanCards(): PublicPlanCard[] {
   return listActiveCanonicalPlans().map(toPublicPlanCard);
 }
 
-/**
- * Valida que um payload de checkout não tenta impor preço/duração.
- * Aceita apenas planId; campos extras de valor são rejeitados.
- */
 export function assertCheckoutPayloadTrusted(input: {
   planId?: unknown;
   amount?: unknown;
   amountBrl?: unknown;
   price?: unknown;
   durationMonths?: unknown;
+  durationDays?: unknown;
   duration?: unknown;
 }): { ok: true; plan: CanonicalPlan } | { ok: false; error: string } {
   if (typeof input.planId !== "string" || !input.planId.trim()) {
     return { ok: false, error: "Informe apenas o planId do catálogo." };
   }
 
-  const forbidden = ["amount", "amountBrl", "price", "durationMonths", "duration"] as const;
+  const forbidden = ["amount", "amountBrl", "price", "durationMonths", "durationDays", "duration"] as const;
   for (const key of forbidden) {
     if (input[key] !== undefined && input[key] !== null) {
       return {

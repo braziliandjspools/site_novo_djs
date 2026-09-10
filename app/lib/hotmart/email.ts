@@ -1,21 +1,7 @@
-import { Resend } from "resend";
 import { SITE_NAME } from "../branding";
+import { getResendClient, getResendFromEmail } from "../resend-client";
 import { SITE_URL } from "../seo";
 import { planDisplayName } from "./types";
-
-function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) return null;
-  return new Resend(apiKey);
-}
-
-function getFromEmail() {
-  return (
-    process.env.RESEND_FROM_EMAIL?.trim() ||
-    process.env.EMAIL_FROM?.trim() ||
-    "Brazilian Remix Service <onboarding@resend.dev>"
-  );
-}
 
 export async function sendHotmartAccessGrantedEmail(input: {
   to: string;
@@ -48,7 +34,7 @@ export async function sendHotmartAccessGrantedEmail(input: {
 
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getResendFromEmail(),
       to: input.to,
       subject,
       text,
@@ -92,7 +78,7 @@ export async function sendHotmartPendingAccountEmail(input: {
 
   try {
     await resend.emails.send({
-      from: getFromEmail(),
+      from: getResendFromEmail(),
       to: input.to,
       subject,
       text,

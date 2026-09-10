@@ -9,13 +9,20 @@ import {
   resolveCanonicalPlanId,
 } from "./plan-catalog";
 
-test("catálogo ativo tem os 3 planos oficiais", () => {
+test("catálogo ativo tem teste 3d + 3 planos oficiais", () => {
   const plans = listActiveCanonicalPlans();
-  assert.equal(plans.length, 3);
+  assert.equal(plans.length, 4);
   assert.deepEqual(
     plans.map((p) => p.id),
-    ["brs-drive-1m", "brs-drive-3m", "brs-drive-12m"],
+    ["brs-drive-3d", "brs-drive-1m", "brs-drive-3m", "brs-drive-12m"],
   );
+});
+
+test("plano teste 3 dias custa R$ 1,00 e dura 3 dias", () => {
+  const plan = getCanonicalPlanById("brs-drive-3d");
+  assert.equal(plan?.amountBrl, "1.00");
+  assert.equal(plan?.durationDays, 3);
+  assert.equal(plan?.isTestPlan, true);
 });
 
 test("valores canônicos: 1m 38 / 3m 102.60 / 12m 384", () => {

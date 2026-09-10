@@ -169,7 +169,7 @@ test("extensão de acesso: sem VIP conta da aprovação; com VIP estende do venc
   const now = new Date("2026-03-10T15:00:00.000Z");
   const fromApproval = computeVipAccessPeriodEnd({
     now,
-    durationMonths: 1,
+    durationDays: 30,
     hasActiveAccess: false,
     currentExpiresAt: new Date("2025-01-01T12:00:00.000Z"),
   });
@@ -178,11 +178,19 @@ test("extensão de acesso: sem VIP conta da aprovação; com VIP estende do venc
   const currentEnd = new Date("2026-06-10T12:00:00.000Z");
   const extended = computeVipAccessPeriodEnd({
     now,
-    durationMonths: 3,
+    durationDays: 90,
     hasActiveAccess: true,
     currentExpiresAt: currentEnd,
   });
   assert.ok(extended.getTime() > currentEnd.getTime());
+
+  const threeDays = computeVipAccessPeriodEnd({
+    now,
+    durationDays: 3,
+    hasActiveAccess: false,
+    currentExpiresAt: null,
+  });
+  assert.ok(threeDays.getTime() > now.getTime());
 
   assert.equal(
     userHasActiveVipAccess({

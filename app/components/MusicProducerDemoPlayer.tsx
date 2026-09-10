@@ -32,7 +32,7 @@ function ProgressBar({ progress, isActive, onSeek }: ProgressBarProps) {
       tabIndex={0}
       aria-label="Progresso da faixa"
       aria-valuenow={Math.round(progress)}
-      className="group/progress h-1.5 w-full cursor-pointer rounded-full bg-[#3a3a3a] transition-all hover:h-2"
+      className="group/progress h-1.5 w-full cursor-pointer rounded-full bg-white/10 transition-all hover:h-2"
       onClick={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         onSeek((e.clientX - rect.left) / rect.width);
@@ -81,10 +81,10 @@ function TrackRow({
 
   return (
     <article
-      className={`group rounded-lg border px-3 py-2.5 transition-all sm:px-3.5 ${
+      className={`player-track-row group px-3 py-2.5 sm:px-3.5 ${
         isFocused
-          ? "border-[#ff5500]/40 bg-[#282828]"
-          : "border-white/5 bg-[#1e1e1e] hover:border-white/10 hover:bg-[#252525]"
+          ? "border-[#ff5500]/40 bg-gradient-to-r from-[#ff5500]/15 to-transparent shadow-[inset_0_0_0_1px_rgba(255,85,0,0.08)]"
+          : "border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -240,7 +240,7 @@ export function MusicProducerDemoPlayer({ initialPlaylists = [] }: MusicProducer
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-lg border border-white/5 bg-[#1e1e1e] py-12 text-sm text-[#b3b3b3]">
+      <div className="flex items-center justify-center gap-2 player-shell py-12 text-sm text-[#b3b3b3]">
         <Loader2 className="h-4 w-4 animate-spin text-[#ff5500]" />
         Carregando demos...
       </div>
@@ -257,7 +257,7 @@ export function MusicProducerDemoPlayer({ initialPlaylists = [] }: MusicProducer
 
   return (
     <div className="space-y-8 px-4 sm:px-0">
-      <div className="flex items-center justify-center gap-3 rounded-lg border border-[#ff5500]/20 bg-[#181818] px-4 py-3 text-center sm:justify-start sm:text-left">
+      <div className="flex items-center justify-center gap-3 player-shell border-[#ff5500]/25 px-4 py-3 text-center sm:justify-start sm:text-left">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff5500]/20">
           <Volume2 className="h-4 w-4 text-[#ff5500]" />
         </div>
@@ -281,8 +281,8 @@ export function MusicProducerDemoPlayer({ initialPlaylists = [] }: MusicProducer
           return (
             <div
               key={playlist.id}
-              className={`overflow-hidden rounded-lg border bg-[#1a1a1a] transition-colors ${
-                hasPausedTrack ? "border-[#ff5500]/35 bg-[#201a17]" : "border-white/5"
+              className={`player-shell overflow-hidden transition-colors ${
+                hasPausedTrack ? "border-[#ff5500]/35" : ""
               }`}
             >
               <button

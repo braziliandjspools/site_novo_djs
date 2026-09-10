@@ -273,7 +273,7 @@ export function TrackShowcase({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#181818] py-20 font-[family-name:var(--font-player)] text-sm text-gray-400">
+      <div className="flex items-center justify-center gap-3 player-shell py-20 font-[family-name:var(--font-player)] text-sm text-gray-400">
         <Loader2 className="h-5 w-5 animate-spin text-[#009739]" />
         {loadingLabel}
       </div>
@@ -294,7 +294,7 @@ export function TrackShowcase({
 
   return (
     <div className="space-y-8 font-[family-name:var(--font-player)]">
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#181818]">
+      <div className="player-shell overflow-hidden">
         <div className="br-stripe-thin" />
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div className="flex items-center gap-3">

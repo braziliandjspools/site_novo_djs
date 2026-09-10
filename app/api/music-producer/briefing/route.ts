@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { BRIEFING_AI_COOKIE, briefingAiCookieOptions } from "../../../lib/music-producer-ai-limit";
 import { createMusicProducerBriefing } from "../../../lib/music-producer-briefings";
+import { sendMusicProducerBriefingNotification } from "../../../lib/music-producer-email";
 import { getAuthenticatedPortalUser } from "../../../lib/portal";
 
 type BriefingPayload = {
@@ -71,6 +72,25 @@ export async function POST(request: Request) {
 
     const store = await cookies();
     store.set(BRIEFING_AI_COOKIE, "0", briefingAiCookieOptions());
+
+    // Notificação por e-mail não deve falhar o pedido já gravado.
+    void sendMusicProducerBriefingNotification({
+      briefingId: briefing.id,
+      name: briefing.name,
+      email: briefing.email,
+      whatsapp: briefing.whatsapp,
+      servicePlan: briefing.servicePlan,
+      estimatedQuote: briefing.estimatedQuote ?? "",
+      idea: briefing.idea,
+      lyrics: briefing.lyrics ?? "",
+      style: briefing.style ?? "",
+      occasion: briefing.occasion ?? "",
+      deadline: briefing.deadline ?? "",
+      deadlineSurcharge: briefing.deadlineSurcharge ?? "",
+      additionalNotes: briefing.additionalNotes ?? "",
+    }).catch((err) => {
+      console.error("[music-producer/briefing] falha na notificação:", err);
+    });
 
     return NextResponse.json({
       ok: true,

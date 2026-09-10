@@ -204,6 +204,7 @@ async function applyApprovedAccessInTx(
   });
   const periodEnd = computeVipAccessPeriodEnd({
     now: input.approvedAt,
+    durationDays: plan.durationDays,
     durationMonths: plan.durationMonths,
     hasActiveAccess: hasActive,
     currentExpiresAt: user.nextDueAt,
