@@ -308,7 +308,7 @@ dependencies = [
 
 [[package]]
 name = "brazilian-packs-downloader"
-version = "1.0.6-estable"
+version = "1.0.7-estable"
 dependencies = [
  "dirs 6.0.0",
  "fs4",
