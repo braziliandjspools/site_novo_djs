@@ -9,12 +9,13 @@ import { getCanonicalPlanById } from "../billing/plan-catalog";
 import { toDateInputValue } from "../due-queue";
 import { prisma } from "../prisma";
 import { getMercadoPagoConfig } from "./client";
-import { sendMercadoPagoAccessGrantedEmail } from "./email";
+import { sendMercadoPagoAccessGrantedEmail, sendMercadoPagoRefundEmail } from "./email";
 import { getMercadoPagoEnv } from "./env";
 import { sanitizeMercadoPagoErrorMessage } from "./preference-policy";
 import {
   computeVipAccessPeriodEnd,
   decideWebhookStatusTransition,
+  describeMercadoPagoRefundReason,
   isPaymentWebhookEvent,
   mapPaymentStatusToOrderStatus,
   shouldGrantAccessForPaymentStatus,
@@ -291,6 +292,8 @@ async function applyNonApprovedStatusInTx(
   }
 
   const wasApproved = order.status === "APPROVED";
+  let vipRevoked = false;
+  let accessKeptReason: string | null = null;
 
   const updatedOrder = await tx.mercadoPagoOrder.update({
     where: { id: order.id },
@@ -323,9 +326,14 @@ async function applyNonApprovedStatusInTx(
             nextDueAt: new Date(),
           },
         });
+        vipRevoked = true;
+      } else {
+        vipRevoked = true;
       }
     } else {
-      // Pedido reembolsado, mas o VIP permanece por outra cobertura (Hotmart / outro MP).
+      accessKeptReason = coverage.hasActiveHotmartCoverage
+        ? "Você ainda tem assinatura Hotmart ativa. Só este pedido Mercado Pago foi estornado."
+        : "Você ainda tem outro pedido Mercado Pago aprovado. Só este pedido foi estornado.";
       console.info("[mercadopago/webhook] estorno sem revogar VIP (cobertura alternativa)", {
         orderId: order.id,
         portalUserId: input.portalUserId,
@@ -335,7 +343,13 @@ async function applyNonApprovedStatusInTx(
     }
   }
 
-  return { applied: true as const, order: updatedOrder };
+  return {
+    applied: true as const,
+    order: updatedOrder,
+    wasApproved,
+    vipRevoked,
+    accessKeptReason,
+  };
 }
 
 /**
@@ -594,7 +608,44 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
     logWebhook(revoke ? "pagamento estornado/chargeback — histórico mantido" : "status atualizado", {
       paymentId: payment.id,
       orderStatus: mappedStatus,
+      vipRevoked: txResult.vipRevoked,
     });
+
+    if (revoke && txResult.wasApproved) {
+      const reason = describeMercadoPagoRefundReason({
+        status: payment.status,
+        statusDetail: payment.statusDetail,
+      });
+      void (async () => {
+        try {
+          const fresh = await prisma.mercadoPagoOrder.findUnique({
+            where: { id: validation.order.id },
+            select: {
+              planId: true,
+              amount: true,
+              portalUser: { select: { email: true, name: true } },
+            },
+          });
+          if (!fresh) return;
+          await sendMercadoPagoRefundEmail({
+            to: fresh.portalUser.email,
+            name: fresh.portalUser.name,
+            planId: fresh.planId,
+            amountBrl: fresh.amount.toFixed(2),
+            reasonTitle: reason.title,
+            reasonDetail: reason.detail,
+            paymentStatus: payment.status,
+            statusDetail: payment.statusDetail,
+            accessRevoked: Boolean(txResult.vipRevoked),
+            accessKeptReason: txResult.accessKeptReason,
+          });
+        } catch (mailErr) {
+          logWebhook("falha ao enviar e-mail de reembolso", {
+            message: sanitizeMercadoPagoErrorMessage(mailErr),
+          });
+        }
+      })();
+    }
 
     return {
       ok: true,

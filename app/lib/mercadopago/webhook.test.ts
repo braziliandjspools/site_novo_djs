@@ -6,6 +6,7 @@ import {
   amountsMatchExact,
   computeVipAccessPeriodEnd,
   decideWebhookStatusTransition,
+  describeMercadoPagoRefundReason,
   expectedLiveMode,
   isPaymentWebhookEvent,
   mapPaymentStatusToOrderStatus,
@@ -88,6 +89,21 @@ test("APPROVED → REFUNDED é aplicado (estorno do admin)", () => {
 test("evento payment.* e topic_payments_wh são aceitos", () => {
   assert.equal(isPaymentWebhookEvent("payment.updated"), true);
   assert.equal(isPaymentWebhookEvent("topic_payments_wh"), true);
+});
+
+test("motivo de reembolso descreve status e status_detail", () => {
+  const admin = describeMercadoPagoRefundReason({
+    status: "refunded",
+    statusDetail: "by_admin",
+  });
+  assert.match(admin.title, /equipe|Reembolso/i);
+  assert.match(admin.detail, /estorno|Mercado Pago/i);
+
+  const chargeback = describeMercadoPagoRefundReason({
+    status: "charged_back",
+    statusDetail: "in_process",
+  });
+  assert.match(chargeback.title, /Contestação/i);
 });
 
 test("pedido inexistente falha na validação", () => {

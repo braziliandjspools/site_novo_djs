@@ -137,6 +137,75 @@ export function shouldRevokeAccessForPaymentStatus(status: string): boolean {
 }
 
 /**
+ * Texto amigável do motivo do estorno para e-mail / UI.
+ */
+export function describeMercadoPagoRefundReason(input: {
+  status: string;
+  statusDetail?: string | null;
+}): { title: string; detail: string } {
+  const status = input.status.trim().toLowerCase();
+  const detail = (input.statusDetail ?? "").trim().toLowerCase();
+
+  if (status === "refunded") {
+    if (detail.includes("partial")) {
+      return {
+        title: "Reembolso parcial",
+        detail:
+          "O Mercado Pago registrou um reembolso parcial deste pagamento. O pedido foi estornado no site e o acesso vinculado a ele foi reavaliado.",
+      };
+    }
+    if (detail.includes("admin") || detail.includes("collector") || detail.includes("by_admin")) {
+      return {
+        title: "Reembolso feito pela equipe",
+        detail:
+          "A Brazilian Remix Service solicitou o estorno deste pagamento no Mercado Pago. O valor volta conforme o prazo do meio usado (Pix/cartão).",
+      };
+    }
+    return {
+      title: "Pagamento reembolsado",
+      detail:
+        "O Mercado Pago confirmou o reembolso total deste pagamento. O pedido foi cancelado no site e o acesso VIP vinculado a ele foi removido, se não houver outro plano ativo.",
+    };
+  }
+
+  if (status === "charged_back") {
+    if (detail === "in_process") {
+      return {
+        title: "Contestação em andamento",
+        detail:
+          "Há um chargeback (contestação) em análise neste pagamento. Por segurança, o acesso VIP deste pedido foi suspenso até a resolução.",
+      };
+    }
+    if (detail === "settled") {
+      return {
+        title: "Chargeback confirmado",
+        detail:
+          "A contestação deste pagamento foi decidida e o valor foi estornado. O acesso VIP deste pedido permanece cancelado.",
+      };
+    }
+    return {
+      title: "Chargeback no pagamento",
+      detail:
+        "O Mercado Pago registrou um chargeback neste pagamento. O pedido foi estornado no site e o acesso vinculado a ele foi reavaliado.",
+    };
+  }
+
+  if (status === "cancelled") {
+    return {
+      title: "Pagamento cancelado",
+      detail:
+        "Este pagamento foi cancelado no Mercado Pago após ter sido aprovado. O pedido foi encerrado no site e o acesso VIP vinculado a ele foi removido, se não houver outro plano ativo.",
+    };
+  }
+
+  return {
+    title: "Estorno do pagamento",
+    detail:
+      "Recebemos uma atualização de estorno deste pagamento no Mercado Pago. O pedido foi atualizado no site.",
+  };
+}
+
+/**
  * Estorno/chargeback de um pedido MP não deve derrubar VIP se ainda houver
  * outro pedido MP aprovado ou cobertura Hotmart ativa.
  */

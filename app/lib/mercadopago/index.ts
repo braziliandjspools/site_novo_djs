@@ -58,6 +58,7 @@ export {
   shouldGrantAccessForPaymentStatus,
   shouldRevokeAccessForPaymentStatus,
   shouldRevokeVipAfterOrderRefund,
+  describeMercadoPagoRefundReason,
   userHasActiveVipAccess,
   validatePaymentAgainstOrder,
 } from "./webhook-policy";
