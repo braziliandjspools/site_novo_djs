@@ -6,7 +6,7 @@ export const metadata: Metadata = buildPageMetadata("admin");
 
 export default function AdminPage() {
   return (
-    <main className="mx-auto w-full max-w-7xl min-w-0 px-4 py-10 sm:px-6">
+    <main className="mx-auto w-full max-w-[1600px] min-w-0 px-3 py-8 sm:px-4 md:px-6">
       <AdminApp />
     </main>
   );

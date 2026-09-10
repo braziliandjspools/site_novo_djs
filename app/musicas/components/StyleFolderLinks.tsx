@@ -10,9 +10,7 @@ import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
   poolPanelClass,
-  poolRowBaseClass,
-  poolRowTone,
-  poolTableHeadClass,
+  poolPanelHeaderClass,
 } from "./atualizacoes-pool-ui";
 
 type StyleFolderLinksProps = {
@@ -20,8 +18,6 @@ type StyleFolderLinksProps = {
   slugSegments: string[];
   newFolderIds?: Set<string>;
 };
-
-const STYLE_GRID = "grid-cols-[minmax(0,1fr)_auto]";
 
 export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleFolderLinksProps) {
   if (folders.length === 0) {
@@ -34,12 +30,12 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
 
   return (
     <div className={poolPanelClass}>
-      <div className={`${poolTableHeadClass} ${STYLE_GRID}`}>
-        <span>Pasta</span>
-        <span className="text-right">Ações</span>
+      <div className={poolPanelHeaderClass}>
+        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Pastas</h2>
+        <p className="text-[11px] text-zinc-500">{folders.length} pasta{folders.length === 1 ? "" : "s"}</p>
       </div>
-      <div>
-        {folders.map((folder, index) => {
+      <ul className="divide-y divide-white/[0.06]">
+        {folders.map((folder) => {
           const folderSlug = slugifyFolderName(folder.name);
           const nextSegments = [...slugSegments, folderSlug];
           const href = folderHref(nextSegments);
@@ -49,10 +45,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
           const cover = folder.coverUrl?.trim();
 
           return (
-            <div
-              key={folder.id}
-              className={`${poolRowBaseClass} ${STYLE_GRID} ${poolRowTone(index)}`}
-            >
+            <li key={folder.id} className="flex w-full min-w-0 items-center gap-2 bg-black/35 px-3 py-3 sm:px-4">
               <Link
                 href={href}
                 onMouseEnter={() =>
@@ -61,7 +54,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 onFocus={() =>
                   prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)
                 }
-                className="group flex min-w-0 items-center gap-2.5"
+                className="group flex min-w-0 flex-1 items-center gap-2.5"
               >
                 {cover ? (
                   <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md ring-1 ring-white/10">
@@ -77,7 +70,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 ) : (
                   <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#1ed760]/80" />
                 )}
-                <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                <span className="min-w-0 flex-1 break-words text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
                   {label}
                 </span>
                 {isNew && (
@@ -87,7 +80,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 )}
                 <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
               </Link>
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex flex-shrink-0 items-center justify-end gap-1">
                 <SendPackToDownloaderButton
                   slug={resolveSlug}
                   compact
@@ -98,10 +91,10 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                   label={`Copiar link de ${label} para o Downloader`}
                 />
               </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 }

@@ -18,9 +18,6 @@ import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
   poolPanelClass,
   poolPanelHeaderClass,
-  poolRowBaseClass,
-  poolRowTone,
-  poolTableHeadClass,
 } from "./atualizacoes-pool-ui";
 
 function prefetchFolder(slug: string) {
@@ -63,8 +60,6 @@ type MusicasMonthLinksProps = {
   variant?: "inline" | "hero";
 };
 
-const MONTH_GRID = "grid-cols-[minmax(0,1fr)_auto_auto]";
-
 export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }: MusicasMonthLinksProps) {
   const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
   const byStructure =
@@ -89,27 +84,22 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Pastas do acervo</h2>
           <p className="text-[11px] text-zinc-500">Abra a pasta · envie ao Downloader</p>
         </div>
-        <div className={`${poolTableHeadClass} ${MONTH_GRID}`}>
-          <span>Nome</span>
-          <span className="hidden sm:inline">Status</span>
-          <span className="text-right">Ações</span>
-        </div>
-        <div>
-          {sorted.map((folder, index) => {
+        <ul className="divide-y divide-white/[0.06]">
+          {sorted.map((folder) => {
             const slug = slugifyFolderName(folder.name);
             const { label, status } = parseMonthStatus(folder.name);
             const isNew = newFolderIds.has(folder.id);
             const name = displayFolderName(folder.name);
 
             return (
-              <div key={folder.id} className={`${poolRowBaseClass} ${MONTH_GRID} ${poolRowTone(index)}`}>
+              <li key={folder.id} className="flex w-full min-w-0 items-center gap-2 bg-black/35 px-3 py-3 sm:px-4">
                 <Link
                   href={folderHref([slug])}
                   onMouseEnter={() => prefetchFolder(slug)}
                   onFocus={() => prefetchFolder(slug)}
-                  className="group flex min-w-0 items-center gap-2 text-left"
+                  className="group flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
-                  <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                  <span className="min-w-0 flex-1 break-words text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
                     {name}
                   </span>
                   {isNew && (
@@ -117,12 +107,10 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                       Novo
                     </span>
                   )}
+                  <StatusBadge label={label} status={status} />
                   <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
                 </Link>
-                <div className="hidden sm:flex sm:justify-center">
-                  <StatusBadge label={label} status={status} />
-                </div>
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex flex-shrink-0 items-center justify-end gap-1">
                   <SendPackToDownloaderButton
                     slug={slug}
                     compact
@@ -133,10 +121,10 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                     label="Copiar link do mês para o Downloader"
                   />
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     );
   }

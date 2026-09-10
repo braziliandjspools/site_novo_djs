@@ -65,27 +65,20 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
       {/* Mobile: alinhado ao TrackRow compacto */}
       <div className="overflow-hidden rounded-md border border-zinc-800 bg-black md:hidden">
         {Array.from({ length: rows }).map((_, index) => (
-          <div key={index} className="border-b border-zinc-800/60 px-1.5 py-1.5 last:border-b-0">
-            <div className="grid grid-cols-[28px_40px_minmax(0,1fr)] items-center gap-x-1.5">
-              <SkeletonPulse className="mx-auto h-3 w-4" />
-              <SkeletonPulse className="mx-auto h-9 w-9 rounded-full" />
-              <div className="min-w-0 space-y-1.5">
-                <SkeletonPulse className={`h-3.5 w-full ${index % 3 === 0 ? "max-w-[92%]" : "max-w-[75%]"}`} />
-                <SkeletonPulse className={`h-3 w-full ${index % 2 === 0 ? "max-w-[55%]" : "max-w-[40%]"}`} />
-              </div>
+          <div key={index} className="flex items-center gap-1.5 border-b border-zinc-800/60 px-1.5 py-1.5 last:border-b-0">
+            <SkeletonPulse className="h-9 w-9 flex-shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <SkeletonPulse className={`h-3.5 w-full ${index % 3 === 0 ? "max-w-[92%]" : "max-w-[75%]"}`} />
+              <SkeletonPulse className={`h-3 w-full ${index % 2 === 0 ? "max-w-[55%]" : "max-w-[40%]"}`} />
             </div>
-            <div className="mt-1.5 grid grid-cols-2 gap-2">
-              <SkeletonPulse className="h-11 w-full rounded-lg" />
-              <SkeletonPulse className="h-11 w-full rounded-lg" />
-            </div>
+            <SkeletonPulse className="h-8 w-8 flex-shrink-0 rounded-md" />
           </div>
         ))}
       </div>
 
       {/* Desktop table */}
       <div className="hidden overflow-hidden rounded-md border border-zinc-700/70 bg-black md:block">
-        <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] gap-x-3 border-b border-zinc-700/60 bg-[#0a0a0a] px-4 py-2">
-          <SkeletonPulse className="mx-auto h-3 w-4" />
+        <div className="grid grid-cols-[minmax(0,1fr)_2.75rem_3.75rem_2.75rem] gap-x-2 border-b border-zinc-700/60 bg-[#0a0a0a] px-4 py-2">
           <SkeletonPulse className="h-3 w-16" />
           <SkeletonPulse className="mx-auto h-3 w-6" />
           <SkeletonPulse className="mx-auto h-3 w-8" />
@@ -94,22 +87,18 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
         {Array.from({ length: rows }).map((_, index) => (
           <div
             key={index}
-            className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.75rem_3.75rem_5.5rem] items-center gap-x-3 border-b border-zinc-800 px-4 py-3"
+            className="grid grid-cols-[minmax(0,1fr)_2.75rem_3.75rem_2.75rem] items-center gap-x-2 border-b border-zinc-800 px-4 py-3"
           >
-            <SkeletonPulse className="mx-auto h-3 w-5" />
-            <div className="flex min-w-0 items-center gap-3">
-              <SkeletonPulse className="h-9 w-9 flex-shrink-0 rounded-full" />
+            <div className="flex min-w-0 items-center gap-2.5">
+              <SkeletonPulse className="h-8 w-8 flex-shrink-0 rounded-full" />
               <div className="min-w-0 flex-1 space-y-1.5">
-                <SkeletonPulse className="h-3.5 w-full max-w-xs" />
-                <SkeletonPulse className="h-3 w-2/3 max-w-[10rem]" />
+                <SkeletonPulse className={`h-3.5 w-full ${index % 3 === 0 ? "max-w-[85%]" : "max-w-[70%]"}`} />
+                <SkeletonPulse className={`h-3 w-full ${index % 2 === 0 ? "max-w-[45%]" : "max-w-[35%]"}`} />
               </div>
             </div>
             <SkeletonPulse className="mx-auto h-3 w-6" />
             <SkeletonPulse className="mx-auto h-3 w-8" />
-            <div className="flex justify-end gap-1">
-              <SkeletonPulse className="h-7 w-7 rounded-md" />
-              <SkeletonPulse className="h-7 w-7 rounded-md" />
-            </div>
+            <SkeletonPulse className="ml-auto h-7 w-7 rounded-md" />
           </div>
         ))}
       </div>

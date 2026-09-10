@@ -70,12 +70,6 @@ function parseBrlInput(raw: string): number | null {
   return Math.round(parsed * 100) / 100;
 }
 
-function rowUrgencyClass(urgency: ReturnType<typeof getDueUrgency>) {
-  if (urgency === "soon") return "bg-amber-500/10";
-  if (urgency === "overdue") return "bg-red-500/10";
-  return "";
-}
-
 function dueUrgencyLabel(nextDueAt: string) {
   const urgency = getDueUrgency(nextDueAt);
   if (urgency === "overdue") return "Vencido";
@@ -87,8 +81,17 @@ function dueUrgencyLabel(nextDueAt: string) {
   return `${days} dias`;
 }
 
-const inputClass =
+const formInputClass =
   "w-full min-w-0 rounded-lg border border-white/10 bg-[#0a0a0a]/70 px-2.5 py-2 text-xs text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#009739]/55 focus:bg-black/40";
+
+const sheetInputClass =
+  "w-full min-w-0 rounded-none border-0 bg-transparent px-1.5 py-1 text-[12px] leading-snug text-white outline-none transition-colors placeholder:text-zinc-600 focus:bg-white/[0.04]";
+
+const sheetCell =
+  "border-b border-r border-white/[0.08] px-1.5 py-1 align-middle";
+
+const sheetHead =
+  "sticky top-0 z-20 border-b border-r border-white/15 bg-[#0b1524] px-1.5 py-2 text-left text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 whitespace-nowrap";
 
 function MoneyInput({
   value,
@@ -127,13 +130,53 @@ function MoneyInput({
           const parsed = parseBrlInput(e.target.value);
           if (parsed !== null) onChange(String(parsed));
         }}
-        className={`${inputClass} font-mono tabular-nums`}
+        className={`${formInputClass} font-mono tabular-nums`}
         aria-label="Valor mensal"
       />
       <p className="text-[10px] tabular-nums text-zinc-500">
         {formatBrl(0)} <span className="text-zinc-600">({formatBrl(numeric)})</span>
       </p>
     </div>
+  );
+}
+
+function SheetMoneyInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const numeric = parseBrlInput(value) ?? 0;
+  const [focused, setFocused] = useState(false);
+  const [text, setText] = useState(value);
+
+  useEffect(() => {
+    if (!focused) setText(value);
+  }, [value, focused]);
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={focused ? text : formatBrl(numeric)}
+      onFocus={() => {
+        setFocused(true);
+        setText(Number.isFinite(numeric) ? String(numeric).replace(".", ",") : "0");
+      }}
+      onBlur={() => {
+        setFocused(false);
+        const parsed = parseBrlInput(text);
+        onChange(String(parsed ?? 0));
+      }}
+      onChange={(e) => {
+        setText(e.target.value);
+        const parsed = parseBrlInput(e.target.value);
+        if (parsed !== null) onChange(String(parsed));
+      }}
+      className={`${sheetInputClass} font-mono tabular-nums`}
+      aria-label="Valor mensal"
+    />
   );
 }
 
@@ -211,23 +254,33 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     }));
   }
 
-  function exportEmailsTxt() {
-    const emails = users
-      .map((user) => (drafts[user.id]?.email ?? user.email).trim().toLowerCase())
-      .filter(Boolean);
-    if (emails.length === 0) {
-      setError("Nenhum e-mail para extrair.");
+  function downloadTxt(lines: string[], filenamePrefix: string, emptyMessage: string) {
+    if (lines.length === 0) {
+      setError(emptyMessage);
       return;
     }
-
-    const blob = new Blob([`${emails.join("\n")}\n`], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([`${lines.join("\n")}\n`], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const stamp = new Date().toISOString().slice(0, 10);
     link.href = url;
-    link.download = `emails-clientes-${stamp}.txt`;
+    link.download = `${filenamePrefix}-${stamp}.txt`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportEmailsTxt() {
+    const emails = users
+      .map((user) => (drafts[user.id]?.email ?? user.email).trim().toLowerCase())
+      .filter(Boolean);
+    downloadTxt(emails, "emails-clientes", "Nenhum e-mail para extrair.");
+  }
+
+  function exportWhatsappsTxt() {
+    const phones = users
+      .map((user) => (drafts[user.id]?.whatsapp ?? user.whatsapp).trim())
+      .filter(Boolean);
+    downloadTxt(phones, "whatsapps-clientes", "Nenhum WhatsApp para extrair.");
   }
 
   async function saveUser(id: number) {
@@ -462,7 +515,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                   required
                   value={newUser[key as "name" | "email" | "password" | "whatsapp" | "nextDueAt"]}
                   onChange={(e) => setNewUser((prev) => ({ ...prev, [key]: e.target.value }))}
-                  className={`${inputClass} mt-1`}
+                  className={`${formInputClass} mt-1`}
                 />
               </label>
             ))}
@@ -502,153 +555,25 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         </p>
       ) : (
         <>
-          {/* Mobile: cards editáveis — ações sempre visíveis */}
-          <div className="space-y-4 md:hidden">
-            {users.map((user, index) => {
-              const draft = drafts[user.id];
-              if (!draft) return null;
-              const isSaving = savingId === user.id;
-              const urgency = getDueUrgency(draft.nextDueAt);
-              const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
-
-              return (
-                <article
-                  key={user.id}
-                  className={`w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0f1a2e] to-[#0a1220] p-4 shadow-[0_12px_40px_rgba(0,0,0,0.25)] ${rowUrgencyClass(urgency)}`}
-                >
-                  <div className="mb-3 flex items-start justify-between gap-2">
-                    <p className="font-mono text-[11px] font-bold text-[#FFDF00]">
-                      #{String(index + 1).padStart(2, "0")}
-                    </p>
-                    {urgencyLabel && (
-                      <span
-                        className={`inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                          urgency === "overdue"
-                            ? "bg-red-500/20 text-red-300"
-                            : "bg-amber-500/20 text-amber-200"
-                        }`}
-                      >
-                        {urgencyLabel}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      Nome
-                      <input
-                        value={draft.name}
-                        onChange={(e) => updateDraft(user.id, { name: e.target.value })}
-                        className={`${inputClass} mt-1`}
-                      />
-                    </label>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      E-mail
-                      <input
-                        type="email"
-                        value={draft.email}
-                        onChange={(e) => updateDraft(user.id, { email: e.target.value })}
-                        className={`${inputClass} mt-1 [overflow-wrap:anywhere]`}
-                      />
-                    </label>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      WhatsApp
-                      <input
-                        value={draft.whatsapp}
-                        onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
-                        className={`${inputClass} mt-1`}
-                      />
-                    </label>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Serviços</p>
-                      <div className="mt-1.5 rounded-lg border border-white/10 bg-black/20 p-3">
-                        <ServiceSelector
-                          value={draft.services}
-                          onChange={(services) => updateDraft(user.id, { services })}
-                        />
-                      </div>
-                    </div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      Valor mensal
-                      <div className="mt-1">
-                        <MoneyInput
-                          value={draft.monthlyValue}
-                          onChange={(monthlyValue) => updateDraft(user.id, { monthlyValue })}
-                        />
-                      </div>
-                    </label>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      Próx. vencimento
-                      <input
-                        type="date"
-                        value={draft.nextDueAt}
-                        onChange={(e) => updateDraft(user.id, { nextDueAt: e.target.value })}
-                        className={`${inputClass} mt-1 font-mono`}
-                      />
-                    </label>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                      Nova senha (opcional)
-                      <input
-                        type="text"
-                        autoComplete="new-password"
-                        placeholder="Mín. 8 caracteres — envia e-mail"
-                        value={draft.password}
-                        onChange={(e) => updateDraft(user.id, { password: e.target.value })}
-                        className={`${inputClass} mt-1 font-mono`}
-                      />
-                    </label>
-                    <label className="inline-flex min-h-11 items-center gap-2 text-sm text-zinc-300">
-                      <input
-                        type="checkbox"
-                        checked={draft.active}
-                        onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
-                        className="h-4 w-4 accent-[#009739]"
-                      />
-                      Cliente ativo
-                    </label>
-                  </div>
-
-                  <div className="sticky bottom-0 mt-4 -mx-4 -mb-4 flex flex-col gap-2 border-t border-white/10 bg-[#0a1220]/95 px-4 py-3 backdrop-blur">
-                    <button
-                      type="button"
-                      onClick={() => void saveUser(user.id)}
-                      disabled={isSaving}
-                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#009739]/40 bg-[#009739]/20 text-sm font-semibold text-[#00B347] hover:bg-[#009739]/30 disabled:opacity-50"
+          <section className="overflow-hidden rounded-xl border border-white/15 bg-[#0a1220] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+            <div className="max-h-[min(72vh,900px)] overflow-auto">
+              <table className="w-max min-w-full border-separate border-spacing-0 text-left text-[12px]">
+                <thead>
+                  <tr>
+                    <th className={`${sheetHead} sticky left-0 z-30 bg-[#0b1524]`}>#</th>
+                    <th className={sheetHead}>Nome</th>
+                    <th className={sheetHead}>E-mail</th>
+                    <th className={sheetHead}>WhatsApp</th>
+                    <th className={sheetHead}>Serviços</th>
+                    <th className={sheetHead}>Valor</th>
+                    <th className={sheetHead}>Vencimento</th>
+                    <th className={sheetHead}>Ativo</th>
+                    <th className={sheetHead}>Nova senha</th>
+                    <th
+                      className={`${sheetHead} sticky right-0 z-30 border-l border-white/20 bg-[#0b1524] shadow-[-8px_0_12px_rgba(0,0,0,0.35)]`}
                     >
-                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      Salvar alterações
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void deleteUser(user.id, user.name)}
-                      disabled={isSaving}
-                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 text-sm font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Excluir
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          {/* Desktop: tabela tradicional */}
-          <section className="hidden overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0f1a2e] to-[#0a1220] shadow-[0_20px_60px_rgba(0,0,0,0.35)] md:block">
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse text-left text-xs">
-                <thead className="sticky top-0 z-10">
-                  <tr className="border-b border-white/10 bg-[#061018]/95 text-[10px] uppercase tracking-[0.14em] text-zinc-400 backdrop-blur">
-                    <th className="px-3 py-3.5 font-bold">#</th>
-                    <th className="px-3 py-3.5 font-bold">Nome</th>
-                    <th className="px-3 py-3.5 font-bold">E-mail</th>
-                    <th className="px-3 py-3.5 font-bold">WhatsApp</th>
-                    <th className="px-3 py-3.5 font-bold">Serviços</th>
-                    <th className="px-3 py-3.5 font-bold">Valor</th>
-                    <th className="px-3 py-3.5 font-bold">Próx. vencimento</th>
-                    <th className="px-3 py-3.5 font-bold">Ativo</th>
-                    <th className="px-3 py-3.5 font-bold">Nova senha</th>
-                    <th className="px-3 py-3.5 font-bold">Ações</th>
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -658,63 +583,68 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                     const isSaving = savingId === user.id;
                     const urgency = getDueUrgency(draft.nextDueAt);
                     const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
+                    const rowBg =
+                      urgency === "overdue"
+                        ? "bg-red-950/40"
+                        : urgency === "soon"
+                          ? "bg-amber-950/30"
+                          : index % 2 === 0
+                            ? "bg-[#0a1220]"
+                            : "bg-[#0d1628]";
 
                     return (
-                      <tr
-                        key={user.id}
-                        className={`border-b border-white/[0.06] transition-colors hover:bg-white/[0.03] ${rowUrgencyClass(urgency)} ${
-                          index % 2 === 0 ? "bg-white/[0.015]" : "bg-transparent"
-                        }`}
-                      >
-                        <td className="px-3 py-3 align-top font-mono text-[11px] font-bold text-[#FFDF00]">
+                      <tr key={user.id} className={`${rowBg} hover:bg-white/[0.04]`}>
+                        <td
+                          className={`${sheetCell} sticky left-0 z-10 font-mono text-[11px] font-bold text-[#FFDF00] ${rowBg}`}
+                        >
                           {String(index + 1).padStart(2, "0")}
                         </td>
-                        <td className="min-w-[140px] px-3 py-3 align-top">
+                        <td className={sheetCell}>
                           <input
                             value={draft.name}
                             onChange={(e) => updateDraft(user.id, { name: e.target.value })}
-                            className={inputClass}
+                            className={`${sheetInputClass} min-w-[9rem]`}
                           />
                         </td>
-                        <td className="min-w-[200px] px-3 py-3 align-top">
+                        <td className={sheetCell}>
                           <input
                             type="email"
                             value={draft.email}
                             onChange={(e) => updateDraft(user.id, { email: e.target.value })}
-                            className={inputClass}
+                            className={`${sheetInputClass} min-w-[12rem]`}
                           />
                         </td>
-                        <td className="min-w-[130px] px-3 py-3 align-top">
+                        <td className={sheetCell}>
                           <input
                             value={draft.whatsapp}
                             onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
-                            className={inputClass}
+                            className={`${sheetInputClass} min-w-[8rem]`}
                           />
                         </td>
-                        <td className="min-w-[170px] px-3 py-3 align-top">
+                        <td className={`${sheetCell} whitespace-nowrap`}>
                           <ServiceSelector
                             compact
                             value={draft.services}
                             onChange={(services) => updateDraft(user.id, { services })}
                           />
                         </td>
-                        <td className="min-w-[140px] px-3 py-3 align-top">
-                          <MoneyInput
+                        <td className={sheetCell}>
+                          <SheetMoneyInput
                             value={draft.monthlyValue}
                             onChange={(monthlyValue) => updateDraft(user.id, { monthlyValue })}
                           />
                         </td>
-                        <td className="px-3 py-3 align-top">
-                          <div className="space-y-1.5">
+                        <td className={sheetCell}>
+                          <div className="inline-flex items-center gap-1.5">
                             <input
                               type="date"
                               value={draft.nextDueAt}
                               onChange={(e) => updateDraft(user.id, { nextDueAt: e.target.value })}
-                              className={`${inputClass} min-w-[140px] font-mono`}
+                              className={`${sheetInputClass} font-mono`}
                             />
                             {urgencyLabel && (
                               <span
-                                className={`inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                className={`inline-flex shrink-0 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
                                   urgency === "overdue"
                                     ? "bg-red-500/20 text-red-300"
                                     : "bg-amber-500/20 text-amber-200"
@@ -725,44 +655,53 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                             )}
                           </div>
                         </td>
-                        <td className="px-3 py-3 align-top">
+                        <td className={`${sheetCell} text-center`}>
                           <input
                             type="checkbox"
                             checked={draft.active}
                             onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
-                            className="mt-2 h-4 w-4 accent-[#009739]"
+                            className="h-3.5 w-3.5 accent-[#009739]"
+                            aria-label="Cliente ativo"
                           />
                         </td>
-                        <td className="min-w-[160px] px-3 py-3 align-top">
+                        <td className={sheetCell}>
                           <input
                             type="text"
                             autoComplete="new-password"
-                            placeholder="Opcional · e-mail"
+                            placeholder="Opcional"
                             value={draft.password}
                             onChange={(e) => updateDraft(user.id, { password: e.target.value })}
-                            className={`${inputClass} font-mono`}
+                            className={`${sheetInputClass} min-w-[7rem] font-mono`}
                             title="Preencha e salve para redefinir e enviar por e-mail"
                           />
                         </td>
-                        <td className="px-3 py-3 align-top">
-                          <div className="flex gap-1.5">
+                        <td
+                          className={`${sheetCell} sticky right-0 z-10 border-l border-white/15 ${rowBg} shadow-[-8px_0_12px_rgba(0,0,0,0.35)]`}
+                        >
+                          <div className="flex items-center gap-1 whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => void saveUser(user.id)}
                               disabled={isSaving}
-                              className="rounded-lg border border-[#009739]/40 bg-[#009739]/15 p-2 text-[#00B347] hover:bg-[#009739]/25 disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded border border-[#009739]/45 bg-[#009739]/20 px-2 py-1 text-[11px] font-semibold text-[#00B347] hover:bg-[#009739]/30 disabled:opacity-50"
                               title="Salvar"
                             >
-                              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                              {isSaving ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Save className="h-3 w-3" />
+                              )}
+                              Salvar
                             </button>
                             <button
                               type="button"
                               onClick={() => void deleteUser(user.id, user.name)}
                               disabled={isSaving}
-                              className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded border border-red-500/35 bg-red-500/15 px-2 py-1 text-[11px] font-semibold text-red-300 hover:bg-red-500/25 disabled:opacity-50"
                               title="Remover"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 className="h-3 w-3" />
+                              Remover
                             </button>
                           </div>
                         </td>
@@ -774,18 +713,28 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
             </div>
           </section>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <p className="text-xs text-zinc-500">
-              {users.length} e-mail{users.length === 1 ? "" : "s"} na lista · um por linha no arquivo
+              {users.length} cliente{users.length === 1 ? "" : "s"} · exportação .txt (um por linha)
             </p>
-            <button
-              type="button"
-              onClick={exportEmailsTxt}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[#FFDF00]/35 bg-[#FFDF00]/10 px-4 py-2 text-sm font-semibold text-[#FFDF00] hover:bg-[#FFDF00]/20 sm:w-auto"
-            >
-              <Download className="h-4 w-4" />
-              Extrair e-mails (.txt)
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button
+                type="button"
+                onClick={exportEmailsTxt}
+                className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#FFDF00]/35 bg-[#FFDF00]/10 px-4 py-2 text-sm font-semibold text-[#FFDF00] hover:bg-[#FFDF00]/20 sm:w-auto"
+              >
+                <Download className="h-4 w-4" />
+                Extrair e-mails
+              </button>
+              <button
+                type="button"
+                onClick={exportWhatsappsTxt}
+                className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#1ed760]/40 bg-[#1ed760]/10 px-4 py-2 text-sm font-semibold text-[#1ed760] hover:bg-[#1ed760]/20 sm:w-auto"
+              >
+                <Download className="h-4 w-4" />
+                Extrair WhatsApp
+              </button>
+            </div>
           </div>
         </>
       )}

@@ -24,9 +24,6 @@ import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
   poolPanelClass,
   poolPanelHeaderClass,
-  poolRowBaseClass,
-  poolRowTone,
-  poolTableHeadClass,
 } from "./atualizacoes-pool-ui";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 
@@ -45,8 +42,6 @@ function useLiveNow(intervalMs = 1000) {
   }, [intervalMs]);
   return now;
 }
-
-const WEEK_GRID = "grid-cols-[minmax(0,1fr)_auto_auto]";
 
 export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: WeekFolderGridProps) {
   const now = useLiveNow(1000);
@@ -80,13 +75,8 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Semanas</h2>
           <p className="text-[11px] text-zinc-500">{monthName}</p>
         </div>
-        <div className={`${poolTableHeadClass} ${WEEK_GRID}`}>
-          <span>Nome</span>
-          <span className="hidden sm:inline">Período</span>
-          <span className="text-right">Ações</span>
-        </div>
-        <div>
-          {weeks.map((week, index) => {
+        <ul className="divide-y divide-white/[0.06]">
+          {weeks.map((week) => {
             const weekSlug = slugifyFolderName(week.name);
             const label = displayFolderName(week.name);
             const weekNumber = parseWeekNumber(week.name);
@@ -106,9 +96,11 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
             const weekStatus = parseMonthStatus(week.name);
 
             return (
-              <div
+              <li
                 key={week.id}
-                className={`${poolRowBaseClass} ${WEEK_GRID} ${poolRowTone(index, isCurrent)}`}
+                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${
+                  isCurrent ? "player-track-row-active" : "bg-black/35"
+                }`}
               >
                 <Link
                   href={href}
@@ -118,30 +110,32 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   onFocus={() =>
                     prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(`${monthSlug}/${weekSlug}`)}`)
                   }
-                  className="group flex min-w-0 items-center gap-2"
+                  className="group flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2"
                 >
-                  <span className="truncate text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
-                    {weekTitle}
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="min-w-0 break-words text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                      {weekTitle}
+                    </span>
+                    {weekStatus.status === "em-atualizacao" && (
+                      <span className="flex-shrink-0 rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                        Em atualização
+                      </span>
+                    )}
+                    {isCurrent && weekStatus.status !== "em-atualizacao" && (
+                      <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                        Esta semana
+                      </span>
+                    )}
+                    {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
+                      <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                        Novo
+                      </span>
+                    )}
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
                   </span>
-                  {weekStatus.status === "em-atualizacao" && (
-                    <span className="flex-shrink-0 rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                      Em atualização
-                    </span>
-                  )}
-                  {isCurrent && weekStatus.status !== "em-atualizacao" && (
-                    <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                      Esta semana
-                    </span>
-                  )}
-                  {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
-                    <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
-                      Novo
-                    </span>
-                  )}
-                  <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
+                  <span className="text-xs text-zinc-500 sm:whitespace-nowrap">{rangeLabel || "—"}</span>
                 </Link>
-                <p className="hidden truncate text-xs text-zinc-500 sm:block">{rangeLabel || "—"}</p>
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex flex-shrink-0 items-center justify-end gap-1">
                   <SendPackToDownloaderButton
                     slug={`${monthSlug}/${weekSlug}`}
                     compact
@@ -152,10 +146,10 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                     label="Copiar link da semana para o Downloader"
                   />
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     </div>
   );

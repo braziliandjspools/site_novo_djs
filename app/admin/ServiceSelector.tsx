@@ -26,11 +26,11 @@ const ITEMS = [
 
 export function ServiceSelector({ value, onChange, compact = false }: ServiceSelectorProps) {
   return (
-    <div className={compact ? "flex flex-col gap-1.5" : "flex flex-wrap gap-3"}>
+    <div className={compact ? "flex flex-row flex-wrap items-center gap-x-2 gap-y-1" : "flex flex-wrap gap-3"}>
       {ITEMS.map(({ key, label }) => (
         <label
           key={key}
-          className={`inline-flex items-center gap-2 ${compact ? "text-[11px] text-zinc-300" : "text-xs text-zinc-300"}`}
+          className={`inline-flex items-center gap-1.5 ${compact ? "text-[11px] text-zinc-300" : "text-xs text-zinc-300"}`}
         >
           <input
             type="checkbox"
