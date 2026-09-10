@@ -5,6 +5,7 @@ import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import { clearMusicasCache, fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import { monthsReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
+import { AtualizacoesAcervoHero } from "./AtualizacoesAcervoHero";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
@@ -48,24 +49,19 @@ export function AtualizacoesRootClient() {
 
   return (
     <div className="w-full">
-      <AtualizacoesSyncNotice />
+      <AtualizacoesAcervoHero
+        monthCount={folders.length}
+        hasVip={hasVip}
+        badgeActions={
+          <AtualizacoesDriveSyncButton
+            onSynced={async () => {
+              await loadTree(true);
+            }}
+          />
+        }
+      />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">
-            Atualizações
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-white">Pastas do Drive</h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            Abra uma pasta para ver subpastas e faixas — cada nível em uma página nova.
-          </p>
-        </div>
-        <AtualizacoesDriveSyncButton
-          onSynced={async () => {
-            await loadTree(true);
-          }}
-        />
-      </div>
+      <AtualizacoesSyncNotice />
 
       {!hasVip && <VipUpgradeBanner />}
 
