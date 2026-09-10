@@ -66,6 +66,14 @@ type ColecoesBrowseClientProps = {
   slugSegments: string[];
 };
 
+type TracksResponse = {
+  tracks: PreviewTrack[];
+  total?: number;
+  page?: number;
+  hasMore?: boolean;
+  error?: string;
+};
+
 export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps) {
   const router = useRouter();
   const { authenticated, hasVip, openLogin } = useMusicasSession();
