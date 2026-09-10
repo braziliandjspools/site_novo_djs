@@ -1,4 +1,4 @@
-import { driveListFetchInit } from "./drive-fetch-cache";
+import { driveListFetchInit, isDriveForceRefresh } from "./drive-fetch-cache";
 import {
   GOOGLE_DRIVE_API_KEY,
   GOOGLE_DRIVE_MUSIC_PRODUCER_DELIVERIES_FOLDER_ID,
@@ -306,7 +306,7 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
     });
     if (pageToken) params.set("pageToken", pageToken);
 
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, driveListFetchInit(60));
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, driveListFetchInit(120));
 
     if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
 
@@ -753,7 +753,33 @@ export async function listDriveAudioInFolder(folderId: string): Promise<DriveFil
   return listDeliveryAudioFiles(folderId);
 }
 
+/** Dedup in-flight + cache curto no processo (irmãos resolve/tree no mesmo deploy). */
+const childrenMemo = new Map<string, { promise: Promise<DriveFile[]>; expiresAt: number }>();
+
 export async function listDriveFolderChildren(folderId: string): Promise<DriveFile[]> {
+  if (isDriveForceRefresh()) {
+    return listDriveFolderChildrenUncached(folderId);
+  }
+
+  const cached = childrenMemo.get(folderId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.promise;
+  }
+
+  const promise = listDriveFolderChildrenUncached(folderId).catch((error) => {
+    childrenMemo.delete(folderId);
+    throw error;
+  });
+
+  childrenMemo.set(folderId, {
+    promise,
+    expiresAt: Date.now() + 45_000,
+  });
+
+  return promise;
+}
+
+async function listDriveFolderChildrenUncached(folderId: string): Promise<DriveFile[]> {
   if (GOOGLE_DRIVE_API_KEY) {
     try {
       return await listChildrenViaApi(folderId, GOOGLE_DRIVE_API_KEY);
@@ -762,12 +788,19 @@ export async function listDriveFolderChildren(folderId: string): Promise<DriveFi
     }
   }
 
-  const folders = await listFoldersViaPublicFolderSafe(folderId);
-  const audio = await listAudioViaPublicFolder(folderId).catch(() => [] as DriveFile[]);
-  return [
-    ...folders.map((folder) => ({ id: folder.id, name: folder.name, mimeType: FOLDER_MIME })),
-    ...audio,
-  ];
+  // Uma única leitura HTML → pastas + áudio (antes eram 2 scrapes).
+  try {
+    const html = await fetchPublicFolderHtml(folderId);
+    const folders = collectFoldersFromHtml(html, folderId);
+    const audioMap = new Map<string, DriveFile>();
+    collectFilesFromHtml(html, audioMap);
+    return [
+      ...folders.map((folder) => ({ id: folder.id, name: folder.name, mimeType: FOLDER_MIME })),
+      ...audioMap.values(),
+    ];
+  } catch {
+    return [];
+  }
 }
 
 /** @deprecated Use getPreviewPlaylists — mantido para compatibilidade */

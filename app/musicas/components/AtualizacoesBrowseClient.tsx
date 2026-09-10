@@ -46,6 +46,8 @@ type ResolveResponse = {
   canPlayFull?: boolean;
   resolvedPath: { slug: string; id: string; name: string }[];
   slugSegments: string[];
+  /** Irmãos da pasta atual (mesmo nível) — vem do resolve. */
+  siblings?: VipMusicFolder[];
 };
 
 type AtualizacoesBrowseClientProps = {
@@ -86,12 +88,21 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       setSiblingWeeks([]);
       return;
     }
+    // Resolve da semana já traz os irmãos (outras semanas do mês).
+    if (data?.siblings?.length && data.slugSegments?.[0] === monthSlug) {
+      if (childrenAreWeekFolders(data.siblings)) {
+        setSiblingWeeks(data.siblings);
+        return;
+      }
+    }
     let cancelled = false;
     void fetchMusicasJson<ResolveResponse>(resolveUrl(monthSlug))
       .then((body) => {
         if (cancelled) return;
         if (body.level === "folders" && childrenAreWeekFolders(body.items)) {
           setSiblingWeeks(body.items);
+        } else if (body.siblings && childrenAreWeekFolders(body.siblings)) {
+          setSiblingWeeks(body.siblings);
         } else {
           setSiblingWeeks([]);
         }
@@ -102,12 +113,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return () => {
       cancelled = true;
     };
-  }, [monthSlug, weekSlug]);
+  }, [monthSlug, weekSlug, data]);
 
   /** Irmãos da pasta atual (para prev/next no rodapé ao abrir faixas ou subpastas). */
   useEffect(() => {
     if (slugSegments.length < 2) {
       setSiblingFolders([]);
+      return;
+    }
+    if (data?.siblings?.length) {
+      setSiblingFolders(data.siblings);
       return;
     }
     const parentPath = slugSegments.slice(0, -1).join("/");
@@ -127,7 +142,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return () => {
       cancelled = true;
     };
-  }, [slugPath, slugSegments]);
+  }, [slugPath, slugSegments, data]);
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {

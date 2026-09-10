@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 import { listCollections } from "../../../lib/vip-collections";
 
-export const revalidate = 60;
+export const revalidate = 120;
 
 export async function GET() {
   const session = await getVipMusicSession();

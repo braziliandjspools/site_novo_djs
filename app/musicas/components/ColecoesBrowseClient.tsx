@@ -29,6 +29,8 @@ import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
+import { fetchMusicasJson, peekMusicasCache, setMusicasCache } from "../lib/musicas-fetch-cache";
+import type { PreviewTrack } from "../../lib/google-drive";
 
 type CollectionChildItem = {
   id: string;
@@ -50,6 +52,7 @@ type ResolveResponse = {
   slugSegments: string[];
   resolvedPath: { slug: string; id: string; name: string; displayName: string }[];
   items: CollectionChildItem[];
+  tracks?: PreviewTrack[];
   albumCount: number;
   trackCount: number;
   coverUrl?: string | null;
@@ -61,11 +64,6 @@ type ResolveResponse = {
 
 type ColecoesBrowseClientProps = {
   slugSegments: string[];
-};
-
-type TracksResponse = {
-  tracks: { id: string }[];
-  error?: string;
 };
 
 export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps) {
@@ -81,46 +79,53 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   const [playBusy, setPlayBusy] = useState(false);
 
   const slugPath = slugSegments.join("/");
+  const resolveKey = `/api/musicas/colecoes/resolve?slug=${encodeURIComponent(slugPath)}`;
 
   useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
+    const cached = peekMusicasCache<ResolveResponse>(resolveKey);
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
-    void fetch(`/api/musicas/colecoes/resolve?slug=${encodeURIComponent(slugPath)}`, {
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        const body = (await res.json()) as ResolveResponse;
-        if (!res.ok) throw new Error(body.error ?? "Pasta não encontrada.");
+
+    let cancelled = false;
+    void fetchMusicasJson<ResolveResponse>(resolveKey)
+      .then((body) => {
+        if (cancelled) return;
+        setMusicasCache(resolveKey, body);
         setData(body);
       })
       .catch((err: Error) => {
-        if (err.name === "AbortError") return;
+        if (cancelled) return;
         setError(err.message);
-        setData(null);
+        if (!cached) setData(null);
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!cancelled) setLoading(false);
       });
-    return () => controller.abort();
-  }, [slugPath]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slugPath, resolveKey]);
 
   useEffect(() => {
-    const controller = new AbortController();
     const parentPath = slugSegments.slice(0, -1).join("/");
     const url =
       slugSegments.length <= 1
         ? "/api/musicas/colecoes"
         : `/api/musicas/colecoes/resolve?slug=${encodeURIComponent(parentPath)}`;
 
-    void fetch(url, { cache: "no-store", signal: controller.signal })
-      .then(async (res) => {
-        const body = (await res.json()) as {
-          collections?: { slug: string; displayName: string }[];
-          items?: { slug: string; displayName: string }[];
-        };
-        if (!res.ok) throw new Error("fail");
+    let cancelled = false;
+    void fetchMusicasJson<{
+      collections?: { slug: string; displayName: string }[];
+      items?: { slug: string; displayName: string }[];
+    }>(url)
+      .then((body) => {
+        if (cancelled) return;
         if (body.collections) {
           setSiblings(body.collections.map((item) => ({ slug: item.slug, displayName: item.displayName })));
         } else if (body.items) {
@@ -130,10 +135,12 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
         }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setSiblings([]);
+        if (!cancelled) setSiblings([]);
       });
 
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+    };
   }, [slugPath, slugSegments]);
 
   useEffect(() => {
@@ -456,6 +463,8 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
           canDownload={canDownload}
           relativePath={relativePath}
           coverUrl={coverUrl}
+          initialTracks={data?.tracks?.length ? data.tracks : undefined}
+          initialTotal={data?.trackCount}
         />
       ) : (
         <section className="space-y-4">

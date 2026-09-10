@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
+import { fetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { MusicasTracksSkeleton } from "./MusicasSkeletons";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 
@@ -13,6 +14,9 @@ type CollectionTracksPanelProps = {
   canDownload?: boolean;
   relativePath?: string;
   coverUrl?: string | null;
+  /** Primeira página já veio do resolve — evita waterfall. */
+  initialTracks?: PreviewTrack[];
+  initialTotal?: number;
 };
 
 type TracksResponse = {
@@ -30,12 +34,17 @@ export function CollectionTracksPanel({
   canDownload = false,
   relativePath,
   coverUrl,
+  initialTracks,
+  initialTotal,
 }: CollectionTracksPanelProps) {
-  const [tracks, setTracks] = useState<PreviewTrack[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const hasInitial = Boolean(initialTracks?.length);
+  const [tracks, setTracks] = useState<PreviewTrack[]>(initialTracks ?? []);
+  const [total, setTotal] = useState(initialTotal ?? initialTracks?.length ?? 0);
+  const [page, setPage] = useState(hasInitial ? 1 : 0);
+  const [hasMore, setHasMore] = useState(
+    hasInitial ? (initialTotal ?? 0) > (initialTracks?.length ?? 0) : false,
+  );
+  const [loading, setLoading] = useState(!hasInitial);
   const [error, setError] = useState<string | null>(null);
 
   const loadPage = useCallback(
@@ -49,9 +58,7 @@ export function CollectionTracksPanel({
           page: String(nextPage),
           limit: "50",
         });
-        const res = await fetch(`/api/musicas/tracks?${params.toString()}`, { cache: "no-store" });
-        const data = (await res.json()) as TracksResponse;
-        if (!res.ok) throw new Error(data.error ?? "Erro ao carregar faixas.");
+        const data = await fetchMusicasJson<TracksResponse>(`/api/musicas/tracks?${params.toString()}`);
 
         let resolvedTracks: PreviewTrack[] = data.tracks;
         if (append) {
@@ -78,12 +85,21 @@ export function CollectionTracksPanel({
   );
 
   useEffect(() => {
+    if (initialTracks?.length) {
+      setTracks(initialTracks);
+      setTotal(initialTotal ?? initialTracks.length);
+      setPage(1);
+      setHasMore((initialTotal ?? 0) > initialTracks.length);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setTracks([]);
     setTotal(0);
     setPage(0);
     setHasMore(false);
     void loadPage(1, false);
-  }, [loadPage]);
+  }, [loadPage, initialTracks, initialTotal]);
 
   if (loading && tracks.length === 0) {
     return <MusicasTracksSkeleton rows={6} />;
@@ -99,7 +115,7 @@ export function CollectionTracksPanel({
             onClick={() => void loadPage(1, false)}
             className="rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold text-black"
           >
-            Tentar novamente
+            Tentar de novo
           </button>
         </div>
       </div>
@@ -107,10 +123,7 @@ export function CollectionTracksPanel({
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-zinc-800 bg-[#181818] p-3 sm:p-4">
-      <p className="px-1 text-xs text-zinc-500">
-        {total} faixa{total === 1 ? "" : "s"} neste álbum
-      </p>
+    <div className="space-y-3">
       <VipMusicTrackList
         folderId={folderId}
         tracks={tracks}
@@ -122,21 +135,21 @@ export function CollectionTracksPanel({
         layout="discography"
         hasMore={hasMore}
         onLoadMore={async () => {
-          const result = await loadPage(page + 1, true);
-          return result ?? undefined;
+          const next = await loadPage(page + 1, true);
+          return next;
         }}
       />
-      {hasMore && (
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => void loadPage(page + 1, true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 py-2.5 text-xs font-bold text-zinc-300 hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Carregar mais faixas
-        </button>
-      )}
-    </section>
+      {loading && tracks.length > 0 ? (
+        <p className="flex items-center justify-center gap-2 py-2 text-xs text-zinc-500">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Carregando mais…
+        </p>
+      ) : null}
+      {!loading && total > 0 ? (
+        <p className="text-center text-[11px] text-zinc-600">
+          {tracks.length} de {total} faixa{total === 1 ? "" : "s"}
+        </p>
+      ) : null}
+    </div>
   );
 }

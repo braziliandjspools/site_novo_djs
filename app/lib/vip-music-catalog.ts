@@ -11,9 +11,12 @@ import {
   sortVipChildFolders,
 } from "./vip-music-slugs";
 import { findFolderCover, folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
+import { mapPool } from "./map-pool";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
+/** Pastas irmãs no deep-walk — paraleliza sem saturar a Drive API. */
+const TRACK_WALK_CONCURRENCY = 8;
 
 export type VipMusicFolder = {
   id: string;
@@ -94,9 +97,13 @@ async function collectTracksDeep(
 
   const tracks = audioFiles.map((file) => toPreviewTrack(file, packName));
 
-  for (const folder of subfolders) {
-    const nested = await collectTracksDeep(folder.id, folder.name, depth + 1, seen);
-    tracks.push(...nested);
+  if (subfolders.length > 0) {
+    const nestedLists = await mapPool(subfolders, TRACK_WALK_CONCURRENCY, (folder) =>
+      collectTracksDeep(folder.id, folder.name, depth + 1, seen),
+    );
+    for (const nested of nestedLists) {
+      tracks.push(...nested);
+    }
   }
 
   return tracks;
@@ -117,7 +124,11 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 
     const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
-    const covers = await Promise.all(sorted.map((folder) => findFolderCover(folder.id)));
+    // Semanas/meses: sem capa — evita N+1 listagens no Drive.
+    const loadCovers = !childrenAreWeekFolders(sorted) && sorted.length <= 48;
+    const covers = loadCovers
+      ? await Promise.all(sorted.map((folder) => findFolderCover(folder.id)))
+      : sorted.map(() => null);
     const items: VipMusicCatalogItem[] = sorted.map((folder, index) => ({
       ...folder,
       type: "folder" as const,
@@ -137,10 +148,10 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
     };
   }
 
-  // Folha (ou só arquivos): desce a árvore por segurança e lista todos os MP3.
-  const tracks = (await collectTracksDeep(folderId, folderName)).sort((a, b) =>
-    a.title.localeCompare(b.title, "pt-BR"),
-  );
+  // Folha sem subpastas: usa a listagem já feita (não re-walk).
+  const tracks = audioFiles
+    .map((file) => toPreviewTrack(file, folderName))
+    .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 
   return {
     configured: true,

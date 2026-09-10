@@ -246,13 +246,8 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
 
   const childFolders = await listVipMusicFolders(folderId);
   if (childFolders.length === 0) {
-    let trackCount = 0;
-    try {
-      const stats = await countFolderContents(folderId);
-      trackCount = stats.trackCount;
-    } catch {
-      trackCount = 0;
-    }
+    const { getVipMusicTracksPaginated } = await import("./vip-music-catalog");
+    const page = await getVipMusicTracksPaginated(folderId, folderName, 1, 50);
 
     return {
       configured: true,
@@ -264,9 +259,9 @@ export async function resolveCollectionsPath(slugParam: string): Promise<Collect
       slugSegments: segments,
       resolvedPath,
       items: [],
-      tracks: [],
+      tracks: page.tracks,
       albumCount: 0,
-      trackCount,
+      trackCount: page.total,
       coverFileId: cover?.fileId ?? null,
       coverUrl: cover?.coverUrl ?? null,
     };
