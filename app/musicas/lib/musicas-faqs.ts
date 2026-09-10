@@ -6,42 +6,34 @@ export type MusicasFaq = {
 export const MUSICAS_FAQS: MusicasFaq[] = [
   {
     q: "Preciso ser assinante VIP para usar a plataforma?",
-    a: "Você pode navegar pelo catálogo e ouvir 1 minuto de prévia de cada faixa sem assinar. Para ouvir a música completa, baixar e usar o Downloader, assine o plano VIP em /plans.",
+    a: "Você pode navegar e ouvir cerca de 1 minuto de prévia sem assinar. Faixa completa, download e BRS Downloader exigem o plano VIP ativo (R$ 38,00/mês).",
   },
   {
-    q: "Com que frequência o acervo é atualizado?",
-    a: "Os packs são organizados por mês e semana no Google Drive (ex.: JULHO 2024 → SEMANA 01 → estilos). Na página Atualizações você navega nessa ordem até as faixas.",
+    q: "Como o acervo está organizado?",
+    a: "Em Atualizações: mês → semana → estilos → faixas. Em Coleções: discografias e álbuns com capas. São centenas de pastas e dezenas de milhares de músicas no Drive VIP.",
   },
   {
     q: "Como encontro uma música específica?",
-    a: "Use a busca na área de Atualizações para localizar faixas por nome, artista ou pasta. Você também pode abrir um mês, expandir o estilo desejado e rolar a lista — ou usar os links compartilhados com mês, estilo e faixa na URL.",
+    a: "Use a busca em Atualizações (nome, artista ou pasta) ou abra o mês/estilo e role a lista. Links compartilhados podem abrir mês, estilo e faixa diretamente.",
   },
   {
-    q: "Posso baixar as músicas direto pela plataforma?",
-    a: "Sim, assinantes VIP podem baixar cada faixa pelo botão de download na lista, com o nome original do arquivo. O download passa pelo nosso servidor para manter o acesso seguro ao Drive.",
-  },
-  {
-    q: "Além da plataforma, como acesso o acervo completo?",
-    a: "Sua assinatura inclui Google Drive, FTP (FileZilla) e integração via RaiDrive, conforme descrito no site principal. A plataforma VIP é mais uma forma prática de ouvir e baixar pelo navegador.",
+    q: "Posso baixar pela plataforma e pelo Downloader?",
+    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.6_estable) com o mesmo login da conta.",
   },
   {
     q: "O player funciona no celular?",
-    a: "Sim. A interface é responsiva e o player roda no navegador do celular ou tablet. Para a melhor experiência de navegação em pastas grandes, recomendamos desktop.",
+    a: "Sim. A interface é responsiva e o player roda no navegador do celular. Para pastas grandes e downloads em massa, o desktop e o Downloader são mais confortáveis.",
   },
   {
-    q: "Por que algumas pastas aparecem com destaque?",
-    a: "Meses ou estilos marcados como Novo são pastas adicionadas desde a sua última visita à página Atualizações. Ao sair da página, elas deixam de ser destacadas na próxima vez que você voltar.",
+    q: "Por que algumas pastas aparecem como novas?",
+    a: "Pastas marcadas como novas foram adicionadas desde a sua última visita a Atualizações. Ao sair da página, o destaque é atualizado na próxima visita.",
   },
   {
-    q: "Quais formatos de áudio estão disponíveis?",
-    a: "O acervo segue o que está no Drive — em geral MP3 e WAV, com outros formatos conforme cada pool ou remix service. O player tenta reproduzir os formatos suportados pelo seu navegador.",
+    q: "Quais formatos de áudio existem?",
+    a: "O acervo segue o Drive — em geral MP3 e WAV, com variações conforme o pool. O player usa os formatos que o navegador consegue reproduzir.",
   },
   {
-    q: "Como faço login na plataforma de músicas?",
-    a: "Use o mesmo e-mail e senha do Portal Brazilian Remix Service. Se ainda não tem conta, assine o plano VIP no site e crie seu acesso pelo portal de clientes.",
-  },
-  {
-    q: "Encontrei um erro ou arquivo faltando. O que faço?",
-    a: "Entre em contato pelo WhatsApp ou pelo Portal na área de suporte. Informe o mês, o estilo e o nome da faixa para agilizarmos a verificação no Drive.",
+    q: "Encontrei erro ou arquivo faltando. O que faço?",
+    a: "Fale no WhatsApp ou no Portal. Informe mês, estilo e nome da faixa para verificarmos no Drive e na sincronização.",
   },
 ];

@@ -119,6 +119,7 @@ export function CollectionTracksPanel({
         relativePath={relativePath}
         coverUrl={coverUrl}
         albumTitle={folderName}
+        layout="discography"
         hasMore={hasMore}
         onLoadMore={async () => {
           const result = await loadPage(page + 1, true);

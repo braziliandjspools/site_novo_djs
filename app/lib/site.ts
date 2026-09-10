@@ -58,7 +58,7 @@ export function whatsappUrl(message?: string) {
   return `${base}?text=${encodeURIComponent(message)}`;
 }
 
-/** Checkout de planos VIP → página /plans (Hotmart). */
+/** Checkout de planos VIP → página /plans (Mercado Pago). */
 export function checkoutUrl(planName?: string) {
   void planName;
   return "/plans";

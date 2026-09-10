@@ -28,6 +28,8 @@ export function getHotmartDriveMonthlyMapping(): HotmartProductMapping {
     productId: readEnv("HOTMART_DRIVE_MONTHLY_PRODUCT_ID"),
     offerCode: readEnv("HOTMART_DRIVE_MONTHLY_OFFER_CODE"),
     checkoutUrl: readEnv(
+      "MERCADOPAGO_DRIVE_MONTHLY_CHECKOUT_URL",
+      "NEXT_PUBLIC_MERCADOPAGO_DRIVE_MONTHLY_CHECKOUT_URL",
       "HOTMART_DRIVE_MONTHLY_CHECKOUT_URL",
       "NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_CHECKOUT_URL",
     ),

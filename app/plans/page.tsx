@@ -52,27 +52,27 @@ const benefits = [
   {
     icon: Zap,
     title: "Acesso automático",
-    text: "Assim que a Hotmart confirmar o pagamento, o plano é liberado na sua conta sem espera manual.",
+    text: "Assim que o Mercado Pago confirmar o pagamento, o plano é liberado na sua conta sem espera manual.",
   },
 ];
 
-const hotmartPoints = [
-  "Checkout oficial da Hotmart, com criptografia e proteção da compra",
-  "Cartão, Pix e demais meios disponíveis no checkout Hotmart",
+const paymentPoints = [
+  "Checkout oficial do Mercado Pago, com criptografia e proteção da compra",
+  "Cartão, Pix e demais meios disponíveis no checkout Mercado Pago",
   "Cobrança mensal da assinatura gerenciada com segurança",
-  "Comprovante e histórico de pagamento na sua conta Hotmart",
-  "A {site} libera o acesso só após o webhook de confirmação — sem liberação falsa por redirect",
+  "Comprovante e histórico de pagamento na sua conta Mercado Pago",
+  "A {site} libera o acesso só após a confirmação do pagamento — sem liberação falsa por redirect",
 ].map((text) => text.replace("{site}", SITE_NAME));
 
 const howItWorks = [
   {
     step: "01",
     title: "Escolha o plano",
-    text: "Selecione o BRS Drive Mensal e clique em Assinar agora.",
+    text: "Selecione o BRS Drive Mensal (R$ 38,00) e clique em Assinar agora.",
   },
   {
     step: "02",
-    title: "Pague na Hotmart",
+    title: "Pague no Mercado Pago",
     text: "Finalize o checkout seguro. Se ainda não tiver conta BRS, faça login ou cadastro antes.",
   },
   {
@@ -102,12 +102,12 @@ export default function PlansPage() {
           <SectionHeading
             badge="Planos"
             title="BRS Drive Mensal"
-            subtitle="Assinatura mensal com acesso completo ao acervo VIP, plataforma para DJs e Downloader para Windows. Pagamento processado com segurança pela Hotmart."
+            subtitle="Assinatura mensal com acesso completo ao acervo VIP, plataforma para DJs e Downloader para Windows. Pagamento processado com segurança pelo Mercado Pago."
           />
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold tracking-[-0.01em] text-zinc-400">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-[#009739]" />
-              Hotmart
+              Mercado Pago
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <Monitor className="h-3.5 w-3.5 text-[#FFDF00]" />
@@ -152,11 +152,11 @@ export default function PlansPage() {
             <SectionHeading
               centered={false}
               badge="Pagamento"
-              title="Checkout seguro pela Hotmart"
-              subtitle="A Hotmart processa a assinatura. A Brazilian Remix Service libera o acesso à plataforma e ao Downloader assim que o pagamento é confirmado."
+              title="Checkout seguro pelo Mercado Pago"
+              subtitle="O Mercado Pago processa a assinatura. A Brazilian Remix Service libera o acesso à plataforma e ao Downloader assim que o pagamento é confirmado."
             />
             <ul className="mt-8 space-y-3">
-              {hotmartPoints.map((point) => (
+              {paymentPoints.map((point) => (
                 <li key={point} className="flex items-start gap-3 text-sm leading-relaxed text-zinc-300">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#009739]" />
                   <span>{point}</span>
@@ -172,19 +172,19 @@ export default function PlansPage() {
                 Ambiente protegido
               </div>
               <h3 className="mt-5 font-display text-2xl font-semibold text-white">
-                Você paga na Hotmart.
+                Você paga no Mercado Pago.
                 <br />
                 O acesso fica na BRS.
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-zinc-400">
                 Não processamos cartão no nosso site. O redirect de sucesso não libera o plano — a liberação
-                depende exclusivamente da confirmação oficial da Hotmart.
+                depende exclusivamente da confirmação oficial do pagamento no Mercado Pago.
               </p>
               <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
                 <ShieldCheck className="h-8 w-8 flex-shrink-0 text-[#009739]" />
                 <div>
-                  <p className="text-sm font-semibold text-white">Pagamento processado pela Hotmart</p>
-                  <p className="text-xs text-zinc-500">Assinatura recorrente · cancelamento pelo painel Hotmart</p>
+                  <p className="text-sm font-semibold text-white">Pagamento processado pelo Mercado Pago</p>
+                  <p className="text-xs text-zinc-500">Assinatura mensal · R$ 38,00</p>
                 </div>
               </div>
             </div>

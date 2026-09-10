@@ -28,7 +28,7 @@ export {
   type HotmartSitePlan,
 };
 
-/** Único plano público: BRS Drive Mensal (Hotmart). */
+/** Único plano público: BRS Drive Mensal (Mercado Pago). */
 export const SITE_PLANS: SitePlan[] = getHotmartSitePlans().map((plan) => ({
   id: plan.id,
   name: plan.name,

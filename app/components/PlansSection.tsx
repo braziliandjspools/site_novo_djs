@@ -58,13 +58,13 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
         setError(
           data.error ??
             (res.status === 503
-              ? "Checkout Hotmart ainda não configurado. Peça ao administrador para definir HOTMART_DRIVE_MONTHLY_CHECKOUT_URL na Vercel."
+              ? "Checkout Mercado Pago ainda não configurado. Peça ao administrador para definir MERCADOPAGO_DRIVE_MONTHLY_CHECKOUT_URL na Vercel."
               : "Não foi possível abrir o checkout. Tente novamente."),
         );
         return;
       }
 
-      // URL externa Hotmart (checkout oficial)
+      // URL externa Mercado Pago (checkout oficial)
       window.location.href = data.checkoutUrl;
     } catch {
       setError("Erro de conexão ao abrir o checkout. Tente novamente.");
@@ -79,7 +79,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
         <SectionHeading
           badge="Assinatura"
           title="Assine agora"
-          subtitle="BRS Drive Mensal com cobrança via Hotmart. Após a confirmação do pagamento, o acesso à plataforma e ao Downloader é liberado automaticamente na sua conta."
+          subtitle="BRS Drive Mensal com cobrança via Mercado Pago. Após a confirmação do pagamento, o acesso à plataforma e ao Downloader é liberado automaticamente na sua conta."
         />
         <div className="mx-auto mt-10 grid max-w-md gap-4 sm:mt-12">
           {plans.map((plan) => (
@@ -129,7 +129,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
               )}
               <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
                 <ShieldCheck className="h-3.5 w-3.5 text-[#009739]" />
-                Pagamento processado com segurança pela Hotmart.
+                Pagamento processado com segurança pelo Mercado Pago.
               </p>
             </div>
           ))}

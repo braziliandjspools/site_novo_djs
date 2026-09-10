@@ -26,19 +26,6 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function VersionBadge({ version }: { version: string }) {
-  const isClean = version === "Clean";
-  return (
-    <span
-      className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-        isClean ? "bg-[#002776]/60 text-[#6B9FFF]" : "bg-[#FFDF00]/15 text-[#FFDF00]"
-      }`}
-    >
-      {version}
-    </span>
-  );
-}
-
 type TrackPlaylistPanelProps = {
   playlist: PreviewPlaylist;
   player: ReturnType<typeof useProtectedPlayer>;
@@ -48,9 +35,22 @@ type TrackPlaylistPanelProps = {
 };
 
 function TrackPlaylistPanel({ playlist, player, isGlobalBusy, trackCountLabel, variant }: TrackPlaylistPanelProps) {
+  const isPreviewList = variant === "default";
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#002776]/20 to-[#181818] shadow-xl shadow-black/30">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+    <div
+      className={
+        isPreviewList
+          ? "overflow-hidden rounded-2xl border border-zinc-700/70 bg-black shadow-[0_1px_0_rgba(255,255,255,0.03)]"
+          : "overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#002776]/20 to-[#181818] shadow-xl shadow-black/30"
+      }
+    >
+      <div
+        className={
+          isPreviewList
+            ? "flex flex-wrap items-center justify-between gap-3 border-b border-zinc-700/70 bg-[#111111] px-3 py-3 sm:px-4"
+            : "flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4"
+        }
+      >
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#009739]/20">
             <FolderOpen className="h-5 w-5 text-[#00B347]" />
@@ -60,12 +60,10 @@ function TrackPlaylistPanel({ playlist, player, isGlobalBusy, trackCountLabel, v
             <p className="text-xs text-gray-500">{trackCountLabel(playlist.tracks.length)}</p>
           </div>
         </div>
-        <span className="rounded-full border border-[#FFDF00]/30 bg-[#FFDF00]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#FFDF00]">
-          Demo
-        </span>
+        <span className="text-eyebrow text-[#1ed760]">Prévia</span>
       </div>
 
-      <div className="max-h-[420px] space-y-2 overflow-y-auto p-3 sm:p-4">
+      <div className={isPreviewList ? "max-h-[420px] space-y-px overflow-y-auto" : "max-h-[420px] space-y-2 overflow-y-auto p-3 sm:p-4"}>
         {playlist.tracks.map((track, index) => {
           const isPlaying = player.playingId === track.id;
           const isLoading = player.loadingId === track.id;
@@ -105,95 +103,118 @@ function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progre
   const isMusicProducer = variant === "music-producer";
   const display = getTrackDisplayMetadata(track);
 
-  return (
-    <div
-      className={`relative overflow-hidden rounded-xl border transition-all duration-200 ${
-        isPlaying
-          ? "border-[#009739]/50 bg-[#009739]/10 shadow-md shadow-[#009739]/10"
-          : "border-white/[0.08] bg-white/[0.03] hover:border-[#009739]/30 hover:bg-white/[0.05]"
-      }`}
-    >
-      {isPlaying && (
-        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#009739]/30" aria-hidden>
-          <div
-            className="h-full bg-gradient-to-r from-[#009739] to-[#FFDF00] transition-all"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      )}
-
-      <div className={`flex gap-3 p-3 sm:gap-4 sm:p-4 ${isMusicProducer && track.story ? "items-start" : "items-center"}`}>
-        <div className="relative h-14 w-14 flex-shrink-0 sm:h-16 sm:w-16">
-          <SiteImage
-            src={PLACEHOLDER.trackCover}
-            alt=""
-            fill
-            className="rounded-lg object-cover ring-1 ring-white/10"
-            sizes="64px"
-          />
-          <button
-            type="button"
-            onClick={onToggle}
-            disabled={isBusy}
-            aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
-            className={`absolute inset-0 flex items-center justify-center rounded-lg transition-all ${
-              isPlaying ? "bg-[#009739]/80" : "bg-black/40 hover:bg-[#009739]/70"
-            }`}
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-white" />
-            ) : isPlaying ? (
-              <Pause className="h-5 w-5 text-white" fill="white" />
-            ) : (
-              <Play className="ml-0.5 h-5 w-5 text-white" fill="white" />
-            )}
-          </button>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className={`truncate text-sm font-semibold sm:text-base ${isPlaying ? "text-[#00B347]" : "text-white"}`}>
-                {display.title}
-              </p>
-              {isMusicProducer ? (
-                <>
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFDF00]">
-                    {display.artist || track.pack}
-                  </p>
-                  {track.story && (
-                    <p className={`mt-2 text-xs leading-relaxed text-gray-400 ${isPlaying ? "" : "line-clamp-2"}`}>
-                      {track.story}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="truncate text-xs text-gray-400 sm:text-sm">{display.artist}</p>
-              )}
-            </div>
-            <span className="hidden flex-shrink-0 font-mono text-[10px] text-gray-600 sm:inline">
-              {String(index + 1).padStart(2, "0")}
-            </span>
+  if (isMusicProducer) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-xl border transition-all duration-200 ${
+          isPlaying
+            ? "border-[#009739]/50 bg-[#009739]/10 shadow-md shadow-[#009739]/10"
+            : "border-white/[0.08] bg-white/[0.03] hover:border-[#009739]/30 hover:bg-white/[0.05]"
+        }`}
+      >
+        {isPlaying && (
+          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#009739]/30" aria-hidden>
+            <div
+              className="h-full bg-gradient-to-r from-[#009739] to-[#FFDF00] transition-all"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-
-          {!isMusicProducer && (
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              {track.bpm && (
-                <span className="rounded-md bg-[#FFDF00]/10 px-2 py-0.5 font-mono text-[11px] font-bold text-[#FFDF00]">
-                  {track.bpm}
-                </span>
+        )}
+        <div className={`flex gap-3 p-3 sm:gap-4 sm:p-4 ${track.story ? "items-start" : "items-center"}`}>
+          <div className="relative h-14 w-14 flex-shrink-0 sm:h-16 sm:w-16">
+            <SiteImage
+              src={PLACEHOLDER.trackCover}
+              alt=""
+              fill
+              className="rounded-lg object-cover ring-1 ring-white/10"
+              sizes="64px"
+            />
+            <button
+              type="button"
+              onClick={onToggle}
+              disabled={isBusy}
+              aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
+              className={`absolute inset-0 flex items-center justify-center rounded-lg transition-all ${
+                isPlaying ? "bg-[#009739]/80" : "bg-black/40 hover:bg-[#009739]/70"
+              }`}
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
+              ) : isPlaying ? (
+                <Pause className="h-5 w-5 text-white" fill="white" />
+              ) : (
+                <Play className="ml-0.5 h-5 w-5 text-white" fill="white" />
               )}
-              {track.version && <VersionBadge version={track.version} />}
-              {track.editType && (
-                <span className="hidden truncate text-[10px] uppercase tracking-wider text-gray-600 sm:inline">
-                  · {track.editType}
-                </span>
-              )}
-            </div>
-          )}
+            </button>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className={`truncate text-sm font-semibold sm:text-base ${isPlaying ? "text-[#00B347]" : "text-white"}`}>
+              {display.title}
+            </p>
+            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFDF00]">
+              {display.artist || track.pack}
+            </p>
+            {track.story && (
+              <p className={`mt-2 text-xs leading-relaxed text-gray-400 ${isPlaying ? "" : "line-clamp-2"}`}>
+                {track.story}
+              </p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  /* Prévia da home — mesmo visual da lista de /musicas/atualizacoes, só play */
+  return (
+    <article
+      className={`border-b border-zinc-800/60 transition-colors last:border-b-0 ${
+        isPlaying ? "bg-white/[0.04]" : "hover:bg-white/[0.03]"
+      }`}
+    >
+      <div className="grid grid-cols-[28px_40px_minmax(0,1fr)] items-center gap-x-1.5 px-1.5 py-1.5 sm:grid-cols-[32px_44px_minmax(0,1fr)] sm:gap-x-2 sm:px-2 sm:py-2">
+        <span className="text-center font-mono text-[10px] tabular-nums text-zinc-600 sm:text-[11px]">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={isBusy}
+          aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
+          className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
+            isPlaying ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
+          }`}
+        >
+          {isLoading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : isPlaying ? (
+            <Pause className="h-3.5 w-3.5" fill="currentColor" />
+          ) : (
+            <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={isBusy}
+          className="min-w-0 overflow-hidden text-left"
+          aria-label={`${display.title} — ${display.artist}`}
+          title={`${display.title} — ${display.artist}`}
+        >
+          <p className="text-track-title truncate text-white">{display.title}</p>
+          <p className="text-track-artist mt-0.5 truncate">{display.artist}</p>
+        </button>
+      </div>
+      {isPlaying ? (
+        <div className="flex items-center gap-2 px-1.5 pb-1.5 sm:pl-[calc(32px+44px+0.5rem)]">
+          <div className="h-3 min-w-0 flex-1 py-1">
+            <div className="h-0.5 rounded-full bg-zinc-800">
+              <div className="h-full rounded-full bg-zinc-300" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </article>
   );
 }
 

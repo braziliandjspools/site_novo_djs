@@ -20,7 +20,7 @@ export async function GET(request: Request, context: RouteContext) {
   const checkoutConfigured = getPublicHotmartCheckoutUrl(planId);
   if (!checkoutConfigured) {
     return NextResponse.json(
-      { error: "Checkout Hotmart não configurado." },
+      { error: "Checkout Mercado Pago não configurado." },
       { status: 503 },
     );
   }
@@ -44,7 +44,7 @@ export async function GET(request: Request, context: RouteContext) {
 
   if (!checkoutUrl) {
     return NextResponse.json(
-      { error: "Checkout Hotmart não configurado." },
+      { error: "Checkout Mercado Pago não configurado." },
       { status: 503 },
     );
   }

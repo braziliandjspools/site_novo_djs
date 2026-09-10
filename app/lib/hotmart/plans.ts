@@ -18,29 +18,31 @@ export type HotmartSitePlan = {
   checkoutUrlEnv: "HOTMART_DRIVE_MONTHLY_CHECKOUT_URL" | "NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_CHECKOUT_URL";
 };
 
-/** Preço exibido — override opcional via NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_PRICE */
+/** Preço exibido — override opcional via env */
 export function getDriveMonthlyPriceLabel() {
-  const fromEnv = process.env.NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_PRICE?.trim();
-  return fromEnv || "R$ 50";
+  const fromEnv =
+    process.env.NEXT_PUBLIC_MERCADOPAGO_DRIVE_MONTHLY_PRICE?.trim() ||
+    process.env.NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_PRICE?.trim();
+  return fromEnv || "R$ 38,00";
 }
 
 export function getDriveMonthlyPriceNumber() {
   const label = getDriveMonthlyPriceLabel().replace(/[^\d,.]/g, "").replace(",", ".");
   const parsed = Number(label);
-  return Number.isFinite(parsed) ? parsed : 50;
+  return Number.isFinite(parsed) ? parsed : 38;
 }
 
 export const HOTMART_DRIVE_MONTHLY_PLAN = {
   id: "drive-monthly" as const,
   name: "BRS Drive Mensal",
-  period: "Cobrança mensal via Hotmart",
+  period: "Cobrança mensal via Mercado Pago",
   billing: "monthly" as const,
   badge: "Assinatura",
   highlight: true,
   features: [
-    "Atualizações mensais",
-    "Plataforma para DJs",
-    "Packs organizados",
+    "Atualizações regulares do acervo VIP",
+    "Plataforma para DJs (/musicas)",
+    "Packs organizados por mês e estilo",
     "Downloader para Windows",
     "Acesso enquanto a assinatura estiver ativa",
   ],

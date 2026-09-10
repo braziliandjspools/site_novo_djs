@@ -6,42 +6,34 @@ export type SiteFaq = {
 export const SITE_FAQS: SiteFaq[] = [
   {
     q: "O que é o Brazilian Remix Service?",
-    a: "É um acervo curado para DJs com mais de 400 pools, remix services, edits, extended versions e materiais organizados por gênero, pool e data. Tudo pensado para facilitar a preparação dos seus sets com repertório atualizado para a pista brasileira.",
+    a: "É o acervo VIP para DJs com curadoria brasileira: packs, edits, extended, clean/dirty e materiais organizados por mês, semana e estilo. Hoje o Drive passa de 241 GB, com cerca de 592 pastas e mais de 33.697 músicas.",
   },
   {
-    q: "O que está incluso na assinatura?",
-    a: "Acesso ao acervo completo via Google Drive, FTP, RaiDrive e à plataforma VIP online (ouvir e baixar pelo navegador), atualizações mensais, Deemix, suporte via WhatsApp e acesso ao Portal do cliente com sua conta e licenças.",
+    q: "O que está incluso no plano de R$ 38,00/mês?",
+    a: "Acesso ao acervo completo enquanto a assinatura estiver ativa, plataforma VIP no site (ouvir e baixar), BRS Downloader para Windows, organização por pastas e suporte via WhatsApp/Portal.",
   },
   {
     q: "Como acesso o acervo depois de assinar?",
-    a: "Você escolhe a forma mais prática: navegar e baixar pela Plataforma VIP, usar o Google Drive com pastas organizadas, conectar via FTP com o FileZilla para downloads em massa ou montar o acervo no PC com o RaiDrive como se fosse um disco local.",
+    a: "Entre na plataforma em /musicas com o mesmo login da conta VIP. Lá você navega em Atualizações e Coleções, ouve as faixas e envia packs ao Downloader. Também há acesso pelo Google Drive conforme liberação da assinatura.",
   },
   {
-    q: "Quantos pools e fontes de conteúdo estão disponíveis?",
-    a: "São mais de 400 pools e remix services reunidos em um só lugar — funk, sertanejo, pop, eletrônico, open format e muito mais, com edits clean, dirty, intro e extended prontos para uso.",
+    q: "Como funciona o BRS Downloader?",
+    a: "É o app Windows x64 oficial. Use a versão atual publicada no site (ex.: 1.0.6_estable), faça login com a mesma conta VIP e envie pastas/faixas da plataforma para a fila de download no PC.",
+  },
+  {
+    q: "Posso ouvir antes de assinar?",
+    a: "Sim. Visitantes e contas sem VIP ouvem cerca de 1 minuto de prévia por faixa. A faixa completa, download e fila do Downloader liberam com o plano VIP ativo.",
   },
   {
     q: "Com que frequência o acervo é atualizado?",
-    a: "Novos packs, edits e remixes são adicionados todos os meses. Na plataforma VIP você navega por mês e estilo; pastas novas desde sua última visita aparecem destacadas em Atualizações.",
+    a: "Novos packs entram regularmente, organizados por mês e semana. Em Atualizações você vê as pastas recentes e o destaque do que chegou desde a sua última visita.",
   },
   {
-    q: "Preciso instalar algo para baixar as músicas?",
-    a: "Não obrigatoriamente. Pela Plataforma VIP você ouve e baixa direto no navegador. Para volumes maiores, recomendamos FTP (FileZilla) ou RaiDrive. O Deemix também está incluso para quem prefere baixar e organizar faixas no computador.",
+    q: "Como funciona o pagamento?",
+    a: "A assinatura mensal custa R$ 38,00 e o checkout é processado pelo Mercado Pago (Pix, cartão e demais meios disponíveis no checkout). A BRS libera o acesso após a confirmação do pagamento.",
   },
   {
-    q: "O Deemix está incluso no plano?",
-    a: "Sim. O Deemix faz parte do seu acesso para ampliar o repertório com praticidade. Também oferecemos o Deemix Server (infraestrutura na nuvem) — consulte a página Deemix para disponibilidade e detalhes da versão atual.",
-  },
-  {
-    q: "Posso ouvir exemplos antes de assinar?",
-    a: "Sim. Na home você encontra uma seleção de faixas em preview para conhecer a variedade do acervo. O catálogo completo, player e downloads liberados exigem assinatura VIP ativa.",
-  },
-  {
-    q: "Vocês produzem músicas personalizadas?",
-    a: "Sim. Na área Music Producer você solicita produções do zero — aniversários, casamentos, jingles, vinhetas, intros e projetos especiais. Briefing assistido, preços claros e entrega pelo Portal.",
-  },
-  {
-    q: "Como assino ou falo com o suporte?",
-    a: "Clique em Assinar VIP na página para ir ao checkout. Dúvidas sobre acesso, pastas ou arquivos: WhatsApp ou Portal do cliente. Estamos prontos para ajudar antes e depois da assinatura.",
+    q: "Como falo com o suporte?",
+    a: "Use o WhatsApp do site ou o Portal do cliente. Informe e-mail da conta, pasta/mês e nome do arquivo se for problema de faixa ou download — assim agilizamos a verificação.",
   },
 ];

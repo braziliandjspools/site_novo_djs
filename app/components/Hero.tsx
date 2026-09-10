@@ -139,22 +139,21 @@ export function Hero() {
       </section>
 
       <section className="border-b border-white/5 site-section-blue px-4 py-10 sm:px-6">
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
           {[
-            { value: "400+", label: "Pools & Services" },
-            { value: "24/7", label: "Acesso ilimitado" },
-            { value: "100%", label: "Curadoria BR" },
-            { value: "Mensal", label: "Atualizações" },
+            { value: "+241 GB", label: "Acervo VIP" },
+            { value: "592", label: "Pastas" },
+            { value: "+33.697", label: "Músicas" },
           ].map((stat, i) => (
             <div key={stat.label} className="text-center">
               <p
-                className={`font-display text-3xl tracking-wide ${
+                className={`font-display text-3xl tracking-[-0.03em] ${
                   i % 3 === 0 ? "text-[#00B347]" : i % 3 === 1 ? "text-[#FFDF00]" : "text-[#6B9FFF]"
                 }`}
               >
                 {stat.value}
               </p>
-              <p className="mt-1 text-[11px] uppercase tracking-wider text-gray-500">{stat.label}</p>
+              <p className="mt-1 text-[11px] tracking-[-0.01em] text-gray-500">{stat.label}</p>
             </div>
           ))}
         </div>

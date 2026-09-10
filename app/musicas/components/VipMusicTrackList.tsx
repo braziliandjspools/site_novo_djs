@@ -5,6 +5,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Copy,
   Download,
   Loader2,
   Lock,
@@ -24,6 +25,7 @@ import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { poolPanelClass, poolRowTone, poolTableHeadClass } from "./atualizacoes-pool-ui";
+import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -378,10 +380,51 @@ function TrackRow({
   );
 }
 
+function buildTrackMenuActions(input: {
+  track: PreviewTrack;
+  canDownload: boolean;
+  onDownload: () => void;
+  isDownloading: boolean;
+  onSendToDownloader: () => void;
+  isSendingToDownloader: boolean;
+  onCopyLink: () => void;
+}): CollectionMenuAction[] {
+  const actions: CollectionMenuAction[] = [
+    {
+      id: "copy",
+      label: "Copiar link",
+      icon: Copy,
+      onClick: input.onCopyLink,
+    },
+  ];
+
+  if (input.canDownload) {
+    actions.unshift(
+      {
+        id: "downloader",
+        label: "Enviar ao Downloader",
+        icon: MonitorDown,
+        disabled: input.isSendingToDownloader,
+        onClick: input.onSendToDownloader,
+      },
+      {
+        id: "download",
+        label: "Baixar faixa",
+        icon: Download,
+        disabled: input.isDownloading,
+        onClick: input.onDownload,
+      },
+    );
+  }
+
+  return actions;
+}
+
 function DiscographyTrackRow({
   track,
   index,
   canPlay,
+  canDownload,
   isActive,
   isPlaying,
   isLoading,
@@ -390,13 +433,33 @@ function DiscographyTrackRow({
   setDomAnchor = true,
   duration,
   onToggle,
+  onDownload,
+  isDownloading,
+  onSendToDownloader,
+  isSendingToDownloader,
 }: TrackRowProps) {
   const display = getTrackDisplayMetadata(track);
+  const { showToast } = useMusicasToast();
+  const menuActions = buildTrackMenuActions({
+    track,
+    canDownload,
+    onDownload,
+    isDownloading,
+    onSendToDownloader,
+    isSendingToDownloader,
+    onCopyLink: () => {
+      const url = typeof window !== "undefined" ? window.location.href : "";
+      void navigator.clipboard
+        .writeText(url)
+        .then(() => showToast("Link copiado"))
+        .catch(() => showToast("Não foi possível copiar o link.", "error"));
+    },
+  });
 
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row rounded-md transition-colors hover:bg-white/[0.06] ${
+      className={`group/row flex items-center gap-1 rounded-md transition-colors hover:bg-white/[0.06] ${
         isActive || isPlaying ? "bg-white/[0.04]" : ""
       }`}
     >
@@ -404,7 +467,7 @@ function DiscographyTrackRow({
         type="button"
         onClick={canPlay ? onToggle : undefined}
         disabled={!canPlay || isBusy}
-        className={`${DISCOGRAPHY_GRID} w-full px-2 py-2.5 text-left sm:px-3`}
+        className={`${DISCOGRAPHY_GRID} min-w-0 flex-1 px-2 py-2.5 text-left sm:px-3`}
         aria-label={`${display.title} — ${display.artist}`}
         title={`${display.title} — ${display.artist}`}
       >
@@ -442,6 +505,14 @@ function DiscographyTrackRow({
           {isActive && duration > 0 ? formatTime(duration) : "—:—"}
         </div>
       </button>
+
+      <div className="flex-shrink-0 pr-1 sm:pr-2">
+        <CollectionContextMenu
+          label={`Opções · ${display.title}`}
+          buttonClassName="!h-8 !w-8 text-zinc-500 opacity-100 hover:text-white md:opacity-0 md:group-hover/row:opacity-100"
+          actions={menuActions}
+        />
+      </div>
     </article>
   );
 }

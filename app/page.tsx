@@ -37,23 +37,23 @@ export const metadata: Metadata = buildPageMetadata("home");
 const poolHighlights = [
   {
     icon: Layers,
-    title: "400+ Pools",
+    title: "+241 GB",
     description:
-      "Mais de 400 pools e fontes de conteúdo para DJs, reunindo remix services, edits, versões exclusivas e repertório atualizado. Tudo organizado para você encontrar rapidamente as músicas certas para seus sets.",
+      "Acervo VIP com mais de 241 GB de packs, edits e extended versions. Centenas de pastas e dezenas de milhares de faixas organizadas para a rotina do DJ.",
     color: "green" as const,
   },
   {
     icon: Sparkles,
-    title: "Curadoria BR",
+    title: "592 pastas",
     description:
-      "Seleção especial para a pista brasileira, com funk, sertanejo, pop, eletrônico e open format. Conteúdo escolhido para acompanhar as tendências e garantir um repertório atual, versátil e pronto para qualquer tipo de evento.",
+      "Estrutura por mês, semana e estilo para achar rápido o que precisa — funk, sertanejo, pop, eletrônico e open format com curadoria BR.",
     color: "yellow" as const,
   },
   {
     icon: RefreshCw,
-    title: "Atualizações Mensais",
+    title: "+33.697 músicas",
     description:
-      "Novos packs, edits, remixes e extended versions adicionados todos os meses. Mantenha seu repertório sempre atualizado com novidades selecionadas para diferentes estilos, pistas e momentos do seu set.",
+      "Repertório amplo e atualizado com frequência. Mantenha o set em dia com novidades selecionadas para diferentes pistas e momentos.",
     color: "blue" as const,
   },
   {
