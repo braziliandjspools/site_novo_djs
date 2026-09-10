@@ -27,12 +27,7 @@ export function getHotmartDriveMonthlyMapping(): HotmartProductMapping {
     planId: HOTMART_DRIVE_MONTHLY_PLAN.id,
     productId: readEnv("HOTMART_DRIVE_MONTHLY_PRODUCT_ID"),
     offerCode: readEnv("HOTMART_DRIVE_MONTHLY_OFFER_CODE"),
-    checkoutUrl: readEnv(
-      "MERCADOPAGO_DRIVE_MONTHLY_CHECKOUT_URL",
-      "NEXT_PUBLIC_MERCADOPAGO_DRIVE_MONTHLY_CHECKOUT_URL",
-      "HOTMART_DRIVE_MONTHLY_CHECKOUT_URL",
-      "NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_CHECKOUT_URL",
-    ),
+    checkoutUrl: "",
     displayName: HOTMART_DRIVE_MONTHLY_PLAN.name,
     monthlyValue: getDriveMonthlyPriceNumber(),
   };
@@ -72,9 +67,4 @@ export function resolveInternalPlan(input: {
 
   // Dev/fallback: se só houver um mapeamento com checkout e nenhum ID configurado, não liberar.
   return null;
-}
-
-export function getPublicHotmartCheckoutUrl(planId: string) {
-  if (planId !== HOTMART_DRIVE_MONTHLY_PLAN.id) return "";
-  return getHotmartDriveMonthlyMapping().checkoutUrl;
 }

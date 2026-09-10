@@ -59,7 +59,7 @@ const benefits = [
 const paymentPoints = [
   "Checkout oficial do Mercado Pago, com criptografia e proteção da compra",
   "Cartão, Pix e demais meios disponíveis no checkout Mercado Pago",
-  "Cobrança mensal da assinatura gerenciada com segurança",
+  "Pagamento único por período — renovação manual quando o acesso vencer",
   "Comprovante e histórico de pagamento na sua conta Mercado Pago",
   "A {site} libera o acesso só após a confirmação do pagamento — sem liberação falsa por redirect",
 ].map((text) => text.replace("{site}", SITE_NAME));
@@ -68,12 +68,12 @@ const howItWorks = [
   {
     step: "01",
     title: "Escolha o plano",
-    text: "Selecione o BRS Drive Mensal (R$ 38,00) e clique em Assinar agora.",
+    text: "Selecione 1 mês (R$ 38,00), 3 meses (R$ 102,60) ou 1 ano (R$ 384,00) e clique em Pagar com Mercado Pago.",
   },
   {
     step: "02",
     title: "Pague no Mercado Pago",
-    text: "Finalize o checkout seguro. Se ainda não tiver conta BRS, faça login ou cadastro antes.",
+    text: "Você precisa estar logado. Em seguida o site prepara o pagamento e redireciona ao checkout seguro do Mercado Pago.",
   },
   {
     step: "03",
@@ -88,9 +88,11 @@ export default function PlansPage() {
     name: plan.name,
     price: plan.price,
     period: plan.period,
+    equivalent: plan.equivalent,
     badge: plan.badge,
     features: plan.features,
     highlight: plan.highlight,
+    description: plan.description,
   }));
 
   return (
@@ -101,8 +103,8 @@ export default function PlansPage() {
         <div className="relative mx-auto max-w-3xl text-center">
           <SectionHeading
             badge="Planos"
-            title="BRS Drive Mensal"
-            subtitle="Assinatura mensal com acesso completo ao acervo VIP, plataforma para DJs e Downloader para Windows. Pagamento processado com segurança pelo Mercado Pago."
+            title="BRS Drive VIP"
+            subtitle="Acesso completo ao acervo VIP, plataforma para DJs e Downloader para Windows. Pagamento único com renovação manual — preço e duração definidos no servidor."
           />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold tracking-[-0.01em] text-zinc-400">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
@@ -115,7 +117,7 @@ export default function PlansPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[#6B9FFF]" />
-              Atualizações
+              1 · 3 · 12 meses
             </span>
           </div>
         </div>
@@ -184,7 +186,7 @@ export default function PlansPage() {
                 <ShieldCheck className="h-8 w-8 flex-shrink-0 text-[#009739]" />
                 <div>
                   <p className="text-sm font-semibold text-white">Pagamento processado pelo Mercado Pago</p>
-                  <p className="text-xs text-zinc-500">Assinatura mensal · R$ 38,00</p>
+                  <p className="text-xs text-zinc-500">1 mês R$ 38 · 3 meses R$ 102,60 · 1 ano R$ 384</p>
                 </div>
               </div>
             </div>

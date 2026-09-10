@@ -6,10 +6,11 @@ import { SITE_NAME } from "../../lib/branding";
 
 export const metadata: Metadata = {
   title: `Pagamento recebido | ${SITE_NAME}`,
-  description: "Estamos confirmando sua assinatura Hotmart.",
+  description: "Estamos confirmando sua assinatura no Mercado Pago.",
   robots: { index: false, follow: false },
 };
 
+/** Rota legada — preferir /pagamento/sucesso. */
 export default function CheckoutSuccessPage() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 sm:px-6">
@@ -18,9 +19,9 @@ export default function CheckoutSuccessPage() {
           <CheckCircle2 className="h-7 w-7" />
         </div>
         <SectionHeading
-          badge="Checkout"
+          badge="Mercado Pago"
           title="Pagamento recebido"
-          subtitle="Estamos confirmando sua assinatura. Assim que a Hotmart confirmar o pagamento, seu acesso será liberado automaticamente."
+          subtitle="Estamos confirmando sua assinatura. Assim que o Mercado Pago confirmar o pagamento, seu acesso será liberado automaticamente."
         />
         <Link
           href="/portal/conta"

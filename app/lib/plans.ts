@@ -1,11 +1,9 @@
-import {
-  getDriveMonthlyPriceLabel,
-  getDriveMonthlyPriceNumber,
-  getHotmartSitePlans,
-  HOTMART_DRIVE_MONTHLY_PLAN,
-  type HotmartBilling,
-  type HotmartSitePlan,
-} from "./hotmart/plans";
+/**
+ * Planos públicos do site — catálogo canônico (servidor).
+ * Checkout: POST /api/payments/mercadopago/preference com { planId }.
+ */
+
+import { listPublicPlanCards } from "./billing/plan-catalog";
 
 export type SitePlan = {
   id?: string;
@@ -16,27 +14,32 @@ export type SitePlan = {
   badge: string | null;
   features: string[];
   highlight: boolean;
-  billing?: HotmartBilling;
+  description?: string;
+  durationMonths?: number;
+  renewalType?: "manual";
 };
 
-export {
-  getDriveMonthlyPriceLabel,
-  getDriveMonthlyPriceNumber,
-  getHotmartSitePlans,
-  HOTMART_DRIVE_MONTHLY_PLAN,
-  type HotmartBilling,
-  type HotmartSitePlan,
-};
-
-/** Único plano público: BRS Drive Mensal (Mercado Pago). */
-export const SITE_PLANS: SitePlan[] = getHotmartSitePlans().map((plan) => ({
+/** Planos públicos da /plans — catálogo canônico no servidor. */
+export const SITE_PLANS: SitePlan[] = listPublicPlanCards().map((plan) => ({
   id: plan.id,
   name: plan.name,
-  price: plan.priceLabel,
+  price: plan.price,
   period: plan.period,
-  equivalent: null,
+  equivalent: plan.equivalent,
   badge: plan.badge,
   features: plan.features,
   highlight: plan.highlight,
-  billing: plan.billing,
+  description: plan.description,
+  durationMonths: plan.durationMonths,
+  renewalType: plan.renewalType,
 }));
+
+export {
+  assertCheckoutPayloadTrusted,
+  getCanonicalPlanById,
+  listActiveCanonicalPlans,
+  listPublicPlanCards,
+  resolveCanonicalPlanId,
+  type CanonicalPlan,
+  type CanonicalPlanId,
+} from "./billing/plan-catalog";

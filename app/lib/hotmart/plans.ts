@@ -1,70 +1,38 @@
 /**
- * Fonte única de verdade dos planos vendidos via Hotmart (UI + mapeamento interno).
- * URLs/IDs sensíveis de produto ficam em variáveis de ambiente server-side.
+ * Mapeamento Hotmart legado — preços canônicos em `app/lib/billing/plan-catalog.ts`.
+ * Mantido apenas para webhooks de assinantes existentes (`drive-monthly`).
  */
+
+import {
+  formatPlanAmountBrl,
+  getCanonicalPlanById,
+  type CanonicalPlanId,
+} from "../billing/plan-catalog";
 
 export type HotmartBilling = "monthly";
 
-export type HotmartSitePlan = {
-  id: "drive-monthly";
-  name: string;
-  priceLabel: string;
-  period: string;
-  billing: HotmartBilling;
-  badge: string | null;
-  highlight: boolean;
-  features: string[];
-  /** Checkout público (sem secrets). */
-  checkoutUrlEnv: "HOTMART_DRIVE_MONTHLY_CHECKOUT_URL" | "NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_CHECKOUT_URL";
-};
-
-/** Preço exibido — override opcional via env */
 export function getDriveMonthlyPriceLabel() {
-  const fromEnv =
-    process.env.NEXT_PUBLIC_MERCADOPAGO_DRIVE_MONTHLY_PRICE?.trim() ||
-    process.env.NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_PRICE?.trim();
-  return fromEnv || "R$ 38,00";
+  const plan = getCanonicalPlanById("brs-drive-1m");
+  return plan ? formatPlanAmountBrl(plan.amountBrl) : "R$ 38,00";
 }
 
 export function getDriveMonthlyPriceNumber() {
-  const label = getDriveMonthlyPriceLabel().replace(/[^\d,.]/g, "").replace(",", ".");
-  const parsed = Number(label);
-  return Number.isFinite(parsed) ? parsed : 38;
+  const plan = getCanonicalPlanById("brs-drive-1m");
+  return plan ? Number(plan.amountBrl) : 38;
 }
 
 export const HOTMART_DRIVE_MONTHLY_PLAN = {
   id: "drive-monthly" as const,
-  name: "BRS Drive Mensal",
-  period: "Cobrança mensal via Mercado Pago",
+  canonicalId: "brs-drive-1m" as CanonicalPlanId,
+  name: "BRS Drive — 1 mês",
+  period: "1 mês · renovação manual",
   billing: "monthly" as const,
-  badge: "Assinatura",
+  badge: "Popular" as string | null,
   highlight: true,
   features: [
-    "Atualizações regulares do acervo VIP",
+    "Acervo VIP completo",
     "Plataforma para DJs (/musicas)",
-    "Packs organizados por mês e estilo",
     "Downloader para Windows",
-    "Acesso enquanto a assinatura estiver ativa",
+    "Renovação manual ao fim do período",
   ],
 };
-
-export function getHotmartSitePlans(): HotmartSitePlan[] {
-  return [
-    {
-      ...HOTMART_DRIVE_MONTHLY_PLAN,
-      priceLabel: getDriveMonthlyPriceLabel(),
-      checkoutUrlEnv: "NEXT_PUBLIC_HOTMART_DRIVE_MONTHLY_CHECKOUT_URL",
-    },
-  ];
-}
-
-/** @deprecated use getHotmartSitePlans — mantido para imports legados de SITE_PLANS */
-export const SITE_PLANS = getHotmartSitePlans().map((plan) => ({
-  name: plan.name,
-  price: plan.priceLabel,
-  period: plan.period,
-  equivalent: null as string | null,
-  badge: plan.badge,
-  features: plan.features,
-  highlight: plan.highlight,
-}));

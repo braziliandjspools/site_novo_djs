@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { isValidHotmartWebhookToken } from "./verify";
-import { buildHotmartCheckoutUrl } from "./checkout";
 import {
   extractExternalUserId,
   extractBuyerEmail,
@@ -27,24 +26,15 @@ test("webhook token válido é aceito", () => {
   assert.equal(isValidHotmartWebhookToken("hotmart-token", "hotmart-token"), true);
 });
 
-test("/plans expõe apenas BRS Drive Mensal", () => {
-  assert.equal(SITE_PLANS.length, 1);
-  assert.equal(SITE_PLANS[0]?.id, "drive-monthly");
-  assert.equal(SITE_PLANS[0]?.name, "BRS Drive Mensal");
-});
-
-test("checkout inclui email, nome e brs_user_id", () => {
-  process.env.HOTMART_DRIVE_MONTHLY_CHECKOUT_URL = "https://pay.hotmart.com/example";
-  const url = buildHotmartCheckoutUrl("drive-monthly", {
-    id: 12345,
-    email: "dj@example.com",
-    name: "DJ Teste",
-  });
-  const parsed = new URL(url);
-  assert.equal(parsed.searchParams.get("email"), "dj@example.com");
-  assert.equal(parsed.searchParams.get("name"), "DJ Teste");
-  assert.equal(parsed.searchParams.get("xcod"), "brs_user_id=12345");
-  assert.equal(parsed.searchParams.get("sck"), "brs_user_id=12345");
+test("/plans expõe os 3 planos canônicos", () => {
+  assert.equal(SITE_PLANS.length, 3);
+  assert.deepEqual(
+    SITE_PLANS.map((plan) => plan.id),
+    ["brs-drive-1m", "brs-drive-3m", "brs-drive-12m"],
+  );
+  assert.equal(SITE_PLANS[0]?.price, "R$ 38,00");
+  assert.equal(SITE_PLANS[1]?.price, "R$ 102,60");
+  assert.equal(SITE_PLANS[2]?.price, "R$ 384,00");
 });
 
 test("extrai brs_user_id do xcod", () => {
@@ -76,23 +66,19 @@ test("produto não reconhecido retorna null", () => {
   assert.equal(resolveInternalPlan({ productId: "999", offerCode: "zzz" }), null);
 });
 
-test("produto reconhecido por product id", () => {
+test("resolve produto Hotmart legado por productId", () => {
   process.env.HOTMART_DRIVE_MONTHLY_PRODUCT_ID = "111";
   process.env.HOTMART_DRIVE_MONTHLY_OFFER_CODE = "abc";
-  const mapped = resolveInternalPlan({ productId: "111", offerCode: "" });
-  assert.equal(mapped?.planId, "drive-monthly");
+  const plan = resolveInternalPlan({ productId: "111", offerCode: "abc" });
+  assert.equal(plan?.planId, "drive-monthly");
 });
 
-test("period end usa date_next_charge", () => {
-  const next = Date.UTC(2026, 9, 7);
+test("resolvePeriodEnd usa date_next_charge quando disponível", () => {
   const end = resolvePeriodEnd({
-    data: { purchase: { date_next_charge: next } },
-  });
-  assert.equal(end.getTime(), next);
-});
-
-test("cancelamento mantém acesso até period end (regra)", () => {
-  const periodEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const now = new Date();
-  assert.equal(periodEnd.getTime() > now.getTime(), true);
+    data: {
+      purchase: { date_next_charge: Date.parse("2030-01-15T12:00:00Z") },
+    },
+  } as HotmartWebhookPayload);
+  assert.ok(end);
+  assert.equal(end?.toISOString().startsWith("2030-01-15"), true);
 });

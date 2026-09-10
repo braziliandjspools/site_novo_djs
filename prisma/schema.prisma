@@ -40,6 +40,7 @@ model PortalUser {
   siteNotices           SiteNotice[]
   noticeReceipts        SiteNoticeReceipt[]
   hotmartSubscriptions  HotmartSubscription[]
+  mercadoPagoOrders     MercadoPagoOrder[]
 
   @@index([nextDueAt])
   @@map("portal_users")
@@ -112,6 +113,44 @@ model HotmartPendingPurchase {
 
   @@index([email, claimedAt])
   @@map("hotmart_pending_purchases")
+}
+
+enum MercadoPagoOrderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  REFUNDED
+}
+
+/**
+ * Pedido único Mercado Pago (Checkout Pro).
+ * Nunca armazena cartão, CVV, token de cartão ou Access Token.
+ */
+model MercadoPagoOrder {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  portalUserId            Int                    @map("portal_user_id")
+  portalUser              PortalUser             @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  planId                  String                 @map("plan_id")
+  amount                  Decimal                @db.Decimal(10, 2)
+  currency                String                 @default("BRL")
+  status                  MercadoPagoOrderStatus @default(PENDING)
+  provider                String                 @default("mercadopago")
+  /** Identifica o pedido interno BRS (enviado ao MP como external_reference). */
+  externalReference       String                 @unique @map("external_reference")
+  mercadoPagoPreferenceId String?                @map("mercado_pago_preference_id")
+  /** Único quando preenchido (Postgres permite vários NULL). */
+  mercadoPagoPaymentId    String?                @unique @map("mercado_pago_payment_id")
+  payerEmail              String?                @map("payer_email")
+  rawStatus               String?                @map("raw_status")
+  approvedAt              DateTime?              @map("approved_at")
+  activationEmailSentAt   DateTime?              @map("activation_email_sent_at")
+  createdAt               DateTime               @default(now()) @map("created_at")
+  updatedAt               DateTime               @updatedAt @map("updated_at")
+
+  @@index([portalUserId, status])
+  @@index([mercadoPagoPreferenceId])
+  @@map("mercado_pago_orders")
 }
 
 enum SiteNoticeAudience {
