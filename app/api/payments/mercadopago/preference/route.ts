@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { assertCheckoutPayloadTrusted } from "../../../../lib/billing/plan-catalog";
+import { formatDueDate } from "../../../../lib/due-queue";
 import { diagnoseMercadoPagoEnv } from "../../../../lib/mercadopago/env";
 import {
   createMercadoPagoCheckoutPreference,
   sanitizeMercadoPagoErrorMessage,
 } from "../../../../lib/mercadopago/preference";
+import { userHasActiveVipAccess } from "../../../../lib/mercadopago/webhook-policy";
 import { getAuthenticatedPortalUser } from "../../../../lib/portal";
 import { checkRateLimit } from "../../../../lib/rate-limit";
 
@@ -100,6 +102,24 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Faça login para continuar o checkout.", loginUrl, code: "unauthorized" },
       { status: 401 },
+    );
+  }
+
+  if (
+    userHasActiveVipAccess({
+      servicePoolsVip: user.services.poolsVip,
+      nextDueAt: user.nextDueAt,
+    })
+  ) {
+    const expiresLabel = formatDueDate(user.nextDueAt);
+    return NextResponse.json(
+      {
+        error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+        code: "vip_already_active",
+        expiresAt: user.nextDueAt.toISOString(),
+        expiresLabel,
+      },
+      { status: 409 },
     );
   }
 

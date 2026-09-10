@@ -19,7 +19,10 @@ import {
 } from "lucide-react";
 import { PlansSection } from "../components/PlansSection";
 import { SectionHeading } from "../components/SectionHeading";
+import { formatDueDate } from "../lib/due-queue";
+import { userHasActiveVipAccess } from "../lib/mercadopago/webhook-policy";
 import { SITE_PLANS } from "../lib/plans";
+import { getAuthenticatedPortalUser } from "../lib/portal";
 import { SITE_NAME } from "../lib/branding";
 import { whatsappUrl } from "../lib/site";
 import { buildPageMetadata } from "../lib/seo";
@@ -69,8 +72,9 @@ const includedDetails = [
 const paymentPoints = [
   "Checkout oficial do Mercado Pago (cartão, Pix e demais meios disponíveis)",
   "Pagamento único por período — renovação manual quando o acesso vencer",
-  "Plano teste de 3 dias (R$ 1,00) para validar produção sem compromisso longo",
-  "Comprovante e histórico ficam na sua conta Mercado Pago",
+  "Com VIP ativo, a compra de novo plano fica bloqueada até o vencimento",
+  "Plano teste de 3 dias (R$ 1,00) só para quem ainda não tem VIP",
+  "No Pix: após pagar, clique em “Voltar para Brazilian Dj Pools” no rodapé do Mercado Pago",
   "A {site} libera o acesso só após a confirmação oficial do pagamento — o redirect não libera plano",
 ].map((text) => text.replace("{site}", SITE_NAME));
 
@@ -83,7 +87,7 @@ const howItWorks = [
   {
     step: "02",
     title: "Pague no Mercado Pago",
-    text: "Faça login na BRS. O site cria a Preference no servidor e redireciona ao checkout seguro.",
+    text: "No Pix, após pagar clique em “Voltar para Brazilian Dj Pools” no rodapé. Cartão pode redirecionar sozinho.",
   },
   {
     step: "03",
@@ -94,8 +98,16 @@ const howItWorks = [
 
 const faqs = [
   {
+    q: "Posso comprar outro plano com VIP ainda ativo?",
+    a: "Não. Enquanto o VIP estiver válido, o checkout fica bloqueado. Renove só depois do vencimento — assim evitamos cobranças duplicadas (como o teste de R$ 1 em cima de um plano já ativo).",
+  },
+  {
+    q: "Paguei no Pix e a tela do QR não muda. E agora?",
+    a: "É normal. Role até o rodapé do Mercado Pago e clique em “Voltar para Brazilian Dj Pools”. O acesso libera pelo webhook; o botão só te devolve ao site.",
+  },
+  {
     q: "O plano Teste 3 dias é cobrança real?",
-    a: "Sim. É R$ 1,00 em produção no Mercado Pago, com acesso VIP completo por 3 dias — ideal para testar checkout, webhook e liberação.",
+    a: "Sim. É R$ 1,00 em produção no Mercado Pago, com acesso VIP completo por 3 dias — ideal para testar checkout, webhook e liberação. Indisponível se você já tem VIP ativo.",
   },
   {
     q: "O redirect de sucesso já libera o VIP?",
@@ -119,7 +131,7 @@ const faqs = [
   },
 ];
 
-export default function PlansPage() {
+export default async function PlansPage() {
   const plans = SITE_PLANS.filter((plan) => plan.id).map((plan) => ({
     id: plan.id!,
     name: plan.name,
@@ -132,6 +144,16 @@ export default function PlansPage() {
     description: plan.description,
     isTestPlan: plan.isTestPlan,
   }));
+
+  const user = await getAuthenticatedPortalUser();
+  const activeVip =
+    user &&
+    userHasActiveVipAccess({
+      servicePoolsVip: user.services.poolsVip,
+      nextDueAt: user.nextDueAt,
+    })
+      ? { expiresLabel: formatDueDate(user.nextDueAt) }
+      : null;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -162,7 +184,7 @@ export default function PlansPage() {
       </section>
 
       <Suspense fallback={<div className="min-h-[320px]" />}>
-        <PlansSection className="!border-t-0" plans={plans} />
+        <PlansSection className="!border-t-0" plans={plans} activeVip={activeVip} />
       </Suspense>
 
       <section className="border-b border-white/5 px-4 py-12 sm:px-6 md:py-16">

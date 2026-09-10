@@ -22,4 +22,8 @@ test("friendlyCheckoutError prioriza mensagem da API e cobre status comuns", () 
   assert.match(friendlyCheckoutError(429), /Muitas tentativas/);
   assert.match(friendlyCheckoutError(503), /não configurado/i);
   assert.match(friendlyCheckoutError(502), /preparar o pagamento/i);
+  assert.match(
+    friendlyCheckoutError(409, "Você já tem VIP ativo até 13/10/2026."),
+    /VIP ativo/,
+  );
 });

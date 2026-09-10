@@ -274,7 +274,8 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
 
         <p className="mt-6 text-xs leading-relaxed text-zinc-500">
           A liberação do plano depende exclusivamente da confirmação no servidor. Status na URL do
-          Mercado Pago não é usado.
+          Mercado Pago não é usado. No Pix, use “Voltar para Brazilian Dj Pools” no rodapé do checkout
+          se a tela do QR ficar parada após o pagamento.
         </p>
       </div>
     </div>

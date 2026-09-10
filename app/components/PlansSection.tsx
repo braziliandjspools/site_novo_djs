@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Info, Loader2, ShieldCheck } from "lucide-react";
 import { friendlyCheckoutError, resolveCheckoutPlanId } from "../lib/checkout-ui";
 import { SectionHeading } from "./SectionHeading";
 
@@ -19,10 +20,16 @@ type PlanCard = {
   isTestPlan?: boolean;
 };
 
+type ActiveVipInfo = {
+  expiresLabel: string;
+};
+
 type PlansSectionProps = {
   id?: string;
   className?: string;
   plans: PlanCard[];
+  /** Quando preenchido, bloqueia novos checkouts (VIP já ativo). */
+  activeVip?: ActiveVipInfo | null;
 };
 
 type PreferenceResponse = {
@@ -30,9 +37,16 @@ type PreferenceResponse = {
   orderId?: string;
   loginUrl?: string;
   error?: string;
+  code?: string;
+  expiresLabel?: string;
 };
 
-export function PlansSection({ id = "planos", className = "", plans }: PlansSectionProps) {
+export function PlansSection({
+  id = "planos",
+  className = "",
+  plans,
+  activeVip = null,
+}: PlansSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
@@ -40,8 +54,16 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
   const [errorPlanId, setErrorPlanId] = useState<string | null>(null);
   const checkoutInFlight = useRef(false);
   const autoStarted = useRef(false);
+  const checkoutBlocked = Boolean(activeVip);
 
   async function startCheckout(planId: string) {
+    if (checkoutBlocked) {
+      setError(
+        `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+      );
+      setErrorPlanId(null);
+      return;
+    }
     if (checkoutInFlight.current) return;
     checkoutInFlight.current = true;
     setLoadingPlanId(planId);
@@ -74,6 +96,17 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
         return;
       }
 
+      if (res.status === 409 || data.code === "vip_already_active") {
+        setError(
+          data.error ??
+            `Você já tem VIP ativo${data.expiresLabel ? ` até ${data.expiresLabel}` : ""}. Aguarde o vencimento para assinar um novo plano.`,
+        );
+        setErrorPlanId(null);
+        checkoutInFlight.current = false;
+        setLoadingPlanId(null);
+        return;
+      }
+
       if (!res.ok || !data.checkoutUrl) {
         setError(friendlyCheckoutError(res.status, data.error));
         setErrorPlanId(planId);
@@ -101,6 +134,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
   }
 
   useEffect(() => {
+    if (checkoutBlocked) return;
     const checkout = searchParams.get("checkout");
     if (!checkout || autoStarted.current) return;
     const resolvedId = resolveCheckoutPlanId(checkout, plans);
@@ -112,7 +146,7 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
     }, 0);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-start once after login redirect
-  }, [plans, searchParams]);
+  }, [plans, searchParams, checkoutBlocked]);
 
   const isBusy = loadingPlanId !== null;
 
@@ -124,6 +158,40 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
           title="Escolha seu plano"
           subtitle="Pagamento único via Mercado Pago, com renovação manual. Há um plano de teste de 3 dias (R$ 1,00) para validar produção. O navegador envia só o planId — preço e duração vêm do servidor."
         />
+
+        {activeVip ? (
+          <div
+            className="mx-auto mt-8 max-w-3xl rounded-2xl border border-[#1ed760]/35 bg-[#1ed760]/10 px-4 py-4 text-center sm:px-6"
+            role="status"
+          >
+            <p className="text-sm font-semibold text-[#1ed760]">
+              Seu VIP já está ativo até {activeVip.expiresLabel}
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-zinc-300">
+              Não é possível comprar outro plano enquanto o acesso atual estiver válido. Quando vencer,
+              volte aqui para renovar.{" "}
+              <Link href="/portal" className="font-semibold text-white underline-offset-2 hover:underline">
+                Ir ao portal
+              </Link>
+            </p>
+          </div>
+        ) : null}
+
+        <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-[#FFDF00]/25 bg-[#FFDF00]/8 px-4 py-4 sm:px-5">
+          <div className="flex gap-3 text-left">
+            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#FFDF00]" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold text-[#FFDF00]">Após pagar com Pix</p>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-300">
+                A tela do QR do Mercado Pago <strong className="font-semibold text-white">não atualiza sozinha</strong>.
+                Depois de pagar, role até o rodapé e clique em{" "}
+                <strong className="font-semibold text-white">“Voltar para Brazilian Dj Pools”</strong> para
+                retornar ao site. O acesso libera pelo webhook — o botão só te traz de volta.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((plan) => {
             const isThisLoading = loadingPlanId === plan.id;
@@ -131,11 +199,13 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
               <div
                 key={plan.id}
                 className={`relative flex flex-col site-panel p-6 text-center transition-all md:p-7 md:text-left ${
-                  plan.isTestPlan
-                    ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
-                    : plan.highlight
-                      ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
-                      : "hover:border-[#009739]/35"
+                  checkoutBlocked
+                    ? "opacity-70"
+                    : plan.isTestPlan
+                      ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
+                      : plan.highlight
+                        ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
+                        : "hover:border-[#009739]/35"
                 }`}
               >
                 {plan.badge && (
@@ -172,11 +242,13 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
                 <button
                   type="button"
                   onClick={() => void startCheckout(plan.id)}
-                  disabled={isBusy}
+                  disabled={isBusy || checkoutBlocked}
                   aria-busy={isThisLoading}
-                  className="mt-8 flex w-full min-h-12 cursor-pointer items-center justify-center gap-2 site-btn site-btn-primary rounded-xl px-4 text-sm sm:text-[0.95rem] disabled:cursor-wait disabled:opacity-80"
+                  className="mt-8 flex w-full min-h-12 cursor-pointer items-center justify-center gap-2 site-btn site-btn-primary rounded-xl px-4 text-sm sm:text-[0.95rem] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isThisLoading ? (
+                  {checkoutBlocked ? (
+                    "VIP já ativo"
+                  ) : isThisLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
                       Preparando pagamento...
@@ -195,9 +267,11 @@ export function PlansSection({ id = "planos", className = "", plans }: PlansSect
                 ) : null}
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#009739]" />
-                  {plan.isTestPlan
-                    ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
-                    : "Checkout seguro. Acesso só após confirmação oficial."}
+                  {checkoutBlocked
+                    ? `Renovação disponível após ${activeVip!.expiresLabel}.`
+                    : plan.isTestPlan
+                      ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
+                      : "Checkout seguro. Acesso só após confirmação oficial."}
                 </p>
               </div>
             );
