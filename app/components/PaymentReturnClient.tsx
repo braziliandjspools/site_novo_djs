@@ -8,10 +8,12 @@ import {
   CheckCircle2,
   Clock3,
   Loader2,
+  MonitorDown,
   RotateCcw,
   User,
 } from "lucide-react";
 import { SectionHeading } from "./SectionHeading";
+import { getDownloaderReleaseManifest } from "../lib/downloader-updates";
 import {
   extractTrustedReturnLookup,
   PAYMENT_STATUS_MAX_POLLS,
@@ -215,6 +217,8 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
 
   const copy = copyForPhase(variant, phase, planLabel);
   const showingConfirming = phase === "loading" || phase === "confirming";
+  const downloaderUrl =
+    phase === "approved" ? getDownloaderReleaseManifest()?.downloadUrl ?? null : null;
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 sm:px-6">
@@ -253,7 +257,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
           </p>
         ) : null}
 
-        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:flex-wrap">
           <Link
             href="/portal/conta"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#009739] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-all hover:scale-[1.02] hover:bg-[#00B347]"
@@ -261,6 +265,15 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
             <User className="h-4 w-4" />
             Voltar ao portal
           </Link>
+          {downloaderUrl ? (
+            <a
+              href={downloaderUrl}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#1ed760]/50 bg-[#1ed760]/10 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#1ed760] transition-all hover:bg-[#1ed760]/20"
+            >
+              <MonitorDown className="h-4 w-4" />
+              Baixar Downloader
+            </a>
+          ) : null}
           {(phase === "rejected" || phase === "cancelled" || variant === "erro") && phase !== "approved" ? (
             <Link
               href="/plans"
@@ -271,6 +284,16 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
             </Link>
           ) : null}
         </div>
+
+        {phase === "approved" ? (
+          <p className="mt-4 text-sm text-zinc-400">
+            Também disponível em{" "}
+            <Link href="/musicas" className="font-semibold text-[#1ed760] underline-offset-2 hover:underline">
+              /musicas
+            </Link>
+            .
+          </p>
+        ) : null}
 
         <p className="mt-6 text-xs leading-relaxed text-zinc-500">
           A liberação do plano depende exclusivamente da confirmação no servidor. Status na URL do

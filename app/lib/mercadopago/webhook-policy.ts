@@ -132,7 +132,8 @@ export function shouldGrantAccessForPaymentStatus(status: string): boolean {
 
 export function shouldRevokeAccessForPaymentStatus(status: string): boolean {
   const s = status.trim().toLowerCase();
-  return s === "refunded" || s === "charged_back";
+  // cancelled após approved (painel do vendedor) também remove o acesso deste pedido.
+  return s === "refunded" || s === "charged_back" || s === "cancelled";
 }
 
 /**
@@ -186,6 +187,9 @@ export function decideWebhookStatusTransition(
   ) {
     return { apply: false, reason: "stale" };
   }
+
+  // Cancelamento de pedido ainda PENDING não precisa “revogar” VIP (nunca liberou).
+  // APPROVED → CANCELLED/REFUNDED continua permitido via decideMercadoPagoPaymentUpdate.
 
   if (
     isTerminalMercadoPagoStatus(existing.status) &&
@@ -268,5 +272,9 @@ export function validatePaymentAgainstOrder(input: {
 
 export function isPaymentWebhookEvent(typeOrTopic: string | null | undefined): boolean {
   const value = (typeOrTopic ?? "").trim().toLowerCase();
-  return value === "payment";
+  return (
+    value === "payment" ||
+    value === "topic_payments_wh" ||
+    value.startsWith("payment.")
+  );
 }

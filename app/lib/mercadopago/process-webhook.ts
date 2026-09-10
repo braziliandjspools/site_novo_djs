@@ -53,7 +53,23 @@ function headerValue(headers: Headers, name: string): string | null {
 }
 
 function readQueryDataId(url: URL): string | null {
-  return url.searchParams.get("data.id")?.trim() || null;
+  return url.searchParams.get("data.id")?.trim() || url.searchParams.get("id")?.trim() || null;
+}
+
+/** data.id pode vir na query (IPN) ou no body JSON (Webhooks). */
+function readPaymentDataId(url: URL, body: unknown): string | null {
+  const fromQuery = readQueryDataId(url);
+  if (fromQuery) return fromQuery;
+  if (!body || typeof body !== "object") return null;
+  const rec = body as Record<string, unknown>;
+  const data = rec.data;
+  if (data && typeof data === "object") {
+    const id = (data as Record<string, unknown>).id;
+    if (typeof id === "string" && id.trim()) return id.trim();
+    if (typeof id === "number" && Number.isFinite(id)) return String(id);
+  }
+  if (typeof rec.id === "string" && /^\d+$/.test(rec.id.trim())) return rec.id.trim();
+  return null;
 }
 
 function readEventType(url: URL, body: unknown): string | null {
@@ -63,6 +79,9 @@ function readEventType(url: URL, body: unknown): string | null {
     const rec = body as Record<string, unknown>;
     if (typeof rec.type === "string") return rec.type;
     if (typeof rec.topic === "string") return rec.topic;
+    if (typeof rec.action === "string" && rec.action.toLowerCase().startsWith("payment.")) {
+      return "payment";
+    }
   }
   return null;
 }
@@ -271,6 +290,8 @@ async function applyNonApprovedStatusInTx(
     return { applied: false as const, reason: decision.reason, order };
   }
 
+  const wasApproved = order.status === "APPROVED";
+
   const updatedOrder = await tx.mercadoPagoOrder.update({
     where: { id: order.id },
     data: {
@@ -282,7 +303,8 @@ async function applyNonApprovedStatusInTx(
     },
   });
 
-  if (input.revokeAccess) {
+  // Só corta VIP se o pedido já tinha liberado acesso (APPROVED → refund/cancel/chargeback).
+  if (input.revokeAccess && wasApproved) {
     const coverage = await hasAlternateVipCoverage(
       tx,
       input.portalUserId,
@@ -302,6 +324,14 @@ async function applyNonApprovedStatusInTx(
           },
         });
       }
+    } else {
+      // Pedido reembolsado, mas o VIP permanece por outra cobertura (Hotmart / outro MP).
+      console.info("[mercadopago/webhook] estorno sem revogar VIP (cobertura alternativa)", {
+        orderId: order.id,
+        portalUserId: input.portalUserId,
+        hasOtherApprovedMercadoPagoOrders: coverage.hasOtherApprovedMercadoPagoOrders,
+        hasActiveHotmartCoverage: coverage.hasActiveHotmartCoverage,
+      });
     }
   }
 
@@ -317,7 +347,6 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
   const url = new URL(request.url);
   const xSignature = headerValue(request.headers, "x-signature");
   const xRequestId = headerValue(request.headers, "x-request-id");
-  const dataId = readQueryDataId(url);
 
   let body: unknown = null;
   try {
@@ -326,6 +355,8 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
   } catch {
     body = null;
   }
+
+  const dataId = readPaymentDataId(url, body);
 
   try {
     WebhookSignatureValidator.validate({
@@ -392,7 +423,9 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
     ? await prisma.mercadoPagoOrder.findUnique({
         where: { externalReference: payment.externalReference },
       })
-    : null;
+    : await prisma.mercadoPagoOrder.findFirst({
+        where: { mercadoPagoPaymentId: payment.id },
+      });
 
   const validation = validatePaymentAgainstOrder({
     order: order

@@ -70,8 +70,24 @@ test("só approved libera acesso; pending/in_process/rejected não", () => {
   assert.equal(shouldGrantAccessForPaymentStatus("rejected"), false);
   assert.equal(shouldRevokeAccessForPaymentStatus("refunded"), true);
   assert.equal(shouldRevokeAccessForPaymentStatus("charged_back"), true);
+  assert.equal(shouldRevokeAccessForPaymentStatus("cancelled"), true);
+  assert.equal(shouldRevokeAccessForPaymentStatus("approved"), false);
   assert.equal(mapPaymentStatusToOrderStatus("pending"), "PENDING");
   assert.equal(mapPaymentStatusToOrderStatus("approved"), "APPROVED");
+  assert.equal(mapPaymentStatusToOrderStatus("refunded"), "REFUNDED");
+});
+
+test("APPROVED → REFUNDED é aplicado (estorno do admin)", () => {
+  const decision = decideWebhookStatusTransition(
+    { status: "APPROVED", mercadoPagoPaymentId: "pay_1" },
+    { mercadoPagoPaymentId: "pay_1", status: "REFUNDED" },
+  );
+  assert.deepEqual(decision, { apply: true });
+});
+
+test("evento payment.* e topic_payments_wh são aceitos", () => {
+  assert.equal(isPaymentWebhookEvent("payment.updated"), true);
+  assert.equal(isPaymentWebhookEvent("topic_payments_wh"), true);
 });
 
 test("pedido inexistente falha na validação", () => {
