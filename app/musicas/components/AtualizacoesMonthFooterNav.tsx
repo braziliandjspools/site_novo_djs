@@ -39,7 +39,7 @@ type AtualizacoesMonthFooterNavProps = {
 };
 
 function navButtonClass(enabled: boolean) {
-  return `group/nav relative inline-flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1 border px-2 py-2.5 text-[11px] font-semibold tracking-[-0.01em] transition-colors sm:basis-auto sm:max-w-[220px] sm:gap-1.5 sm:px-3 sm:text-xs md:hover:z-20 md:hover:max-w-[min(90vw,28rem)] ${
+  return `inline-flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1 border px-2 py-2.5 text-[11px] font-semibold tracking-[-0.01em] transition-colors sm:basis-auto sm:max-w-[220px] sm:gap-1.5 sm:px-3 sm:text-xs ${
     enabled
       ? "border-zinc-600 bg-zinc-950 text-zinc-200 hover:border-[#00ff9d]/50 hover:text-[#00ff9d]"
       : "cursor-not-allowed border-zinc-800 bg-black text-zinc-600"
@@ -144,9 +144,7 @@ export function AtualizacoesMonthFooterNav({
       {previous ? (
         <Link href={previous.href} className={navButtonClass(true)} title={previous.label}>
           <ChevronLeft className="h-4 w-4 flex-shrink-0" />
-          <span className="truncate md:group-hover/nav:overflow-visible md:group-hover/nav:whitespace-normal md:group-hover/nav:break-words">
-            {previous.label}
-          </span>
+          <span className="truncate">{previous.label}</span>
         </Link>
       ) : (
         <span className={navButtonClass(false)} aria-disabled="true">
@@ -170,9 +168,7 @@ export function AtualizacoesMonthFooterNav({
           className={`${navButtonClass(true)} col-start-2 row-start-1 sm:col-auto sm:row-auto`}
           title={next.label}
         >
-          <span className="truncate md:group-hover/nav:overflow-visible md:group-hover/nav:whitespace-normal md:group-hover/nav:break-words">
-            {next.label}
-          </span>
+          <span className="truncate">{next.label}</span>
           <ChevronRight className="h-4 w-4 flex-shrink-0" />
         </Link>
       ) : (
