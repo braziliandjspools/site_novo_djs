@@ -16,6 +16,7 @@ import { planDisplayName } from "./hotmart/types";
 import { HOTMART_PROVIDER } from "./hotmart/config";
 import { DOWNLOADER_NAME, SITE_PRODUCTION_URL } from "./branding";
 import { getDownloaderReleaseManifest } from "./downloader-updates";
+import { serializePortalRenewables } from "./portal-renewals";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -245,6 +246,7 @@ export async function getPortalDataForUser(user: PortalUser) {
       enabled: user.musicProducerDeliveriesEnabled,
     },
     hasSubscriptionPlan: userHasSubscriptionPlan(user),
+    renewables: serializePortalRenewables(user),
     greeting,
     datetime: formatPortalDateTime(now),
     deemix: DEEMIX_ENABLED && userHasDeemix(user)

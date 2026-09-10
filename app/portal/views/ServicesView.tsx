@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Music2, Sparkles } from "lucide-react";
+import { PortalRenewalPay, PortalRenewPayButton } from "../PortalRenewalPay";
 import { PortalBadge, PortalCard, PortalPageHeader } from "../PortalShell";
 import { formatDateBr, type PortalData } from "../portal-types";
 import type { PortalView } from "../PortalShell";
@@ -11,7 +12,7 @@ type ServicesViewProps = {
 };
 
 export function ServicesView({ data, onNavigate }: ServicesViewProps) {
-  const { user } = data;
+  const { user, renewables = [] } = data;
 
   const rows = [
     data.pools && {
@@ -19,6 +20,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
       badge: <PortalBadge>Ativo</PortalBadge>,
       due: `${user.serviceBilling.poolsVip.valueLabel} · ${formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt)}`,
       view: "service-pools" as PortalView,
+      payKey: "poolsVip" as const,
     },
     data.deemix && {
       name: "Deemix — Download de Músicas",
@@ -27,12 +29,14 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
         user.serviceBilling.deemix.dueAt ? formatDateBr(user.serviceBilling.deemix.dueAt) : "—"
       }`,
       view: "service-deemix" as PortalView,
+      payKey: "deemix" as const,
     },
     data.allavsoft && {
       name: "Allavsoft — Download Universal",
       badge: <PortalBadge>Vitalícia</PortalBadge>,
       due: `${user.serviceBilling.allavsoft.valueLabel} · Sem vencimento`,
       view: "service-allavsoft" as PortalView,
+      payKey: null,
     },
     {
       name: "Produção Musical — Minhas faixas",
@@ -43,17 +47,21 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
       ),
       due: "—",
       view: "service-music-producer" as PortalView,
+      payKey: null,
     },
   ].filter(Boolean) as Array<{
     name: string;
     badge: ReactNode;
     due: string;
     view: PortalView;
+    payKey: "poolsVip" | "deemix" | null;
   }>;
 
   return (
     <div className="space-y-6">
       <PortalPageHeader title="Meus Serviços" subtitle="Gerencie suas licenças e produtos contratados." />
+
+      {renewables.length > 0 && <PortalRenewalPay renewables={renewables} />}
 
       {data.hasSubscriptionPlan && (
         <p className="text-sm text-zinc-400">
@@ -104,13 +112,16 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
                 </div>
                 {row.badge}
               </div>
-              <button
-                type="button"
-                onClick={() => onNavigate(row.view)}
-                className="mt-3 rounded-lg bg-[#00ff9d] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a]"
-              >
-                Gerenciar
-              </button>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {row.payKey && <PortalRenewPayButton service={row.payKey} renewables={renewables} />}
+                <button
+                  type="button"
+                  onClick={() => onNavigate(row.view)}
+                  className="rounded-lg border border-zinc-700 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-zinc-200 hover:border-[#00ff9d]/40"
+                >
+                  Gerenciar
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -134,13 +145,16 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
                   <td className="py-4 pr-4">{row.badge}</td>
                   <td className="py-4 pr-4 text-zinc-400">{row.due}</td>
                   <td className="py-4">
-                    <button
-                      type="button"
-                      onClick={() => onNavigate(row.view)}
-                      className="rounded-lg bg-[#00ff9d] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a]"
-                    >
-                      Gerenciar
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {row.payKey && <PortalRenewPayButton service={row.payKey} renewables={renewables} />}
+                      <button
+                        type="button"
+                        onClick={() => onNavigate(row.view)}
+                        className="rounded-lg border border-zinc-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-200 hover:border-[#00ff9d]/40"
+                      >
+                        Gerenciar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { assertCheckoutPayloadTrusted } from "../../../../lib/billing/plan-catalog";
+import {
+  assertCheckoutPayloadTrusted,
+  type CanonicalPlan,
+} from "../../../../lib/billing/plan-catalog";
 import { formatDueDate } from "../../../../lib/due-queue";
 import { diagnoseMercadoPagoEnv } from "../../../../lib/mercadopago/env";
 import {
@@ -8,6 +11,10 @@ import {
 } from "../../../../lib/mercadopago/preference";
 import { userHasActiveVipAccess } from "../../../../lib/mercadopago/webhook-policy";
 import { getAuthenticatedPortalUser } from "../../../../lib/portal";
+import {
+  buildPortalRenewalPlan,
+  isPortalRenewalServiceKey,
+} from "../../../../lib/portal-renewals";
 import { checkRateLimit } from "../../../../lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -18,10 +25,13 @@ const RATE_WINDOW_MS = 10 * 60 * 1000;
 
 type PreferenceBody = {
   planId?: unknown;
+  /** Renovação no portal: valor vem do billing do usuário no servidor. */
+  renewalService?: unknown;
   amount?: unknown;
   amountBrl?: unknown;
   price?: unknown;
   durationMonths?: unknown;
+  durationDays?: unknown;
   duration?: unknown;
 };
 
@@ -83,6 +93,19 @@ function classifyPreferenceError(message: string): {
   };
 }
 
+function rejectClientPricing(body: PreferenceBody) {
+  const forbidden = ["amount", "amountBrl", "price", "durationMonths", "durationDays", "duration"] as const;
+  for (const key of forbidden) {
+    if (body[key] !== undefined && body[key] !== null) {
+      return {
+        error: "Preço e duração não podem ser enviados pelo cliente. Envie somente planId ou renewalService.",
+        code: "invalid_plan",
+      } as const;
+    }
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   let body: PreferenceBody;
   try {
@@ -91,78 +114,121 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido.", code: "invalid_json" }, { status: 400 });
   }
 
-  const trusted = assertCheckoutPayloadTrusted(body);
-  if (!trusted.ok) {
-    return NextResponse.json({ error: trusted.error, code: "invalid_plan" }, { status: 400 });
+  const isRenewal = body.renewalService !== undefined && body.renewalService !== null;
+  if (isRenewal && body.planId !== undefined && body.planId !== null) {
+    return NextResponse.json(
+      { error: "Envie planId ou renewalService, não ambos.", code: "invalid_checkout_mode" },
+      { status: 400 },
+    );
+  }
+
+  const pricingError = rejectClientPricing(body);
+  if (pricingError) {
+    return NextResponse.json(pricingError, { status: 400 });
   }
 
   const user = await getAuthenticatedPortalUser();
-  const loginReturn =
-    trusted.plan.serviceProduct === "deemix"
-      ? `/deemix?checkout=${encodeURIComponent(trusted.plan.id)}`
-      : trusted.plan.serviceProduct === "allavsoft"
-        ? `/allavsoft?checkout=${encodeURIComponent(trusted.plan.id)}`
-        : `/plans?checkout=${encodeURIComponent(trusted.plan.id)}`;
-  if (!user) {
-    const loginUrl = `/musicas/entrar?return=${encodeURIComponent(loginReturn.split("?")[0]!)}&checkout=${encodeURIComponent(trusted.plan.id)}`;
-    return NextResponse.json(
-      { error: "Faça login para continuar o checkout.", loginUrl, code: "unauthorized" },
-      { status: 401 },
-    );
-  }
 
-  if (
-    trusted.plan.serviceProduct === "poolsVip" &&
-    userHasActiveVipAccess({
-      servicePoolsVip: user.services.poolsVip,
-      nextDueAt: user.nextDueAt,
-      servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
-    })
-  ) {
-    const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
-    const expiresLabel = formatDueDate(due);
-    return NextResponse.json(
-      {
-        error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
-        code: "vip_already_active",
-        expiresAt: due.toISOString(),
-        expiresLabel,
-      },
-      { status: 409 },
-    );
-  }
+  let plan: CanonicalPlan;
+  let renewalMode = false;
 
-  if (
-    trusted.plan.serviceProduct === "deemix" &&
-    user.services.deemix &&
-    user.serviceBilling.deemix.dueAt &&
-    user.serviceBilling.deemix.dueAt.getTime() > Date.now()
-  ) {
-    const due = user.serviceBilling.deemix.dueAt;
-    const expiresLabel = formatDueDate(due);
-    return NextResponse.json(
-      {
-        error: `Você já tem Deemix ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
-        code: "deemix_already_active",
-        expiresAt: due.toISOString(),
-        expiresLabel,
-      },
-      { status: 409 },
-    );
-  }
+  if (isRenewal) {
+    if (!isPortalRenewalServiceKey(body.renewalService)) {
+      return NextResponse.json(
+        { error: "Serviço de renovação inválido.", code: "invalid_renewal_service" },
+        { status: 400 },
+      );
+    }
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "Faça login no portal para renovar.",
+          loginUrl: `/musicas/entrar?return=${encodeURIComponent("/portal")}`,
+          code: "unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+    const built = buildPortalRenewalPlan(user, body.renewalService);
+    if (!built.ok) {
+      return NextResponse.json({ error: built.error, code: built.code }, { status: 409 });
+    }
+    plan = built.plan;
+    renewalMode = true;
+  } else {
+    const trusted = assertCheckoutPayloadTrusted(body);
+    if (!trusted.ok) {
+      return NextResponse.json({ error: trusted.error, code: "invalid_plan" }, { status: 400 });
+    }
+    plan = trusted.plan;
 
-  if (trusted.plan.serviceProduct === "allavsoft" && user.services.allavsoft) {
-    return NextResponse.json(
-      {
-        error: "Você já tem a licença vitalícia do Allavsoft nesta conta.",
-        code: "allavsoft_already_active",
-      },
-      { status: 409 },
-    );
+    const loginReturn =
+      plan.serviceProduct === "deemix"
+        ? `/deemix?checkout=${encodeURIComponent(plan.id)}`
+        : plan.serviceProduct === "allavsoft"
+          ? `/allavsoft?checkout=${encodeURIComponent(plan.id)}`
+          : `/plans?checkout=${encodeURIComponent(plan.id)}`;
+    if (!user) {
+      const loginUrl = `/musicas/entrar?return=${encodeURIComponent(loginReturn.split("?")[0]!)}&checkout=${encodeURIComponent(plan.id)}`;
+      return NextResponse.json(
+        { error: "Faça login para continuar o checkout.", loginUrl, code: "unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    if (
+      plan.serviceProduct === "poolsVip" &&
+      userHasActiveVipAccess({
+        servicePoolsVip: user.services.poolsVip,
+        nextDueAt: user.nextDueAt,
+        servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
+      })
+    ) {
+      const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+      const expiresLabel = formatDueDate(due);
+      return NextResponse.json(
+        {
+          error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+          code: "vip_already_active",
+          expiresAt: due.toISOString(),
+          expiresLabel,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (
+      plan.serviceProduct === "deemix" &&
+      user.services.deemix &&
+      user.serviceBilling.deemix.dueAt &&
+      user.serviceBilling.deemix.dueAt.getTime() > Date.now()
+    ) {
+      const due = user.serviceBilling.deemix.dueAt;
+      const expiresLabel = formatDueDate(due);
+      return NextResponse.json(
+        {
+          error: `Você já tem Deemix ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+          code: "deemix_already_active",
+          expiresAt: due.toISOString(),
+          expiresLabel,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (plan.serviceProduct === "allavsoft" && user.services.allavsoft) {
+      return NextResponse.json(
+        {
+          error: "Você já tem a licença vitalícia do Allavsoft nesta conta.",
+          code: "allavsoft_already_active",
+        },
+        { status: 409 },
+      );
+    }
   }
 
   const rate = checkRateLimit({
-    key: `mp-preference:${user.id}`,
+    key: `mp-preference:${user!.id}`,
     limit: RATE_LIMIT,
     windowMs: RATE_WINDOW_MS,
   });
@@ -207,17 +273,18 @@ export async function POST(request: Request) {
 
   try {
     const result = await createMercadoPagoCheckoutPreference({
-      plan: trusted.plan,
+      plan,
       payer: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+        id: user!.id,
+        email: user!.email,
+        name: user!.name,
       },
     });
 
     return NextResponse.json({
       checkoutUrl: result.checkoutUrl,
       orderId: result.orderId,
+      renewal: renewalMode,
     });
   } catch (err) {
     const message = sanitizeMercadoPagoErrorMessage(err);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, Download, ExternalLink, KeyRound, MessageCircle, Music, Sparkles, Video } from "lucide-react";
 import { whatsappUrl } from "../../lib/site";
 import { CopyField } from "../../components/CopyField";
+import { PortalRenewPayButton } from "../PortalRenewalPay";
 import { PortalBadge, PortalCard, PortalPageHeader } from "../PortalShell";
 import { formatDateBr, type PortalData } from "../portal-types";
 
@@ -9,20 +10,30 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
 
   const { catalogUrl, downloader } = data.pools;
+  const due =
+    data.user.serviceBilling.poolsVip.dueAt ?? data.user.nextDueAt;
 
   return (
     <div className="space-y-6">
       <PortalPageHeader title="Pools VIP" subtitle="Acervo de pools, remix services e curadoria." />
 
       <PortalCard title="Detalhes do serviço">
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <PortalBadge>Ativo</PortalBadge>
           <span className="text-xs text-zinc-500">Serviços: {data.user.servicesLabel}</span>
+          <span className="text-xs text-zinc-500">
+            {data.user.serviceBilling.poolsVip.valueLabel} · venc. {formatDateBr(due)}
+          </span>
         </div>
         <p className="text-sm leading-relaxed text-zinc-400">
           Acesso completo ao acervo de pools, remix services e curadoria do Brazilian Remix Service — mais de 400 fontes
           organizadas para DJs.
         </p>
+        {data.renewables?.some((item) => item.key === "poolsVip") && (
+          <div className="mt-4">
+            <PortalRenewPayButton service="poolsVip" renewables={data.renewables} />
+          </div>
+        )}
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {["Remix services", "Edits exclusivos", "Atualizações contínuas", "Site + Downloader Windows"].map((item) => (
             <li key={item} className="flex items-center gap-2 text-sm text-zinc-300">
@@ -58,13 +69,25 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
 export function DeemixServiceView({ data }: { data: PortalData }) {
   if (!data.deemix) return null;
   const { deemix } = data;
+  const due = data.user.serviceBilling.deemix.dueAt;
 
   return (
     <div className="space-y-6">
       <PortalPageHeader title="Deemix" subtitle="Download de músicas em alta qualidade." />
 
       <PortalCard title="Status do serviço">
-        <PortalBadge>Ativo</PortalBadge>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <PortalBadge>Ativo</PortalBadge>
+          <span className="text-xs text-zinc-500">
+            {data.user.serviceBilling.deemix.valueLabel}
+            {due ? ` · venc. ${formatDateBr(due)}` : ""}
+          </span>
+        </div>
+        {data.renewables?.some((item) => item.key === "deemix") && (
+          <div className="mb-4">
+            <PortalRenewPayButton service="deemix" renewables={data.renewables} />
+          </div>
+        )}
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {["Downloads ilimitados", "FLAC/MP3 320kbps", "ARL Premium", "Suporte técnico"].map((item) => (
             <li key={item} className="flex items-center gap-2 text-sm text-zinc-300">

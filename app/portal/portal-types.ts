@@ -18,6 +18,18 @@ export type PortalServiceBilling = {
   allavsoft: PortalServiceLineBilling;
 };
 
+export type PortalRenewableService = {
+  key: "poolsVip" | "deemix";
+  label: string;
+  value: number;
+  valueLabel: string;
+  dueAt: string;
+  dueLabel: string;
+  dueDayKey: string;
+  daysUntilDue: number;
+  urgency: "soon" | "overdue";
+};
+
 export type PortalData = {
   user: {
     name: string;
@@ -73,6 +85,8 @@ export type PortalData = {
     enabled: boolean;
   };
   hasSubscriptionPlan: boolean;
+  /** Serviços na janela de renovação (≤5 dias ou vencidos). */
+  renewables: PortalRenewableService[];
 };
 
 export function formatDateBr(iso: string) {

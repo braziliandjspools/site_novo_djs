@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, Calendar, LayoutGrid, MessageCircle, Music2, Package, Sparkles } from "lucide-react";
 import { whatsappUrl } from "../../lib/site";
+import { PortalRenewalPay, PortalRenewPayButton } from "../PortalRenewalPay";
 import { PortalBadge, PortalCard, StatCard } from "../PortalShell";
 import {
   countServices,
@@ -20,7 +21,7 @@ type DashboardViewProps = {
 };
 
 export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
-  const { user } = data;
+  const { user, renewables = [] } = data;
   const greeting = getGreeting(getGreetingHour(now));
   const services = countServices(data);
 
@@ -33,6 +34,8 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
         <p className="mt-1 text-sm capitalize text-zinc-500">{formatDateTimeBr(now)}</p>
         <div className="mt-3 h-0.5 w-20 rounded-full bg-gradient-to-r from-[#009739] to-[#FFDF00]" />
       </div>
+
+      {renewables.length > 0 && <PortalRenewalPay renewables={renewables} />}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
         <StatCard icon={LayoutGrid} label="Serviços ativos" value={String(services)} hint="Licenças no seu plano" />
@@ -101,6 +104,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               due: `${user.serviceBilling.poolsVip.valueLabel} · ${formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt)}`,
               action: () => onNavigate("service-pools"),
               actionLabel: "Gerenciar",
+              payKey: "poolsVip" as const,
             },
             data.deemix && {
               name: "Deemix",
@@ -110,6 +114,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               }`,
               action: () => onNavigate("service-deemix"),
               actionLabel: "Gerenciar",
+              payKey: "deemix" as const,
             },
             data.allavsoft && {
               name: "Allavsoft",
@@ -117,6 +122,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               due: `${user.serviceBilling.allavsoft.valueLabel} · Sem vencimento`,
               action: () => onNavigate("service-allavsoft"),
               actionLabel: "Gerenciar",
+              payKey: null,
             },
             {
               name: "Produção Musical",
@@ -128,6 +134,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               due: "Minhas produções",
               action: () => onNavigate("service-music-producer"),
               actionLabel: "Ver faixas",
+              payKey: null,
             },
           ]
             .filter(Boolean)
@@ -138,6 +145,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                 due: string;
                 action: () => void;
                 actionLabel: string;
+                payKey: "poolsVip" | "deemix" | null;
               };
               return (
                 <div key={item.name} className="rounded-xl border border-zinc-800 bg-[#0a0a0a] p-4">
@@ -148,13 +156,18 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                     </div>
                     {item.badge}
                   </div>
-                  <button
-                    type="button"
-                    onClick={item.action}
-                    className="mt-3 text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline"
-                  >
-                    {item.actionLabel}
-                  </button>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    {item.payKey && (
+                      <PortalRenewPayButton service={item.payKey} renewables={renewables} />
+                    )}
+                    <button
+                      type="button"
+                      onClick={item.action}
+                      className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline"
+                    >
+                      {item.actionLabel}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -180,9 +193,12 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                     {formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt)}
                   </td>
                   <td className="py-3">
-                    <button type="button" onClick={() => onNavigate("service-pools")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
-                      Gerenciar
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <PortalRenewPayButton service="poolsVip" renewables={renewables} />
+                      <button type="button" onClick={() => onNavigate("service-pools")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
+                        Gerenciar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -197,9 +213,12 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                       : "—"}
                   </td>
                   <td className="py-3">
-                    <button type="button" onClick={() => onNavigate("service-deemix")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
-                      Gerenciar
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <PortalRenewPayButton service="deemix" renewables={renewables} />
+                      <button type="button" onClick={() => onNavigate("service-deemix")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
+                        Gerenciar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )}

@@ -271,6 +271,9 @@ async function applyApprovedAccessInTx(
     },
   });
 
+  // Valor cobrado no pedido (catálogo ou renovação com billing do usuário).
+  const paidAmountBrl = order.amount.toFixed(2);
+
   if (isAllavsoft) {
     const nextServices = {
       poolsVip: user.servicePoolsVip,
@@ -287,7 +290,7 @@ async function applyApprovedAccessInTx(
         dueAt: user.serviceDeemixDueAt,
       },
       allavsoft: {
-        value: Number(plan.amountBrl),
+        value: Number(paidAmountBrl),
         dueAt: null as Date | null,
       },
     };
@@ -295,7 +298,7 @@ async function applyApprovedAccessInTx(
       where: { id: user.id },
       data: {
         serviceAllavsoft: true,
-        serviceAllavsoftValue: new Prisma.Decimal(plan.amountBrl),
+        serviceAllavsoftValue: new Prisma.Decimal(paidAmountBrl),
         serviceAllavsoftDueAt: null,
         plan: deriveLegacyPlan(nextServices),
         monthlyValue: new Prisma.Decimal(computeAggregateMonthlyValue(nextServices, billing)),
@@ -333,11 +336,11 @@ async function applyApprovedAccessInTx(
   };
   const billing = {
     poolsVip: {
-      value: isDeemix ? Number(user.servicePoolsVipValue) : Number(plan.amountBrl),
+      value: isDeemix ? Number(user.servicePoolsVipValue) : Number(paidAmountBrl),
       dueAt: isDeemix ? user.servicePoolsVipDueAt : periodEnd,
     },
     deemix: {
-      value: isDeemix ? Number(plan.amountBrl) : Number(user.serviceDeemixValue),
+      value: isDeemix ? Number(paidAmountBrl) : Number(user.serviceDeemixValue),
       dueAt: isDeemix ? periodEnd : user.serviceDeemixDueAt,
     },
     allavsoft: {
@@ -354,11 +357,11 @@ async function applyApprovedAccessInTx(
       plan: deriveLegacyPlan(nextServices),
       ...(isDeemix
         ? {
-            serviceDeemixValue: new Prisma.Decimal(plan.amountBrl),
+            serviceDeemixValue: new Prisma.Decimal(paidAmountBrl),
             serviceDeemixDueAt: periodEnd,
           }
         : {
-            servicePoolsVipValue: new Prisma.Decimal(plan.amountBrl),
+            servicePoolsVipValue: new Prisma.Decimal(paidAmountBrl),
             servicePoolsVipDueAt: periodEnd,
           }),
       monthlyValue: new Prisma.Decimal(computeAggregateMonthlyValue(nextServices, billing)),
