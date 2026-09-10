@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
+import { VIP_MUSIC_FEED_TRACKS_PAGE_SIZE } from "../../lib/vip-music-catalog";
 import { fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import { folderHref, slugifyFolderName, displayFolderName } from "../../lib/vip-music-slugs";
 import { AtualizacoesPackBlock, type AtualizacoesPackBlockData } from "./AtualizacoesPackBlock";
@@ -12,6 +13,7 @@ import { poolPanelClass } from "./atualizacoes-pool-ui";
 type TracksResponse = {
   tracks?: AtualizacoesPackBlockData["tracks"];
   total?: number;
+  hasMore?: boolean;
   error?: string;
 };
 
@@ -56,7 +58,7 @@ export function AtualizacoesPackBlocks({
         const part = await Promise.all(
           batch.map(async (folder) => {
             const nextSegments = [...slugSegments, slugifyFolderName(folder.name)];
-            const url = `/api/musicas/tracks?folderId=${encodeURIComponent(folder.id)}&folderName=${encodeURIComponent(folder.name)}&limit=100`;
+            const url = `/api/musicas/tracks?folderId=${encodeURIComponent(folder.id)}&folderName=${encodeURIComponent(folder.name)}&limit=${VIP_MUSIC_FEED_TRACKS_PAGE_SIZE}`;
             const cached = peekMusicasCache<TracksResponse>(url);
             const data = cached ?? (await fetchMusicasJson<TracksResponse>(url));
             const tracks = data.tracks ?? [];

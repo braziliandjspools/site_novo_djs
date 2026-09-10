@@ -261,6 +261,8 @@ export async function getVipMusicTracksPaginated(
 }
 
 export const VIP_MUSIC_FEED_PAGE_SIZE = 6;
+/** Faixas iniciais por pack no feed / blocos de atualizações (resto via “Carregar mais”). */
+export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 30;
 
 export type VipMusicFeedPack = {
   id: string;
@@ -377,8 +379,13 @@ export async function getVipMusicUpdatesFeed(options?: {
   const slice = candidates.slice(start, start + pageSize);
 
   const packs = await mapPool(slice, 3, async (candidate) => {
-    const tracks = await getVipMusicTracks(candidate.id, candidate.name);
-    const totalSizeBytes = tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0);
+    const pageResult = await getVipMusicTracksPaginated(
+      candidate.id,
+      candidate.name,
+      1,
+      VIP_MUSIC_FEED_TRACKS_PAGE_SIZE,
+    );
+    const totalSizeBytes = pageResult.tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0);
     return {
       id: candidate.id,
       name: candidate.name,
@@ -387,8 +394,8 @@ export async function getVipMusicUpdatesFeed(options?: {
       weekName: candidate.weekName,
       modifiedAt: candidate.modifiedAt > 0 ? new Date(candidate.modifiedAt).toISOString() : null,
       coverUrl: null,
-      tracks,
-      trackCount: tracks.length,
+      tracks: pageResult.tracks,
+      trackCount: pageResult.total,
       totalSizeBytes,
     } satisfies VipMusicFeedPack;
   });
