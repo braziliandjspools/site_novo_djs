@@ -5,7 +5,7 @@ import {
   WebhookSignatureValidator,
 } from "mercadopago";
 import { Prisma, type MercadoPagoOrderStatus } from "@prisma/client";
-import { getCanonicalPlanById } from "../billing/plan-catalog";
+import { getCanonicalPlanById, isDeemixPlanId, isPoolsVipPlanId } from "../billing/plan-catalog";
 import { toDateInputValue } from "../due-queue";
 import { prisma } from "../prisma";
 import { getMercadoPagoConfig } from "./client";
@@ -150,14 +150,16 @@ async function hasAlternateVipCoverage(
   excludeOrderId: string,
   now: Date,
 ): Promise<{ hasOtherApprovedMercadoPagoOrders: boolean; hasActiveHotmartCoverage: boolean }> {
-  const otherMp = await tx.mercadoPagoOrder.findFirst({
+  const otherMp = await tx.mercadoPagoOrder.findMany({
     where: {
       portalUserId,
       status: "APPROVED",
       NOT: { id: excludeOrderId },
     },
-    select: { id: true },
+    select: { id: true, planId: true },
   });
+
+  const hasOtherApprovedVipOrders = otherMp.some((order) => isPoolsVipPlanId(order.planId));
 
   const hotmart = await tx.hotmartSubscription.findFirst({
     where: {
@@ -169,9 +171,25 @@ async function hasAlternateVipCoverage(
   });
 
   return {
-    hasOtherApprovedMercadoPagoOrders: Boolean(otherMp),
+    hasOtherApprovedMercadoPagoOrders: hasOtherApprovedVipOrders,
     hasActiveHotmartCoverage: Boolean(hotmart),
   };
+}
+
+async function hasAlternateDeemixCoverage(
+  tx: Prisma.TransactionClient,
+  portalUserId: number,
+  excludeOrderId: string,
+): Promise<boolean> {
+  const otherMp = await tx.mercadoPagoOrder.findMany({
+    where: {
+      portalUserId,
+      status: "APPROVED",
+      NOT: { id: excludeOrderId },
+    },
+    select: { planId: true },
+  });
+  return otherMp.some((order) => isDeemixPlanId(order.planId));
 }
 
 async function applyApprovedAccessInTx(
@@ -217,18 +235,30 @@ async function applyApprovedAccessInTx(
   const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
   if (!user) throw new Error("Usuário do pedido não encontrado.");
 
-  const hasActive = userHasActiveVipAccess({
-    servicePoolsVip: user.servicePoolsVip,
-    nextDueAt: user.nextDueAt,
-    now: input.approvedAt,
-  });
-  const periodEnd = computeVipAccessPeriodEnd({
+  const isDeemix = plan.serviceProduct === "deemix";
+  const hasActiveService = isDeemix
+    ? user.serviceDeemix && user.nextDueAt.getTime() > input.approvedAt.getTime()
+    : userHasActiveVipAccess({
+        servicePoolsVip: user.servicePoolsVip,
+        nextDueAt: user.nextDueAt,
+        now: input.approvedAt,
+      });
+
+  let periodEnd = computeVipAccessPeriodEnd({
     now: input.approvedAt,
     durationDays: plan.durationDays,
     durationMonths: plan.durationMonths,
-    hasActiveAccess: hasActive,
+    hasActiveAccess: hasActiveService,
     currentExpiresAt: user.nextDueAt,
   });
+
+  // Conta com VIP e Deemix: nextDueAt fica o maior vencimento entre os dois.
+  if (isDeemix && user.servicePoolsVip && user.nextDueAt.getTime() > periodEnd.getTime()) {
+    periodEnd = user.nextDueAt;
+  }
+  if (!isDeemix && user.serviceDeemix && user.nextDueAt.getTime() > periodEnd.getTime()) {
+    periodEnd = user.nextDueAt;
+  }
 
   const updatedOrder = await tx.mercadoPagoOrder.update({
     where: { id: order.id },
@@ -242,12 +272,24 @@ async function applyApprovedAccessInTx(
     },
   });
 
+  const nextPoolsVip = isDeemix ? user.servicePoolsVip : true;
+  const nextDeemix = isDeemix ? true : user.serviceDeemix;
+  const legacyPlan =
+    nextPoolsVip && nextDeemix
+      ? "NONE"
+      : nextPoolsVip
+        ? "VIP"
+        : nextDeemix
+          ? "DEEMIX"
+          : "NONE";
+
   await tx.portalUser.update({
     where: { id: user.id },
     data: {
-      servicePoolsVip: true,
-      plan: "VIP",
-      monthlyValue: new Prisma.Decimal(plan.amountBrl),
+      servicePoolsVip: nextPoolsVip,
+      serviceDeemix: nextDeemix,
+      plan: legacyPlan,
+      monthlyValue: new Prisma.Decimal(isDeemix && user.servicePoolsVip ? user.monthlyValue : plan.amountBrl),
       nextDueAt: periodEnd,
       active: true,
     },
@@ -306,40 +348,68 @@ async function applyNonApprovedStatusInTx(
     },
   });
 
-  // Só corta VIP se o pedido já tinha liberado acesso (APPROVED → refund/cancel/chargeback).
+  // Só corta acesso se o pedido já tinha liberado (APPROVED → refund/cancel/chargeback).
   if (input.revokeAccess && wasApproved) {
-    const coverage = await hasAlternateVipCoverage(
-      tx,
-      input.portalUserId,
-      order.id,
-      new Date(),
-    );
-    const shouldRevoke = shouldRevokeVipAfterOrderRefund(coverage);
-    if (shouldRevoke) {
-      const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
-      if (user?.servicePoolsVip) {
-        await tx.portalUser.update({
-          where: { id: user.id },
-          data: {
-            servicePoolsVip: false,
-            // Mantém histórico do pedido; corta VIP só se não houver outra cobertura.
-            nextDueAt: new Date(),
-          },
-        });
-        vipRevoked = true;
+    const orderPlan = getCanonicalPlanById(order.planId);
+    const isDeemixOrder = orderPlan?.serviceProduct === "deemix";
+
+    if (isDeemixOrder) {
+      const hasOtherDeemix = await hasAlternateDeemixCoverage(tx, input.portalUserId, order.id);
+      if (!hasOtherDeemix) {
+        const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
+        if (user?.serviceDeemix) {
+          const nextPoolsVip = user.servicePoolsVip;
+          await tx.portalUser.update({
+            where: { id: user.id },
+            data: {
+              serviceDeemix: false,
+              plan: nextPoolsVip ? "VIP" : "NONE",
+            },
+          });
+          vipRevoked = true;
+        } else {
+          vipRevoked = true;
+        }
       } else {
-        vipRevoked = true;
+        accessKeptReason =
+          "Você ainda tem outro pedido Deemix aprovado. Só este pedido foi estornado.";
       }
     } else {
-      accessKeptReason = coverage.hasActiveHotmartCoverage
-        ? "Você ainda tem assinatura Hotmart ativa. Só este pedido Mercado Pago foi estornado."
-        : "Você ainda tem outro pedido Mercado Pago aprovado. Só este pedido foi estornado.";
-      console.info("[mercadopago/webhook] estorno sem revogar VIP (cobertura alternativa)", {
-        orderId: order.id,
-        portalUserId: input.portalUserId,
-        hasOtherApprovedMercadoPagoOrders: coverage.hasOtherApprovedMercadoPagoOrders,
-        hasActiveHotmartCoverage: coverage.hasActiveHotmartCoverage,
-      });
+      const coverage = await hasAlternateVipCoverage(
+        tx,
+        input.portalUserId,
+        order.id,
+        new Date(),
+      );
+      const shouldRevoke = shouldRevokeVipAfterOrderRefund(coverage);
+      if (shouldRevoke) {
+        const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
+        if (user?.servicePoolsVip) {
+          const nextDeemix = user.serviceDeemix;
+          await tx.portalUser.update({
+            where: { id: user.id },
+            data: {
+              servicePoolsVip: false,
+              plan: nextDeemix ? "DEEMIX" : "NONE",
+              // Só zera vencimento se também não houver Deemix ativo.
+              ...(nextDeemix ? {} : { nextDueAt: new Date() }),
+            },
+          });
+          vipRevoked = true;
+        } else {
+          vipRevoked = true;
+        }
+      } else {
+        accessKeptReason = coverage.hasActiveHotmartCoverage
+          ? "Você ainda tem assinatura Hotmart ativa. Só este pedido Mercado Pago foi estornado."
+          : "Você ainda tem outro pedido VIP Mercado Pago aprovado. Só este pedido foi estornado.";
+        console.info("[mercadopago/webhook] estorno sem revogar VIP (cobertura alternativa)", {
+          orderId: order.id,
+          portalUserId: input.portalUserId,
+          hasOtherApprovedMercadoPagoOrders: coverage.hasOtherApprovedMercadoPagoOrders,
+          hasActiveHotmartCoverage: coverage.hasActiveHotmartCoverage,
+        });
+      }
     }
   }
 

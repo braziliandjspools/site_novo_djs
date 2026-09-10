@@ -18,9 +18,10 @@ type PlanCard = {
   highlight: boolean;
   description?: string;
   isTestPlan?: boolean;
+  serviceProduct?: "poolsVip" | "deemix";
 };
 
-type ActiveVipInfo = {
+type ActiveServiceInfo = {
   expiresLabel: string;
 };
 
@@ -28,8 +29,15 @@ type PlansSectionProps = {
   id?: string;
   className?: string;
   plans: PlanCard[];
-  /** Quando preenchido, bloqueia novos checkouts (VIP já ativo). */
-  activeVip?: ActiveVipInfo | null;
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  /** Bloqueia checkout de planos VIP. */
+  activeVip?: ActiveServiceInfo | null;
+  /** Bloqueia checkout de planos Deemix. */
+  activeDeemix?: ActiveServiceInfo | null;
+  showPixNotice?: boolean;
+  loginReturnPath?: string;
 };
 
 type PreferenceResponse = {
@@ -41,11 +49,21 @@ type PreferenceResponse = {
   expiresLabel?: string;
 };
 
+function planProduct(plan: PlanCard): "poolsVip" | "deemix" {
+  return plan.serviceProduct === "deemix" ? "deemix" : "poolsVip";
+}
+
 export function PlansSection({
   id = "planos",
   className = "",
   plans,
+  badge = "Assinatura",
+  title = "Escolha seu plano",
+  subtitle = "Pagamento único via Mercado Pago, com renovação manual. O navegador envia só o planId — preço e duração vêm do servidor.",
   activeVip = null,
+  activeDeemix = null,
+  showPixNotice = true,
+  loginReturnPath = "/plans",
 }: PlansSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,12 +72,25 @@ export function PlansSection({
   const [errorPlanId, setErrorPlanId] = useState<string | null>(null);
   const checkoutInFlight = useRef(false);
   const autoStarted = useRef(false);
-  const checkoutBlocked = Boolean(activeVip);
+
+  function isPlanBlocked(plan: PlanCard) {
+    return planProduct(plan) === "deemix" ? Boolean(activeDeemix) : Boolean(activeVip);
+  }
+
+  function blockedLabel(plan: PlanCard) {
+    if (planProduct(plan) === "deemix") {
+      return `Deemix ativo até ${activeDeemix!.expiresLabel}`;
+    }
+    return `VIP ativo até ${activeVip!.expiresLabel}`;
+  }
 
   async function startCheckout(planId: string) {
-    if (checkoutBlocked) {
+    const plan = plans.find((item) => item.id === planId);
+    if (plan && isPlanBlocked(plan)) {
       setError(
-        `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+        planProduct(plan) === "deemix"
+          ? `Você já tem Deemix ativo até ${activeDeemix!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`
+          : `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
       );
       setErrorPlanId(null);
       return;
@@ -71,7 +102,6 @@ export function PlansSection({
     setErrorPlanId(null);
 
     try {
-      // Frontend envia somente planId — preço/aprovação ficam no servidor.
       const res = await fetch("/api/payments/mercadopago/preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,17 +119,21 @@ export function PlansSection({
       if (res.status === 401) {
         const loginUrl =
           data.loginUrl ??
-          `/musicas/entrar?return=${encodeURIComponent("/plans")}&checkout=${encodeURIComponent(planId)}`;
+          `/musicas/entrar?return=${encodeURIComponent(loginReturnPath)}&checkout=${encodeURIComponent(planId)}`;
         router.push(loginUrl);
         checkoutInFlight.current = false;
         setLoadingPlanId(null);
         return;
       }
 
-      if (res.status === 409 || data.code === "vip_already_active") {
+      if (
+        res.status === 409 ||
+        data.code === "vip_already_active" ||
+        data.code === "deemix_already_active"
+      ) {
         setError(
           data.error ??
-            `Você já tem VIP ativo${data.expiresLabel ? ` até ${data.expiresLabel}` : ""}. Aguarde o vencimento para assinar um novo plano.`,
+            `Você já tem acesso ativo${data.expiresLabel ? ` até ${data.expiresLabel}` : ""}. Aguarde o vencimento para assinar um novo plano.`,
         );
         setErrorPlanId(null);
         checkoutInFlight.current = false;
@@ -123,7 +157,6 @@ export function PlansSection({
         }
       }
 
-      // Mantém "Preparando pagamento..." até o navegador sair da página.
       window.location.assign(data.checkoutUrl);
     } catch {
       setError("Erro de conexão ao preparar o pagamento. Verifique a internet e tente novamente.");
@@ -134,32 +167,32 @@ export function PlansSection({
   }
 
   useEffect(() => {
-    if (checkoutBlocked) return;
     const checkout = searchParams.get("checkout");
     if (!checkout || autoStarted.current) return;
     const resolvedId = resolveCheckoutPlanId(checkout, plans);
     if (!resolvedId) return;
+    const plan = plans.find((item) => item.id === resolvedId);
+    if (plan && isPlanBlocked(plan)) return;
     autoStarted.current = true;
-    // Adia o checkout pós-login para não disparar setState síncrono no effect.
     const timer = window.setTimeout(() => {
       void startCheckout(resolvedId);
     }, 0);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-start once after login redirect
-  }, [plans, searchParams, checkoutBlocked]);
+  }, [plans, searchParams, activeVip, activeDeemix]);
 
   const isBusy = loadingPlanId !== null;
+  const gridClass =
+    plans.length <= 3
+      ? "mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-3"
+      : "mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-2 xl:grid-cols-4";
 
   return (
     <section id={id} className={`border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20 ${className}`}>
       <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          badge="Assinatura"
-          title="Escolha seu plano"
-          subtitle="Pagamento único via Mercado Pago, com renovação manual. Há um plano de teste de 3 dias (R$ 1,00) para validar produção. O navegador envia só o planId — preço e duração vêm do servidor."
-        />
+        <SectionHeading badge={badge} title={title} subtitle={subtitle} />
 
-        {activeVip ? (
+        {activeVip && plans.some((plan) => planProduct(plan) === "poolsVip") ? (
           <div
             className="mx-auto mt-8 max-w-3xl rounded-2xl border border-[#1ed760]/35 bg-[#1ed760]/10 px-4 py-4 text-center sm:px-6"
             role="status"
@@ -168,8 +201,7 @@ export function PlansSection({
               Seu VIP já está ativo até {activeVip.expiresLabel}
             </p>
             <p className="mt-1.5 text-sm leading-relaxed text-zinc-300">
-              Não é possível comprar outro plano enquanto o acesso atual estiver válido. Quando vencer,
-              volte aqui para renovar.{" "}
+              Não é possível comprar outro plano VIP enquanto o acesso atual estiver válido.{" "}
               <Link href="/portal" className="font-semibold text-white underline-offset-2 hover:underline">
                 Ir ao portal
               </Link>
@@ -177,41 +209,64 @@ export function PlansSection({
           </div>
         ) : null}
 
-        <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-[#FFDF00]/25 bg-[#FFDF00]/8 px-4 py-4 sm:px-5">
-          <div className="flex gap-3 text-left">
-            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#FFDF00]" aria-hidden />
-            <div>
-              <p className="text-sm font-semibold text-[#FFDF00]">Após pagar com Pix</p>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-300">
-                A tela do QR do Mercado Pago <strong className="font-semibold text-white">não atualiza sozinha</strong>.
-                Depois de pagar, role até o rodapé e clique em{" "}
-                <strong className="font-semibold text-white">“Voltar para Brazilian Dj Pools”</strong> para
-                retornar ao site. O acesso libera pelo webhook — o botão só te traz de volta.
-              </p>
+        {activeDeemix && plans.some((plan) => planProduct(plan) === "deemix") ? (
+          <div
+            className="mx-auto mt-8 max-w-3xl rounded-2xl border border-[#6B9FFF]/35 bg-[#002776]/25 px-4 py-4 text-center sm:px-6"
+            role="status"
+          >
+            <p className="text-sm font-semibold text-[#6B9FFF]">
+              Seu Deemix já está ativo até {activeDeemix.expiresLabel}
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-zinc-300">
+              Não é possível comprar outro plano Deemix enquanto o acesso atual estiver válido.{" "}
+              <Link href="/portal" className="font-semibold text-white underline-offset-2 hover:underline">
+                Ir ao portal
+              </Link>
+            </p>
+          </div>
+        ) : null}
+
+        {showPixNotice ? (
+          <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-[#FFDF00]/25 bg-[#FFDF00]/8 px-4 py-4 sm:px-5">
+            <div className="flex gap-3 text-left">
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#FFDF00]" aria-hidden />
+              <div>
+                <p className="text-sm font-semibold text-[#FFDF00]">Após pagar com Pix</p>
+                <p className="mt-1 text-sm leading-relaxed text-zinc-300">
+                  A tela do QR do Mercado Pago <strong className="font-semibold text-white">não atualiza sozinha</strong>.
+                  Depois de pagar, role até o rodapé e clique em{" "}
+                  <strong className="font-semibold text-white">“Voltar para Brazilian Dj Pools”</strong> para
+                  retornar ao site.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
-        <div className="mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
+        <div className={gridClass}>
           {plans.map((plan) => {
             const isThisLoading = loadingPlanId === plan.id;
+            const blocked = isPlanBlocked(plan);
+            const isDeemix = planProduct(plan) === "deemix";
             return (
               <div
                 key={plan.id}
                 className={`relative flex flex-col site-panel p-6 text-center transition-all md:p-7 md:text-left ${
-                  checkoutBlocked
+                  blocked
                     ? "opacity-70"
-                    : plan.isTestPlan
+                    : isDeemix
                       ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
-                      : plan.highlight
-                        ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
-                        : "hover:border-[#009739]/35"
+                      : plan.isTestPlan
+                        ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
+                        : plan.highlight
+                          ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
+                          : "hover:border-[#009739]/35"
                 }`}
               >
                 {plan.badge && (
                   <span
                     className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wide ${
-                      plan.isTestPlan
+                      isDeemix || plan.isTestPlan
                         ? "bg-[#6B9FFF] text-[#002776]"
                         : "bg-[#FFDF00] text-[#002776]"
                     }`}
@@ -242,12 +297,12 @@ export function PlansSection({
                 <button
                   type="button"
                   onClick={() => void startCheckout(plan.id)}
-                  disabled={isBusy || checkoutBlocked}
+                  disabled={isBusy || blocked}
                   aria-busy={isThisLoading}
                   className="mt-8 flex w-full min-h-12 cursor-pointer items-center justify-center gap-2 site-btn site-btn-primary rounded-xl px-4 text-sm sm:text-[0.95rem] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {checkoutBlocked ? (
-                    "VIP já ativo"
+                  {blocked ? (
+                    blockedLabel(plan)
                   ) : isThisLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
@@ -256,7 +311,11 @@ export function PlansSection({
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
-                      {plan.isTestPlan ? "Testar com Mercado Pago" : "Pagar com Mercado Pago"}
+                      {plan.isTestPlan
+                        ? "Testar com Mercado Pago"
+                        : isDeemix
+                          ? "Assinar Deemix"
+                          : "Pagar com Mercado Pago"}
                     </>
                   )}
                 </button>
@@ -267,11 +326,15 @@ export function PlansSection({
                 ) : null}
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#009739]" />
-                  {checkoutBlocked
-                    ? `Renovação disponível após ${activeVip!.expiresLabel}.`
-                    : plan.isTestPlan
-                      ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
-                      : "Checkout seguro. Acesso só após confirmação oficial."}
+                  {blocked
+                    ? `Renovação disponível após ${
+                        isDeemix ? activeDeemix!.expiresLabel : activeVip!.expiresLabel
+                      }.`
+                    : isDeemix
+                      ? "ARL 320 kbps · liberação automática no portal."
+                      : plan.isTestPlan
+                        ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
+                        : "Checkout seguro. Acesso só após confirmação oficial."}
                 </p>
               </div>
             );

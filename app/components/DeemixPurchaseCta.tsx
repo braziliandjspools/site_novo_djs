@@ -1,48 +1,70 @@
+"use client";
+
+import { Suspense } from "react";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
-import { deemixCheckoutUrl } from "../lib/site";
+import { PlansSection } from "./PlansSection";
+import { whatsappUrl } from "../lib/site";
+
+type DeemixPlanCard = {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  equivalent: string | null;
+  badge: string | null;
+  features: string[];
+  highlight: boolean;
+  description?: string;
+  isTestPlan?: boolean;
+  serviceProduct?: "poolsVip" | "deemix";
+};
 
 type DeemixPurchaseCtaProps = {
-  product: "Deemix" | "Deemix Server";
+  plans: DeemixPlanCard[];
+  activeDeemix?: { expiresLabel: string } | null;
+  product?: "Deemix" | "Deemix Server";
   accent?: "green" | "blue";
 };
 
-const accentStyles = {
-  green: {
-    border: "border-[#009739]/40",
-    bg: "bg-[#009739]/10",
-    button: "bg-[#009739] hover:bg-[#00B347] shadow-[#009739]/30",
-  },
-  blue: {
-    border: "border-[#6B9FFF]/40",
-    bg: "bg-[#002776]/20",
-    button: "bg-[#002776] hover:bg-[#1A3D8F] border border-[#6B9FFF]/40 shadow-[#002776]/40",
-  },
-};
-
-export function DeemixPurchaseCta({ product, accent = "green" }: DeemixPurchaseCtaProps) {
-  const styles = accentStyles[accent];
-
+export function DeemixPurchaseCta({
+  plans,
+  activeDeemix = null,
+  product = "Deemix",
+  accent = "green",
+}: DeemixPurchaseCtaProps) {
   return (
-    <div className={`rounded-2xl border ${styles.border} ${styles.bg} p-8 text-center`}>
-      <p className="font-display text-lg text-white">Não assina o plano de pools?</p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-gray-400">
-        Compre o acesso ao {product} avulso e fale com nossa equipe pelo WhatsApp para receber instruções e
-        configuração.
-      </p>
-      <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+    <div className="space-y-8">
+      <Suspense fallback={<div className="min-h-[280px]" />}>
+        <PlansSection
+          id="deemix-planos"
+          className="!border-y-0 !px-0 !py-0"
+          plans={plans}
+          badge="Mercado Pago"
+          title={`Assinar ${product}`}
+          subtitle="ARL 320 kbps · R$ 30/mês · 90 e 180 dias com 10% off. Liberação automática no portal após o pagamento."
+          activeDeemix={activeDeemix}
+          showPixNotice
+          loginReturnPath="/deemix"
+        />
+      </Suspense>
+      <div className="flex flex-wrap items-center justify-center gap-3 text-center">
         <a
-          href={deemixCheckoutUrl(product)}
+          href={whatsappUrl(`Olá! Quero saber mais sobre o ${product}.`)}
           target="_blank"
           rel="noopener noreferrer"
-          className={`inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition-all hover:scale-105 ${styles.button}`}
+          className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold ${
+            accent === "blue"
+              ? "border-[#6B9FFF]/40 text-[#6B9FFF] hover:bg-[#002776]/30"
+              : "border-white/20 text-zinc-300 hover:border-[#FFDF00]/50 hover:text-[#FFDF00]"
+          }`}
         >
           <MessageCircle className="h-4 w-4" />
-          Comprar acesso ao {product}
+          Dúvidas no WhatsApp
         </a>
         <Link
           href="/plans"
-          className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-gray-300 transition-colors hover:border-[#FFDF00]/50 hover:text-[#FFDF00]"
+          className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-[#FFDF00]/50 hover:text-[#FFDF00]"
         >
           Ver planos de pools
         </Link>

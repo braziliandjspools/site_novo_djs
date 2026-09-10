@@ -31,7 +31,10 @@ import { IconBox } from "../components/IconBox";
 import { DeemixPurchaseCta } from "../components/DeemixPurchaseCta";
 import { SectionHeading } from "../components/SectionHeading";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "../lib/theme";
+import { formatDueDate } from "../lib/due-queue";
 import { DEEMIX_ENABLED } from "../lib/feature-flags";
+import { SITE_DEEMIX_PLANS } from "../lib/plans";
+import { getAuthenticatedPortalUser } from "../lib/portal";
 import { whatsappUrl } from "../lib/site";
 import { buildPageMetadata } from "../lib/seo";
 
@@ -318,7 +321,27 @@ const faqs = [
   },
 ];
 
-export default function DeemixPage() {
+export default async function DeemixPage() {
+  const deemixPlans = SITE_DEEMIX_PLANS.filter((plan) => plan.id).map((plan) => ({
+    id: plan.id!,
+    name: plan.name,
+    price: plan.price,
+    period: plan.period,
+    equivalent: plan.equivalent,
+    badge: plan.badge,
+    features: plan.features,
+    highlight: plan.highlight,
+    description: plan.description,
+    isTestPlan: plan.isTestPlan,
+    serviceProduct: plan.serviceProduct,
+  }));
+
+  const user = await getAuthenticatedPortalUser();
+  const activeDeemix =
+    user && user.services.deemix && user.nextDueAt.getTime() > Date.now()
+      ? { expiresLabel: formatDueDate(user.nextDueAt) }
+      : null;
+
   if (!DEEMIX_ENABLED) {
     return (
       <div className="mx-auto max-w-3xl space-y-8 px-4 py-16 text-center sm:px-6">
@@ -490,7 +513,12 @@ export default function DeemixPage() {
         </div>
       </section>
 
-      <DeemixPurchaseCta product="Deemix Server" accent="blue" />
+      <DeemixPurchaseCta
+        product="Deemix Server"
+        accent="blue"
+        plans={deemixPlans}
+        activeDeemix={activeDeemix}
+      />
 
       <div className="br-stripe" />
 
@@ -576,7 +604,12 @@ export default function DeemixPage() {
         </div>
       </section>
 
-      <DeemixPurchaseCta product="Deemix" accent="green" />
+      <DeemixPurchaseCta
+        product="Deemix"
+        accent="green"
+        plans={deemixPlans}
+        activeDeemix={activeDeemix}
+      />
 
       <section className="rounded-2xl border border-[#009739]/40 bg-[#009739]/10 p-8 text-center">
         <h3 className="flex items-center justify-center gap-2 font-display text-xl text-[#00B347]">

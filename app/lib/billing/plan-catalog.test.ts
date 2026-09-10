@@ -9,13 +9,36 @@ import {
   resolveCanonicalPlanId,
 } from "./plan-catalog";
 
-test("catálogo ativo tem teste 3d + 3 planos oficiais", () => {
+test("catálogo ativo tem Drive (4) + Deemix (3)", () => {
   const plans = listActiveCanonicalPlans();
-  assert.equal(plans.length, 4);
+  assert.equal(plans.length, 7);
   assert.deepEqual(
     plans.map((p) => p.id),
-    ["brs-drive-3d", "brs-drive-1m", "brs-drive-3m", "brs-drive-12m"],
+    [
+      "brs-drive-3d",
+      "brs-drive-1m",
+      "brs-drive-3m",
+      "brs-drive-12m",
+      "brs-deemix-1m",
+      "brs-deemix-3m",
+      "brs-deemix-6m",
+    ],
   );
+});
+
+test("Deemix: 30 / 81 / 162 com 10% nos longos", () => {
+  assert.equal(getCanonicalPlanById("brs-deemix-1m")?.amountBrl, "30.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-1m")?.serviceProduct, "deemix");
+  assert.equal(getCanonicalPlanById("brs-deemix-1m")?.durationDays, 30);
+
+  const monthly = 30;
+  assert.equal((monthly * 3 * 0.9).toFixed(2), "81.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-3m")?.amountBrl, "81.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-3m")?.durationDays, 90);
+
+  assert.equal((monthly * 6 * 0.9).toFixed(2), "162.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-6m")?.amountBrl, "162.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-6m")?.durationDays, 180);
 });
 
 test("plano teste 3 dias custa R$ 1,00 e dura 3 dias", () => {

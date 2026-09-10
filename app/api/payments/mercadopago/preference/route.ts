@@ -97,8 +97,12 @@ export async function POST(request: Request) {
   }
 
   const user = await getAuthenticatedPortalUser();
+  const loginReturn =
+    trusted.plan.serviceProduct === "deemix"
+      ? `/deemix?checkout=${encodeURIComponent(trusted.plan.id)}`
+      : `/plans?checkout=${encodeURIComponent(trusted.plan.id)}`;
   if (!user) {
-    const loginUrl = `/musicas/entrar?return=${encodeURIComponent("/plans")}&checkout=${encodeURIComponent(trusted.plan.id)}`;
+    const loginUrl = `/musicas/entrar?return=${encodeURIComponent(loginReturn.split("?")[0]!)}&checkout=${encodeURIComponent(trusted.plan.id)}`;
     return NextResponse.json(
       { error: "Faça login para continuar o checkout.", loginUrl, code: "unauthorized" },
       { status: 401 },
@@ -106,6 +110,7 @@ export async function POST(request: Request) {
   }
 
   if (
+    trusted.plan.serviceProduct === "poolsVip" &&
     userHasActiveVipAccess({
       servicePoolsVip: user.services.poolsVip,
       nextDueAt: user.nextDueAt,
@@ -116,6 +121,23 @@ export async function POST(request: Request) {
       {
         error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
         code: "vip_already_active",
+        expiresAt: user.nextDueAt.toISOString(),
+        expiresLabel,
+      },
+      { status: 409 },
+    );
+  }
+
+  if (
+    trusted.plan.serviceProduct === "deemix" &&
+    user.services.deemix &&
+    user.nextDueAt.getTime() > Date.now()
+  ) {
+    const expiresLabel = formatDueDate(user.nextDueAt);
+    return NextResponse.json(
+      {
+        error: `Você já tem Deemix ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+        code: "deemix_already_active",
         expiresAt: user.nextDueAt.toISOString(),
         expiresLabel,
       },

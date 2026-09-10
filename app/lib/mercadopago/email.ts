@@ -30,21 +30,47 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
   const plansUrl = `${SITE_URL || SITE_PRODUCTION_URL}/plans`;
   const logoUrl = `${SITE_PRODUCTION_URL}/images/brs-logo.jpg`;
 
-  const subject = `Acesso VIP liberado — ${SITE_NAME}`;
+  const subject =
+    plan?.serviceProduct === "deemix"
+      ? `Acesso Deemix liberado — ${SITE_NAME}`
+      : `Acesso VIP liberado — ${SITE_NAME}`;
 
-  const text = [
-    `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
-    "",
-    "Seu pagamento foi confirmado e o acesso VIP já está liberado.",
-    "",
-    `Plano: ${planLabel}`,
-    `Duração: ${durationLabel}`,
-    `Válido até: ${formatDueDate(input.periodEnd)}`,
-    "",
-    `Acesse sua conta: ${accountUrl}`,
-    "",
-    `${SITE_NAME}.`,
-  ].join("\n");
+  const text =
+    plan?.serviceProduct === "deemix"
+      ? [
+          `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
+          "",
+          "Seu pagamento foi confirmado e o Deemix (ARL 320 kbps) já está liberado no portal.",
+          "",
+          `Plano: ${planLabel}`,
+          `Duração: ${durationLabel}`,
+          `Válido até: ${formatDueDate(input.periodEnd)}`,
+          "",
+          `Acesse sua conta: ${accountUrl}`,
+          "",
+          `${SITE_NAME}.`,
+        ].join("\n")
+      : [
+          `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
+          "",
+          "Seu pagamento foi confirmado e o acesso VIP já está liberado.",
+          "",
+          `Plano: ${planLabel}`,
+          `Duração: ${durationLabel}`,
+          `Válido até: ${formatDueDate(input.periodEnd)}`,
+          "",
+          `Acesse sua conta: ${accountUrl}`,
+          "",
+          `${SITE_NAME}.`,
+        ].join("\n");
+
+  const headline =
+    plan?.serviceProduct === "deemix"
+      ? "Seu acesso Deemix (ARL 320 kbps) foi liberado. As credenciais estão no portal."
+      : `Seu acesso VIP à <strong style="color:#fff;">${escapeEmailHtml(SITE_NAME)}</strong> foi liberado. Plataforma, packs e Downloader já estão disponíveis na sua conta.`;
+
+  const eyebrow =
+    plan?.serviceProduct === "deemix" ? "Deemix liberado" : "Pagamento confirmado";
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -61,15 +87,14 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
           <tr>
             <td style="padding:28px 24px 12px;text-align:center;background:linear-gradient(180deg,rgba(0,151,57,0.28),transparent);">
               <img src="${logoUrl}" alt="${escapeEmailHtml(SITE_NAME)}" width="72" height="72" style="border-radius:14px;display:block;margin:0 auto 14px;" />
-              <p style="margin:0;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#00B347;font-weight:700;">Pagamento confirmado</p>
+              <p style="margin:0;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#00B347;font-weight:700;">${escapeEmailHtml(eyebrow)}</p>
               <h1 style="margin:10px 0 0;font-size:24px;line-height:1.25;color:#ffffff;">Olá, ${firstName}</h1>
             </td>
           </tr>
           <tr>
             <td style="padding:8px 24px 4px;text-align:center;">
               <p style="margin:0;font-size:15px;line-height:1.55;color:#c7c7c7;">
-                Seu acesso VIP à <strong style="color:#fff;">${escapeEmailHtml(SITE_NAME)}</strong> foi liberado.
-                Plataforma, packs e Downloader já estão disponíveis na sua conta.
+                ${headline}
               </p>
             </td>
           </tr>

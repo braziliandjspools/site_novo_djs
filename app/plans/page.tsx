@@ -21,7 +21,7 @@ import { PlansSection } from "../components/PlansSection";
 import { SectionHeading } from "../components/SectionHeading";
 import { formatDueDate } from "../lib/due-queue";
 import { userHasActiveVipAccess } from "../lib/mercadopago/webhook-policy";
-import { SITE_PLANS } from "../lib/plans";
+import { SITE_DEEMIX_PLANS, SITE_DRIVE_PLANS } from "../lib/plans";
 import { getAuthenticatedPortalUser } from "../lib/portal";
 import { SITE_NAME } from "../lib/branding";
 import { whatsappUrl } from "../lib/site";
@@ -132,18 +132,25 @@ const faqs = [
 ];
 
 export default async function PlansPage() {
-  const plans = SITE_PLANS.filter((plan) => plan.id).map((plan) => ({
-    id: plan.id!,
-    name: plan.name,
-    price: plan.price,
-    period: plan.period,
-    equivalent: plan.equivalent,
-    badge: plan.badge,
-    features: plan.features,
-    highlight: plan.highlight,
-    description: plan.description,
-    isTestPlan: plan.isTestPlan,
-  }));
+  const toCards = (plans: typeof SITE_DRIVE_PLANS) =>
+    plans
+      .filter((plan) => plan.id)
+      .map((plan) => ({
+        id: plan.id!,
+        name: plan.name,
+        price: plan.price,
+        period: plan.period,
+        equivalent: plan.equivalent,
+        badge: plan.badge,
+        features: plan.features,
+        highlight: plan.highlight,
+        description: plan.description,
+        isTestPlan: plan.isTestPlan,
+        serviceProduct: plan.serviceProduct,
+      }));
+
+  const drivePlans = toCards(SITE_DRIVE_PLANS);
+  const deemixPlans = toCards(SITE_DEEMIX_PLANS);
 
   const user = await getAuthenticatedPortalUser();
   const activeVip =
@@ -152,6 +159,10 @@ export default async function PlansPage() {
       servicePoolsVip: user.services.poolsVip,
       nextDueAt: user.nextDueAt,
     })
+      ? { expiresLabel: formatDueDate(user.nextDueAt) }
+      : null;
+  const activeDeemix =
+    user && user.services.deemix && user.nextDueAt.getTime() > Date.now()
       ? { expiresLabel: formatDueDate(user.nextDueAt) }
       : null;
 
@@ -163,8 +174,8 @@ export default async function PlansPage() {
         <div className="relative mx-auto max-w-3xl text-center">
           <SectionHeading
             badge="Planos"
-            title="BRS Drive VIP"
-            subtitle="Acervo VIP, plataforma para DJs e Downloader Windows. Pagamento único via Mercado Pago, com renovação manual. Inclui plano teste de 3 dias para validar produção."
+            title="BRS Drive VIP + Deemix"
+            subtitle="Assine pools VIP ou Deemix (ARL 320) via Mercado Pago. Pagamento único, renovação manual e liberação automática no portal."
           />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold tracking-[-0.01em] text-zinc-400">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
@@ -173,18 +184,40 @@ export default async function PlansPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <Clock3 className="h-3.5 w-3.5 text-[#6B9FFF]" />
-              Teste 3 dias · R$ 1
+              Drive · Deemix
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[#FFDF00]" />
-              1 · 3 · 12 meses
+              10% nos pacotes longos
             </span>
           </div>
         </div>
       </section>
 
       <Suspense fallback={<div className="min-h-[320px]" />}>
-        <PlansSection className="!border-t-0" plans={plans} activeVip={activeVip} />
+        <PlansSection
+          id="planos"
+          className="!border-t-0"
+          plans={drivePlans}
+          badge="Drive VIP"
+          title="Planos BRS Drive"
+          subtitle="Acervo VIP, plataforma /musicas e Downloader. Inclui plano teste de 3 dias para validar produção."
+          activeVip={activeVip}
+          showPixNotice
+        />
+      </Suspense>
+
+      <Suspense fallback={<div className="min-h-[280px]" />}>
+        <PlansSection
+          id="deemix-planos"
+          plans={deemixPlans}
+          badge="Deemix"
+          title="Planos Deemix"
+          subtitle="ARL 320 kbps no portal. Mensal R$ 30, ou 90/180 dias com 10% de desconto."
+          activeDeemix={activeDeemix}
+          showPixNotice={false}
+          loginReturnPath="/deemix"
+        />
       </Suspense>
 
       <section className="border-b border-white/5 px-4 py-12 sm:px-6 md:py-16">

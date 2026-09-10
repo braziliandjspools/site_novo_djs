@@ -8,11 +8,16 @@ export const PLAN_CURRENCY = "BRL" as const;
 
 export type PlanRenewalType = "manual";
 
+export type PlanServiceProduct = "poolsVip" | "deemix";
+
 export type CanonicalPlanId =
   | "brs-drive-3d"
   | "brs-drive-1m"
   | "brs-drive-3m"
-  | "brs-drive-12m";
+  | "brs-drive-12m"
+  | "brs-deemix-1m"
+  | "brs-deemix-3m"
+  | "brs-deemix-6m";
 
 /** Alias legado Hotmart → plano canônico de 1 mês. */
 export const LEGACY_PLAN_ID_ALIASES: Record<string, CanonicalPlanId> = {
@@ -40,16 +45,23 @@ export type CanonicalPlan = {
   highlight: boolean;
   /** Plano de teste production (valor baixo, duração curta). */
   isTestPlan: boolean;
+  /** Serviço liberado no portal ao aprovar o pagamento. */
+  serviceProduct: PlanServiceProduct;
   features: string[];
   equivalentMonthlyLabel: string | null;
 };
 
 /**
  * Valores oficiais (pagamentos únicos, renovação manual):
- * - Teste 3 dias: R$ 1,00 (produção Mercado Pago)
+ * Drive VIP:
+ * - Teste 3 dias: R$ 1,00
  * - 1 mês: R$ 38,00 (~30 dias)
  * - 3 meses: 10% off → R$ 102,60 (~90 dias)
  * - 1 ano: R$ 32,00/mês → R$ 384,00 (~365 dias)
+ * Deemix (ARL 320 kbps):
+ * - 1 mês: R$ 30,00 (~30 dias)
+ * - 90 dias: 10% off → R$ 81,00
+ * - 180 dias: 10% off → R$ 162,00
  */
 export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
   {
@@ -67,6 +79,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     badge: "Teste",
     highlight: false,
     isTestPlan: true,
+    serviceProduct: "poolsVip",
     equivalentMonthlyLabel: null,
     features: [
       "Acesso VIP completo por 3 dias",
@@ -89,6 +102,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     badge: "Popular",
     highlight: true,
     isTestPlan: false,
+    serviceProduct: "poolsVip",
     equivalentMonthlyLabel: "R$ 38,00/mês",
     features: [
       "Acervo VIP completo (+241 GB)",
@@ -112,6 +126,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     badge: "10% off",
     highlight: false,
     isTestPlan: false,
+    serviceProduct: "poolsVip",
     equivalentMonthlyLabel: "R$ 34,20/mês",
     features: [
       "Acervo VIP completo (+241 GB)",
@@ -135,12 +150,84 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     badge: "Melhor valor",
     highlight: false,
     isTestPlan: false,
+    serviceProduct: "poolsVip",
     equivalentMonthlyLabel: "R$ 32,00/mês",
     features: [
       "Acervo VIP completo (+241 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
       "Menor custo mensal equivalente",
+      "Renovação manual ao fim do período",
+    ],
+  },
+  {
+    id: "brs-deemix-1m",
+    title: "Deemix — 1 mês",
+    description: "Acesso Deemix com ARL 320 kbps por 30 dias. Pagamento único via Mercado Pago.",
+    amountBrl: "30.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 30,
+    durationMonths: 1,
+    durationLabel: "1 mês",
+    active: true,
+    renewalType: "manual",
+    badge: "ARL 320",
+    highlight: true,
+    isTestPlan: false,
+    serviceProduct: "deemix",
+    equivalentMonthlyLabel: "R$ 30,00/mês",
+    features: [
+      "ARL Premium 320 kbps",
+      "Credenciais no portal do cliente",
+      "Download de faixas, álbuns e playlists",
+      "Renovação manual ao fim do período",
+    ],
+  },
+  {
+    id: "brs-deemix-3m",
+    title: "Deemix — 90 dias",
+    description: "90 dias de Deemix (ARL 320) com 10% de desconto. Pagamento único via Mercado Pago.",
+    amountBrl: "81.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 90,
+    durationMonths: 3,
+    durationLabel: "90 dias",
+    active: true,
+    renewalType: "manual",
+    badge: "10% off",
+    highlight: false,
+    isTestPlan: false,
+    serviceProduct: "deemix",
+    equivalentMonthlyLabel: "R$ 27,00/mês",
+    features: [
+      "ARL Premium 320 kbps",
+      "90 dias de acesso",
+      "Economia de 10% vs. mensal",
+      "Credenciais no portal do cliente",
+      "Renovação manual ao fim do período",
+    ],
+  },
+  {
+    id: "brs-deemix-6m",
+    title: "Deemix — 180 dias",
+    description: "180 dias de Deemix (ARL 320) com 10% de desconto. Pagamento único via Mercado Pago.",
+    amountBrl: "162.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 180,
+    durationMonths: 6,
+    durationLabel: "180 dias",
+    active: true,
+    renewalType: "manual",
+    badge: "10% off",
+    highlight: false,
+    isTestPlan: false,
+    serviceProduct: "deemix",
+    equivalentMonthlyLabel: "R$ 27,00/mês",
+    features: [
+      "ARL Premium 320 kbps",
+      "180 dias de acesso",
+      "Economia de 10% vs. mensal",
+      "Credenciais no portal do cliente",
       "Renovação manual ao fim do período",
     ],
   },
@@ -180,6 +267,18 @@ export function listActiveCanonicalPlans(): CanonicalPlan[] {
   return CANONICAL_PLANS.filter((plan) => plan.active);
 }
 
+export function listCanonicalPlansByProduct(product: PlanServiceProduct): CanonicalPlan[] {
+  return listActiveCanonicalPlans().filter((plan) => plan.serviceProduct === product);
+}
+
+export function isDeemixPlanId(planId: string): boolean {
+  return getCanonicalPlanById(planId)?.serviceProduct === "deemix";
+}
+
+export function isPoolsVipPlanId(planId: string): boolean {
+  return getCanonicalPlanById(planId)?.serviceProduct === "poolsVip";
+}
+
 export type PublicPlanCard = {
   id: CanonicalPlanId;
   name: string;
@@ -194,6 +293,7 @@ export type PublicPlanCard = {
   durationMonths: number;
   renewalType: PlanRenewalType;
   isTestPlan: boolean;
+  serviceProduct: PlanServiceProduct;
 };
 
 export function toPublicPlanCard(plan: CanonicalPlan): PublicPlanCard {
@@ -211,11 +311,13 @@ export function toPublicPlanCard(plan: CanonicalPlan): PublicPlanCard {
     durationMonths: plan.durationMonths,
     renewalType: plan.renewalType,
     isTestPlan: plan.isTestPlan,
+    serviceProduct: plan.serviceProduct,
   };
 }
 
-export function listPublicPlanCards(): PublicPlanCard[] {
-  return listActiveCanonicalPlans().map(toPublicPlanCard);
+export function listPublicPlanCards(product?: PlanServiceProduct): PublicPlanCard[] {
+  const plans = product ? listCanonicalPlansByProduct(product) : listActiveCanonicalPlans();
+  return plans.map(toPublicPlanCard);
 }
 
 export function assertCheckoutPayloadTrusted(input: {

@@ -73,6 +73,7 @@ export function buildMercadoPagoPreferenceBody(input: {
       brs_portal_user_id: String(input.payer.id),
       brs_duration_days: String(input.plan.durationDays),
       brs_duration_months: String(input.plan.durationMonths),
+      brs_service_product: input.plan.serviceProduct,
     },
   };
 }

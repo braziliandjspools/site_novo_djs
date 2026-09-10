@@ -29,6 +29,24 @@ test("preference body usa BRL, quantity 1, back_urls e auto_return", () => {
   assert.equal(body.back_urls.success, "https://www.brazilianremixservice.com.br/pagamento/sucesso");
   assert.equal(body.back_urls.pending, "https://www.brazilianremixservice.com.br/pagamento/pendente");
   assert.equal(body.back_urls.failure, "https://www.brazilianremixservice.com.br/pagamento/erro");
+  assert.equal(body.metadata.brs_plan_id, "brs-drive-1m");
+  assert.equal(body.metadata.brs_service_product, "poolsVip");
+});
+
+test("preference Deemix inclui metadata do produto e preço 30", () => {
+  const plan = getCanonicalPlanById("brs-deemix-1m");
+  assert.ok(plan);
+
+  const body = buildMercadoPagoPreferenceBody({
+    plan,
+    externalReference: "brs_mp_order-deemix",
+    siteUrl: "https://www.brazilianremixservice.com.br",
+    payer: { id: 7, email: "dj@example.com", name: "DJ Teste" },
+  });
+
+  assert.equal(body.items[0]?.unit_price, 30);
+  assert.equal(body.metadata.brs_service_product, "deemix");
+  assert.equal(body.metadata.brs_plan_id, "brs-deemix-1m");
 });
 
 test("preference body rejeita siteUrl sem HTTPS", () => {

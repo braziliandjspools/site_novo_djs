@@ -19,31 +19,45 @@ export type SitePlan = {
   durationMonths?: number;
   renewalType?: "manual";
   isTestPlan?: boolean;
+  serviceProduct?: "poolsVip" | "deemix";
 };
 
-/** Planos públicos da /plans — catálogo canônico no servidor. */
-export const SITE_PLANS: SitePlan[] = listPublicPlanCards().map((plan) => ({
-  id: plan.id,
-  name: plan.name,
-  price: plan.price,
-  period: plan.period,
-  equivalent: plan.equivalent,
-  badge: plan.badge,
-  features: plan.features,
-  highlight: plan.highlight,
-  description: plan.description,
-  durationDays: plan.durationDays,
-  durationMonths: plan.durationMonths,
-  renewalType: plan.renewalType,
-  isTestPlan: plan.isTestPlan,
-}));
+function mapCards(product?: "poolsVip" | "deemix"): SitePlan[] {
+  return listPublicPlanCards(product).map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    price: plan.price,
+    period: plan.period,
+    equivalent: plan.equivalent,
+    badge: plan.badge,
+    features: plan.features,
+    highlight: plan.highlight,
+    description: plan.description,
+    durationDays: plan.durationDays,
+    durationMonths: plan.durationMonths,
+    renewalType: plan.renewalType,
+    isTestPlan: plan.isTestPlan,
+    serviceProduct: plan.serviceProduct,
+  }));
+}
+
+/** Todos os planos públicos (Drive + Deemix). */
+export const SITE_PLANS: SitePlan[] = mapCards();
+
+/** Só Drive VIP. */
+export const SITE_DRIVE_PLANS: SitePlan[] = mapCards("poolsVip");
+
+/** Só Deemix. */
+export const SITE_DEEMIX_PLANS: SitePlan[] = mapCards("deemix");
 
 export {
   assertCheckoutPayloadTrusted,
   getCanonicalPlanById,
   listActiveCanonicalPlans,
+  listCanonicalPlansByProduct,
   listPublicPlanCards,
   resolveCanonicalPlanId,
   type CanonicalPlan,
   type CanonicalPlanId,
+  type PlanServiceProduct,
 } from "./billing/plan-catalog";

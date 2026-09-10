@@ -26,16 +26,27 @@ test("webhook token válido é aceito", () => {
   assert.equal(isValidHotmartWebhookToken("hotmart-token", "hotmart-token"), true);
 });
 
-test("/plans expõe teste + 3 planos canônicos", () => {
-  assert.equal(SITE_PLANS.length, 4);
+test("/plans expõe Drive + Deemix canônicos", () => {
+  assert.equal(SITE_PLANS.length, 7);
   assert.deepEqual(
     SITE_PLANS.map((plan) => plan.id),
-    ["brs-drive-3d", "brs-drive-1m", "brs-drive-3m", "brs-drive-12m"],
+    [
+      "brs-drive-3d",
+      "brs-drive-1m",
+      "brs-drive-3m",
+      "brs-drive-12m",
+      "brs-deemix-1m",
+      "brs-deemix-3m",
+      "brs-deemix-6m",
+    ],
   );
   assert.equal(SITE_PLANS[0]?.price, "R$ 1,00");
   assert.equal(SITE_PLANS[1]?.price, "R$ 38,00");
   assert.equal(SITE_PLANS[2]?.price, "R$ 102,60");
   assert.equal(SITE_PLANS[3]?.price, "R$ 384,00");
+  assert.equal(SITE_PLANS[4]?.price, "R$ 30,00");
+  assert.equal(SITE_PLANS[5]?.price, "R$ 81,00");
+  assert.equal(SITE_PLANS[6]?.price, "R$ 162,00");
 });
 
 test("extrai brs_user_id do xcod", () => {
