@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Download, MonitorDown, Pause, Play } from "lucide-react";
+import { PLACEHOLDER } from "../../lib/theme";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 
@@ -21,10 +22,18 @@ export function VipMiniPlayerBar() {
 
   const track = player.currentTrack;
   const isPlaying = player.isPlaying;
+  const coverSrc =
+    track.coverUrl?.trim() || player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-800 bg-[#181818]/95 px-3 py-2 backdrop-blur-md sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={coverSrc}
+          alt=""
+          className="h-10 w-10 flex-shrink-0 rounded object-cover"
+        />
         <button
           type="button"
           onClick={() => {

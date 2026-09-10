@@ -28,7 +28,7 @@ export const PLACEHOLDER = {
   showcase: "https://placehold.co/600x400/009739/FFDF00?text=Showcase+%E2%80%94+substituir",
   deemix: "/images/deemix.png",
   allavsoft: "/images/allavsoft.png",
-  trackCover: "/images/folder.jpg",
+  trackCover: "/images/brs-default-cover.png",
   logo: "/images/brs-logo.jpg",
   musicProducerHero: "/images/music-producer.png",
   musicasPortal: "/images/musicas-portal.png",

@@ -366,8 +366,8 @@ export function VipMusicPlayerProvider({
 
   useMediaSession({
     track: currentTrack,
-    coverUrl: currentCoverUrl,
-    albumTitle: currentAlbumTitle || currentTrack?.pack || null,
+    coverUrl: currentTrack?.coverUrl?.trim() || currentCoverUrl,
+    albumTitle: currentAlbumTitle || currentTrack?.album || currentTrack?.pack || null,
     isPlaying,
     isActive: mediaActive,
     duration: displayDuration,

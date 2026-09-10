@@ -71,9 +71,10 @@ export function resolveTrackMediaMetadata(
 
 function buildArtwork(coverUrl?: string | null): MediaImage[] {
   const src = absoluteUrl((coverUrl?.trim() || PLACEHOLDER.trackCover).trim());
-  const type = src.toLowerCase().includes(".png")
+  const lower = src.toLowerCase();
+  const type = lower.includes(".png")
     ? "image/png"
-    : src.toLowerCase().includes(".webp")
+    : lower.includes(".webp")
       ? "image/webp"
       : "image/jpeg";
 
@@ -145,7 +146,7 @@ export function useMediaSession(input: MediaSessionInput) {
         title: meta.title,
         artist: meta.artist,
         album: meta.album,
-        artwork: buildArtwork(coverUrl),
+        artwork: buildArtwork(coverUrl || input.track?.coverUrl),
       });
     } catch {
       /* ignore */

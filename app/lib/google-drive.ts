@@ -18,6 +18,8 @@ export type PreviewTrack = {
   pack: string;
   /** Álbum da tag ID3/metadata, quando disponível. */
   album?: string | null;
+  /** Capa embutida na tag (`/api/musicas/tag-cover/...`), quando disponível. */
+  coverUrl?: string | null;
   /** Nome original do arquivo no Google Drive (com extensão). */
   fileName?: string;
   /** ISO do `modifiedTime` do Google Drive, quando disponível via API. */
