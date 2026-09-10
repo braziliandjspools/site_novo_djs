@@ -1,2 +1,2 @@
 /** Flags temporárias de produto no site. */
-export const DEEMIX_ENABLED = false;
+export const DEEMIX_ENABLED = true;

@@ -33,6 +33,8 @@ type DraftRow = {
   monthlyValue: string;
   nextDueAt: string;
   active: boolean;
+  /** Nova senha opcional — se preenchida no save, envia e-mail via Resend. */
+  password: string;
 };
 
 const emptyDraft = (): DraftRow => ({
@@ -43,6 +45,7 @@ const emptyDraft = (): DraftRow => ({
   monthlyValue: "0",
   nextDueAt: "",
   active: true,
+  password: "",
 });
 
 function formatBrl(value: number) {
@@ -140,6 +143,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<number, DraftRow>>({});
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -180,6 +184,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           monthlyValue: String(user.monthlyValue),
           nextDueAt: toDateInputValue(user.nextDueAt),
           active: user.active,
+          password: "",
         };
       }
       setDrafts(nextDrafts);
@@ -245,8 +250,15 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
       return;
     }
 
+    const newPassword = draft.password.trim();
+    if (newPassword && newPassword.length < 8) {
+      setError("A nova senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
     setSavingId(id);
     setError(null);
+    setSuccess(null);
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
@@ -259,10 +271,25 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           monthlyValue,
           nextDueAt: draft.nextDueAt,
           active: draft.active,
+          ...(newPassword ? { password: newPassword } : {}),
         }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        passwordEmailSent?: boolean;
+      };
       if (!res.ok) throw new Error(data.error ?? "Erro ao salvar.");
+
+      if (newPassword) {
+        setSuccess(
+          data.passwordEmailSent
+            ? `Senha atualizada e e-mail enviado para ${draft.email.trim().toLowerCase()}.`
+            : `Senha atualizada, mas o e-mail não foi enviado (verifique RESEND na Vercel).`,
+        );
+      } else {
+        setSuccess("Cliente salvo.");
+      }
+
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
@@ -396,6 +423,11 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
 
       {error && (
         <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
+      )}
+      {success && (
+        <p className="rounded-xl border border-[#009739]/35 bg-[#009739]/10 px-4 py-3 text-sm text-[#1ed760]" role="status">
+          {success}
+        </p>
       )}
 
       <div className="flex flex-wrap gap-3 text-xs text-gray-400">
@@ -554,6 +586,17 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                         className={`${inputClass} mt-1 font-mono`}
                       />
                     </label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Nova senha (opcional)
+                      <input
+                        type="text"
+                        autoComplete="new-password"
+                        placeholder="Mín. 8 caracteres — envia e-mail"
+                        value={draft.password}
+                        onChange={(e) => updateDraft(user.id, { password: e.target.value })}
+                        className={`${inputClass} mt-1 font-mono`}
+                      />
+                    </label>
                     <label className="inline-flex min-h-11 items-center gap-2 text-sm text-zinc-300">
                       <input
                         type="checkbox"
@@ -604,6 +647,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                     <th className="px-3 py-3.5 font-bold">Valor</th>
                     <th className="px-3 py-3.5 font-bold">Próx. vencimento</th>
                     <th className="px-3 py-3.5 font-bold">Ativo</th>
+                    <th className="px-3 py-3.5 font-bold">Nova senha</th>
                     <th className="px-3 py-3.5 font-bold">Ações</th>
                   </tr>
                 </thead>
@@ -687,6 +731,17 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                             checked={draft.active}
                             onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
                             className="mt-2 h-4 w-4 accent-[#009739]"
+                          />
+                        </td>
+                        <td className="min-w-[160px] px-3 py-3 align-top">
+                          <input
+                            type="text"
+                            autoComplete="new-password"
+                            placeholder="Opcional · e-mail"
+                            value={draft.password}
+                            onChange={(e) => updateDraft(user.id, { password: e.target.value })}
+                            className={`${inputClass} font-mono`}
+                            title="Preencha e salve para redefinir e enviar por e-mail"
                           />
                         </td>
                         <td className="px-3 py-3 align-top">

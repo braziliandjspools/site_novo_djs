@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAuthorizedAdminRequest } from "../../../../lib/admin-auth";
+import { sendPortalPasswordChangedEmail } from "../../../../lib/portal-password-email";
 import {
   deletePortalUser,
   serializePortalUser,
@@ -87,12 +88,35 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "musicProducerDeliveriesEnabled inválido." }, { status: 400 });
   }
 
+  const passwordChanged =
+    typeof body.password === "string" && body.password.trim().length >= 8
+      ? body.password.trim()
+      : null;
+
   try {
-    const user = await updatePortalUser(id, body);
+    const user = await updatePortalUser(id, {
+      ...body,
+      password: passwordChanged ?? undefined,
+    });
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
     }
-    return NextResponse.json({ ok: true, user: serializePortalUser(user) });
+
+    let passwordEmailSent = false;
+    if (passwordChanged) {
+      const mail = await sendPortalPasswordChangedEmail({
+        to: user.email,
+        name: user.name,
+        newPassword: passwordChanged,
+      });
+      passwordEmailSent = mail.sent;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      user: serializePortalUser(user),
+      passwordEmailSent,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao atualizar usuário.";
     return NextResponse.json({ error: message }, { status: 500 });
