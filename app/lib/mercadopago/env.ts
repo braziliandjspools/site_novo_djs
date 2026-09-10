@@ -83,6 +83,20 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function normalizeSiteUrl(raw: string): string {
+  let value = raw.replace(/\/$/, "").trim();
+  if (!value) return value;
+
+  // Colaram só o host (www....) ou http:// — forçamos HTTPS.
+  if (!/^https?:\/\//i.test(value)) {
+    value = `https://${value.replace(/^\/+/, "")}`;
+  } else if (value.toLowerCase().startsWith("http://")) {
+    value = `https://${value.slice("http://".length)}`;
+  }
+
+  return value.replace(/\/$/, "");
+}
+
 function resolveSiteUrl(): string {
   const found = readFirstPresent(SITE_URL_KEYS);
   if (!found) {
@@ -90,11 +104,18 @@ function resolveSiteUrl(): string {
       `[Mercado Pago] Variável de ambiente obrigatória ausente: NEXT_PUBLIC_SITE_URL (ou SITE_URL).`,
     );
   }
-  const siteUrl = found.value.replace(/\/$/, "");
+  const siteUrl = normalizeSiteUrl(found.value);
   if (!siteUrl.startsWith("https://")) {
     throw new Error(
       `[Mercado Pago] ${found.key} deve usar HTTPS (ex.: https://www.brazilianremixservice.com.br).`,
     );
+  }
+  // Valida URL parseável
+  try {
+    // eslint-disable-next-line no-new
+    new URL(siteUrl);
+  } catch {
+    throw new Error(`[Mercado Pago] ${found.key} inválida.`);
   }
   return siteUrl;
 }
@@ -145,7 +166,7 @@ export function diagnoseMercadoPagoEnv(): MercadoPagoEnvDiagnostic {
   let siteUrlHost: string | null = null;
   if (site?.value) {
     try {
-      const url = site.value.replace(/\/$/, "");
+      const url = normalizeSiteUrl(site.value);
       if (!url.startsWith("https://")) {
         issues.push("site_url_must_be_https");
       } else {
