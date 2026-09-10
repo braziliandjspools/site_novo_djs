@@ -242,24 +242,27 @@ function UserAccountModal({
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const focusable = panelRef.current?.querySelector<HTMLElement>(
-      "input, button, textarea, select, [tabindex]:not([tabindex='-1'])",
-    );
-    focusable?.focus();
+
+    // Foca só na abertura — nunca a cada digitação (onClose inline mudava e o efeito
+    // recolocava o foco no botão Fechar, 1º focável do painel).
+    const firstField = panelRef.current?.querySelector<HTMLElement>("input, textarea, select");
+    window.requestAnimationFrame(() => firstField?.focus());
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClose]);
+  }, []);
 
   function patchServiceBilling(key: ServiceBillingKey, patch: Partial<ServiceBillingLineDraft>) {
     onChange({
