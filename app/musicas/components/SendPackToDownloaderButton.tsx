@@ -13,6 +13,8 @@ type SendPackToDownloaderButtonProps = {
   label?: string;
   className?: string;
   compact?: boolean;
+  /** Botão sobreposto na capa do hero (embaixo, centralizado). */
+  onCover?: boolean;
   /** Raiz do Drive: atualizações VIP ou coleções */
   root?: "vip" | "colecoes";
 };
@@ -22,6 +24,7 @@ export function SendPackToDownloaderButton({
   label = "Enviar ao Downloader",
   className = "",
   compact = false,
+  onCover = false,
   root = "vip",
 }: SendPackToDownloaderButtonProps) {
   const { authenticated, openLogin, hasVip } = useMusicasSession();
@@ -61,6 +64,22 @@ export function SendPackToDownloaderButton({
     } finally {
       setSending(false);
     }
+  }
+
+  if (onCover) {
+    return (
+      <button
+        type="button"
+        onClick={(event) => void handleClick(event)}
+        disabled={sending}
+        title={label}
+        aria-label={label}
+        className={`inline-flex max-w-[90%] cursor-pointer items-center justify-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-lg shadow-black/40 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3.5 sm:text-[11px] ${className}`}
+      >
+        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
+        <span className="truncate">{sending ? "Enviando…" : "Downloader"}</span>
+      </button>
+    );
   }
 
   if (compact) {

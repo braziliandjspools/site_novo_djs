@@ -20,7 +20,6 @@ import {
   isCurrentPackWeek,
 } from "../../lib/week-calendar";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
-import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
   packListPanelClass,
   packListRowTone,
@@ -77,7 +76,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
           <h2 className="text-sm font-semibold tracking-tight text-white">Semanas</h2>
           <p className="text-[11px] text-zinc-500">{monthName}</p>
         </div>
-        <ul className="divide-y divide-white/[0.04]">
+        <ul>
           {weeks.map((week, index) => {
             const weekSlug = slugifyFolderName(week.name);
             const label = displayFolderName(week.name);
@@ -100,7 +99,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
             return (
               <li
                 key={week.id}
-                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${packListRowTone(index, isCurrent)}`}
+                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3.5 sm:px-4 ${packListRowTone(index, isCurrent)}`}
               >
                 <Link
                   href={href}
@@ -113,7 +112,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   className="group flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2"
                 >
                   <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="min-w-0 break-words text-sm font-medium text-zinc-100 group-hover:text-white">
+                    <span className="min-w-0 break-words text-base font-medium text-zinc-100 group-hover:text-white">
                       {weekTitle}
                     </span>
                     {weekStatus.status === "em-atualizacao" && (
@@ -131,16 +130,11 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                         Novo
                       </span>
                     )}
-                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
+                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
                   </span>
                   <span className="text-xs text-zinc-500 sm:whitespace-nowrap">{rangeLabel || "—"}</span>
                 </Link>
                 <div className="flex flex-shrink-0 items-center justify-end gap-1">
-                  <SendPackToDownloaderButton
-                    slug={`${monthSlug}/${weekSlug}`}
-                    compact
-                    label="Enviar semana ao Downloader"
-                  />
                   <CopyPackLinkButton
                     slugSegments={[monthSlug, weekSlug]}
                     label="Copiar link da semana para o Downloader"

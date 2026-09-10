@@ -28,6 +28,7 @@ import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
+import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { pushRecentFolder } from "../lib/music-library-storage";
 import { stylesReadKey, weeksReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
@@ -62,6 +63,7 @@ function resolveUrl(slugPath: string, forceRefresh = false) {
 export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { stop } = useVipMusicPlayer();
   const estiloSlug = searchParams.get("estilo");
   const faixaId = searchParams.get("faixa");
   const slugPath = slugSegments.join("/");
@@ -177,6 +179,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   useEffect(() => {
     void loadBrowse();
   }, [loadBrowse]);
+
+  // Ao trocar de pasta (ou sair da página), para o player.
+  useEffect(() => {
+    stop();
+    return () => {
+      stop();
+    };
+  }, [slugPath, stop]);
 
   const showingWeeks = useMemo(() => {
     if (!data || data.level !== "folders" || slugSegments.length !== 1) return false;
@@ -318,25 +328,26 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               }}
             />
           }
-          actions={
-            <div className="flex flex-wrap items-center gap-2">
-              {slugSegments.length === 1 ? (
-                <SendPackToDownloaderButton
-                  slug={monthSlug}
-                  label="Enviar mês inteiro ao Downloader"
-                />
-              ) : weekSlug && slugSegments.length === 2 ? (
-                <SendPackToDownloaderButton
-                  slug={`${monthSlug}/${weekSlug}`}
-                  label="Enviar semana ao Downloader"
-                />
-              ) : slugSegments.length >= 3 || showingTracks ? (
-                <SendPackToDownloaderButton
-                  slug={slugPath}
-                  label="Enviar pasta ao Downloader"
-                />
-              ) : null}
-            </div>
+          coverAction={
+            slugSegments.length === 1 ? (
+              <SendPackToDownloaderButton
+                slug={monthSlug}
+                onCover
+                label="Enviar mês inteiro ao Downloader"
+              />
+            ) : weekSlug && slugSegments.length === 2 ? (
+              <SendPackToDownloaderButton
+                slug={`${monthSlug}/${weekSlug}`}
+                onCover
+                label="Enviar semana ao Downloader"
+              />
+            ) : slugSegments.length >= 3 || showingTracks ? (
+              <SendPackToDownloaderButton
+                slug={slugPath}
+                onCover
+                label="Enviar pasta ao Downloader"
+              />
+            ) : null
           }
         />
       )}

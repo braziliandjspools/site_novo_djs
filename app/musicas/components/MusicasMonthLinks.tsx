@@ -14,12 +14,10 @@ import {
 } from "../../lib/vip-music-slugs";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
-import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
   packListPanelClass,
   packListRowTone,
   poolPanelHeaderBrClass,
-  poolPanelClass,
 } from "./atualizacoes-pool-ui";
 
 function prefetchFolder(slug: string) {
@@ -89,7 +87,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
             {sorted.length} pasta{sorted.length === 1 ? "" : "s"}
           </p>
         </div>
-        <ul className="divide-y divide-white/[0.04]">
+        <ul>
           {sorted.map((folder, index) => {
             const slug = slugifyFolderName(folder.name);
             const { label, status } = parseMonthStatus(folder.name);
@@ -100,7 +98,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
             return (
               <li
                 key={folder.id}
-                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 transition-colors sm:px-4 ${rowTone}`}
+                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3.5 sm:px-4 ${rowTone}`}
               >
                 <Link
                   href={folderHref([slug])}
@@ -108,7 +106,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                   onFocus={() => prefetchFolder(slug)}
                   className="group flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
-                  <span className="min-w-0 flex-1 break-words text-sm font-medium text-zinc-100 group-hover:text-white">
+                  <span className="min-w-0 flex-1 break-words text-base font-medium text-zinc-100 group-hover:text-white">
                     {name}
                   </span>
                   {isNew && (
@@ -117,14 +115,9 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                     </span>
                   )}
                   <StatusBadge label={label} status={status} />
-                  <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
                 </Link>
                 <div className="flex flex-shrink-0 items-center justify-end gap-1">
-                  <SendPackToDownloaderButton
-                    slug={slug}
-                    compact
-                    label="Enviar mês inteiro ao Downloader"
-                  />
                   <CopyPackLinkButton
                     slugSegments={[slug]}
                     label="Copiar link do mês para o Downloader"
@@ -149,7 +142,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
         return (
           <div
             key={folder.id}
-            className={`inline-flex items-center gap-1 rounded border border-zinc-700 bg-[#1a1a1a] py-1 pl-4 pr-1.5 text-sm font-semibold transition-colors hover:border-[#1ed760]/50 ${
+            className={`inline-flex items-center gap-1 rounded border border-zinc-700 bg-[#1a1a1a] py-1 pl-4 pr-1.5 text-base font-semibold transition-colors hover:border-[#1ed760]/50 ${
               isNew ? "text-white" : "text-zinc-300"
             }`}
           >
@@ -167,11 +160,6 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
               )}
               <StatusBadge label={label} status={status} />
             </Link>
-            <SendPackToDownloaderButton
-              slug={slug}
-              compact
-              label="Enviar mês inteiro ao Downloader"
-            />
             <CopyPackLinkButton slugSegments={[slug]} label="Copiar link do mês para o Downloader" />
           </div>
         );

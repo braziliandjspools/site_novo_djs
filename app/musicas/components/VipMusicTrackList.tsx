@@ -14,7 +14,6 @@ import {
   Play,
   Square,
 } from "lucide-react";
-import { formatBytes } from "../../lib/format-bytes";
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
@@ -55,9 +54,9 @@ type VipMusicTrackListProps = {
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
 };
 
-/** Colunas: # | nome | Key | BPM | tamanho | ações */
+/** Colunas: # | nome | Key | BPM | ações */
 const TABLE_GRID =
-  "grid grid-cols-[2rem_minmax(0,1fr)_2.75rem_3.25rem_3.75rem_2.5rem] items-center gap-x-2 sm:gap-x-3";
+  "grid grid-cols-[2rem_minmax(0,1fr)_2.75rem_3.25rem_2.5rem] items-center gap-x-2 sm:gap-x-3";
 
 /** Discografia Spotify: # | título/artista | duração */
 const DISCOGRAPHY_GRID = "grid grid-cols-[2rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
@@ -196,14 +195,12 @@ function TrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`border-b border-white/[0.04] transition-colors last:border-b-0 ${
+      className={`transition-colors ${
         isHighlighted
-          ? "bg-[#1ed760]/8"
+          ? "bg-[#1ed760]/8 ring-1 ring-inset ring-[#1ed760]/25"
           : isSelected
             ? "bg-[#1ed760]/6"
-            : isActive
-              ? "bg-white/[0.04]"
-              : "hover:bg-white/[0.03]"
+            : poolRowTone(index, isActive)
       }`}
     >
       <div className="flex items-center gap-1.5 px-1.5 py-1.5 sm:gap-2 sm:px-2 sm:py-2">
@@ -467,7 +464,7 @@ function DiscographyTrackRow({
       <div className="flex-shrink-0 pr-1 sm:pr-2">
         <CollectionContextMenu
           label={`Opções · ${display.title}`}
-          buttonClassName="!h-8 !w-8 text-zinc-500 opacity-100 hover:text-white md:opacity-0 md:group-hover/row:opacity-100"
+          buttonClassName="!h-8 !w-8 text-zinc-400 hover:text-white"
           actions={menuActions}
         />
       </div>
@@ -606,16 +603,12 @@ function TrackTableRow({
           {track.bpm ?? "—"}
         </p>
 
-        <p className="text-right font-mono text-[11px] tabular-nums text-zinc-500">
-          {formatBytes(track.sizeBytes)}
-        </p>
-
         <div className="flex items-center justify-end gap-1">
           <TrackDownloadStatus fileId={track.id} />
           {!selectionMode ? (
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
-              buttonClassName="!h-8 !w-8 text-zinc-500 opacity-100 hover:text-white md:opacity-0 md:group-hover/row:opacity-100"
+              buttonClassName="!h-8 !w-8 text-zinc-400 hover:text-white"
               actions={menuActions}
             />
           ) : null}
@@ -1057,7 +1050,6 @@ export function VipMusicTrackList({
                 <span className="min-w-0">Título</span>
                 <span className="text-center">Key</span>
                 <span className="text-center">BPM</span>
-                <span className="text-right">Tam.</span>
                 <span className="sr-only text-right">Ações</span>
               </div>
               <div>

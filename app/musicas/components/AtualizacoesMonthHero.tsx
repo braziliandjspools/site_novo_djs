@@ -19,6 +19,8 @@ type AtualizacoesMonthHeroProps = {
   mode?: HeroMode;
   coverUrl?: string | null;
   badgeActions?: ReactNode;
+  /** Conteúdo sobre a capa (ex.: enviar ao Downloader), embaixo e centralizado. */
+  coverAction?: ReactNode;
   actions?: ReactNode;
 };
 
@@ -30,6 +32,7 @@ export function AtualizacoesMonthHero({
   mode = "styles",
   coverUrl,
   badgeActions,
+  coverAction,
   actions,
 }: AtualizacoesMonthHeroProps) {
   const title = displayFolderName(folderName);
@@ -122,6 +125,11 @@ export function AtualizacoesMonthHero({
             priority
             unoptimized={cover.startsWith("/api/")}
           />
+          {coverAction ? (
+            <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center bg-gradient-to-t from-black/85 via-black/50 to-transparent px-2 pb-2.5 pt-8">
+              {coverAction}
+            </div>
+          ) : null}
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">

@@ -21,15 +21,19 @@ export const folderActionSendClass =
 export const folderActionCopyClass =
   "flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50";
 
-/** Zebrado neutro — faixas e packs. */
+/** Zebrado neutro forte — visível em toda a linha, em todos os níveis. */
 export function poolRowTone(index: number, active = false) {
-  if (active) return "bg-white/[0.06]";
+  if (active) {
+    return index % 2 === 0
+      ? "bg-[#1c1c1c] hover:bg-[#222]"
+      : "bg-[#252525] hover:bg-[#2a2a2a]";
+  }
   return index % 2 === 0
-    ? "bg-transparent hover:bg-white/[0.04]"
-    : "bg-white/[0.015] hover:bg-white/[0.045]";
+    ? "bg-[#121212] hover:bg-[#1a1a1a]"
+    : "bg-[#191919] hover:bg-[#222]";
 }
 
-/** Packs: só duas faixas neutras intercaladas (sem verde/azul). */
+/** Packs: mesmo zebrado das faixas (tabela inteira). */
 export function packListRowTone(index: number, active = false) {
   return poolRowTone(index, active);
 }

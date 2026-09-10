@@ -7,7 +7,6 @@ import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import { displayFolderName, folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
-import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
   packListPanelClass,
   packListRowTone,
@@ -38,7 +37,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
           {folders.length} pasta{folders.length === 1 ? "" : "s"}
         </p>
       </div>
-      <ul className="divide-y divide-white/[0.04]">
+      <ul>
         {folders.map((folder, index) => {
           const folderSlug = slugifyFolderName(folder.name);
           const nextSegments = [...slugSegments, folderSlug];
@@ -51,7 +50,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
           return (
             <li
               key={folder.id}
-              className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${packListRowTone(index)}`}
+              className={`flex w-full min-w-0 items-center gap-2 px-3 py-3.5 sm:px-4 ${packListRowTone(index)}`}
             >
               <Link
                 href={href}
@@ -64,20 +63,20 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 className="group flex min-w-0 flex-1 items-center gap-2.5"
               >
                 {cover ? (
-                  <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded shadow-sm ring-1 ring-white/10">
+                  <span className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded shadow-sm ring-1 ring-white/10">
                     <Image
                       src={cover}
                       alt=""
                       fill
                       className="object-cover"
-                      sizes="36px"
+                      sizes="40px"
                       unoptimized={cover.startsWith("/api/")}
                     />
                   </span>
                 ) : (
-                  <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-zinc-500" />
+                  <FolderOpen className="h-4 w-4 flex-shrink-0 text-zinc-500" />
                 )}
-                <span className="min-w-0 flex-1 break-words text-sm font-medium text-zinc-100 group-hover:text-white">
+                <span className="min-w-0 flex-1 break-words text-base font-medium text-zinc-100 group-hover:text-white">
                   {label}
                 </span>
                 {isNew && (
@@ -85,14 +84,9 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                     Novo
                   </span>
                 )}
-                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
+                <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
               </Link>
               <div className="flex flex-shrink-0 items-center justify-end gap-1">
-                <SendPackToDownloaderButton
-                  slug={resolveSlug}
-                  compact
-                  label={`Enviar ${label} ao Downloader`}
-                />
                 <CopyPackLinkButton
                   slugSegments={nextSegments}
                   label={`Copiar link de ${label} para o Downloader`}

@@ -39,6 +39,8 @@ type VipMusicPlayerContextValue = {
   playNext: () => Promise<void>;
   playPrevious: () => Promise<void>;
   pause: () => void;
+  /** Para a reprodução e limpa o estado do player (ex.: ao sair da pasta). */
+  stop: () => void;
   seek: (ratio: number) => Promise<void>;
   clearPreviewEnded: () => void;
   isFolderPlaying: (folderId: string) => boolean;
@@ -364,6 +366,15 @@ export function VipMusicPlayerProvider({
 
   const clearPreviewEnded = useCallback(() => setPreviewEnded(false), []);
 
+  const stop = useCallback(() => {
+    player.pause();
+    playingFolderIdRef.current = null;
+    setPlayingFolderId(null);
+    setCurrentTrack(null);
+    syncFolderVisuals(null);
+    setPreviewEnded(false);
+  }, [player.pause, syncFolderVisuals]);
+
   const isPlaying = player.playingId !== null && player.loadingId === null;
   const mediaActive = Boolean(currentTrack);
 
@@ -420,6 +431,7 @@ export function VipMusicPlayerProvider({
       playNext,
       playPrevious,
       pause: player.pause,
+      stop,
       seek,
       clearPreviewEnded,
       isFolderPlaying,
@@ -446,6 +458,7 @@ export function VipMusicPlayerProvider({
       playQueue,
       playNext,
       playPrevious,
+      stop,
       seek,
       clearPreviewEnded,
       isFolderPlaying,
