@@ -57,19 +57,20 @@ export function CollectionHero({
 
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl">
-      <Image
-        src={MUSICAS_HERO_BG_SRC}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-center"
-        aria-hidden
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/35" aria-hidden />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/30" aria-hidden />
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <Image
+          src={MUSICAS_HERO_BG_SRC}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/30" />
+      </div>
 
-      <div className="relative flex flex-col gap-5 px-4 py-7 sm:flex-row sm:items-end sm:gap-7 sm:px-8 sm:py-9">
+      <div className="relative z-10 flex flex-col gap-5 overflow-visible px-4 py-7 sm:flex-row sm:items-end sm:gap-7 sm:px-8 sm:py-9">
         <div className="relative mx-auto h-40 w-40 flex-shrink-0 overflow-hidden rounded-lg shadow-[0_18px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/15 sm:mx-0 sm:h-48 sm:w-48 md:h-52 md:w-52">
           <Image
             src={cover}

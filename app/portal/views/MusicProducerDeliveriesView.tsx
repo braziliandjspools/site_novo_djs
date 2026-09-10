@@ -6,9 +6,26 @@ import { ArrowRight, Loader2, Music2, RefreshCw, Sparkles } from "lucide-react";
 import { PortalCard, PortalPageHeader } from "../PortalShell";
 import { MusicProducerDeliveryCard } from "./MusicProducerDeliveryCard";
 
+type BriefingItem = {
+  id: number;
+  servicePlan: string;
+  estimatedQuote: string | null;
+  idea: string;
+  lyrics: string | null;
+  style: string | null;
+  occasion: string | null;
+  deadline: string | null;
+  additionalNotes: string | null;
+  status: string;
+  statusLabel: string;
+  adminNote: string | null;
+  createdAtLabel: string;
+};
+
 type DeliveriesResponse = {
   enabled: boolean;
   deliveries: Parameters<typeof MusicProducerDeliveryCard>[0]["delivery"][];
+  briefings?: BriefingItem[];
 };
 
 function EmptyDeliveriesState({ enabled }: { enabled: boolean }) {
@@ -37,6 +54,115 @@ function EmptyDeliveriesState({ enabled }: { enabled: boolean }) {
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
+    </PortalCard>
+  );
+}
+
+function BriefingCard({
+  briefing,
+  onUpdated,
+}: {
+  briefing: BriefingItem;
+  onUpdated: () => void;
+}) {
+  const canEdit = briefing.status === "EM_EDICAO";
+  const [idea, setIdea] = useState(briefing.idea);
+  const [lyrics, setLyrics] = useState(briefing.lyrics ?? "");
+  const [style, setStyle] = useState(briefing.style ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function resubmit() {
+    if (!idea.trim()) {
+      setError("Descreva a ideia da música.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/portal/music-producer/briefings/${briefing.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idea: idea.trim(),
+          lyrics: lyrics.trim() || null,
+          style: style.trim() || null,
+          occasion: briefing.occasion,
+          deadline: briefing.deadline,
+          additionalNotes: briefing.additionalNotes,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Não foi possível reenviar.");
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao reenviar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <PortalCard>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Pedido</p>
+          <h3 className="mt-1 font-semibold text-white">{briefing.servicePlan}</h3>
+          <p className="mt-1 text-xs text-zinc-500">{briefing.createdAtLabel}</p>
+        </div>
+        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1DB954]">
+          {briefing.statusLabel}
+        </span>
+      </div>
+
+      {briefing.adminNote ? (
+        <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+          {briefing.adminNote}
+        </p>
+      ) : null}
+
+      {canEdit ? (
+        <div className="mt-4 space-y-3">
+          <label className="block text-xs font-semibold text-zinc-400">
+            Ideia
+            <textarea
+              value={idea}
+              onChange={(event) => setIdea(event.target.value)}
+              rows={4}
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-black/40 px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <label className="block text-xs font-semibold text-zinc-400">
+            Letra (opcional)
+            <textarea
+              value={lyrics}
+              onChange={(event) => setLyrics(event.target.value)}
+              rows={3}
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-black/40 px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <label className="block text-xs font-semibold text-zinc-400">
+            Estilo (opcional)
+            <input
+              value={style}
+              onChange={(event) => setStyle(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-700 bg-black/40 px-3 py-2 text-sm text-white"
+            />
+          </label>
+          {error ? <p className="text-sm text-red-400">{error}</p> : null}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void resubmit()}
+            className="inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-4 py-2 text-xs font-bold text-black disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            Corrigir e reenviar
+          </button>
+        </div>
+      ) : (
+        <p className="mt-3 line-clamp-4 whitespace-pre-wrap text-sm text-zinc-300">{briefing.idea}</p>
+      )}
     </PortalCard>
   );
 }
@@ -91,18 +217,15 @@ export function MusicProducerDeliveriesView() {
   }
 
   const deliveries = data?.deliveries ?? [];
-  const isEmpty = deliveries.length === 0;
+  const briefings = data?.briefings ?? [];
+  const isEmpty = deliveries.length === 0 && briefings.length === 0;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PortalPageHeader
           title="Minhas produções"
-          subtitle={
-            isEmpty
-              ? "Suas faixas finalizadas aparecem aqui assim que forem liberadas."
-              : "Clique na música para avaliar ou solicitar correção."
-          }
+          subtitle="Acompanhe pedidos e faixas liberadas — status iguais aos do painel admin."
         />
         {!isEmpty && (
           <button
@@ -119,16 +242,34 @@ export function MusicProducerDeliveriesView() {
       {isEmpty ? (
         <EmptyDeliveriesState enabled={Boolean(data?.enabled)} />
       ) : (
-        <div className="grid gap-3">
-          {deliveries.map((delivery) => (
-            <MusicProducerDeliveryCard
-              key={delivery.id}
-              delivery={delivery}
-              expanded={expandedId === delivery.id}
-              onToggle={() => setExpandedId((current) => (current === delivery.id ? null : delivery.id))}
-              onUpdated={() => void loadDeliveries()}
-            />
-          ))}
+        <div className="space-y-6">
+          {briefings.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400">Pedidos</h2>
+              <div className="grid gap-3">
+                {briefings.map((briefing) => (
+                  <BriefingCard key={briefing.id} briefing={briefing} onUpdated={() => void loadDeliveries()} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {deliveries.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400">Entregas</h2>
+              <div className="grid gap-3">
+                {deliveries.map((delivery) => (
+                  <MusicProducerDeliveryCard
+                    key={delivery.id}
+                    delivery={delivery}
+                    expanded={expandedId === delivery.id}
+                    onToggle={() => setExpandedId((current) => (current === delivery.id ? null : delivery.id))}
+                    onUpdated={() => void loadDeliveries()}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>

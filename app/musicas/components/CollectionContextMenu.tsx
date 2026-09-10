@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { MoreHorizontal, type LucideIcon } from "lucide-react";
 import { createPortal } from "react-dom";
 
@@ -14,17 +14,21 @@ export type CollectionMenuAction = {
 
 type CollectionContextMenuProps = {
   actions: CollectionMenuAction[];
-  /** Acessibilidade */
   label?: string;
   className?: string;
   buttonClassName?: string;
-  /** Conteúdo customizado do botão (padrão: …) */
   trigger?: ReactNode;
 };
 
+type MenuCoords = {
+  top: number;
+  left: number;
+  openUp: boolean;
+};
+
 /**
- * Menu contextual: dropdown no desktop, bottom sheet no mobile.
- * Nunca sai da tela; fecha ao tocar fora / Escape.
+ * Menu contextual: portal fixed no desktop (não é cortado por overflow do hero/lista),
+ * bottom sheet no mobile.
  */
 export function CollectionContextMenu({
   actions,
@@ -35,7 +39,10 @@ export function CollectionContextMenu({
 }: CollectionContextMenuProps) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [coords, setCoords] = useState<MenuCoords | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -46,15 +53,59 @@ export function CollectionContextMenu({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  useLayoutEffect(() => {
+    if (!open || isMobile) {
+      setCoords(null);
+      return;
+    }
+
+    function place() {
+      const button = buttonRef.current;
+      const menu = menuRef.current;
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const menuWidth = menu?.offsetWidth || 264;
+      const menuHeight = menu?.offsetHeight || 240;
+      const gap = 6;
+      const margin = 12;
+
+      let left = rect.right - menuWidth;
+      left = Math.max(margin, Math.min(left, window.innerWidth - menuWidth - margin));
+
+      const spaceBelow = window.innerHeight - rect.bottom - margin;
+      const spaceAbove = rect.top - margin;
+      const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+
+      const top = openUp
+        ? Math.max(margin, rect.top - gap - menuHeight)
+        : Math.min(rect.bottom + gap, window.innerHeight - margin - Math.min(menuHeight, spaceBelow));
+
+      setCoords({ top, left, openUp });
+    }
+
+    place();
+    // Reposition after first paint when menu size is known
+    const raf = requestAnimationFrame(place);
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open, isMobile, actions.length]);
+
   useEffect(() => {
     if (!open) return;
 
     function onPointerDown(event: PointerEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        const sheet = document.getElementById(menuId);
-        if (sheet && sheet.contains(event.target as Node)) return;
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      const sheet = document.getElementById(menuId);
+      if (sheet?.contains(target)) return;
+      setOpen(false);
     }
 
     function onKeyDown(event: KeyboardEvent) {
@@ -104,6 +155,7 @@ export function CollectionContextMenu({
   return (
     <div ref={rootRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         aria-label={label}
         aria-expanded={open}
@@ -118,20 +170,32 @@ export function CollectionContextMenu({
         {trigger ?? <MoreHorizontal className="h-5 w-5" />}
       </button>
 
-      {open && !isMobile ? (
-        <div
-          role="menu"
-          className="absolute right-0 top-[calc(100%+0.35rem)] z-[100] max-h-[min(70vh,24rem)] w-[min(calc(100vw-1.5rem),16.5rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-[#181818] py-1 shadow-2xl shadow-black/60"
-        >
-          {menuItems}
-        </div>
-      ) : null}
+      {open &&
+        !isMobile &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            id={menuId}
+            role="menu"
+            aria-label={label}
+            style={
+              coords
+                ? { position: "fixed", top: coords.top, left: coords.left, zIndex: 10050 }
+                : { position: "fixed", top: -9999, left: -9999, zIndex: 10050, visibility: "hidden" }
+            }
+            className="max-h-[min(70vh,24rem)] w-[min(calc(100vw-1.5rem),16.5rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-[#181818] py-1 shadow-2xl shadow-black/70"
+          >
+            {menuItems}
+          </div>,
+          document.body,
+        )}
 
       {open &&
         isMobile &&
         typeof document !== "undefined" &&
         createPortal(
-          <div className="fixed inset-0 z-[10000]" role="presentation">
+          <div className="fixed inset-0 z-[10050]" role="presentation">
             <button
               type="button"
               aria-label="Fechar menu"

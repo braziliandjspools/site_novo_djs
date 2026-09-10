@@ -221,7 +221,10 @@ export async function getVipMusicTracksPaginated(
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
   const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 100) : VIP_MUSIC_TRACKS_PAGE_SIZE;
   const start = (safePage - 1) * safeLimit;
-  const tracks = all.slice(start, start + safeLimit);
+  const pageTracks = all.slice(start, start + safeLimit);
+
+  const { enrichTracksWithDriveTags } = await import("./audio-file-tags");
+  const tracks = await enrichTracksWithDriveTags(pageTracks);
 
   return {
     tracks,

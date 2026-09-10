@@ -12,6 +12,7 @@ type CollectionTracksPanelProps = {
   canPlay: boolean;
   canDownload?: boolean;
   relativePath?: string;
+  coverUrl?: string | null;
 };
 
 type TracksResponse = {
@@ -28,6 +29,7 @@ export function CollectionTracksPanel({
   canPlay,
   canDownload = false,
   relativePath,
+  coverUrl,
 }: CollectionTracksPanelProps) {
   const [tracks, setTracks] = useState<PreviewTrack[]>([]);
   const [total, setTotal] = useState(0);
@@ -115,6 +117,8 @@ export function CollectionTracksPanel({
         canPlay={canPlay}
         canDownload={canDownload}
         relativePath={relativePath}
+        coverUrl={coverUrl}
+        albumTitle={folderName}
         hasMore={hasMore}
         onLoadMore={async () => {
           const result = await loadPage(page + 1, true);

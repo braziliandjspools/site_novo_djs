@@ -76,7 +76,7 @@ export function CollectionVolumesView({ volumes, canDownload }: CollectionVolume
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">Álbuns</h2>
-      <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-xl border border-white/[0.06] bg-[#141414]/80">
+      <ul className="divide-y divide-white/[0.06] overflow-visible rounded-xl border border-white/[0.06] bg-[#141414]/80">
         {volumes.map((volume) => {
           const href = collectionsHref(volume.hrefSegments);
           const cover = volume.coverUrl?.trim() || PLACEHOLDER.trackCover;

@@ -235,6 +235,15 @@ enum MusicProducerRedoReason {
   BOTH
 }
 
+enum MusicProducerBriefingStatus {
+  PENDENTE
+  EM_REVISAO
+  EM_PRODUCAO
+  EM_EDICAO
+  CONCLUIDO
+  EXCLUIDO
+}
+
 model MusicProducerDelivery {
   id              Int                      @id @default(autoincrement())
   portalUserId    Int                      @map("portal_user_id")
@@ -261,26 +270,30 @@ model MusicProducerDelivery {
 }
 
 model MusicProducerBriefing {
-  id                Int         @id @default(autoincrement())
-  portalUserId      Int?        @map("portal_user_id")
-  portalUser        PortalUser? @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  id                Int                         @id @default(autoincrement())
+  portalUserId      Int?                        @map("portal_user_id")
+  portalUser        PortalUser?                 @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
   name              String
   email             String
   whatsapp          String
-  servicePlan       String      @map("service_plan")
-  estimatedQuote    String?     @map("estimated_quote")
+  servicePlan       String                      @map("service_plan")
+  estimatedQuote    String?                     @map("estimated_quote")
   idea              String
   lyrics            String?
   style             String?
   occasion          String?
   deadline          String?
-  deadlineSurcharge String?     @map("deadline_surcharge")
-  additionalNotes   String?     @map("additional_notes")
-  emailSent         Boolean     @default(false) @map("email_sent")
-  emailError        String?     @map("email_error")
-  createdAt         DateTime    @default(now()) @map("created_at")
+  deadlineSurcharge String?                     @map("deadline_surcharge")
+  additionalNotes   String?                     @map("additional_notes")
+  status            MusicProducerBriefingStatus @default(PENDENTE)
+  adminNote         String?                     @map("admin_note")
+  emailSent         Boolean                     @default(false) @map("email_sent")
+  emailError        String?                     @map("email_error")
+  createdAt         DateTime                    @default(now()) @map("created_at")
+  updatedAt         DateTime                    @updatedAt @map("updated_at")
 
   @@index([portalUserId, createdAt])
+  @@index([status, createdAt])
   @@index([createdAt])
   @@map("music_producer_briefings")
 }

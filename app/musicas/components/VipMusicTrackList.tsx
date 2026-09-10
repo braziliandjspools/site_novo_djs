@@ -30,6 +30,10 @@ type VipMusicTrackListProps = {
   canPlay: boolean;
   canDownload: boolean;
   relativePath?: string;
+  /** Capa da pasta para Media Session / notificação. */
+  coverUrl?: string | null;
+  /** Nome do álbum/coleção na notificação. */
+  albumTitle?: string | null;
   highlightTrackId?: string;
   autoPlayTrackId?: string;
   continueContext?: {
@@ -227,17 +231,29 @@ function TrackRow({
           disabled={!canPlay && !selectionMode}
           className="min-w-0 flex-1 text-left"
         >
-          <div className="flex min-w-0 items-center gap-1.5">
-            {isPlaying && <PlayingBars />}
-            <p
-              className={`min-w-0 break-words text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}
-              title={track.title}
-            >
-              {track.title}
-            </p>
-            <span className="hidden sm:inline">
-              <TrackDownloadStatus fileId={track.id} />
-            </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-1.5">
+              {isPlaying && <PlayingBars />}
+              <p
+                className={`min-w-0 break-words text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}
+                title={track.title}
+              >
+                {track.title}
+              </p>
+              <span className="hidden sm:inline">
+                <TrackDownloadStatus fileId={track.id} />
+              </span>
+            </div>
+            {track.artist ? (
+              <p className="mt-0.5 truncate text-[10px] text-zinc-500" title={track.artist}>
+                {track.artist}
+                {track.album ? ` · ${track.album}` : ""}
+              </p>
+            ) : track.album ? (
+              <p className="mt-0.5 truncate text-[10px] text-zinc-500" title={track.album}>
+                {track.album}
+              </p>
+            ) : null}
           </div>
         </button>
 
@@ -417,7 +433,14 @@ function DiscographyTrackRow({
             {track.title}
           </p>
           {track.artist ? (
-            <p className="mt-0.5 truncate text-xs text-zinc-400">{track.artist}</p>
+            <p className="mt-0.5 truncate text-xs text-zinc-400" title={track.artist}>
+              {track.artist}
+              {track.album ? ` · ${track.album}` : ""}
+            </p>
+          ) : track.album ? (
+            <p className="mt-0.5 truncate text-xs text-zinc-400" title={track.album}>
+              {track.album}
+            </p>
           ) : null}
         </div>
 
@@ -540,6 +563,16 @@ function TrackTableRow({
             >
               {track.title}
             </p>
+            {track.artist ? (
+              <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={track.artist}>
+                {track.artist}
+                {track.album ? ` · ${track.album}` : ""}
+              </p>
+            ) : track.album ? (
+              <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={track.album}>
+                {track.album}
+              </p>
+            ) : null}
           </button>
         </div>
 
@@ -648,6 +681,8 @@ export function VipMusicTrackList({
   canPlay,
   canDownload,
   relativePath,
+  coverUrl,
+  albumTitle,
   highlightTrackId,
   autoPlayTrackId,
   continueContext,
@@ -689,8 +724,10 @@ export function VipMusicTrackList({
       tracks,
       hasMore,
       loadMore: async () => loadMoreRef.current?.(),
+      coverUrl: coverUrl ?? null,
+      albumTitle: albumTitle ?? tracks[0]?.pack ?? null,
     });
-  }, [folderId, tracks, hasMore, setFolderPlayback]);
+  }, [folderId, tracks, hasMore, setFolderPlayback, coverUrl, albumTitle]);
 
   useEffect(() => {
     if (layout !== "table") return;

@@ -4,11 +4,16 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useProtectedPlayer } from "../../hooks/useProtectedPlayer";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { VIP_MUSIC_PREVIEW_SECONDS } from "../../lib/vip-music-preview";
+import { useMediaSession } from "../lib/media-session";
 
 type FolderPlaybackState = {
   tracks: PreviewTrack[];
   hasMore: boolean;
   loadMore: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
+  /** Capa da pasta/álbum para Media Session / UI. */
+  coverUrl?: string | null;
+  /** Título do álbum/coleção exibido na notificação. */
+  albumTitle?: string | null;
 };
 
 type VipMusicPlayerContextValue = {
@@ -26,10 +31,13 @@ type VipMusicPlayerContextValue = {
   previewEnded: boolean;
   currentTrack: PreviewTrack | null;
   isPlaying: boolean;
+  currentCoverUrl: string | null;
   setFolderPlayback: (folderId: string, state: FolderPlaybackState) => void;
   registerTrackMeta: (track: PreviewTrack) => void;
   toggleTrack: (folderId: string, trackId: string) => Promise<void>;
   playQueue: (folderId: string, trackId: string, tracks: PreviewTrack[]) => Promise<void>;
+  playNext: () => Promise<void>;
+  playPrevious: () => Promise<void>;
   pause: () => void;
   seek: (ratio: number) => Promise<void>;
   clearPreviewEnded: () => void;
@@ -40,7 +48,6 @@ const VipMusicPlayerContext = createContext<VipMusicPlayerContextValue | null>(n
 
 type VipMusicPlayerProviderProps = {
   children: React.ReactNode;
-  /** Faixa completa (assinante VIP). Sem isso, só prévia. */
   canPlayFull?: boolean;
   previewSeconds?: number;
 };
@@ -54,6 +61,8 @@ export function VipMusicPlayerProvider({
   const trackMetaRef = useRef<Map<string, PreviewTrack>>(new Map());
   const [playingFolderId, setPlayingFolderId] = useState<string | null>(null);
   const [currentTrack, setCurrentTrack] = useState<PreviewTrack | null>(null);
+  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
+  const [currentAlbumTitle, setCurrentAlbumTitle] = useState<string | null>(null);
   const [previewEnded, setPreviewEnded] = useState(false);
   const playingFolderIdRef = useRef<string | null>(null);
   const playRef = useRef<(trackId: string) => Promise<void>>(async () => {});
@@ -61,9 +70,21 @@ export function VipMusicPlayerProvider({
   canPlayFullRef.current = canPlayFull;
   const previewSecondsRef = useRef(previewSeconds);
   previewSecondsRef.current = previewSeconds;
+  const currentTimeRef = useRef(0);
 
   const isPreviewMode = !canPlayFull;
   const advancingRef = useRef(false);
+
+  const syncFolderVisuals = useCallback((folderId: string | null) => {
+    if (!folderId) {
+      setCurrentCoverUrl(null);
+      setCurrentAlbumTitle(null);
+      return;
+    }
+    const folder = foldersRef.current.get(folderId);
+    setCurrentCoverUrl(folder?.coverUrl?.trim() || null);
+    setCurrentAlbumTitle(folder?.albumTitle?.trim() || null);
+  }, []);
 
   const playNextAfter = useCallback(async (endedTrackId: string) => {
     if (advancingRef.current) return;
@@ -142,6 +163,8 @@ export function VipMusicPlayerProvider({
     },
   });
 
+  currentTimeRef.current = player.currentTime;
+
   playRef.current = async (trackId: string) => {
     setPreviewEnded(false);
     setCurrentTrack(trackMetaRef.current.get(trackId) ?? null);
@@ -152,12 +175,18 @@ export function VipMusicPlayerProvider({
     }
   };
 
-  const setFolderPlayback = useCallback((folderId: string, state: FolderPlaybackState) => {
-    foldersRef.current.set(folderId, state);
-    for (const track of state.tracks) {
-      trackMetaRef.current.set(track.id, track);
-    }
-  }, []);
+  const setFolderPlayback = useCallback(
+    (folderId: string, state: FolderPlaybackState) => {
+      foldersRef.current.set(folderId, state);
+      for (const track of state.tracks) {
+        trackMetaRef.current.set(track.id, track);
+      }
+      if (playingFolderIdRef.current === folderId) {
+        syncFolderVisuals(folderId);
+      }
+    },
+    [syncFolderVisuals],
+  );
 
   const registerTrackMeta = useCallback((track: PreviewTrack) => {
     trackMetaRef.current.set(track.id, track);
@@ -168,13 +197,17 @@ export function VipMusicPlayerProvider({
       for (const track of tracks) {
         trackMetaRef.current.set(track.id, track);
       }
+      const existing = foldersRef.current.get(folderId);
       foldersRef.current.set(folderId, {
         tracks,
         hasMore: false,
         loadMore: async () => {},
+        coverUrl: existing?.coverUrl,
+        albumTitle: existing?.albumTitle,
       });
       playingFolderIdRef.current = folderId;
       setPlayingFolderId(folderId);
+      syncFolderVisuals(folderId);
       setCurrentTrack(tracks.find((track) => track.id === trackId) ?? null);
       setPreviewEnded(false);
       try {
@@ -183,7 +216,7 @@ export function VipMusicPlayerProvider({
         /* erro registrado no state do player */
       }
     },
-    [player],
+    [player, syncFolderVisuals],
   );
 
   const toggleTrack = useCallback(
@@ -194,6 +227,7 @@ export function VipMusicPlayerProvider({
       }
       playingFolderIdRef.current = folderId;
       setPlayingFolderId(folderId);
+      syncFolderVisuals(folderId);
       setCurrentTrack(trackMetaRef.current.get(trackId) ?? null);
       setPreviewEnded(false);
       try {
@@ -202,8 +236,59 @@ export function VipMusicPlayerProvider({
         /* erro registrado no state do player */
       }
     },
-    [player],
+    [player, syncFolderVisuals],
   );
+
+  const playNext = useCallback(async () => {
+    const id = player.playingId ?? currentTrack?.id;
+    if (!id) return;
+    await playNextAfter(id);
+  }, [player.playingId, currentTrack?.id, playNextAfter]);
+
+  const playPrevious = useCallback(async () => {
+    const folderId = playingFolderIdRef.current;
+    if (!folderId) return;
+    const folder = foldersRef.current.get(folderId);
+    if (!folder) return;
+
+    const activeId = player.playingId ?? currentTrack?.id;
+    if (!activeId) return;
+
+    if (currentTimeRef.current > 3) {
+      await player.seek(0);
+      if (!player.playingId) {
+        try {
+          await player.play(activeId);
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
+
+    const index = folder.tracks.findIndex((track) => track.id === activeId);
+    if (index <= 0) {
+      await player.seek(0);
+      if (!player.playingId) {
+        try {
+          await player.play(activeId);
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
+
+    const prev = folder.tracks[index - 1];
+    if (!prev) return;
+    setPreviewEnded(false);
+    setCurrentTrack(prev);
+    try {
+      await player.play(prev.id);
+    } catch {
+      /* ignore */
+    }
+  }, [player, currentTrack?.id]);
 
   const seek = useCallback(
     async (ratio: number) => {
@@ -224,7 +309,23 @@ export function VipMusicPlayerProvider({
     [player],
   );
 
-  // Corta a prévia em N segundos e avança automaticamente para a próxima.
+  const seekToSeconds = useCallback(
+    async (seconds: number) => {
+      const rawDuration = player.duration;
+      if (!Number.isFinite(rawDuration) || rawDuration <= 0) return;
+      const clamped = Math.max(0, Math.min(seconds, rawDuration));
+      await player.seek(clamped / rawDuration);
+    },
+    [player],
+  );
+
+  const seekBySeconds = useCallback(
+    async (offset: number) => {
+      await seekToSeconds(currentTimeRef.current + offset);
+    },
+    [seekToSeconds],
+  );
+
   useEffect(() => {
     if (canPlayFull || !player.playingId) return;
     if (player.currentTime < previewSeconds) return;
@@ -260,6 +361,37 @@ export function VipMusicPlayerProvider({
 
   const clearPreviewEnded = useCallback(() => setPreviewEnded(false), []);
 
+  const isPlaying = player.playingId !== null && player.loadingId === null;
+  const mediaActive = Boolean(currentTrack);
+
+  useMediaSession({
+    track: currentTrack,
+    coverUrl: currentCoverUrl,
+    albumTitle: currentAlbumTitle || currentTrack?.pack || null,
+    isPlaying,
+    isActive: mediaActive,
+    duration: displayDuration,
+    position: Math.min(player.currentTime, displayDuration),
+    handlers: {
+      onPlay: async () => {
+        const id = currentTrack?.id;
+        if (!id) return;
+        try {
+          await player.play(id);
+        } catch {
+          /* ignore */
+        }
+      },
+      onPause: () => {
+        player.pause();
+      },
+      onNext: () => playNext(),
+      onPrevious: () => playPrevious(),
+      onSeek: (seconds) => seekToSeconds(seconds),
+      onSeekBy: (offset) => seekBySeconds(offset),
+    },
+  });
+
   const value = useMemo(
     () => ({
       playingFolderId,
@@ -275,11 +407,14 @@ export function VipMusicPlayerProvider({
       previewSeconds,
       previewEnded,
       currentTrack,
-      isPlaying: player.playingId !== null && player.loadingId === null,
+      isPlaying,
+      currentCoverUrl,
       setFolderPlayback,
       registerTrackMeta,
       toggleTrack,
       playQueue,
+      playNext,
+      playPrevious,
       pause: player.pause,
       seek,
       clearPreviewEnded,
@@ -299,10 +434,14 @@ export function VipMusicPlayerProvider({
       previewSeconds,
       previewEnded,
       currentTrack,
+      isPlaying,
+      currentCoverUrl,
       setFolderPlayback,
       registerTrackMeta,
       toggleTrack,
       playQueue,
+      playNext,
+      playPrevious,
       seek,
       clearPreviewEnded,
       isFolderPlaying,

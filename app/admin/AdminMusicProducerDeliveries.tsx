@@ -36,9 +36,21 @@ type BriefingItem = {
   deadline: string | null;
   deadlineSurcharge: string | null;
   additionalNotes: string | null;
+  status: string;
+  statusLabel: string;
+  adminNote: string | null;
   createdAt: string;
   createdAtLabel: string;
 };
+
+const BRIEFING_STATUS_OPTIONS = [
+  { value: "PENDENTE", label: "Pendente" },
+  { value: "EM_REVISAO", label: "Em revisão" },
+  { value: "EM_PRODUCAO", label: "Em produção" },
+  { value: "EM_EDICAO", label: "Em edição" },
+  { value: "CONCLUIDO", label: "Concluído" },
+  { value: "EXCLUIDO", label: "Excluído" },
+] as const;
 
 type DeliveryItem = {
   id: number;
@@ -129,6 +141,8 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
   const [expandedBriefingId, setExpandedBriefingId] = useState<number | null>(null);
   const [newDrafts, setNewDrafts] = useState<Record<number, DeliveryDraft>>({});
   const [editDrafts, setEditDrafts] = useState<Record<number, DeliveryDraft>>({});
+  const [briefingNotes, setBriefingNotes] = useState<Record<number, string>>({});
+  const [briefingBusyId, setBriefingBusyId] = useState<number | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -341,6 +355,67 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
       setError(err instanceof Error ? err.message : "Erro ao marcar refazer como resolvido.");
     } finally {
       setSavingId(null);
+    }
+  }
+
+  async function updateBriefingStatus(briefingId: number, status: string) {
+    setBriefingBusyId(briefingId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/music-producer/briefings/${briefingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          adminNote: briefingNotes[briefingId] ?? undefined,
+        }),
+      });
+      const payload = await readApiJson(res);
+      if (!res.ok) throw new Error(payload.error ?? "Erro ao atualizar status.");
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao atualizar status do pedido.");
+    } finally {
+      setBriefingBusyId(null);
+    }
+  }
+
+  async function returnBriefingToClient(briefingId: number) {
+    const note = (briefingNotes[briefingId] ?? "").trim();
+    if (!window.confirm("Devolver este pedido ao cliente para correção (status Em edição)?")) return;
+    setBriefingBusyId(briefingId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/music-producer/briefings/${briefingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnToClient: true, adminNote: note || undefined }),
+      });
+      const payload = await readApiJson(res);
+      if (!res.ok) throw new Error(payload.error ?? "Erro ao devolver pedido.");
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao devolver pedido.");
+    } finally {
+      setBriefingBusyId(null);
+    }
+  }
+
+  async function deleteBriefing(briefingId: number, plan: string) {
+    if (!window.confirm(`Excluir o pedido "${plan}"? O cliente deixa de vê-lo.`)) return;
+    setBriefingBusyId(briefingId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/music-producer/briefings/${briefingId}`, {
+        method: "DELETE",
+      });
+      const payload = await readApiJson(res);
+      if (!res.ok) throw new Error(payload.error ?? "Erro ao excluir pedido.");
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir pedido.");
+    } finally {
+      setBriefingBusyId(null);
     }
   }
 
@@ -577,6 +652,9 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                                       {briefing.estimatedQuote}
                                     </span>
                                   )}
+                                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8ab4f8]">
+                                    {briefing.statusLabel ?? "Pendente"}
+                                  </span>
                                 </div>
                                 <p className="truncate text-xs text-gray-500">
                                   {briefing.createdAtLabel}
@@ -622,6 +700,63 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                                 <p className="text-xs text-gray-500">
                                   {briefing.name} · {briefing.email} · {briefing.whatsapp}
                                 </p>
+
+                                <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-3">
+                                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                                    Status do pedido
+                                  </label>
+                                  <select
+                                    value={briefing.status ?? "PENDENTE"}
+                                    disabled={briefingBusyId === briefing.id}
+                                    onChange={(event) => void updateBriefingStatus(briefing.id, event.target.value)}
+                                    className={inputClass}
+                                  >
+                                    {BRIEFING_STATUS_OPTIONS.map((option) => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <label className="mt-2 block text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                                    Nota para o cliente (opcional)
+                                  </label>
+                                  <textarea
+                                    value={briefingNotes[briefing.id] ?? briefing.adminNote ?? ""}
+                                    onChange={(event) =>
+                                      setBriefingNotes((prev) => ({
+                                        ...prev,
+                                        [briefing.id]: event.target.value,
+                                      }))
+                                    }
+                                    rows={2}
+                                    className={inputClass}
+                                    placeholder="Ex.: ajuste a letra e o estilo antes de reenviar"
+                                  />
+                                  <div className="flex flex-wrap gap-2 pt-1">
+                                    <button
+                                      type="button"
+                                      disabled={briefingBusyId === briefing.id}
+                                      onClick={() => void returnBriefingToClient(briefing.id)}
+                                      className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-amber-200 hover:bg-amber-500/25 disabled:opacity-50"
+                                    >
+                                      {briefingBusyId === briefing.id ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      ) : (
+                                        <RotateCcw className="h-3.5 w-3.5" />
+                                      )}
+                                      Devolver ao cliente
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={briefingBusyId === briefing.id}
+                                      onClick={() => void deleteBriefing(briefing.id, briefing.servicePlan)}
+                                      className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-red-300 hover:bg-red-500/25 disabled:opacity-50"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                      Excluir pedido
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>

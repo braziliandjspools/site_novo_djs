@@ -16,6 +16,8 @@ export type PreviewTrack = {
   title: string;
   artist: string;
   pack: string;
+  /** Álbum da tag ID3/metadata, quando disponível. */
+  album?: string | null;
   /** Nome original do arquivo no Google Drive (com extensão). */
   fileName?: string;
   /** ISO do `modifiedTime` do Google Drive, quando disponível via API. */

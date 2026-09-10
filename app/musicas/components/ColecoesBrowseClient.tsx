@@ -455,6 +455,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
           canPlay={canPlay}
           canDownload={canDownload}
           relativePath={relativePath}
+          coverUrl={coverUrl}
         />
       ) : (
         <section className="space-y-4">
