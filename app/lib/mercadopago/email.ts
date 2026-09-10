@@ -23,20 +23,39 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
 
   const plan = getCanonicalPlanById(input.planId);
   const planLabel = plan?.title ?? "BRS Drive VIP";
-  const durationLabel = plan?.durationLabel ?? "período VIP";
+  const durationLabel = plan?.lifetime
+    ? "Licença vitalícia"
+    : (plan?.durationLabel ?? "período VIP");
   const firstName = escapeEmailHtml(input.name.trim().split(/\s+/)[0] || "DJ");
   const periodEndLabel = escapeEmailHtml(formatDueDate(input.periodEnd));
   const accountUrl = `${SITE_URL || SITE_PRODUCTION_URL}/portal/conta`;
   const plansUrl = `${SITE_URL || SITE_PRODUCTION_URL}/plans`;
   const logoUrl = `${SITE_PRODUCTION_URL}/images/brs-logo.jpg`;
+  const isDeemix = plan?.serviceProduct === "deemix";
+  const isAllavsoft = plan?.serviceProduct === "allavsoft";
 
-  const subject =
-    plan?.serviceProduct === "deemix"
+  const subject = isAllavsoft
+    ? `Licença Allavsoft liberada — ${SITE_NAME}`
+    : isDeemix
       ? `Acesso Deemix liberado — ${SITE_NAME}`
       : `Acesso VIP liberado — ${SITE_NAME}`;
 
-  const text =
-    plan?.serviceProduct === "deemix"
+  const text = isAllavsoft
+    ? [
+        `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
+        "",
+        "Seu pagamento foi confirmado e a licença vitalícia do Allavsoft já está liberada no portal.",
+        "",
+        `Plano: ${planLabel}`,
+        `Duração: ${durationLabel}`,
+        "",
+        "O serial ficará disponível na área do cliente em breve.",
+        "",
+        `Acesse sua conta: ${accountUrl}`,
+        "",
+        `${SITE_NAME}.`,
+      ].join("\n")
+    : isDeemix
       ? [
           `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
           "",
@@ -64,13 +83,17 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
           `${SITE_NAME}.`,
         ].join("\n");
 
-  const headline =
-    plan?.serviceProduct === "deemix"
+  const headline = isAllavsoft
+    ? "Sua licença vitalícia do Allavsoft foi liberada. O serial será exibido no portal do cliente."
+    : isDeemix
       ? "Seu acesso Deemix (ARL 320 kbps) foi liberado. As credenciais estão no portal."
       : `Seu acesso VIP à <strong style="color:#fff;">${escapeEmailHtml(SITE_NAME)}</strong> foi liberado. Plataforma, packs e Downloader já estão disponíveis na sua conta.`;
 
-  const eyebrow =
-    plan?.serviceProduct === "deemix" ? "Deemix liberado" : "Pagamento confirmado";
+  const eyebrow = isAllavsoft
+    ? "Allavsoft liberado"
+    : isDeemix
+      ? "Deemix liberado"
+      : "Pagamento confirmado";
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -106,7 +129,11 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
                     <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;">Detalhes do plano</p>
                     <p style="margin:0 0 6px;font-size:16px;color:#ffffff;font-weight:700;">${escapeEmailHtml(planLabel)}</p>
                     <p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Duração: ${escapeEmailHtml(durationLabel)}</p>
-                    <p style="margin:0;font-size:14px;color:#1ed760;">Válido até ${periodEndLabel}</p>
+                    <p style="margin:0;font-size:14px;color:#1ed760;">${
+                      isAllavsoft
+                        ? "Licença vitalícia — serial no portal do cliente"
+                        : `Válido até ${periodEndLabel}`
+                    }</p>
                   </td>
                 </tr>
               </table>

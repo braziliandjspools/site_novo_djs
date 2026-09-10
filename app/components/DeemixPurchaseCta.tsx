@@ -17,7 +17,7 @@ type DeemixPlanCard = {
   highlight: boolean;
   description?: string;
   isTestPlan?: boolean;
-  serviceProduct?: "poolsVip" | "deemix";
+  serviceProduct?: "poolsVip" | "deemix" | "allavsoft";
 };
 
 type DeemixPurchaseCtaProps = {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Download, ExternalLink, MessageCircle, Music, Sparkles, Video } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, KeyRound, MessageCircle, Music, Sparkles, Video } from "lucide-react";
 import { whatsappUrl } from "../../lib/site";
 import { CopyField } from "../../components/CopyField";
 import { PortalBadge, PortalCard, PortalPageHeader } from "../PortalShell";
@@ -111,24 +111,24 @@ export function DeemixServiceView({ data }: { data: PortalData }) {
 
 export function AllavsoftServiceView({ data }: { data: PortalData }) {
   if (!data.allavsoft) return null;
-  const { allavsoft, user } = data;
+  const { user } = data;
 
   return (
     <div className="space-y-6">
-      <PortalPageHeader title="Allavsoft" subtitle="Download universal de vídeos e áudios." />
+      <PortalPageHeader title="Allavsoft" subtitle="Licença vitalícia de download de vídeos e áudios." />
 
       <PortalCard title="Status do serviço">
-        <PortalBadge variant="amber">Disponível em {formatDateBr(allavsoft.availableFrom)}</PortalBadge>
+        <PortalBadge variant="green">Licença vitalícia ativa</PortalBadge>
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-          O Allavsoft estará disponível a partir de {allavsoft.launchLabel.toLowerCase()}. Ferramenta completa para
-          download de vídeos e áudios de +1000 sites.
+          Seu acesso Allavsoft está liberado nesta conta. O serial será gerenciado aqui no portal — a geração e a
+          disponibilidade do serial entram em uma próxima etapa.
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {[
-            "YouTube, Vimeo e mais",
+            "Licença vitalícia (pagamento único)",
+            "YouTube, Vimeo e +1000 sites",
             "Extração de áudio HQ",
-            "Downloads em lote",
-            "Conversão de formatos",
+            "Downloads em lote e conversão",
           ].map((item) => (
             <li key={item} className="flex items-center gap-2 text-sm text-zinc-300">
               <Video className="h-4 w-4 text-amber-400" />
@@ -138,16 +138,23 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
         </ul>
       </PortalCard>
 
+      <PortalCard title="Serial">
+        <div className="flex items-start gap-3">
+          <KeyRound className="h-5 w-5 text-[#FFDF00]" />
+          <p className="text-sm text-zinc-400">
+            Em breve você verá e gerenciará o serial Allavsoft nesta página. Enquanto isso, o serviço já aparece como
+            ativo após a confirmação do pagamento (webhook Mercado Pago).
+          </p>
+        </div>
+      </PortalCard>
+
       {user.services.poolsVip && (
-        <PortalCard title="Benefício Pools VIP">
+        <PortalCard title="Pools VIP">
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-[#FFDF00]" />
-            <div>
-              <p className="text-sm text-zinc-400">
-                Como cliente Pools VIP, você terá acesso prioritário com desconto ao Allavsoft no lançamento.
-              </p>
-              <p className="mt-1 text-sm font-semibold text-amber-400">Lançamento: {allavsoft.launchLabel}</p>
-            </div>
+            <p className="text-sm text-zinc-400">
+              Você também tem Pools VIP nesta conta. Allavsoft e pools são serviços independentes.
+            </p>
           </div>
         </PortalCard>
       )}

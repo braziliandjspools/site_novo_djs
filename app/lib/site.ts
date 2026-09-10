@@ -71,7 +71,5 @@ export function deemixCheckoutUrl(product: "Deemix" | "Deemix Server") {
 }
 
 export function allavsoftCheckoutUrl() {
-  return whatsappUrl(
-    "Olá! Quero comprar acesso ao Allavsoft sem assinar o plano de pools do Brazilian Remix Service.",
-  );
+  return "/allavsoft#allavsoft-plano";
 }

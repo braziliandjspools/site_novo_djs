@@ -28,8 +28,8 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
     },
     data.allavsoft && {
       name: "Allavsoft — Download Universal",
-      badge: <PortalBadge variant="amber">Em breve</PortalBadge>,
-      due: formatDateBr(data.allavsoft.availableFrom),
+      badge: <PortalBadge>Vitalícia</PortalBadge>,
+      due: "Sem vencimento",
       view: "service-allavsoft" as PortalView,
     },
     {

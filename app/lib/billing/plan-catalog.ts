@@ -8,7 +8,7 @@ export const PLAN_CURRENCY = "BRL" as const;
 
 export type PlanRenewalType = "manual";
 
-export type PlanServiceProduct = "poolsVip" | "deemix";
+export type PlanServiceProduct = "poolsVip" | "deemix" | "allavsoft";
 
 export type CanonicalPlanId =
   | "brs-drive-3d"
@@ -17,7 +17,8 @@ export type CanonicalPlanId =
   | "brs-drive-12m"
   | "brs-deemix-1m"
   | "brs-deemix-3m"
-  | "brs-deemix-6m";
+  | "brs-deemix-6m"
+  | "brs-allavsoft-lifetime";
 
 /** Alias legado Hotmart → plano canônico de 1 mês. */
 export const LEGACY_PLAN_ID_ALIASES: Record<string, CanonicalPlanId> = {
@@ -34,11 +35,14 @@ export type CanonicalPlan = {
   /**
    * Duração em dias (fonte para liberação de acesso).
    * Planos mensais usam 30/90/365; teste usa 3.
+   * Licença vitalícia usa 0 + `lifetime: true`.
    */
   durationDays: number;
-  /** Compat UI/legado — 0 no plano de teste. */
+  /** Compat UI/legado — 0 no plano de teste / vitalício. */
   durationMonths: number;
   durationLabel: string;
+  /** Licença sem vencimento (ex.: Allavsoft). */
+  lifetime: boolean;
   active: boolean;
   renewalType: PlanRenewalType;
   badge: string | null;
@@ -62,6 +66,8 @@ export type CanonicalPlan = {
  * - 1 mês: R$ 30,00 (~30 dias)
  * - 90 dias: 10% off → R$ 81,00
  * - 180 dias: 10% off → R$ 162,00
+ * Allavsoft:
+ * - Licença vitalícia: R$ 50,00 (pagamento único)
  */
 export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
   {
@@ -74,6 +80,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 3,
     durationMonths: 0,
     durationLabel: "3 dias",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "Teste",
@@ -97,6 +104,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 30,
     durationMonths: 1,
     durationLabel: "1 mês",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "Popular",
@@ -121,6 +129,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 90,
     durationMonths: 3,
     durationLabel: "3 meses",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "10% off",
@@ -145,6 +154,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 365,
     durationMonths: 12,
     durationLabel: "12 meses",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "Melhor valor",
@@ -169,6 +179,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 30,
     durationMonths: 1,
     durationLabel: "1 mês",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "ARL 320",
@@ -192,6 +203,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 90,
     durationMonths: 3,
     durationLabel: "90 dias",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "10% off",
@@ -216,6 +228,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationDays: 180,
     durationMonths: 6,
     durationLabel: "180 dias",
+    lifetime: false,
     active: true,
     renewalType: "manual",
     badge: "10% off",
@@ -229,6 +242,32 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
       "Economia de 10% vs. mensal",
       "Credenciais no portal do cliente",
       "Renovação manual ao fim do período",
+    ],
+  },
+  {
+    id: "brs-allavsoft-lifetime",
+    title: "Allavsoft — Licença vitalícia",
+    description:
+      "Licença vitalícia do Allavsoft. Pagamento único de R$ 50,00 via Mercado Pago. Serial gerenciado no portal do cliente após a confirmação do webhook.",
+    amountBrl: "50.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 0,
+    durationMonths: 0,
+    durationLabel: "vitalícia",
+    lifetime: true,
+    active: true,
+    renewalType: "manual",
+    badge: "Vitalícia",
+    highlight: true,
+    isTestPlan: false,
+    serviceProduct: "allavsoft",
+    equivalentMonthlyLabel: null,
+    features: [
+      "Licença vitalícia (pagamento único)",
+      "Download e conversão de vídeos e áudios",
+      "Compatível com +1000 sites",
+      "Serial no portal do cliente após o pagamento",
+      "Liberação automática via webhook Mercado Pago",
     ],
   },
 ] as const;
@@ -279,6 +318,10 @@ export function isPoolsVipPlanId(planId: string): boolean {
   return getCanonicalPlanById(planId)?.serviceProduct === "poolsVip";
 }
 
+export function isAllavsoftPlanId(planId: string): boolean {
+  return getCanonicalPlanById(planId)?.serviceProduct === "allavsoft";
+}
+
 export type PublicPlanCard = {
   id: CanonicalPlanId;
   name: string;
@@ -293,6 +336,7 @@ export type PublicPlanCard = {
   durationMonths: number;
   renewalType: PlanRenewalType;
   isTestPlan: boolean;
+  lifetime: boolean;
   serviceProduct: PlanServiceProduct;
 };
 
@@ -301,7 +345,9 @@ export function toPublicPlanCard(plan: CanonicalPlan): PublicPlanCard {
     id: plan.id,
     name: plan.title,
     price: formatPlanAmountBrl(plan.amountBrl),
-    period: `${plan.durationLabel} · renovação manual`,
+    period: plan.lifetime
+      ? "Licença vitalícia · pagamento único"
+      : `${plan.durationLabel} · renovação manual`,
     equivalent: plan.equivalentMonthlyLabel,
     badge: plan.badge,
     features: [...plan.features],
@@ -311,12 +357,15 @@ export function toPublicPlanCard(plan: CanonicalPlan): PublicPlanCard {
     durationMonths: plan.durationMonths,
     renewalType: plan.renewalType,
     isTestPlan: plan.isTestPlan,
+    lifetime: plan.lifetime,
     serviceProduct: plan.serviceProduct,
   };
 }
 
 export function listPublicPlanCards(product?: PlanServiceProduct): PublicPlanCard[] {
-  const plans = product ? listCanonicalPlansByProduct(product) : listActiveCanonicalPlans();
+  const plans = product
+    ? listCanonicalPlansByProduct(product)
+    : listActiveCanonicalPlans().filter((plan) => plan.serviceProduct !== "allavsoft");
   return plans.map(toPublicPlanCard);
 }
 

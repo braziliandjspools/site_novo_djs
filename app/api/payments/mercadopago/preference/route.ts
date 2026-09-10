@@ -100,7 +100,9 @@ export async function POST(request: Request) {
   const loginReturn =
     trusted.plan.serviceProduct === "deemix"
       ? `/deemix?checkout=${encodeURIComponent(trusted.plan.id)}`
-      : `/plans?checkout=${encodeURIComponent(trusted.plan.id)}`;
+      : trusted.plan.serviceProduct === "allavsoft"
+        ? `/allavsoft?checkout=${encodeURIComponent(trusted.plan.id)}`
+        : `/plans?checkout=${encodeURIComponent(trusted.plan.id)}`;
   if (!user) {
     const loginUrl = `/musicas/entrar?return=${encodeURIComponent(loginReturn.split("?")[0]!)}&checkout=${encodeURIComponent(trusted.plan.id)}`;
     return NextResponse.json(
@@ -140,6 +142,16 @@ export async function POST(request: Request) {
         code: "deemix_already_active",
         expiresAt: user.nextDueAt.toISOString(),
         expiresLabel,
+      },
+      { status: 409 },
+    );
+  }
+
+  if (trusted.plan.serviceProduct === "allavsoft" && user.services.allavsoft) {
+    return NextResponse.json(
+      {
+        error: "Você já tem a licença vitalícia do Allavsoft nesta conta.",
+        code: "allavsoft_already_active",
       },
       { status: 409 },
     );

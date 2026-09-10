@@ -429,12 +429,12 @@ export default async function Home() {
       <ToolPromoSection
         id="allavsoft"
         badge="Allavsoft"
-        title="Allavsoft incluso no seu acesso"
-        description="Baixe vídeos, músicas e outros conteúdos de diferentes plataformas com mais praticidade. O Allavsoft ajuda a centralizar seus downloads, converter arquivos e agilizar a preparação do seu material em um só lugar."
+        title="Licença vitalícia Allavsoft"
+        description="Baixe vídeos, músicas e outros conteúdos de diferentes plataformas. Licença vitalícia por R$ 50,00 via Mercado Pago, com serial gerenciado no portal do cliente."
         image={PLACEHOLDER.allavsoft}
         imageAlt="Allavsoft"
         href="/allavsoft"
-        buttonLabel="Saiba mais sobre o Allavsoft"
+        buttonLabel="Comprar Allavsoft"
         accent="yellow"
       />
 

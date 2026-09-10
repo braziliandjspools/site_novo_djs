@@ -9,9 +9,9 @@ import {
   resolveCanonicalPlanId,
 } from "./plan-catalog";
 
-test("catálogo ativo tem Drive (4) + Deemix (3)", () => {
+test("catálogo ativo tem Drive (4) + Deemix (3) + Allavsoft (1)", () => {
   const plans = listActiveCanonicalPlans();
-  assert.equal(plans.length, 7);
+  assert.equal(plans.length, 8);
   assert.deepEqual(
     plans.map((p) => p.id),
     [
@@ -22,8 +22,17 @@ test("catálogo ativo tem Drive (4) + Deemix (3)", () => {
       "brs-deemix-1m",
       "brs-deemix-3m",
       "brs-deemix-6m",
+      "brs-allavsoft-lifetime",
     ],
   );
+});
+
+test("Allavsoft vitalícia custa R$ 50,00", () => {
+  const plan = getCanonicalPlanById("brs-allavsoft-lifetime");
+  assert.equal(plan?.amountBrl, "50.00");
+  assert.equal(plan?.serviceProduct, "allavsoft");
+  assert.equal(plan?.lifetime, true);
+  assert.equal(plan?.durationDays, 0);
 });
 
 test("Deemix: 30 / 81 / 162 com 10% nos longos", () => {

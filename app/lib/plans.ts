@@ -19,10 +19,11 @@ export type SitePlan = {
   durationMonths?: number;
   renewalType?: "manual";
   isTestPlan?: boolean;
-  serviceProduct?: "poolsVip" | "deemix";
+  lifetime?: boolean;
+  serviceProduct?: "poolsVip" | "deemix" | "allavsoft";
 };
 
-function mapCards(product?: "poolsVip" | "deemix"): SitePlan[] {
+function mapCards(product?: "poolsVip" | "deemix" | "allavsoft"): SitePlan[] {
   return listPublicPlanCards(product).map((plan) => ({
     id: plan.id,
     name: plan.name,
@@ -37,11 +38,12 @@ function mapCards(product?: "poolsVip" | "deemix"): SitePlan[] {
     durationMonths: plan.durationMonths,
     renewalType: plan.renewalType,
     isTestPlan: plan.isTestPlan,
+    lifetime: plan.lifetime,
     serviceProduct: plan.serviceProduct,
   }));
 }
 
-/** Todos os planos públicos (Drive + Deemix). */
+/** Todos os planos públicos de assinatura (Drive + Deemix). Allavsoft fica em /allavsoft. */
 export const SITE_PLANS: SitePlan[] = mapCards();
 
 /** Só Drive VIP. */
@@ -49,6 +51,9 @@ export const SITE_DRIVE_PLANS: SitePlan[] = mapCards("poolsVip");
 
 /** Só Deemix. */
 export const SITE_DEEMIX_PLANS: SitePlan[] = mapCards("deemix");
+
+/** Só Allavsoft. */
+export const SITE_ALLAVSOFT_PLANS: SitePlan[] = mapCards("allavsoft");
 
 export {
   assertCheckoutPayloadTrusted,

@@ -121,9 +121,9 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/allavsoft",
     title: `Allavsoft | ${SITE_NAME}`,
     description:
-      "Allavsoft incluso no acesso: baixe vídeos e áudios de diversas plataformas, converta arquivos e centralize seus downloads para a pista.",
+      "Licença vitalícia Allavsoft por R$ 50,00 via Mercado Pago. Baixe vídeos e áudios de +1000 sites, com serial gerenciado no portal do cliente.",
     ogImage: "allavsoft",
-    keywords: ["Allavsoft", "download vídeo DJ", "conversor áudio"],
+    keywords: ["Allavsoft", "licença vitalícia", "download vídeo DJ", "Mercado Pago"],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.7,

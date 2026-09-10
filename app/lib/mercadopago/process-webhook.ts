@@ -5,9 +5,10 @@ import {
   WebhookSignatureValidator,
 } from "mercadopago";
 import { Prisma, type MercadoPagoOrderStatus } from "@prisma/client";
-import { getCanonicalPlanById, isDeemixPlanId, isPoolsVipPlanId } from "../billing/plan-catalog";
+import { getCanonicalPlanById, isAllavsoftPlanId, isDeemixPlanId, isPoolsVipPlanId } from "../billing/plan-catalog";
 import { toDateInputValue } from "../due-queue";
 import { prisma } from "../prisma";
+import { deriveLegacyPlan } from "../portal-users";
 import { getMercadoPagoConfig } from "./client";
 import { sendMercadoPagoAccessGrantedEmail, sendMercadoPagoRefundEmail } from "./email";
 import { getMercadoPagoEnv } from "./env";
@@ -192,6 +193,22 @@ async function hasAlternateDeemixCoverage(
   return otherMp.some((order) => isDeemixPlanId(order.planId));
 }
 
+async function hasAlternateAllavsoftCoverage(
+  tx: Prisma.TransactionClient,
+  portalUserId: number,
+  excludeOrderId: string,
+): Promise<boolean> {
+  const otherMp = await tx.mercadoPagoOrder.findMany({
+    where: {
+      portalUserId,
+      status: "APPROVED",
+      NOT: { id: excludeOrderId },
+    },
+    select: { planId: true },
+  });
+  return otherMp.some((order) => isAllavsoftPlanId(order.planId));
+}
+
 async function applyApprovedAccessInTx(
   tx: Prisma.TransactionClient,
   input: {
@@ -236,6 +253,38 @@ async function applyApprovedAccessInTx(
   if (!user) throw new Error("Usuário do pedido não encontrado.");
 
   const isDeemix = plan.serviceProduct === "deemix";
+  const isAllavsoft = plan.serviceProduct === "allavsoft";
+
+  const updatedOrder = await tx.mercadoPagoOrder.update({
+    where: { id: order.id },
+    data: {
+      status: "APPROVED",
+      mercadoPagoPaymentId: input.paymentId,
+      rawStatus: input.rawStatus,
+      payerEmail: input.payerEmail || order.payerEmail,
+      mercadoPagoPreferenceId: input.preferenceId || order.mercadoPagoPreferenceId,
+      approvedAt: order.approvedAt ?? input.approvedAt,
+    },
+  });
+
+  if (isAllavsoft) {
+    const nextServices = {
+      poolsVip: user.servicePoolsVip,
+      deemix: user.serviceDeemix,
+      allavsoft: true,
+    };
+    await tx.portalUser.update({
+      where: { id: user.id },
+      data: {
+        serviceAllavsoft: true,
+        plan: deriveLegacyPlan(nextServices),
+        active: true,
+        // Licença vitalícia: não altera vencimento de VIP/Deemix.
+      },
+    });
+    return { applied: true as const, order: updatedOrder, periodEnd: user.nextDueAt };
+  }
+
   const hasActiveService = isDeemix
     ? user.serviceDeemix && user.nextDueAt.getTime() > input.approvedAt.getTime()
     : userHasActiveVipAccess({
@@ -260,35 +309,20 @@ async function applyApprovedAccessInTx(
     periodEnd = user.nextDueAt;
   }
 
-  const updatedOrder = await tx.mercadoPagoOrder.update({
-    where: { id: order.id },
-    data: {
-      status: "APPROVED",
-      mercadoPagoPaymentId: input.paymentId,
-      rawStatus: input.rawStatus,
-      payerEmail: input.payerEmail || order.payerEmail,
-      mercadoPagoPreferenceId: input.preferenceId || order.mercadoPagoPreferenceId,
-      approvedAt: order.approvedAt ?? input.approvedAt,
-    },
-  });
-
   const nextPoolsVip = isDeemix ? user.servicePoolsVip : true;
   const nextDeemix = isDeemix ? true : user.serviceDeemix;
-  const legacyPlan =
-    nextPoolsVip && nextDeemix
-      ? "NONE"
-      : nextPoolsVip
-        ? "VIP"
-        : nextDeemix
-          ? "DEEMIX"
-          : "NONE";
+  const nextServices = {
+    poolsVip: nextPoolsVip,
+    deemix: nextDeemix,
+    allavsoft: user.serviceAllavsoft,
+  };
 
   await tx.portalUser.update({
     where: { id: user.id },
     data: {
       servicePoolsVip: nextPoolsVip,
       serviceDeemix: nextDeemix,
-      plan: legacyPlan,
+      plan: deriveLegacyPlan(nextServices),
       monthlyValue: new Prisma.Decimal(isDeemix && user.servicePoolsVip ? user.monthlyValue : plan.amountBrl),
       nextDueAt: periodEnd,
       active: true,
@@ -352,18 +386,48 @@ async function applyNonApprovedStatusInTx(
   if (input.revokeAccess && wasApproved) {
     const orderPlan = getCanonicalPlanById(order.planId);
     const isDeemixOrder = orderPlan?.serviceProduct === "deemix";
+    const isAllavsoftOrder = orderPlan?.serviceProduct === "allavsoft";
 
-    if (isDeemixOrder) {
+    if (isAllavsoftOrder) {
+      const hasOtherAllavsoft = await hasAlternateAllavsoftCoverage(tx, input.portalUserId, order.id);
+      if (!hasOtherAllavsoft) {
+        const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
+        if (user?.serviceAllavsoft) {
+          const nextServices = {
+            poolsVip: user.servicePoolsVip,
+            deemix: user.serviceDeemix,
+            allavsoft: false,
+          };
+          await tx.portalUser.update({
+            where: { id: user.id },
+            data: {
+              serviceAllavsoft: false,
+              plan: deriveLegacyPlan(nextServices),
+            },
+          });
+          vipRevoked = true;
+        } else {
+          vipRevoked = true;
+        }
+      } else {
+        accessKeptReason =
+          "Você ainda tem outro pedido Allavsoft aprovado. Só este pedido foi estornado.";
+      }
+    } else if (isDeemixOrder) {
       const hasOtherDeemix = await hasAlternateDeemixCoverage(tx, input.portalUserId, order.id);
       if (!hasOtherDeemix) {
         const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
         if (user?.serviceDeemix) {
-          const nextPoolsVip = user.servicePoolsVip;
+          const nextServices = {
+            poolsVip: user.servicePoolsVip,
+            deemix: false,
+            allavsoft: user.serviceAllavsoft,
+          };
           await tx.portalUser.update({
             where: { id: user.id },
             data: {
               serviceDeemix: false,
-              plan: nextPoolsVip ? "VIP" : "NONE",
+              plan: deriveLegacyPlan(nextServices),
             },
           });
           vipRevoked = true;
@@ -385,14 +449,18 @@ async function applyNonApprovedStatusInTx(
       if (shouldRevoke) {
         const user = await tx.portalUser.findUnique({ where: { id: input.portalUserId } });
         if (user?.servicePoolsVip) {
-          const nextDeemix = user.serviceDeemix;
+          const nextServices = {
+            poolsVip: false,
+            deemix: user.serviceDeemix,
+            allavsoft: user.serviceAllavsoft,
+          };
           await tx.portalUser.update({
             where: { id: user.id },
             data: {
               servicePoolsVip: false,
-              plan: nextDeemix ? "DEEMIX" : "NONE",
+              plan: deriveLegacyPlan(nextServices),
               // Só zera vencimento se também não houver Deemix ativo.
-              ...(nextDeemix ? {} : { nextDueAt: new Date() }),
+              ...(user.serviceDeemix ? {} : { nextDueAt: new Date() }),
             },
           });
           vipRevoked = true;

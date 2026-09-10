@@ -111,10 +111,10 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
             },
             data.allavsoft && {
               name: "Allavsoft",
-              badge: <PortalBadge variant="amber">Em breve</PortalBadge>,
-              due: formatDateBr(data.allavsoft.availableFrom),
+              badge: <PortalBadge>Vitalícia</PortalBadge>,
+              due: "Sem vencimento",
               action: () => onNavigate("service-allavsoft"),
-              actionLabel: "Ver detalhes",
+              actionLabel: "Gerenciar",
             },
             {
               name: "Produção Musical",
@@ -196,11 +196,11 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               {data.allavsoft && (
                 <tr className="hover:bg-zinc-800/30">
                   <td className="py-3 pr-4 font-medium text-white">Allavsoft</td>
-                  <td className="py-3 pr-4"><PortalBadge variant="amber">Em breve</PortalBadge></td>
-                  <td className="py-3 pr-4 text-zinc-400">{formatDateBr(data.allavsoft.availableFrom)}</td>
+                  <td className="py-3 pr-4"><PortalBadge>Vitalícia</PortalBadge></td>
+                  <td className="py-3 pr-4 text-zinc-400">Sem vencimento</td>
                   <td className="py-3">
                     <button type="button" onClick={() => onNavigate("service-allavsoft")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
-                      Ver detalhes
+                      Gerenciar
                     </button>
                   </td>
                 </tr>

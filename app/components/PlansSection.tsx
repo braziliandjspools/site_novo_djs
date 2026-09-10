@@ -18,7 +18,7 @@ type PlanCard = {
   highlight: boolean;
   description?: string;
   isTestPlan?: boolean;
-  serviceProduct?: "poolsVip" | "deemix";
+  serviceProduct?: "poolsVip" | "deemix" | "allavsoft";
 };
 
 type ActiveServiceInfo = {
@@ -36,6 +36,8 @@ type PlansSectionProps = {
   activeVip?: ActiveServiceInfo | null;
   /** Bloqueia checkout de planos Deemix. */
   activeDeemix?: ActiveServiceInfo | null;
+  /** Bloqueia checkout Allavsoft (licença vitalícia já ativa). */
+  activeAllavsoft?: boolean;
   showPixNotice?: boolean;
   loginReturnPath?: string;
 };
@@ -49,8 +51,10 @@ type PreferenceResponse = {
   expiresLabel?: string;
 };
 
-function planProduct(plan: PlanCard): "poolsVip" | "deemix" {
-  return plan.serviceProduct === "deemix" ? "deemix" : "poolsVip";
+function planProduct(plan: PlanCard): "poolsVip" | "deemix" | "allavsoft" {
+  if (plan.serviceProduct === "deemix") return "deemix";
+  if (plan.serviceProduct === "allavsoft") return "allavsoft";
+  return "poolsVip";
 }
 
 export function PlansSection({
@@ -62,6 +66,7 @@ export function PlansSection({
   subtitle = "Pagamento único via Mercado Pago, com renovação manual. O navegador envia só o planId — preço e duração vêm do servidor.",
   activeVip = null,
   activeDeemix = null,
+  activeAllavsoft = false,
   showPixNotice = true,
   loginReturnPath = "/plans",
 }: PlansSectionProps) {
@@ -74,12 +79,19 @@ export function PlansSection({
   const autoStarted = useRef(false);
 
   function isPlanBlocked(plan: PlanCard) {
-    return planProduct(plan) === "deemix" ? Boolean(activeDeemix) : Boolean(activeVip);
+    const product = planProduct(plan);
+    if (product === "deemix") return Boolean(activeDeemix);
+    if (product === "allavsoft") return activeAllavsoft;
+    return Boolean(activeVip);
   }
 
   function blockedLabel(plan: PlanCard) {
-    if (planProduct(plan) === "deemix") {
+    const product = planProduct(plan);
+    if (product === "deemix") {
       return `Deemix ativo até ${activeDeemix!.expiresLabel}`;
+    }
+    if (product === "allavsoft") {
+      return "Licença Allavsoft já ativa";
     }
     return `VIP ativo até ${activeVip!.expiresLabel}`;
   }
@@ -87,10 +99,13 @@ export function PlansSection({
   async function startCheckout(planId: string) {
     const plan = plans.find((item) => item.id === planId);
     if (plan && isPlanBlocked(plan)) {
+      const product = planProduct(plan);
       setError(
-        planProduct(plan) === "deemix"
+        product === "deemix"
           ? `Você já tem Deemix ativo até ${activeDeemix!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`
-          : `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
+          : product === "allavsoft"
+            ? "Você já tem a licença vitalícia do Allavsoft nesta conta."
+            : `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
       );
       setErrorPlanId(null);
       return;
@@ -179,7 +194,7 @@ export function PlansSection({
     }, 0);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-start once after login redirect
-  }, [plans, searchParams, activeVip, activeDeemix]);
+  }, [plans, searchParams, activeVip, activeDeemix, activeAllavsoft]);
 
   const isBusy = loadingPlanId !== null;
   const gridClass =
@@ -327,14 +342,18 @@ export function PlansSection({
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#009739]" />
                   {blocked
-                    ? `Renovação disponível após ${
-                        isDeemix ? activeDeemix!.expiresLabel : activeVip!.expiresLabel
-                      }.`
+                    ? planProduct(plan) === "allavsoft"
+                      ? "Licença vitalícia já liberada nesta conta."
+                      : `Renovação disponível após ${
+                          isDeemix ? activeDeemix!.expiresLabel : activeVip!.expiresLabel
+                        }.`
                     : isDeemix
                       ? "ARL 320 kbps · liberação automática no portal."
-                      : plan.isTestPlan
-                        ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
-                        : "Checkout seguro. Acesso só após confirmação oficial."}
+                      : planProduct(plan) === "allavsoft"
+                        ? "Licença vitalícia · serial no portal após o webhook."
+                        : plan.isTestPlan
+                          ? "Cobrança real de R$ 1,00 em produção · acesso por 3 dias."
+                          : "Checkout seguro. Acesso só após confirmação oficial."}
                 </p>
               </div>
             );
