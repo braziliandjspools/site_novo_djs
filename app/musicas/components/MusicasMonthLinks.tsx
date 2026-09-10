@@ -16,10 +16,10 @@ import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
-  packListAccentBarClass,
   packListPanelClass,
   packListRowTone,
   poolPanelHeaderBrClass,
+  poolPanelClass,
 } from "./atualizacoes-pool-ui";
 
 function prefetchFolder(slug: string) {
@@ -37,22 +37,20 @@ function StatusBadge({
 
   if (status === "em-atualizacao") {
     return (
-      <span className="rounded bg-amber-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
         {label}
       </span>
     );
   }
   if (status === "completo") {
     return (
-      <span className="rounded border border-[#1ed760]/35 bg-[#1ed760]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#1ed760]">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]/90">
         {label}
       </span>
     );
   }
   return (
-    <span className="rounded border border-zinc-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
-      {label}
-    </span>
+    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</span>
   );
 }
 
@@ -82,17 +80,16 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
   if (variant === "hero") {
     return (
       <div className={packListPanelClass}>
-        <div className="br-stripe-thin" />
         <div className={poolPanelHeaderBrClass}>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Pastas do Drive</h2>
-            <p className="mt-0.5 text-[11px] text-zinc-400">Abra a pasta · cada nível em página nova</p>
+            <h2 className="text-sm font-semibold tracking-tight text-white">Pastas</h2>
+            <p className="mt-0.5 text-[11px] text-zinc-500">Cada nível abre em página nova</p>
           </div>
-          <p className="rounded-full bg-[#009739]/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#7dffb0] ring-1 ring-[#1ed760]/30">
+          <p className="text-[11px] tabular-nums text-zinc-500">
             {sorted.length} pasta{sorted.length === 1 ? "" : "s"}
           </p>
         </div>
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-white/[0.04]">
           {sorted.map((folder, index) => {
             const slug = slugifyFolderName(folder.name);
             const { label, status } = parseMonthStatus(folder.name);
@@ -105,23 +102,22 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                 key={folder.id}
                 className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 transition-colors sm:px-4 ${rowTone}`}
               >
-                <span className={packListAccentBarClass} aria-hidden />
                 <Link
                   href={folderHref([slug])}
                   onMouseEnter={() => prefetchFolder(slug)}
                   onFocus={() => prefetchFolder(slug)}
                   className="group flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
-                  <span className="min-w-0 flex-1 break-words text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                  <span className="min-w-0 flex-1 break-words text-sm font-medium text-zinc-100 group-hover:text-white">
                     {name}
                   </span>
                   {isNew && (
-                    <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                    <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
                       Novo
                     </span>
                   )}
                   <StatusBadge label={label} status={status} />
-                  <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
+                  <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
                 </Link>
                 <div className="flex flex-shrink-0 items-center justify-end gap-1">
                   <SendPackToDownloaderButton

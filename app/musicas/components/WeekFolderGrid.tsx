@@ -22,7 +22,6 @@ import {
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
-  packListAccentBarClass,
   packListPanelClass,
   packListRowTone,
   poolPanelHeaderBrClass,
@@ -74,12 +73,11 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
       )}
 
       <div className={packListPanelClass}>
-        <div className="br-stripe-thin" />
         <div className={poolPanelHeaderBrClass}>
-          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Semanas</h2>
+          <h2 className="text-sm font-semibold tracking-tight text-white">Semanas</h2>
           <p className="text-[11px] text-zinc-500">{monthName}</p>
         </div>
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-white/[0.04]">
           {weeks.map((week, index) => {
             const weekSlug = slugifyFolderName(week.name);
             const label = displayFolderName(week.name);
@@ -104,7 +102,6 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                 key={week.id}
                 className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${packListRowTone(index, isCurrent)}`}
               >
-                <span className={packListAccentBarClass} aria-hidden />
                 <Link
                   href={href}
                   onMouseEnter={() =>
@@ -116,25 +113,25 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   className="group flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2"
                 >
                   <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="min-w-0 break-words text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                    <span className="min-w-0 break-words text-sm font-medium text-zinc-100 group-hover:text-white">
                       {weekTitle}
                     </span>
                     {weekStatus.status === "em-atualizacao" && (
-                      <span className="flex-shrink-0 rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
                         Em atualização
                       </span>
                     )}
                     {isCurrent && weekStatus.status !== "em-atualizacao" && (
-                      <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
                         Esta semana
                       </span>
                     )}
                     {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
-                      <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
                         Novo
                       </span>
                     )}
-                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
                   </span>
                   <span className="text-xs text-zinc-500 sm:whitespace-nowrap">{rangeLabel || "—"}</span>
                 </Link>

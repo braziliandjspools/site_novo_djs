@@ -55,9 +55,9 @@ type VipMusicTrackListProps = {
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
 };
 
-/** Colunas: nome | Key | BPM | tamanho | ações — sem coluna #. */
+/** Colunas: # | nome | Key | BPM | tamanho | ações */
 const TABLE_GRID =
-  "grid grid-cols-[minmax(0,1fr)_2.75rem_3.25rem_3.75rem_2.75rem] items-center gap-x-2";
+  "grid grid-cols-[2rem_minmax(0,1fr)_2.75rem_3.25rem_3.75rem_2.5rem] items-center gap-x-2 sm:gap-x-3";
 
 /** Discografia Spotify: # | título/artista | duração */
 const DISCOGRAPHY_GRID = "grid grid-cols-[2rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
@@ -103,12 +103,12 @@ async function triggerDownload(track: PreviewTrack) {
 
 function PlayingBars() {
   return (
-    <span className="inline-flex h-2.5 items-end gap-px" aria-hidden>
+    <span className="inline-flex h-3 items-end gap-0.5" aria-hidden>
       {[3, 5, 4].map((h, i) => (
         <span
           key={i}
-          className="w-px animate-pulse rounded-full bg-zinc-400"
-          style={{ height: h, animationDelay: `${i * 0.12}s` }}
+          className="w-0.5 animate-pulse rounded-full bg-[#1ed760]"
+          style={{ height: h + 2, animationDelay: `${i * 0.12}s` }}
         />
       ))}
     </span>
@@ -196,11 +196,11 @@ function TrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`border-b border-zinc-800/60 transition-colors last:border-b-0 ${
+      className={`border-b border-white/[0.04] transition-colors last:border-b-0 ${
         isHighlighted
-          ? "bg-[#FFDF00]/5"
+          ? "bg-[#1ed760]/8"
           : isSelected
-            ? "bg-[#1ed760]/5"
+            ? "bg-[#1ed760]/6"
             : isActive
               ? "bg-white/[0.04]"
               : "hover:bg-white/[0.03]"
@@ -529,15 +529,15 @@ function TrackTableRow({
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
       className={`group/row relative transition-colors ${
         isHighlighted
-          ? "bg-[#FFDF00]/10"
+          ? "bg-[#1ed760]/8 ring-1 ring-inset ring-[#1ed760]/25"
           : isSelected
-            ? "bg-[#1ed760]/10"
+            ? "bg-[#1ed760]/6"
             : poolRowTone(index, isActive)
       }`}
     >
-      <div className={`${TABLE_GRID} border-b border-zinc-800/80 px-3 py-2 last:border-b-0 sm:px-4`}>
-        {/* Title + play */}
-        <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
+      <div className={`${TABLE_GRID} border-b border-white/[0.04] px-3 py-2.5 last:border-b-0 sm:px-4`}>
+        {/* # / play */}
+        <div className="flex items-center justify-center">
           {selectionMode && canDownload ? (
             <button
               type="button"
@@ -551,32 +551,34 @@ function TrackTableRow({
             >
               {isSelected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
             </button>
-          ) : null}
-          {canPlay ? (
+          ) : canPlay ? (
             <button
               type="button"
               onClick={onToggle}
               disabled={isBusy || selectionMode}
               aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
-              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
-                isPlaying
-                  ? "bg-[#1ed760] text-black shadow-lg shadow-[#1ed760]/25"
-                  : "bg-white/10 text-white hover:bg-[#1ed760] hover:text-black"
-              } ${selectionMode ? "opacity-60" : ""}`}
+              className="flex h-8 w-8 items-center justify-center text-zinc-500 transition-colors hover:text-white disabled:opacity-40"
             >
               {isLoading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-300" />
               ) : isPlaying ? (
-                <Pause className="h-3.5 w-3.5" fill="currentColor" />
+                <PlayingBars />
               ) : (
-                <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />
+                <>
+                  <span className="font-mono text-[12px] tabular-nums text-zinc-500 group-hover/row:hidden">
+                    {index + 1}
+                  </span>
+                  <Play className="ml-0.5 hidden h-3.5 w-3.5 fill-white text-white group-hover/row:block" />
+                </>
               )}
             </button>
           ) : (
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-zinc-500 ring-1 ring-white/10">
-              <Lock className="h-3 w-3" />
-            </div>
+            <span className="font-mono text-[12px] tabular-nums text-zinc-600">{index + 1}</span>
           )}
+        </div>
+
+        {/* Title */}
+        <div className="flex min-w-0 items-center gap-2 overflow-hidden">
           <button
             type="button"
             onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
@@ -586,7 +588,7 @@ function TrackTableRow({
             title={a11yName}
           >
             <p
-              className={`truncate text-[13px] font-semibold leading-snug ${
+              className={`truncate text-[13px] font-medium leading-snug ${
                 isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
             >
@@ -600,7 +602,7 @@ function TrackTableRow({
           <MusicalKeyBadge value={track.musicalKey} />
         </p>
 
-        <p className="text-center font-mono text-[11px] tabular-nums text-zinc-400">
+        <p className="text-center font-mono text-[11px] tabular-nums text-zinc-500">
           {track.bpm ?? "—"}
         </p>
 
@@ -613,7 +615,7 @@ function TrackTableRow({
           {!selectionMode ? (
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
-              buttonClassName="!h-8 !w-8 text-zinc-500 opacity-100 hover:text-white md:opacity-70 md:group-hover/row:opacity-100"
+              buttonClassName="!h-8 !w-8 text-zinc-500 opacity-100 hover:text-white md:opacity-0 md:group-hover/row:opacity-100"
               actions={menuActions}
             />
           ) : null}
@@ -621,7 +623,7 @@ function TrackTableRow({
       </div>
 
       {isActive && canPlay && !selectionMode && (
-        <div className="flex items-center gap-2 border-t border-zinc-800/50 px-3 pb-2.5 pt-1.5 pl-[calc(2rem+0.625rem)] sm:px-4">
+        <div className="flex items-center gap-2 border-t border-white/[0.04] px-3 pb-2.5 pt-1.5 sm:px-4 sm:pl-[calc(2rem+0.75rem)]">
           <button
             type="button"
             onClick={onPrev}
@@ -1049,13 +1051,14 @@ export function VipMusicTrackList({
 
           {/* Desktop table — Atualizações only */}
           {useTable && (
-            <div className={`hidden md:block ${embedded ? "" : poolPanelClass}`}>
-              <div className={`${poolTableHeadClass} ${TABLE_GRID}`}>
-                <span className="min-w-0">Nome</span>
+            <div className={`hidden md:block ${embedded ? "" : `${poolPanelClass} shadow-[0_12px_40px_rgba(0,0,0,0.25)]`}`}>
+              <div className={`sticky top-0 z-10 ${poolTableHeadClass} ${TABLE_GRID}`}>
+                <span className="text-center">#</span>
+                <span className="min-w-0">Título</span>
                 <span className="text-center">Key</span>
                 <span className="text-center">BPM</span>
                 <span className="text-right">Tam.</span>
-                <span className="text-right">Ações</span>
+                <span className="sr-only text-right">Ações</span>
               </div>
               <div>
                 {tracks.map((track, index) => (

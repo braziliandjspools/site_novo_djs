@@ -9,7 +9,6 @@ import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
-  packListAccentBarClass,
   packListPanelClass,
   packListRowTone,
   poolPanelClass,
@@ -33,12 +32,13 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
 
   return (
     <div className={packListPanelClass}>
-      <div className="br-stripe-thin" />
       <div className={poolPanelHeaderBrClass}>
-        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Pastas</h2>
-        <p className="text-[11px] text-zinc-500">{folders.length} pasta{folders.length === 1 ? "" : "s"}</p>
+        <h2 className="text-sm font-semibold tracking-tight text-white">Pastas</h2>
+        <p className="text-[11px] tabular-nums text-zinc-500">
+          {folders.length} pasta{folders.length === 1 ? "" : "s"}
+        </p>
       </div>
-      <ul className="divide-y divide-white/[0.06]">
+      <ul className="divide-y divide-white/[0.04]">
         {folders.map((folder, index) => {
           const folderSlug = slugifyFolderName(folder.name);
           const nextSegments = [...slugSegments, folderSlug];
@@ -53,7 +53,6 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
               key={folder.id}
               className={`flex w-full min-w-0 items-center gap-2 px-3 py-3 sm:px-4 ${packListRowTone(index)}`}
             >
-              <span className={packListAccentBarClass} aria-hidden />
               <Link
                 href={href}
                 onMouseEnter={() =>
@@ -65,7 +64,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 className="group flex min-w-0 flex-1 items-center gap-2.5"
               >
                 {cover ? (
-                  <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-md ring-1 ring-white/10">
+                  <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded shadow-sm ring-1 ring-white/10">
                     <Image
                       src={cover}
                       alt=""
@@ -76,17 +75,17 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                     />
                   </span>
                 ) : (
-                  <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-[#1ed760]/80" />
+                  <FolderOpen className="h-3.5 w-3.5 flex-shrink-0 text-zinc-500" />
                 )}
-                <span className="min-w-0 flex-1 break-words text-sm font-semibold text-zinc-100 group-hover:text-[#1ed760]">
+                <span className="min-w-0 flex-1 break-words text-sm font-medium text-zinc-100 group-hover:text-white">
                   {label}
                 </span>
                 {isNew && (
-                  <span className="flex-shrink-0 rounded bg-[#1ed760] px-1.5 py-0.5 text-[9px] font-bold uppercase text-black">
+                  <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
                     Novo
                   </span>
                 )}
-                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-[#1ed760]" />
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
               </Link>
               <div className="flex flex-shrink-0 items-center justify-end gap-1">
                 <SendPackToDownloaderButton

@@ -445,6 +445,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               canPlay={playbackEnabled}
               canDownload={downloadEnabled}
               relativePath={tracksRelativePath}
+              coverUrl={data.coverUrl}
+              albumTitle={displayFolderName(data.folderName)}
               highlightTrackId={faixaId ?? undefined}
               autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
               layout="table"
