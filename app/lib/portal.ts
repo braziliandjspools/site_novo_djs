@@ -161,26 +161,6 @@ function getLicenseConfig() {
   };
 }
 
-function getVipFtpConfig(): {
-  host: string;
-  port: string;
-  user: string;
-  password: string;
-  protocol: "ftp" | "ftps" | "sftp";
-} | null {
-  const host = process.env.VIP_FTP_HOST?.trim() ?? "";
-  const user = process.env.VIP_FTP_USER?.trim() ?? "";
-  const password = process.env.VIP_FTP_PASSWORD?.trim() ?? "";
-  if (!host || !user || !password) return null;
-
-  const rawProtocol = (process.env.VIP_FTP_PROTOCOL?.trim().toLowerCase() || "ftp") as string;
-  const protocol: "ftp" | "ftps" | "sftp" =
-    rawProtocol === "ftps" || rawProtocol === "sftp" ? rawProtocol : "ftp";
-  const port = process.env.VIP_FTP_PORT?.trim() || (protocol === "sftp" ? "22" : "21");
-
-  return { host, port, user, password, protocol };
-}
-
 function getPoolsPortalPayload() {
   const config = getLicenseConfig();
   const release = getDownloaderReleaseManifest();
@@ -193,7 +173,6 @@ function getPoolsPortalPayload() {
         release?.downloadUrl ??
         `${SITE_PRODUCTION_URL}/downloads/BRS-Downloader_1.0.6_estable_x64-setup.exe`,
     },
-    ftp: getVipFtpConfig(),
   };
 }
 

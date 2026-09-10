@@ -55,13 +55,6 @@ export type PortalData = {
       version: string;
       downloadUrl: string;
     };
-    ftp: {
-      host: string;
-      port: string;
-      user: string;
-      password: string;
-      protocol: "ftp" | "ftps" | "sftp";
-    } | null;
   } | null;
   musicProducerDeliveries: {
     enabled: boolean;

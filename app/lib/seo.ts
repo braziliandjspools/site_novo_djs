@@ -70,7 +70,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/",
     title: `${SITE_NAME} | Pools, curadoria e remix services para DJs`,
     description:
-      "Acervo com mais de 400 pools e remix services curados para DJs no Brasil. Atualizações mensais, Google Drive, FTP e plataforma VIP para montar sets com praticidade.",
+      "Acervo com mais de 400 pools e remix services curados para DJs no Brasil. Atualizações mensais, plataforma VIP e Downloader para montar sets com praticidade.",
     ogImage: "home",
     keywords: [
       "Brazilian Remix Service",

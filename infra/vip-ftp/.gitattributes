@@ -1,6 +1,0 @@
-*.sh text eol=lf
-entrypoint.sh text eol=lf
-sync.sh text eol=lf
-.env.example text eol=lf
-rclone.conf.example text eol=lf
-vsftpd.conf text eol=lf

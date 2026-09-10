@@ -1,5 +1,0 @@
-.env
-data/
-rclone/rclone.conf
-rclone/service-account.json
-*.log

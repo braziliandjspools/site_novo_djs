@@ -8,7 +8,7 @@ import { formatDateBr, type PortalData } from "../portal-types";
 export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
 
-  const { catalogUrl, downloader, ftp } = data.pools;
+  const { catalogUrl, downloader } = data.pools;
 
   return (
     <div className="space-y-6">
@@ -51,32 +51,6 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
           Windows x64 · versão {downloader.version} · mesmo login da conta VIP
         </p>
       </PortalCard>
-
-      {ftp ? (
-        <PortalCard title="FTP / FileZilla">
-          <p className="mb-4 text-sm leading-relaxed text-zinc-400">
-            Use estas credenciais no FileZilla (ou cliente FTP similar) para baixar o acervo em massa. Prefira{" "}
-            <span className="text-zinc-300">modo passivo</span> e o protocolo indicado abaixo.
-          </p>
-          <div className="space-y-4">
-            <CopyField label="Host" value={ftp.host} variant="green" theme="dark" compact />
-            <CopyField label="Porta" value={ftp.port} variant="green" theme="dark" compact />
-            <CopyField label="Protocolo" value={ftp.protocol.toUpperCase()} variant="green" theme="dark" compact />
-            <CopyField label="Usuário" value={ftp.user} variant="green" theme="dark" compact />
-            <CopyField label="Senha" value={ftp.password} variant="green" theme="dark" compact />
-          </div>
-          <p className="mt-4 text-xs text-zinc-500">
-            FileZilla → Arquivo → Gerenciador de Sites → Nova pasta/site → preencha host, porta, protocolo, usuário e
-            senha.
-          </p>
-        </PortalCard>
-      ) : (
-        <PortalCard title="FTP / FileZilla">
-          <p className="text-sm leading-relaxed text-zinc-400">
-            Credenciais FTP ainda não configuradas. Entre em contato com o suporte se precisar de acesso via FileZilla.
-          </p>
-        </PortalCard>
-      )}
     </div>
   );
 }
