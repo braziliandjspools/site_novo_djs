@@ -76,15 +76,17 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     const message = sanitizeMercadoPagoErrorMessage(err);
+    console.error("[mercadopago/preference] route error:", message);
+
     const isConfig =
-      message.includes("Variável de ambiente") ||
-      message.includes("NEXT_PUBLIC_SITE_URL") ||
-      message.includes("MERCADO_PAGO");
+      /variável de ambiente|obrigatória ausente|NEXT_PUBLIC_SITE_URL|deve usar HTTPS|MERCADO_PAGO_MODE|COLLECTOR_ID inválido|Remova NEXT_PUBLIC_/i.test(
+        message,
+      );
 
     return NextResponse.json(
       {
         error: isConfig
-          ? "Checkout Mercado Pago ainda não configurado."
+          ? "Checkout Mercado Pago ainda não configurado. Verifique as variáveis na Vercel (Access Token, Webhook Secret, MODE e SITE_URL)."
           : "Não foi possível iniciar o pagamento. Tente novamente.",
       },
       { status: isConfig ? 503 : 502 },

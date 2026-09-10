@@ -7,7 +7,7 @@ export type MercadoPagoEnv = {
   webhookSecret: string;
   mode: MercadoPagoMode;
   siteUrl: string;
-  /** Obrigatório em production — valida collector_id do pagamento. */
+  /** Opcional — se definido, o webhook exige collector_id igual no pagamento. */
   collectorId: number | null;
 };
 
@@ -65,20 +65,16 @@ export function getMercadoPagoEnv(): MercadoPagoEnv {
 
   let collectorId: number | null = null;
   const rawCollector = readTrimmed("MERCADO_PAGO_COLLECTOR_ID");
-  if (mode === "production") {
-    if (!rawCollector) {
-      throw new Error(
-        "[Mercado Pago] MERCADO_PAGO_COLLECTOR_ID é obrigatório quando MERCADO_PAGO_MODE=production.",
-      );
-    }
+  if (rawCollector) {
     const parsed = Number(rawCollector);
     if (!Number.isInteger(parsed) || parsed <= 0) {
       throw new Error("[Mercado Pago] MERCADO_PAGO_COLLECTOR_ID inválido.");
     }
     collectorId = parsed;
-  } else if (rawCollector) {
-    const parsed = Number(rawCollector);
-    if (Number.isInteger(parsed) && parsed > 0) collectorId = parsed;
+  } else if (mode === "production") {
+    console.warn(
+      "[Mercado Pago] MERCADO_PAGO_COLLECTOR_ID não definido — webhook não validará collector_id.",
+    );
   }
 
   return {
