@@ -6,7 +6,7 @@ export type SiteFaq = {
 export const SITE_FAQS: SiteFaq[] = [
   {
     q: "O que é o Brazilian Remix Service?",
-    a: "É o acervo VIP para DJs com curadoria brasileira: packs, edits, extended, clean/dirty e materiais organizados por mês, semana e estilo. Hoje o Drive passa de 241 GB, com cerca de 592 pastas e mais de 33.697 músicas.",
+    a: "É o acervo VIP para DJs com curadoria brasileira: packs, edits, extended, clean/dirty e materiais organizados por mês, semana e estilo. Hoje o Drive passa de 315 GB, com cerca de 739 pastas e mais de 40.012 músicas.",
   },
   {
     q: "O que está incluso no plano de R$ 38,00/mês?",

@@ -105,7 +105,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     serviceProduct: "poolsVip",
     equivalentMonthlyLabel: "R$ 38,00/mês",
     features: [
-      "Acervo VIP completo (+241 GB)",
+      "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
       "Atualizações mensais",
@@ -129,7 +129,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     serviceProduct: "poolsVip",
     equivalentMonthlyLabel: "R$ 34,20/mês",
     features: [
-      "Acervo VIP completo (+241 GB)",
+      "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
       "Economia de 10% vs. mensal",
@@ -153,7 +153,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     serviceProduct: "poolsVip",
     equivalentMonthlyLabel: "R$ 32,00/mês",
     features: [
-      "Acervo VIP completo (+241 GB)",
+      "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
       "Downloader para Windows",
       "Menor custo mensal equivalente",

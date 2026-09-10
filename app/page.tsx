@@ -37,21 +37,21 @@ export const metadata: Metadata = buildPageMetadata("home");
 const poolHighlights = [
   {
     icon: Layers,
-    title: "+241 GB",
+    title: "+315 GB",
     description:
-      "Acervo VIP com mais de 241 GB de packs, edits e extended versions. Centenas de pastas e dezenas de milhares de faixas organizadas para a rotina do DJ.",
+      "Acervo VIP com mais de 315 GB de packs, edits e extended versions. Centenas de pastas e dezenas de milhares de faixas organizadas para a rotina do DJ.",
     color: "green" as const,
   },
   {
     icon: Sparkles,
-    title: "592 pastas",
+    title: "739 pastas",
     description:
       "Estrutura por mês, semana e estilo para achar rápido o que precisa — funk, sertanejo, pop, eletrônico e open format com curadoria BR.",
     color: "yellow" as const,
   },
   {
     icon: RefreshCw,
-    title: "+33.697 músicas",
+    title: "+40.012 músicas",
     description:
       "Repertório amplo e atualizado com frequência. Mantenha o set em dia com novidades selecionadas para diferentes pistas e momentos.",
     color: "blue" as const,

@@ -257,11 +257,7 @@ function TrackRow({
           title={`${display.title} — ${display.artist}`}
         >
           <div className="flex min-w-0 items-center gap-1.5">
-            <p
-              className={`min-w-0 flex-1 truncate text-[13px] font-semibold leading-snug ${
-                isActive || isPlaying ? "text-[#009739]" : "text-[color:var(--pool-text)]"
-              }`}
-            >
+            <p className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-snug text-white">
               {display.title}
             </p>
             <span className="hidden shrink-0 sm:inline">
@@ -539,7 +535,7 @@ function TrackTableRow({
             : poolRowTone(index, isActive)
       }`}
     >
-      <div className={`${TABLE_GRID} border-b border-[color:var(--pool-border)] px-3 py-2 last:border-b-0 sm:px-4`}>
+      <div className={`${TABLE_GRID} border-b border-zinc-800/80 px-3 py-2 last:border-b-0 sm:px-4`}>
         {/* Title + play */}
         <div className="flex min-w-0 items-center gap-2.5 overflow-hidden">
           {selectionMode && canDownload ? (
@@ -550,7 +546,7 @@ function TrackTableRow({
               className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
                 isSelected
                   ? "border-[#1ed760] bg-[#1ed760] text-black"
-                  : "border-[color:var(--pool-text-muted)] bg-transparent text-transparent hover:border-[color:var(--pool-text)]"
+                  : "border-zinc-600 bg-transparent text-transparent hover:border-zinc-400"
               }`}
             >
               {isSelected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
@@ -565,7 +561,7 @@ function TrackTableRow({
               className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                 isPlaying
                   ? "bg-[#1ed760] text-black shadow-lg shadow-[#1ed760]/25"
-                  : "bg-[var(--pool-chip)] text-[color:var(--pool-text)] hover:bg-[#1ed760] hover:text-black"
+                  : "bg-white/10 text-white hover:bg-[#1ed760] hover:text-black"
               } ${selectionMode ? "opacity-60" : ""}`}
             >
               {isLoading ? (
@@ -577,7 +573,7 @@ function TrackTableRow({
               )}
             </button>
           ) : (
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--pool-chip)] text-[color:var(--pool-text-muted)] ring-1 ring-[color:var(--pool-border)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-zinc-500 ring-1 ring-white/10">
               <Lock className="h-3 w-3" />
             </div>
           )}
@@ -591,12 +587,12 @@ function TrackTableRow({
           >
             <p
               className={`truncate text-[13px] font-semibold leading-snug ${
-                isActive || isPlaying ? "text-[#009739]" : "text-[color:var(--pool-text)]"
+                isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
             >
               {display.title}
             </p>
-            <p className="mt-0.5 truncate text-[11px] leading-snug text-[color:var(--pool-text-muted)]">{display.artist}</p>
+            <p className="mt-0.5 truncate text-[11px] leading-snug text-zinc-500">{display.artist}</p>
           </button>
         </div>
 
@@ -604,11 +600,11 @@ function TrackTableRow({
           <MusicalKeyBadge value={track.musicalKey} />
         </p>
 
-        <p className="text-center font-mono text-[11px] tabular-nums text-[color:var(--pool-text-muted)]">
+        <p className="text-center font-mono text-[11px] tabular-nums text-zinc-400">
           {track.bpm ?? "—"}
         </p>
 
-        <p className="text-right font-mono text-[11px] tabular-nums text-[color:var(--pool-text-muted)]">
+        <p className="text-right font-mono text-[11px] tabular-nums text-zinc-500">
           {formatBytes(track.sizeBytes)}
         </p>
 
@@ -617,7 +613,7 @@ function TrackTableRow({
           {!selectionMode ? (
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
-              buttonClassName="!h-8 !w-8 text-[color:var(--pool-text-muted)] opacity-100 hover:text-[color:var(--pool-text)] md:opacity-70 md:group-hover/row:opacity-100"
+              buttonClassName="!h-8 !w-8 text-zinc-500 opacity-100 hover:text-white md:opacity-70 md:group-hover/row:opacity-100"
               actions={menuActions}
             />
           ) : null}
@@ -625,12 +621,12 @@ function TrackTableRow({
       </div>
 
       {isActive && canPlay && !selectionMode && (
-        <div className="flex items-center gap-2 border-t border-[color:var(--pool-border)] px-3 pb-2.5 pt-1.5 pl-[calc(2rem+0.625rem)] sm:px-4">
+        <div className="flex items-center gap-2 border-t border-zinc-800/50 px-3 pb-2.5 pt-1.5 pl-[calc(2rem+0.625rem)] sm:px-4">
           <button
             type="button"
             onClick={onPrev}
             disabled={!hasPrev}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[color:var(--pool-text-muted)] hover:bg-[var(--pool-chip)] hover:text-[color:var(--pool-text)] disabled:opacity-30"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
             aria-label="Anterior"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -646,15 +642,15 @@ function TrackTableRow({
                 onSeek((e.clientX - rect.left) / rect.width);
               }}
             >
-              <div className="h-1 rounded-full bg-[var(--pool-chip)]">
+              <div className="h-1 rounded-full bg-zinc-800">
                 <div
-                  className={`h-full rounded-full ${isPlaying ? "bg-[#1ed760]" : "bg-[color:var(--pool-text-muted)]"}`}
+                  className={`h-full rounded-full ${isPlaying ? "bg-[#1ed760]" : "bg-zinc-500"}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
             {duration > 0 && (
-              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-[color:var(--pool-text-muted)]">
+              <p className="mt-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </p>
             )}
@@ -663,7 +659,7 @@ function TrackTableRow({
             type="button"
             onClick={onNext}
             disabled={!hasNext}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[color:var(--pool-text-muted)] hover:bg-[var(--pool-chip)] hover:text-[color:var(--pool-text)] disabled:opacity-30"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-white disabled:opacity-30"
             aria-label="Próxima"
           >
             <ChevronRight className="h-4 w-4" />

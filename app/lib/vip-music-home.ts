@@ -5,7 +5,6 @@ import {
 } from "./vip-music-catalog";
 import { type PreviewTrack } from "./google-drive";
 import {
-  childrenAreDayFolders,
   childrenAreWeekFolders,
   displayFolderName,
   folderHref,
@@ -142,17 +141,17 @@ async function countTracksInStyle(
   return tracks.length;
 }
 
-/** Filhos do mês: dias (com pools), semanas (com estilos) ou estilos direto (legado). */
+/** Filhos do mês: semanas (com estilos) ou estilos direto (legado). */
 async function listStyleContexts(month: VipMusicFolder): Promise<
   { style: VipMusicFolder; week?: VipMusicFolder }[]
 > {
   const children = await listVipMusicFolders(month.id);
-  if (childrenAreDayFolders(children) || childrenAreWeekFolders(children)) {
+  if (childrenAreWeekFolders(children)) {
     const contexts: { style: VipMusicFolder; week?: VipMusicFolder }[] = [];
-    for (const period of children) {
-      const styles = await listVipMusicFolders(period.id);
+    for (const week of children) {
+      const styles = await listVipMusicFolders(week.id);
       for (const style of styles) {
-        contexts.push({ style, week: period });
+        contexts.push({ style, week });
       }
     }
     return contexts;

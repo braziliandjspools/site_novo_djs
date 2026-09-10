@@ -7,7 +7,6 @@ import { ChevronRight } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import {
-  childrenAreDayFolders,
   childrenAreWeekFolders,
   displayFolderName,
   folderHref,
@@ -24,8 +23,6 @@ import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { AtualizacoesPackBlocks } from "./AtualizacoesPackBlocks";
-import { DayFolderGrid } from "./DayFolderGrid";
-import { PoolThemeToggle } from "./PoolTheme";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
@@ -91,9 +88,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       setSiblingWeeks([]);
       return;
     }
-    // Resolve do dia/semana já traz os irmãos (outros dias/semanas do mês).
+    // Resolve da semana já traz os irmãos (outras semanas do mês).
     if (data?.siblings?.length && data.slugSegments?.[0] === monthSlug) {
-      if (childrenAreWeekFolders(data.siblings) || childrenAreDayFolders(data.siblings)) {
+      if (childrenAreWeekFolders(data.siblings)) {
         setSiblingWeeks(data.siblings);
         return;
       }
@@ -102,15 +99,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     void fetchMusicasJson<ResolveResponse>(resolveUrl(monthSlug))
       .then((body) => {
         if (cancelled) return;
-        if (
-          body.level === "folders" &&
-          (childrenAreWeekFolders(body.items) || childrenAreDayFolders(body.items))
-        ) {
+        if (body.level === "folders" && childrenAreWeekFolders(body.items)) {
           setSiblingWeeks(body.items);
-        } else if (
-          body.siblings &&
-          (childrenAreWeekFolders(body.siblings) || childrenAreDayFolders(body.siblings))
-        ) {
+        } else if (body.siblings && childrenAreWeekFolders(body.siblings)) {
           setSiblingWeeks(body.siblings);
         } else {
           setSiblingWeeks([]);
@@ -192,13 +183,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return childrenAreWeekFolders(data.items);
   }, [data, slugSegments.length]);
 
-  const showingDays = useMemo(() => {
-    if (!data || data.level !== "folders" || slugSegments.length !== 1) return false;
-    return childrenAreDayFolders(data.items);
-  }, [data, slugSegments.length]);
-
-  const showingPeriods = showingWeeks || showingDays;
-  const showingStyles = Boolean(data && data.level === "folders" && !showingPeriods);
+  const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
 
@@ -235,7 +220,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const currentTitle = data ? displayFolderName(data.folderName) : monthTitle;
 
   const childIds = data?.items.map((item) => item.id) ?? [];
-  const highlightKey = showingPeriods
+  const highlightKey = showingWeeks
     ? weeksReadKey(monthSlug)
     : stylesReadKey(weekSlug ? `${monthSlug}/${weekSlug}` : monthSlug);
   const newChildIds = useNewFolderHighlights(highlightKey, childIds);
@@ -248,13 +233,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const heroMode = showingTracks
     ? "tracks"
-    : showingDays
-      ? "days"
-      : showingWeeks
-        ? "weeks"
-        : weekSlug
-          ? "week-styles"
-          : "styles";
+    : showingWeeks
+      ? "weeks"
+      : weekSlug
+        ? "week-styles"
+        : "styles";
   const heroCount = showingTracks ? directTracks.length : (data?.items.length ?? 0);
 
   const parentSegments = slugSegments.slice(0, -1);
@@ -329,14 +312,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           mode={heroMode}
           coverUrl={data.coverUrl}
           badgeActions={
-            <div className="flex flex-wrap items-center gap-2">
-              <PoolThemeToggle />
-              <AtualizacoesDriveSyncButton
-                onSynced={async () => {
-                  await loadBrowse({ forceRefresh: true });
-                }}
-              />
-            </div>
+            <AtualizacoesDriveSyncButton
+              onSynced={async () => {
+                await loadBrowse({ forceRefresh: true });
+              }}
+            />
           }
           actions={
             <div className="flex flex-wrap items-center gap-2">
@@ -375,27 +355,18 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         </p>
       )}
 
-      {!error && data && showingPeriods && (
+      {!error && data && showingWeeks && (
         <>
-          {showingDays ? (
-            <DayFolderGrid
-              monthSlug={monthSlug}
-              monthName={monthTitle}
-              days={data.items}
-              newDayIds={newChildIds}
-            />
-          ) : (
-            <WeekFolderGrid
-              monthSlug={monthSlug}
-              monthName={monthTitle}
-              weeks={data.items}
-              newWeekIds={newChildIds}
-            />
-          )}
+          <WeekFolderGrid
+            monthSlug={monthSlug}
+            monthName={monthTitle}
+            weeks={data.items}
+            newWeekIds={newChildIds}
+          />
           <AtualizacoesMonthFooterNav
             monthSlug={monthSlug}
             months={months}
-            weeks={showingPeriods ? data.items : siblingWeeks}
+            weeks={showingWeeks ? data.items : siblingWeeks}
             weekSlug={weekSlug}
             homeHref="/musicas/atualizacoes"
             homeLabel="Home"

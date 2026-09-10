@@ -63,9 +63,9 @@ const benefits = [
 ];
 
 const includedDetails = [
-  { title: "+241 GB de acervo", text: "Volume atual do Drive VIP, em constante crescimento." },
-  { title: "+33.697 faixas", text: "Edits, extended, clean/dirty e materiais para a pista." },
-  { title: "~592 pastas", text: "Organização por mês, semana, estilo e coleções." },
+  { title: "+315 GB de acervo", text: "Volume atual do Drive VIP, em constante crescimento." },
+  { title: "+40.012 faixas", text: "Edits, extended, clean/dirty e materiais para a pista." },
+  { title: "~739 pastas", text: "Organização por mês, semana, estilo e coleções." },
   { title: "Login único", text: "Mesma conta no site, na plataforma /musicas e no Downloader." },
 ];
 

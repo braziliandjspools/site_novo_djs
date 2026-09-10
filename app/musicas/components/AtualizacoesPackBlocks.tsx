@@ -72,7 +72,6 @@ export function AtualizacoesPackBlocks({
               tracks,
               trackCount: data.total ?? tracks.length,
               totalSizeBytes: tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0),
-              tracksHasMore: Boolean(data.hasMore),
             } satisfies AtualizacoesPackBlockData;
           }),
         );

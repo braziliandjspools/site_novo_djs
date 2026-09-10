@@ -10,11 +10,11 @@ export function monthStatusClass(status: MonthStatus) {
   return "bg-zinc-900 text-zinc-500 ring-zinc-700";
 }
 
-type HeroMode = "weeks" | "days" | "week-styles" | "styles" | "tracks";
+type HeroMode = "weeks" | "week-styles" | "styles" | "tracks";
 
 type AtualizacoesMonthHeroProps = {
   folderName: string;
-  /** Contagem contextual: dias, semanas, estilos ou faixas. */
+  /** Contagem contextual: semanas, estilos ou faixas. */
   itemCount: number;
   hasVip: boolean;
   mode?: HeroMode;
@@ -39,39 +39,33 @@ export function AtualizacoesMonthHero({
   const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
 
   const eyebrow =
-    mode === "weeks" || mode === "days"
+    mode === "weeks"
       ? "Pack do mês"
       : mode === "tracks"
         ? "Pack"
         : mode === "week-styles"
-          ? "Dia / semana"
-          : "Pools e estilos";
+          ? "Semana"
+          : "Estilos";
   const description =
-    mode === "days"
-      ? "Escolha o dia e abra os pools com os MP3s."
-      : mode === "weeks"
-        ? "Escolha a semana e continue até as faixas."
-        : mode === "tracks"
-          ? "Ouça as faixas e envie packs ao BRS Downloader."
-          : mode === "week-styles"
-            ? "Abra um pool ou estilo para ouvir e enviar ao Downloader."
-            : "Abra a pasta, ouça e envie packs ao BRS Downloader.";
+    mode === "weeks"
+      ? "Escolha a semana e continue até as faixas."
+      : mode === "tracks"
+        ? "Ouça as faixas e envie packs ao BRS Downloader."
+        : mode === "week-styles"
+          ? "Abra uma pasta para ouvir e enviar packs ao Downloader."
+          : "Abra a pasta, ouça e envie packs ao BRS Downloader.";
   const countLabel =
-    mode === "days"
+    mode === "weeks"
       ? itemCount === 1
-        ? "dia"
-        : "dias"
-      : mode === "weeks"
+        ? "semana"
+        : "semanas"
+      : mode === "tracks"
         ? itemCount === 1
-          ? "semana"
-          : "semanas"
-        : mode === "tracks"
-          ? itemCount === 1
-            ? "faixa"
-            : "faixas"
-          : itemCount === 1
-            ? "pasta"
-            : "pastas";
+          ? "faixa"
+          : "faixas"
+        : itemCount === 1
+          ? "pasta"
+          : "pastas";
 
   return (
     <section className="relative mb-6 overflow-hidden rounded-2xl">
@@ -104,7 +98,7 @@ export function AtualizacoesMonthHero({
           <p className="text-eyebrow text-white/70">{eyebrow}</p>
           <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <h1 className="text-page-title break-words text-white">{title}</h1>
-            {label && (mode === "weeks" || mode === "days") && (
+            {label && mode === "weeks" && (
               <span className={`text-badge rounded-full px-2.5 py-1 uppercase ring-1 ${monthStatusClass(status)}`}>
                 {label}
               </span>

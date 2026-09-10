@@ -141,9 +141,9 @@ export function Hero() {
       <section className="border-b border-white/5 site-section-blue px-4 py-10 sm:px-6">
         <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
           {[
-            { value: "+241 GB", label: "Acervo VIP" },
-            { value: "592", label: "Pastas" },
-            { value: "+33.697", label: "Músicas" },
+            { value: "+315 GB", label: "Acervo VIP" },
+            { value: "739", label: "Pastas" },
+            { value: "+40.012", label: "Músicas" },
           ].map((stat, i) => (
             <div key={stat.label} className="text-center">
               <p
