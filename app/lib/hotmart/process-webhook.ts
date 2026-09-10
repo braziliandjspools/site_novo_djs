@@ -1,6 +1,6 @@
 import type { HotmartSubscriptionStatus, Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
-import { updatePortalUser, type PortalUser } from "../portal-users";
+import { findUserByEmail, findUserById, updatePortalUser, type PortalUser } from "../portal-users";
 import { resolveInternalPlan, HOTMART_PROVIDER } from "./config";
 import { sendHotmartAccessGrantedEmail, sendHotmartPendingAccountEmail } from "./email";
 import { shouldReactivateAfterRevocation } from "./access-policy";
@@ -43,54 +43,20 @@ function logHotmart(message: string) {
 async function findUserForPurchase(payload: HotmartWebhookPayload): Promise<PortalUser | null> {
   const externalId = extractExternalUserId(payload);
   if (externalId) {
-    const byId = await prisma.portalUser.findUnique({ where: { id: externalId } });
+    const byId = await findUserById(externalId);
     if (byId) {
       logHotmart("usuário identificado");
-      return {
-        id: byId.id,
-        name: byId.name,
-        email: byId.email,
-        whatsapp: byId.whatsapp,
-        plan: byId.plan,
-        services: {
-          poolsVip: byId.servicePoolsVip,
-          deemix: byId.serviceDeemix,
-          allavsoft: byId.serviceAllavsoft,
-        },
-        monthlyValue: Number(byId.monthlyValue),
-        nextDueAt: byId.nextDueAt,
-        active: byId.active,
-        musicProducerDeliveriesEnabled: byId.musicProducerDeliveriesEnabled,
-        createdAt: byId.createdAt,
-        updatedAt: byId.updatedAt,
-      };
+      return byId;
     }
   }
 
   const email = extractBuyerEmail(payload);
   if (!email) return null;
 
-  const byEmail = await prisma.portalUser.findUnique({ where: { email } });
+  const byEmail = await findUserByEmail(email);
   if (byEmail) {
     logHotmart("usuário identificado");
-    return {
-      id: byEmail.id,
-      name: byEmail.name,
-      email: byEmail.email,
-      whatsapp: byEmail.whatsapp,
-      plan: byEmail.plan,
-      services: {
-        poolsVip: byEmail.servicePoolsVip,
-        deemix: byEmail.serviceDeemix,
-        allavsoft: byEmail.serviceAllavsoft,
-      },
-      monthlyValue: Number(byEmail.monthlyValue),
-      nextDueAt: byEmail.nextDueAt,
-      active: byEmail.active,
-      musicProducerDeliveriesEnabled: byEmail.musicProducerDeliveriesEnabled,
-      createdAt: byEmail.createdAt,
-      updatedAt: byEmail.updatedAt,
-    };
+    return byEmail;
   }
 
   return null;
@@ -105,8 +71,12 @@ async function grantPoolsAccess(userId: number, monthlyValue: number, periodEnd:
       deemix: user.serviceDeemix,
       allavsoft: user.serviceAllavsoft,
     },
-    monthlyValue,
-    nextDueAt: periodEnd.toISOString().slice(0, 10),
+    serviceBilling: {
+      poolsVip: {
+        value: monthlyValue,
+        dueAt: periodEnd.toISOString().slice(0, 10),
+      },
+    },
     active: true,
   });
 }
@@ -120,7 +90,9 @@ async function revokePoolsAccess(userId: number) {
       deemix: user.serviceDeemix,
       allavsoft: user.serviceAllavsoft,
     },
-    nextDueAt: new Date().toISOString().slice(0, 10),
+    serviceBilling: {
+      poolsVip: { value: 0, dueAt: null },
+    },
   });
 }
 

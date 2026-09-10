@@ -26,7 +26,18 @@ model PortalUser {
   servicePoolsVip                Boolean    @default(false) @map("service_pools_vip")
   serviceDeemix                  Boolean    @default(false) @map("service_deemix")
   serviceAllavsoft               Boolean    @default(false) @map("service_allavsoft")
+  /** Valor cobrado do Pools VIP (independente dos outros serviços). */
+  servicePoolsVipValue           Decimal    @default(0) @map("service_pools_vip_value") @db.Decimal(10, 2)
+  servicePoolsVipDueAt           DateTime?  @map("service_pools_vip_due_at")
+  /** Valor cobrado do Deemix. */
+  serviceDeemixValue             Decimal    @default(0) @map("service_deemix_value") @db.Decimal(10, 2)
+  serviceDeemixDueAt             DateTime?  @map("service_deemix_due_at")
+  /** Valor cobrado do Allavsoft (licença vitalícia: due_at nulo). */
+  serviceAllavsoftValue          Decimal    @default(0) @map("service_allavsoft_value") @db.Decimal(10, 2)
+  serviceAllavsoftDueAt          DateTime?  @map("service_allavsoft_due_at")
+  /** Soma dos valores dos serviços ativos (compat / resumo). */
   monthlyValue                   Decimal    @default(0) @map("monthly_value") @db.Decimal(10, 2)
+  /** Próximo vencimento agregado (menor due de VIP/Deemix ativos). */
   nextDueAt                      DateTime   @map("next_due_at")
   active                         Boolean    @default(true)
   musicProducerDeliveriesEnabled Boolean    @default(false) @map("music_producer_deliveries_enabled")
@@ -43,6 +54,8 @@ model PortalUser {
   mercadoPagoOrders     MercadoPagoOrder[]
 
   @@index([nextDueAt])
+  @@index([servicePoolsVipDueAt])
+  @@index([serviceDeemixDueAt])
   @@map("portal_users")
 }
 

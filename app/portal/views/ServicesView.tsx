@@ -17,19 +17,21 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
     data.pools && {
       name: "Pools VIP — Acervo de Músicas",
       badge: <PortalBadge>Ativo</PortalBadge>,
-      due: formatDateBr(user.nextDueAt),
+      due: `${user.serviceBilling.poolsVip.valueLabel} · ${formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt)}`,
       view: "service-pools" as PortalView,
     },
     data.deemix && {
       name: "Deemix — Download de Músicas",
       badge: <PortalBadge>Ativo</PortalBadge>,
-      due: formatDateBr(user.nextDueAt),
+      due: `${user.serviceBilling.deemix.valueLabel} · ${
+        user.serviceBilling.deemix.dueAt ? formatDateBr(user.serviceBilling.deemix.dueAt) : "—"
+      }`,
       view: "service-deemix" as PortalView,
     },
     data.allavsoft && {
       name: "Allavsoft — Download Universal",
       badge: <PortalBadge>Vitalícia</PortalBadge>,
-      due: "Sem vencimento",
+      due: `${user.serviceBilling.allavsoft.valueLabel} · Sem vencimento`,
       view: "service-allavsoft" as PortalView,
     },
     {

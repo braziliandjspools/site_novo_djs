@@ -206,6 +206,23 @@ export async function getPortalDataForUser(user: PortalUser) {
       planLabel: hotmart ? planDisplayName(hotmart.planId) : getServicesLabel(user.services),
       services: user.services,
       servicesLabel: getServicesLabel(user.services),
+      serviceBilling: {
+        poolsVip: {
+          value: user.serviceBilling.poolsVip.value,
+          valueLabel: formatMonthlyValue(user.serviceBilling.poolsVip.value),
+          dueAt: user.serviceBilling.poolsVip.dueAt?.toISOString() ?? null,
+        },
+        deemix: {
+          value: user.serviceBilling.deemix.value,
+          valueLabel: formatMonthlyValue(user.serviceBilling.deemix.value),
+          dueAt: user.serviceBilling.deemix.dueAt?.toISOString() ?? null,
+        },
+        allavsoft: {
+          value: user.serviceBilling.allavsoft.value,
+          valueLabel: formatMonthlyValue(user.serviceBilling.allavsoft.value),
+          dueAt: user.serviceBilling.allavsoft.dueAt?.toISOString() ?? null,
+        },
+      },
       monthlyValue: user.monthlyValue,
       monthlyValueLabel: formatMonthlyValue(user.monthlyValue),
       nextDueAt: user.nextDueAt.toISOString(),

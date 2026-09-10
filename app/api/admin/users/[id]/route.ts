@@ -6,6 +6,7 @@ import {
   serializePortalUser,
   updatePortalUser,
   type PortalServicesInput,
+  type ServiceBillingInput,
   type UpdatePortalUserInput,
 } from "../../../../lib/portal-users";
 
@@ -17,6 +18,42 @@ function parseServices(value: unknown): PortalServicesInput | null {
     deemix: Boolean(data.deemix),
     allavsoft: Boolean(data.allavsoft),
   };
+}
+
+function parseLineBilling(value: unknown): { value?: number; dueAt?: string | null } | null {
+  if (value === undefined) return undefined as unknown as null;
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  const line: { value?: number; dueAt?: string | null } = {};
+  if (data.value !== undefined) {
+    const parsed = Number(data.value);
+    if (!Number.isFinite(parsed) || parsed < 0) return null;
+    line.value = Math.round(parsed * 100) / 100;
+  }
+  if (data.dueAt !== undefined) {
+    if (data.dueAt === null || data.dueAt === "") {
+      line.dueAt = null;
+    } else if (typeof data.dueAt === "string") {
+      line.dueAt = data.dueAt;
+    } else {
+      return null;
+    }
+  }
+  return line;
+}
+
+function parseServiceBilling(value: unknown): ServiceBillingInput | null {
+  if (value === undefined) return null;
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  const billing: ServiceBillingInput = {};
+  for (const key of ["poolsVip", "deemix", "allavsoft"] as const) {
+    if (data[key] === undefined) continue;
+    const line = parseLineBilling(data[key]);
+    if (line === null) return null;
+    billing[key] = line;
+  }
+  return billing;
 }
 
 function parseMonthlyValue(value: unknown) {
@@ -46,15 +83,23 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
 
-  let body: UpdatePortalUserInput & { services?: PortalServicesInput } = {};
+  let body: UpdatePortalUserInput = {};
   try {
-    body = (await request.json()) as UpdatePortalUserInput & { services?: PortalServicesInput };
+    body = (await request.json()) as UpdatePortalUserInput;
   } catch {
     return NextResponse.json({ error: "Requisição inválida" }, { status: 400 });
   }
 
   if (body.services !== undefined && !parseServices(body.services)) {
     return NextResponse.json({ error: "services inválido." }, { status: 400 });
+  }
+
+  if (body.serviceBilling !== undefined) {
+    const billing = parseServiceBilling(body.serviceBilling);
+    if (!billing) {
+      return NextResponse.json({ error: "serviceBilling inválido." }, { status: 400 });
+    }
+    body.serviceBilling = billing;
   }
 
   if (body.monthlyValue !== undefined) {

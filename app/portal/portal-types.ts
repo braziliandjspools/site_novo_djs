@@ -6,6 +6,18 @@ export type PortalServices = {
   allavsoft: boolean;
 };
 
+export type PortalServiceLineBilling = {
+  value: number;
+  valueLabel: string;
+  dueAt: string | null;
+};
+
+export type PortalServiceBilling = {
+  poolsVip: PortalServiceLineBilling;
+  deemix: PortalServiceLineBilling;
+  allavsoft: PortalServiceLineBilling;
+};
+
 export type PortalData = {
   user: {
     name: string;
@@ -15,6 +27,7 @@ export type PortalData = {
     planLabel: string;
     services: PortalServices;
     servicesLabel: string;
+    serviceBilling: PortalServiceBilling;
     monthlyValue: number;
     monthlyValueLabel: string;
     nextDueAt: string;

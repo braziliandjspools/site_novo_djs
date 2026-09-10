@@ -338,8 +338,11 @@ export default async function DeemixPage() {
 
   const user = await getAuthenticatedPortalUser();
   const activeDeemix =
-    user && user.services.deemix && user.nextDueAt.getTime() > Date.now()
-      ? { expiresLabel: formatDueDate(user.nextDueAt) }
+    user &&
+    user.services.deemix &&
+    user.serviceBilling.deemix.dueAt &&
+    user.serviceBilling.deemix.dueAt.getTime() > Date.now()
+      ? { expiresLabel: formatDueDate(user.serviceBilling.deemix.dueAt) }
       : null;
 
   if (!DEEMIX_ENABLED) {

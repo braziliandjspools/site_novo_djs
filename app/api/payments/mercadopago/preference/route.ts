@@ -116,14 +116,16 @@ export async function POST(request: Request) {
     userHasActiveVipAccess({
       servicePoolsVip: user.services.poolsVip,
       nextDueAt: user.nextDueAt,
+      servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
     })
   ) {
-    const expiresLabel = formatDueDate(user.nextDueAt);
+    const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+    const expiresLabel = formatDueDate(due);
     return NextResponse.json(
       {
         error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
         code: "vip_already_active",
-        expiresAt: user.nextDueAt.toISOString(),
+        expiresAt: due.toISOString(),
         expiresLabel,
       },
       { status: 409 },
@@ -133,14 +135,16 @@ export async function POST(request: Request) {
   if (
     trusted.plan.serviceProduct === "deemix" &&
     user.services.deemix &&
-    user.nextDueAt.getTime() > Date.now()
+    user.serviceBilling.deemix.dueAt &&
+    user.serviceBilling.deemix.dueAt.getTime() > Date.now()
   ) {
-    const expiresLabel = formatDueDate(user.nextDueAt);
+    const due = user.serviceBilling.deemix.dueAt;
+    const expiresLabel = formatDueDate(due);
     return NextResponse.json(
       {
         error: `Você já tem Deemix ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
         code: "deemix_already_active",
-        expiresAt: user.nextDueAt.toISOString(),
+        expiresAt: due.toISOString(),
         expiresLabel,
       },
       { status: 409 },

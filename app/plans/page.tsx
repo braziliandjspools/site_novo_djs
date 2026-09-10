@@ -158,12 +158,20 @@ export default async function PlansPage() {
     userHasActiveVipAccess({
       servicePoolsVip: user.services.poolsVip,
       nextDueAt: user.nextDueAt,
+      servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
     })
-      ? { expiresLabel: formatDueDate(user.nextDueAt) }
+      ? {
+          expiresLabel: formatDueDate(
+            user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt,
+          ),
+        }
       : null;
   const activeDeemix =
-    user && user.services.deemix && user.nextDueAt.getTime() > Date.now()
-      ? { expiresLabel: formatDueDate(user.nextDueAt) }
+    user &&
+    user.services.deemix &&
+    user.serviceBilling.deemix.dueAt &&
+    user.serviceBilling.deemix.dueAt.getTime() > Date.now()
+      ? { expiresLabel: formatDueDate(user.serviceBilling.deemix.dueAt) }
       : null;
 
   return (

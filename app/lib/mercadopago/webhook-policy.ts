@@ -66,10 +66,14 @@ export function addMonthsSaoPaulo(from: Date, months: number): Date {
 export function userHasActiveVipAccess(input: {
   servicePoolsVip: boolean;
   nextDueAt: Date;
+  /** Preferir o vencimento específico do Pools VIP quando existir. */
+  servicePoolsVipDueAt?: Date | null;
   now?: Date;
 }): boolean {
   const now = input.now ?? new Date();
-  return input.servicePoolsVip && input.nextDueAt.getTime() > now.getTime();
+  if (!input.servicePoolsVip) return false;
+  const due = input.servicePoolsVipDueAt ?? input.nextDueAt;
+  return due.getTime() > now.getTime();
 }
 
 /**

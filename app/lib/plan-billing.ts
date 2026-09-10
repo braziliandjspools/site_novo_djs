@@ -8,28 +8,48 @@ import {
 
 export type PlanBillingStatus = "ok" | "expiring" | "expired" | "none";
 
-export function getPlanBillingStatus(user: Pick<PortalUser, "services" | "nextDueAt">): PlanBillingStatus {
+export function getPlanBillingStatus(
+  user: Pick<PortalUser, "services" | "nextDueAt" | "serviceBilling">,
+): PlanBillingStatus {
   if (!userHasPools(user)) return "none";
-  const urgency = getDueUrgency(user.nextDueAt);
+  const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+  const urgency = getDueUrgency(due);
   if (urgency === "overdue") return "expired";
   if (urgency === "soon") return "expiring";
   return "ok";
 }
 
-export function isDownloaderPlanExpired(user: Pick<PortalUser, "services" | "nextDueAt">) {
+export function isDownloaderPlanExpired(
+  user: Pick<PortalUser, "services" | "nextDueAt" | "serviceBilling">,
+) {
   return getPlanBillingStatus(user) === "expired";
 }
 
 export function buildPlanBillingPayload(user: PortalUser) {
   const status = getPlanBillingStatus(user);
-  const days = daysUntilDue(user.nextDueAt);
+  const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+  const days = daysUntilDue(due);
   return {
-    nextDueAt: user.nextDueAt.toISOString(),
-    nextDueLabel: formatDueDate(user.nextDueAt),
+    nextDueAt: due.toISOString(),
+    nextDueLabel: formatDueDate(due),
     daysUntilDue: days,
     status,
     expired: status === "expired",
     expiringSoon: status === "expiring",
+    services: {
+      poolsVip: {
+        value: user.serviceBilling.poolsVip.value,
+        dueAt: user.serviceBilling.poolsVip.dueAt?.toISOString() ?? null,
+      },
+      deemix: {
+        value: user.serviceBilling.deemix.value,
+        dueAt: user.serviceBilling.deemix.dueAt?.toISOString() ?? null,
+      },
+      allavsoft: {
+        value: user.serviceBilling.allavsoft.value,
+        dueAt: user.serviceBilling.allavsoft.dueAt?.toISOString() ?? null,
+      },
+    },
   };
 }
 

@@ -66,6 +66,7 @@ export async function getSafeMercadoPagoOrderStatusForUser(input: {
       portalUser: {
         select: {
           servicePoolsVip: true,
+          servicePoolsVipDueAt: true,
           nextDueAt: true,
         },
       },
@@ -82,8 +83,8 @@ export async function getSafeMercadoPagoOrderStatusForUser(input: {
   }
 
   const now = Date.now();
-  const accessActive =
-    order.portalUser.servicePoolsVip && order.portalUser.nextDueAt.getTime() > now;
+  const poolsDue = order.portalUser.servicePoolsVipDueAt ?? order.portalUser.nextDueAt;
+  const accessActive = order.portalUser.servicePoolsVip && poolsDue.getTime() > now;
 
   return toSafeDto({
     status: order.status,

@@ -98,21 +98,23 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
             data.pools && {
               name: "Pools VIP",
               badge: <PortalBadge>Ativo</PortalBadge>,
-              due: formatDateBr(user.nextDueAt),
+              due: `${user.serviceBilling.poolsVip.valueLabel} · ${formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt)}`,
               action: () => onNavigate("service-pools"),
               actionLabel: "Gerenciar",
             },
             data.deemix && {
               name: "Deemix",
               badge: <PortalBadge>Ativo</PortalBadge>,
-              due: formatDateBr(user.nextDueAt),
+              due: `${user.serviceBilling.deemix.valueLabel} · ${
+                user.serviceBilling.deemix.dueAt ? formatDateBr(user.serviceBilling.deemix.dueAt) : "—"
+              }`,
               action: () => onNavigate("service-deemix"),
               actionLabel: "Gerenciar",
             },
             data.allavsoft && {
               name: "Allavsoft",
               badge: <PortalBadge>Vitalícia</PortalBadge>,
-              due: "Sem vencimento",
+              due: `${user.serviceBilling.allavsoft.valueLabel} · Sem vencimento`,
               action: () => onNavigate("service-allavsoft"),
               actionLabel: "Gerenciar",
             },
@@ -173,7 +175,10 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                 <tr className="hover:bg-zinc-800/30">
                   <td className="py-3 pr-4 font-medium text-white">Pools VIP</td>
                   <td className="py-3 pr-4"><PortalBadge>Ativo</PortalBadge></td>
-                  <td className="py-3 pr-4 text-zinc-400">{formatDateBr(user.nextDueAt)}</td>
+                  <td className="py-3 pr-4 text-zinc-400">
+                    {user.serviceBilling.poolsVip.valueLabel} ·{" "}
+                    {formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt)}
+                  </td>
                   <td className="py-3">
                     <button type="button" onClick={() => onNavigate("service-pools")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
                       Gerenciar
@@ -185,7 +190,12 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                 <tr className="hover:bg-zinc-800/30">
                   <td className="py-3 pr-4 font-medium text-white">Deemix</td>
                   <td className="py-3 pr-4"><PortalBadge>Ativo</PortalBadge></td>
-                  <td className="py-3 pr-4 text-zinc-400">{formatDateBr(user.nextDueAt)}</td>
+                  <td className="py-3 pr-4 text-zinc-400">
+                    {user.serviceBilling.deemix.valueLabel} ·{" "}
+                    {user.serviceBilling.deemix.dueAt
+                      ? formatDateBr(user.serviceBilling.deemix.dueAt)
+                      : "—"}
+                  </td>
                   <td className="py-3">
                     <button type="button" onClick={() => onNavigate("service-deemix")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
                       Gerenciar
@@ -197,7 +207,9 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                 <tr className="hover:bg-zinc-800/30">
                   <td className="py-3 pr-4 font-medium text-white">Allavsoft</td>
                   <td className="py-3 pr-4"><PortalBadge>Vitalícia</PortalBadge></td>
-                  <td className="py-3 pr-4 text-zinc-400">Sem vencimento</td>
+                  <td className="py-3 pr-4 text-zinc-400">
+                    {user.serviceBilling.allavsoft.valueLabel} · Sem vencimento
+                  </td>
                   <td className="py-3">
                     <button type="button" onClick={() => onNavigate("service-allavsoft")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
                       Gerenciar

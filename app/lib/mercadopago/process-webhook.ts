@@ -8,7 +8,11 @@ import { Prisma, type MercadoPagoOrderStatus } from "@prisma/client";
 import { getCanonicalPlanById, isAllavsoftPlanId, isDeemixPlanId, isPoolsVipPlanId } from "../billing/plan-catalog";
 import { toDateInputValue } from "../due-queue";
 import { prisma } from "../prisma";
-import { deriveLegacyPlan } from "../portal-users";
+import {
+  computeAggregateMonthlyValue,
+  computeAggregateNextDueAt,
+  deriveLegacyPlan,
+} from "../portal-users";
 import { getMercadoPagoConfig } from "./client";
 import { sendMercadoPagoAccessGrantedEmail, sendMercadoPagoRefundEmail } from "./email";
 import { getMercadoPagoEnv } from "./env";
@@ -273,41 +277,52 @@ async function applyApprovedAccessInTx(
       deemix: user.serviceDeemix,
       allavsoft: true,
     };
+    const billing = {
+      poolsVip: {
+        value: Number(user.servicePoolsVipValue),
+        dueAt: user.servicePoolsVipDueAt,
+      },
+      deemix: {
+        value: Number(user.serviceDeemixValue),
+        dueAt: user.serviceDeemixDueAt,
+      },
+      allavsoft: {
+        value: Number(plan.amountBrl),
+        dueAt: null as Date | null,
+      },
+    };
     await tx.portalUser.update({
       where: { id: user.id },
       data: {
         serviceAllavsoft: true,
+        serviceAllavsoftValue: new Prisma.Decimal(plan.amountBrl),
+        serviceAllavsoftDueAt: null,
         plan: deriveLegacyPlan(nextServices),
+        monthlyValue: new Prisma.Decimal(computeAggregateMonthlyValue(nextServices, billing)),
+        nextDueAt: computeAggregateNextDueAt(nextServices, billing, user.nextDueAt),
         active: true,
-        // Licença vitalícia: não altera vencimento de VIP/Deemix.
       },
     });
     return { applied: true as const, order: updatedOrder, periodEnd: user.nextDueAt };
   }
 
+  const currentServiceDue = isDeemix ? user.serviceDeemixDueAt : user.servicePoolsVipDueAt;
   const hasActiveService = isDeemix
-    ? user.serviceDeemix && user.nextDueAt.getTime() > input.approvedAt.getTime()
+    ? Boolean(user.serviceDeemix && currentServiceDue && currentServiceDue.getTime() > input.approvedAt.getTime())
     : userHasActiveVipAccess({
         servicePoolsVip: user.servicePoolsVip,
         nextDueAt: user.nextDueAt,
+        servicePoolsVipDueAt: user.servicePoolsVipDueAt,
         now: input.approvedAt,
       });
 
-  let periodEnd = computeVipAccessPeriodEnd({
+  const periodEnd = computeVipAccessPeriodEnd({
     now: input.approvedAt,
     durationDays: plan.durationDays,
     durationMonths: plan.durationMonths,
     hasActiveAccess: hasActiveService,
-    currentExpiresAt: user.nextDueAt,
+    currentExpiresAt: currentServiceDue ?? user.nextDueAt,
   });
-
-  // Conta com VIP e Deemix: nextDueAt fica o maior vencimento entre os dois.
-  if (isDeemix && user.servicePoolsVip && user.nextDueAt.getTime() > periodEnd.getTime()) {
-    periodEnd = user.nextDueAt;
-  }
-  if (!isDeemix && user.serviceDeemix && user.nextDueAt.getTime() > periodEnd.getTime()) {
-    periodEnd = user.nextDueAt;
-  }
 
   const nextPoolsVip = isDeemix ? user.servicePoolsVip : true;
   const nextDeemix = isDeemix ? true : user.serviceDeemix;
@@ -316,6 +331,20 @@ async function applyApprovedAccessInTx(
     deemix: nextDeemix,
     allavsoft: user.serviceAllavsoft,
   };
+  const billing = {
+    poolsVip: {
+      value: isDeemix ? Number(user.servicePoolsVipValue) : Number(plan.amountBrl),
+      dueAt: isDeemix ? user.servicePoolsVipDueAt : periodEnd,
+    },
+    deemix: {
+      value: isDeemix ? Number(plan.amountBrl) : Number(user.serviceDeemixValue),
+      dueAt: isDeemix ? periodEnd : user.serviceDeemixDueAt,
+    },
+    allavsoft: {
+      value: Number(user.serviceAllavsoftValue),
+      dueAt: user.serviceAllavsoftDueAt,
+    },
+  };
 
   await tx.portalUser.update({
     where: { id: user.id },
@@ -323,8 +352,17 @@ async function applyApprovedAccessInTx(
       servicePoolsVip: nextPoolsVip,
       serviceDeemix: nextDeemix,
       plan: deriveLegacyPlan(nextServices),
-      monthlyValue: new Prisma.Decimal(isDeemix && user.servicePoolsVip ? user.monthlyValue : plan.amountBrl),
-      nextDueAt: periodEnd,
+      ...(isDeemix
+        ? {
+            serviceDeemixValue: new Prisma.Decimal(plan.amountBrl),
+            serviceDeemixDueAt: periodEnd,
+          }
+        : {
+            servicePoolsVipValue: new Prisma.Decimal(plan.amountBrl),
+            servicePoolsVipDueAt: periodEnd,
+          }),
+      monthlyValue: new Prisma.Decimal(computeAggregateMonthlyValue(nextServices, billing)),
+      nextDueAt: computeAggregateNextDueAt(nextServices, billing, periodEnd),
       active: true,
     },
   });
