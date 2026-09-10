@@ -33,7 +33,7 @@ function hueForKey(value: string) {
 
 export function MusicalKeyBadge({ value }: { value: string | null }) {
   if (!value) {
-    return <span className="text-zinc-600">—</span>;
+    return <span className="text-[color:var(--pool-text-muted)]">—</span>;
   }
   const hue = hueForKey(value);
   return (

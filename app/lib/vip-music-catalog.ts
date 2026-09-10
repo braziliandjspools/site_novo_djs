@@ -260,9 +260,9 @@ export async function getVipMusicTracksPaginated(
   };
 }
 
-export const VIP_MUSIC_FEED_PAGE_SIZE = 6;
-/** Faixas iniciais por pack no feed / blocos de atualizações (resto via “Carregar mais”). */
-export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 30;
+export const VIP_MUSIC_FEED_PAGE_SIZE = 8;
+/** Página de faixas no feed; o bloco completa o restante automaticamente. */
+export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 100;
 
 export type VipMusicFeedPack = {
   id: string;
@@ -275,6 +275,7 @@ export type VipMusicFeedPack = {
   tracks: PreviewTrack[];
   trackCount: number;
   totalSizeBytes: number;
+  tracksHasMore?: boolean;
 };
 
 export type VipMusicFeedResponse = {
@@ -397,6 +398,7 @@ export async function getVipMusicUpdatesFeed(options?: {
       tracks: pageResult.tracks,
       trackCount: pageResult.total,
       totalSizeBytes,
+      tracksHasMore: pageResult.hasMore,
     } satisfies VipMusicFeedPack;
   });
 

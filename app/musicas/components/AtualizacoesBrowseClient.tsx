@@ -312,11 +312,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           mode={heroMode}
           coverUrl={data.coverUrl}
           badgeActions={
-            <AtualizacoesDriveSyncButton
-              onSynced={async () => {
-                await loadBrowse({ forceRefresh: true });
-              }}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <PoolThemeToggle />
+              <AtualizacoesDriveSyncButton
+                onSynced={async () => {
+                  await loadBrowse({ forceRefresh: true });
+                }}
+              />
+            </div>
           }
           actions={
             <div className="flex flex-wrap items-center gap-2">
