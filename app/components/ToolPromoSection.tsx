@@ -59,7 +59,7 @@ export function ToolPromoSection({
 
         <div className="relative z-10 mx-auto w-full max-w-4xl px-4 pb-12 pt-6 text-center sm:px-6 md:pb-20 md:pt-10">
           <span
-            className={`mb-2 inline-flex rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest ${styles.badge}`}
+            className={`mb-2 inline-flex rounded-full border px-4 py-1.5 text-eyebrow ${styles.badge}`}
           >
             {badge}
           </span>
@@ -70,7 +70,7 @@ export function ToolPromoSection({
             <span className="h-1 w-8 rounded-full bg-[#002776]" />
           </div>
 
-          <h2 className="font-display text-3xl leading-tight tracking-wide text-white sm:text-4xl md:text-5xl lg:text-6xl">
+          <h2 className="text-page-title text-white">
             {title}
           </h2>
 
@@ -95,7 +95,7 @@ export function ToolPromoSection({
           </div>
           <Link
             href={href}
-            className={`mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition-all hover:scale-105 ${styles.button}`}
+            className={`mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold tracking-[-0.01em] text-white shadow-lg transition-all hover:scale-105 ${styles.button}`}
           >
             {buttonLabel}
             <ArrowRight className="h-4 w-4" />

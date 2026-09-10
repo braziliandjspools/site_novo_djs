@@ -51,10 +51,10 @@ export function VipMiniPlayerBar() {
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-white" title={display.title}>
+          <p className="text-track-title truncate text-white" title={display.title}>
             {display.title}
           </p>
-          <p className="truncate text-xs text-zinc-500" title={artistLine}>
+          <p className="text-track-artist truncate" title={artistLine}>
             {artistLine}
           </p>
           <div className="mt-1 flex items-center gap-2">

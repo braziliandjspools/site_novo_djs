@@ -95,24 +95,22 @@ export function AtualizacoesMonthHero({
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/75">{eyebrow}</p>
+          <p className="text-eyebrow text-white/70">{eyebrow}</p>
           <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <h1 className="break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
-              {title}
-            </h1>
+            <h1 className="text-page-title break-words text-white">{title}</h1>
             {label && mode === "weeks" && (
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ring-1 ${monthStatusClass(status)}`}>
+              <span className={`text-badge rounded-full px-2.5 py-1 uppercase ring-1 ${monthStatusClass(status)}`}>
                 {label}
               </span>
             )}
           </div>
-          <p className="mt-2 max-w-2xl text-sm text-white/65">{description}</p>
+          <p className="text-secondary mt-2 max-w-2xl">{description}</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold tabular-nums text-white ring-1 ring-white/15">
+            <span className="text-badge rounded-full bg-black/35 px-3 py-1.5 tabular-nums text-white ring-1 ring-white/15">
               {itemCount} {countLabel}
             </span>
             <span
-              className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${
+              className={`text-badge rounded-full px-3 py-1.5 ring-1 ${
                 hasVip
                   ? "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40"
                   : "bg-black/35 text-zinc-300 ring-white/15"

@@ -7,6 +7,7 @@
   --bg-card: #1a1a1a;
   --bg-hover: #242424;
   --text-muted: #a1a1aa;
+  --text-secondary: rgba(255, 255, 255, 0.62);
   --accent: #1db954;
   --accent-hover: #1ed760;
   --br-green: #009739;
@@ -14,14 +15,32 @@
   --br-blue: #002776;
   --line: rgba(255, 255, 255, 0.08);
   --shadow-soft: 0 18px 50px rgba(0, 0, 0, 0.45);
-  --font-player: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Tipografia — Inter via --font-app (next/font) */
+  --font-player: var(--font-app), system-ui, -apple-system, sans-serif;
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.8125rem; /* 13 */
+  --text-base: 0.875rem; /* 14 */
+  --text-md: 1rem; /* 16 */
+  --text-lg: 1.0625rem; /* 17 */
+  --text-xl: 1.25rem;
+  --text-2xl: clamp(1.75rem, 5vw, 2.75rem);
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --tracking-body: -0.01em;
+  --tracking-title: -0.02em;
+  --tracking-display: -0.035em;
+  --tracking-label: 0.16em;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-sora), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-app), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-app), system-ui, -apple-system, sans-serif;
 }
 
 html {
@@ -35,9 +54,13 @@ body {
   color: var(--foreground);
   max-width: 100%;
   overflow-x: clip;
-  letter-spacing: 0.01em;
+  font-family: var(--font-app), system-ui, -apple-system, sans-serif;
+  font-weight: var(--font-regular);
+  letter-spacing: var(--tracking-body);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 @layer base {
@@ -61,15 +84,70 @@ body {
     height: auto;
   }
 
-  /* Evita flex/grid filhos forçarem scroll horizontal */
   .min-w-0 {
     min-width: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: var(--tracking-title);
   }
 }
 
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-display);
+  font-weight: var(--font-bold);
+}
+
+/* Utilitários tipográficos do design system */
+.text-page-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+}
+
+.text-nav-item {
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
+  line-height: 1.4;
+  letter-spacing: var(--tracking-body);
+}
+
+.text-track-title {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.text-track-artist {
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  line-height: 1.3;
+  color: var(--text-secondary);
+}
+
+.text-secondary {
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.text-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.text-badge {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-body);
 }
 
 /* Painéis polidos (mesma linguagem visual do Downloader) */
@@ -93,11 +171,11 @@ body {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 9999px;
-  padding: 0.85rem 1.75rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-body);
+  text-transform: none;
   transition:
     transform 0.2s ease,
     background-color 0.2s ease,

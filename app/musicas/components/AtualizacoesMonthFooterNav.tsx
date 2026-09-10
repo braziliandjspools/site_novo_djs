@@ -39,7 +39,7 @@ type AtualizacoesMonthFooterNavProps = {
 };
 
 function navButtonClass(enabled: boolean) {
-  return `group/nav relative inline-flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1 border px-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] transition-colors sm:basis-auto sm:max-w-[220px] sm:gap-1.5 sm:px-3 sm:text-xs md:hover:z-20 md:hover:max-w-[min(90vw,28rem)] ${
+  return `group/nav relative inline-flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1 border px-2 py-2.5 text-[11px] font-semibold tracking-[-0.01em] transition-colors sm:basis-auto sm:max-w-[220px] sm:gap-1.5 sm:px-3 sm:text-xs md:hover:z-20 md:hover:max-w-[min(90vw,28rem)] ${
     enabled
       ? "border-zinc-600 bg-zinc-950 text-zinc-200 hover:border-[#00ff9d]/50 hover:text-[#00ff9d]"
       : "cursor-not-allowed border-zinc-800 bg-black text-zinc-600"
@@ -157,7 +157,7 @@ export function AtualizacoesMonthFooterNav({
 
       <Link
         href={homeHref}
-        className="col-span-2 inline-flex w-full items-center justify-center gap-1.5 border border-[#00ff9d]/40 bg-zinc-950 px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#00ff9d] transition-colors hover:border-[#00ff9d] hover:bg-zinc-900 sm:col-span-1 sm:w-auto sm:flex-shrink-0 sm:text-xs"
+        className="col-span-2 inline-flex w-full items-center justify-center gap-1.5 border border-[#00ff9d]/40 bg-zinc-950 px-3 py-2.5 text-[11px] font-semibold tracking-[-0.01em] text-[#00ff9d] transition-colors hover:border-[#00ff9d] hover:bg-zinc-900 sm:col-span-1 sm:w-auto sm:flex-shrink-0 sm:text-xs"
         title={homeLabel}
       >
         <Home className="h-4 w-4 flex-shrink-0" />

@@ -78,7 +78,7 @@ export function MusicasTopNav({
               <Link
                 key={href}
                 href={href}
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition-colors lg:px-3.5 ${
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-[15px] font-medium tracking-[-0.01em] transition-colors lg:px-3.5 ${
                   active
                     ? "bg-white text-black shadow-sm"
                     : "text-zinc-400 hover:bg-white/10 hover:text-white"
@@ -96,7 +96,7 @@ export function MusicasTopNav({
               type="button"
               onClick={() => setSiteOpen((open) => !open)}
               aria-expanded={siteOpen}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-2 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
             >
               Site
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${siteOpen ? "rotate-180" : ""}`} />
@@ -135,7 +135,7 @@ export function MusicasTopNav({
           {!hasVip && (
             <a
               href={checkoutUrl("VIP")}
-              className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#1ed760] px-3 py-2 text-[11px] font-bold text-black transition-transform hover:scale-[1.03] sm:px-4 sm:text-sm"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#1ed760] px-3 py-2 text-sm font-semibold tracking-[-0.01em] text-black transition-transform hover:scale-[1.03] sm:px-4"
             >
               Assinar VIP
             </a>
@@ -167,7 +167,7 @@ export function MusicasTopNav({
                   key={href}
                   href={href}
                   onClick={() => onMobileOpenChange(false)}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-3 text-nav-item ${
                     active ? "bg-white text-black" : "text-zinc-300 hover:bg-white/5"
                   }`}
                 >
@@ -178,14 +178,14 @@ export function MusicasTopNav({
             })}
           </nav>
 
-          <p className="mt-4 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-600">Site</p>
+          <p className="text-eyebrow mt-4 px-3 text-zinc-600">Site</p>
           <nav className="mt-1 space-y-1">
             {SITE_NAV_LINKS.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 onClick={() => onMobileOpenChange(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 hover:bg-white/5 hover:text-white"
               >
                 <Icon className="h-4 w-4" />
                 {label}

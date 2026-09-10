@@ -96,7 +96,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
           </div>
           <Link
             href={home.newsBanner.href}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#1bc95b]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 py-2.5 text-sm font-semibold tracking-[-0.01em] text-black hover:bg-[#1bc95b]"
           >
             Ver novidades
             <ArrowRight className="h-4 w-4" />
@@ -106,8 +106,8 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Biblioteca</p>
-          <p className="mt-2 text-2xl font-black text-white">
+          <p className="text-eyebrow text-zinc-500">Biblioteca</p>
+          <p className="mt-2 text-2xl font-bold tracking-[-0.03em] text-white">
             {formatStat(home.stats.trackCount)} <span className="text-sm font-semibold text-zinc-500">faixas</span>
           </p>
           <p className="mt-1 text-xs text-zinc-500">
@@ -116,7 +116,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Sincronização</p>
+          <p className="text-eyebrow text-zinc-500">Sincronização</p>
           <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#1ed760]">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#1ed760]" />
             Servidor Sincronizado
@@ -129,15 +129,15 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
             href={home.newsBanner.href}
             className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 transition-colors hover:bg-amber-500/15"
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Novidades</p>
-            <p className="mt-2 text-2xl font-black text-amber-300">{unseenCount} novas</p>
+            <p className="text-eyebrow text-amber-400">Novidades</p>
+            <p className="mt-2 text-2xl font-bold tracking-[-0.03em] text-amber-300">{unseenCount} novas</p>
             <p className="mt-1 text-xs text-amber-200/70">desde sua última visita</p>
           </Link>
         )}
 
         {hasVip && (
           <div className="rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Downloader</p>
+            <p className="text-eyebrow text-zinc-500">Downloader</p>
             <p className="mt-2 text-sm font-semibold text-white">
               {onlineDevices.length ? `${onlineDevices[0]?.deviceName ?? "PC"} conectado` : "Nenhum PC online"}
             </p>
@@ -273,17 +273,17 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
       <section className="rounded-xl border border-[#1DB954]/20 bg-gradient-to-r from-[#0f1f14] to-[#1a1a1a] p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#1DB954]">
+            <p className="text-eyebrow flex items-center gap-2 text-[#1DB954]">
               <Sparkles className="h-3.5 w-3.5" />
               Produção exclusiva
             </p>
-            <h2 className="mt-2 text-xl font-bold text-white sm:text-2xl">
+            <h2 className="mt-2 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">
               Quer uma música exclusiva? Nossa DJ produz para você
             </h2>
           </div>
           <Link
             href="/musicproducer#conte-sua-ideia"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-5 py-3 text-xs font-black uppercase tracking-wider text-black hover:bg-[#1ed760]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-5 py-3 text-sm font-semibold tracking-[-0.01em] text-black hover:bg-[#1ed760]"
           >
             Pedir minha música
             <Flame className="h-4 w-4" />

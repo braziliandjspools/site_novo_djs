@@ -22,14 +22,14 @@ export function MusicasGuestBanner() {
       <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#1ed760]/20 blur-3xl" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
-          <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#1ed760]">
+          <p className="text-eyebrow mb-2 flex items-center gap-2 text-[#1ed760]">
             <Sparkles className="h-4 w-4" />
             Prévia gratuita
           </p>
-          <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+          <h2 className="text-page-title text-white">
             Ouça 1 minuto de cada faixa. Assine para liberar tudo.
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-300 sm:text-base">
+          <p className="text-secondary mt-3">
             Visitantes e contas sem VIP podem ouvir a prévia. O plano VIP libera a faixa completa, download e o
             Downloader Windows.
           </p>
@@ -37,7 +37,7 @@ export function MusicasGuestBanner() {
         <div className="relative z-10 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-stretch">
           <Link
             href={checkoutUrl("VIP")}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold text-black transition-transform hover:scale-[1.02]"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold tracking-[-0.01em] text-black transition-transform hover:scale-[1.02]"
             style={{ backgroundColor: SPOTIFY_GREEN }}
           >
             <Crown className="h-4 w-4" />
@@ -45,14 +45,14 @@ export function MusicasGuestBanner() {
           </Link>
           <Link
             href={loginHref(pathname, "login")}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-500 px-8 py-3.5 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/5"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-500 px-8 py-3.5 text-sm font-semibold tracking-[-0.01em] text-white transition-colors hover:border-white hover:bg-white/5"
           >
             <LogIn className="h-4 w-4" />
             Já tenho conta
           </Link>
           <Link
             href={loginHref(pathname, "register")}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-700 px-8 py-3 text-xs font-bold uppercase tracking-wide text-zinc-400 transition-colors hover:border-zinc-500 hover:text-white"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-zinc-700 px-8 py-3 text-sm font-semibold tracking-[-0.01em] text-zinc-400 transition-colors hover:border-zinc-500 hover:text-white"
           >
             Criar conta
           </Link>

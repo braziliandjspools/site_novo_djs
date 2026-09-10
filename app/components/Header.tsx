@@ -28,7 +28,7 @@ export function Header() {
                   {i > 0 && <span className="mx-1 h-4 w-px bg-white/10" aria-hidden />}
                   <a
                     href={link.href}
-                    className="group relative px-4 py-2 text-sm font-medium tracking-wide text-gray-400 transition-colors hover:text-white"
+                    className="group relative px-4 py-2 text-sm font-medium tracking-[-0.01em] text-gray-400 transition-colors hover:text-white"
                   >
                     {link.label}
                     <span className="absolute inset-x-4 -bottom-px h-0.5 origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#009739] via-[#FFDF00] to-[#1DB954] transition-transform duration-300 group-hover:scale-x-100" />
@@ -69,7 +69,7 @@ export function Header() {
             <div className="fixed inset-y-0 right-0 z-[101] flex w-72 max-w-[85vw] flex-col overflow-hidden border-l border-[#009739]/40 bg-[#121212] shadow-2xl lg:hidden">
               <div className="br-stripe" />
               <div className="relative flex items-center justify-between border-b border-white/10 p-4">
-                <span className="font-display text-lg tracking-wide text-white">MENU</span>
+                <span className="text-lg font-semibold tracking-[-0.02em] text-white">Menu</span>
                 <button onClick={() => setIsOpen(false)} className="rounded-md p-2 hover:bg-white/10" aria-label="Fechar menu">
                   <X size={20} />
                 </button>
@@ -80,7 +80,7 @@ export function Header() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#181818] px-3 py-3 text-sm font-medium text-gray-200 transition-all hover:border-[#009739]/50 hover:bg-[#282828]"
+                    className="text-nav-item flex items-center gap-3 rounded-xl border border-white/5 bg-[#181818] px-3 py-3 text-gray-200 transition-all hover:border-[#009739]/50 hover:bg-[#282828]"
                   >
                     <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${i % 3 === 0 ? "bg-[#009739]/25 text-[#00B347]" : i % 3 === 1 ? "bg-[#FFDF00]/15 text-[#FFDF00]" : "bg-[#002776]/40 text-[#6B9FFF]"}`}>
                       <link.icon size={16} />
@@ -91,12 +91,12 @@ export function Header() {
                 <Link
                   href="/musicas"
                   onClick={() => setIsOpen(false)}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1DB954] px-5 py-3 text-sm font-bold text-white"
+                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1DB954] px-5 py-3 text-sm font-semibold tracking-[-0.01em] text-white"
                 >
                   Plataforma
                 </Link>
               </nav>
-              <div className="border-t border-white/10 p-4 text-center text-[11px] uppercase tracking-wider text-gray-500">
+              <div className="border-t border-white/10 p-4 text-center text-[11px] tracking-[-0.01em] text-gray-500">
                 Verde · Amarelo · Azul
               </div>
             </div>

@@ -159,7 +159,7 @@ export default function MusicasHomePage() {
 
       {!loadingTree && !error && folders.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-4 text-center text-2xl font-black tracking-tight text-white">Packs por mês</h2>
+          <h2 className="mb-4 text-center text-2xl font-bold tracking-[-0.03em] text-white">Packs por mês</h2>
           <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} />
         </section>
       )}

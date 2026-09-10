@@ -7,7 +7,7 @@ export const poolPanelHeaderClass =
   "flex flex-wrap items-center justify-between gap-3 border-b border-zinc-700/70 bg-[#111111] px-3 py-3 sm:px-4";
 
 export const poolTableHeadClass =
-  "grid items-center gap-x-3 border-b border-zinc-700/60 bg-[#0a0a0a] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 sm:px-4";
+  "grid items-center gap-x-3 border-b border-zinc-700/60 bg-[#0a0a0a] px-3 py-2 text-[11px] font-medium tracking-[-0.01em] text-zinc-500 sm:px-4";
 
 export const poolRowBaseClass =
   "grid items-center gap-x-3 border-b border-zinc-600 px-3 py-2.5 transition-colors last:border-b-0 sm:px-4";

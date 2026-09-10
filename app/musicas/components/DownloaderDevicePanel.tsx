@@ -66,7 +66,7 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
     <div id="downloader-panel" className={`min-w-0 rounded-lg border border-zinc-800 bg-[#121212] p-3 ${className}`}>
       <div className="flex min-w-0 items-center gap-2">
         <MonitorDown className="h-4 w-4 flex-shrink-0 text-[#1ed760]" />
-        <p className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.14em] text-white">
+        <p className="min-w-0 truncate text-sm font-semibold tracking-[-0.01em] text-white">
           BRS Downloader
         </p>
       </div>
@@ -104,7 +104,7 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
               <span className="break-words">{device.deviceName}</span> · fila {device.queueCount}
             </p>
           ))}
-          <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          <label className="text-eyebrow block text-zinc-500">
             Enviar para
           </label>
           <select

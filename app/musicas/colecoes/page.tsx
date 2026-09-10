@@ -109,7 +109,7 @@ export default function ColecoesPage() {
         </section>
       ) : (
         <section className="space-y-4">
-          <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">Coleções</h2>
+          <h2 className="text-lg font-bold tracking-[-0.02em] text-white sm:text-xl">Coleções</h2>
           <CollectionAlbumGrid
             variant="catalog"
             items={collections.map((item) => ({

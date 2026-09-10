@@ -16,7 +16,7 @@ type PortalLoginProps = {
 const inputClassName =
   "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#00ff9d] focus:ring-1 focus:ring-[#00ff9d]/30";
 
-const labelClassName = "mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500";
+const labelClassName = "text-eyebrow mb-2 block text-zinc-500";
 
 function generateSecurePassword(length = 12) {
   const chars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*";
@@ -192,7 +192,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
           <div className="flex justify-center">
             <BrsLogo href="/" className="h-12 w-auto max-w-[280px] object-contain" />
           </div>
-          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-600">Client Area</p>
+          <p className="text-eyebrow mt-3 text-zinc-600">Client Area</p>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
@@ -202,7 +202,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-colors ${
                   mode === "login" ? "bg-[#00ff9d] text-black" : "text-zinc-500 hover:text-white"
                 }`}
               >
@@ -212,7 +212,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("register")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-colors ${
                   mode === "register" ? "bg-[#00ff9d] text-black" : "text-zinc-500 hover:text-white"
                 }`}
               >
@@ -223,7 +223,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
 
             {mode === "login" ? (
               <>
-                <h1 className="mt-6 text-xl font-black uppercase tracking-wide text-white">Login</h1>
+                <h1 className="mt-6 text-xl font-bold tracking-[-0.02em] text-white">Login</h1>
                 <p className="mt-1 text-sm text-zinc-500">Acesse suas licenças, produções e serviços</p>
 
                 <form onSubmit={(e) => void handleLogin(e)} className="mt-8 space-y-5">
@@ -258,7 +258,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-6 py-3.5 text-sm font-black uppercase tracking-wider text-black transition-all hover:bg-[#00e68a] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-6 py-3.5 text-sm font-semibold tracking-[-0.01em] text-black transition-all hover:bg-[#00e68a] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                     Entrar
@@ -267,7 +267,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               </>
             ) : (
               <>
-                <h1 className="mt-6 text-xl font-black uppercase tracking-wide text-white">Criar conta</h1>
+                <h1 className="mt-6 text-xl font-bold tracking-[-0.02em] text-white">Criar conta</h1>
                 <p className="mt-1 text-sm text-zinc-500">
                   Preencha seus dados. Você entra sem plano de licença — escolha um plano ou peça uma produção depois.
                 </p>
@@ -339,7 +339,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-6 py-3.5 text-sm font-black uppercase tracking-wider text-black transition-all hover:bg-[#00e68a] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-6 py-3.5 text-sm font-semibold tracking-[-0.01em] text-black transition-all hover:bg-[#00e68a] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
                     Criar conta

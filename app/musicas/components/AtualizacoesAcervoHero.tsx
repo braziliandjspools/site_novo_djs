@@ -37,20 +37,18 @@ export function AtualizacoesAcervoHero({ monthCount, hasVip, badgeActions }: Atu
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:pb-1 sm:text-left">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">Acervo VIP</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl">
-            Atualizações
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
+          <p className="text-eyebrow text-white/70">Acervo VIP</p>
+          <h1 className="text-page-title mt-2 text-white">Atualizações</h1>
+          <p className="text-secondary mt-3 max-w-2xl">
             Navegue pelas pastas, ouça as faixas e envie packs ao BRS Downloader — layout em tela cheia para
             explorar o acervo como em um streaming.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold tabular-nums text-white ring-1 ring-white/15">
+            <span className="text-badge rounded-full bg-black/35 px-3 py-1.5 tabular-nums text-white ring-1 ring-white/15">
               {monthCount} {monthCount === 1 ? "pasta" : "pastas"}
             </span>
             <span
-              className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${
+              className={`text-badge rounded-full px-3 py-1.5 ring-1 ${
                 hasVip
                   ? "bg-[#1ed760]/20 text-[#1ed760] ring-[#1ed760]/40"
                   : "bg-black/35 text-zinc-300 ring-white/15"

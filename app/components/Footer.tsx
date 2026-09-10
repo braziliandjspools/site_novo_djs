@@ -15,7 +15,7 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <h4 className="font-display text-sm tracking-wide text-[#FFDF00]">Plataforma</h4>
+          <h4 className="text-sm font-semibold tracking-[-0.01em] text-[#FFDF00]">Plataforma</h4>
           <ul className="mt-3 space-y-2 text-xs">
             <li><a href="/plans" className="transition-colors hover:text-[#1DB954]">Planos</a></li>
             {DEEMIX_ENABLED && (
@@ -27,7 +27,7 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-display text-sm tracking-wide text-[#FFDF00]">Suporte</h4>
+          <h4 className="text-sm font-semibold tracking-[-0.01em] text-[#FFDF00]">Suporte</h4>
           <ul className="mt-3 space-y-2 text-xs">
             <li>
               <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#1DB954]">
@@ -57,7 +57,7 @@ export function Footer() {
       </div>
       <div className="mx-auto mt-8 flex max-w-6xl flex-col items-center gap-3 border-t border-white/5 pt-6 text-center text-xs text-gray-500 sm:mt-10 sm:flex-row sm:justify-between">
         <p>&copy; {new Date().getFullYear()} {SITE_NAME}. Todos os direitos reservados.</p>
-        <p className="flex items-center gap-2 uppercase tracking-wider">
+        <p className="flex items-center gap-2 tracking-[-0.01em]">
           <span className="inline-block h-2 w-2 rounded-full bg-[#009739]" />
           <span className="inline-block h-2 w-2 rounded-full bg-[#FFDF00]" />
           <span className="inline-block h-2 w-2 rounded-full bg-[#002776]" />

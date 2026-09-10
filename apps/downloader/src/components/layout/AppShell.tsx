@@ -68,7 +68,7 @@ export function AppShell({
             aria-hidden
           />
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold tracking-tight text-white sm:text-2xl">
+            <h1 className="text-xl font-bold tracking-[-0.03em] text-white sm:text-2xl">
               {title}
             </h1>
             {subtitle && (

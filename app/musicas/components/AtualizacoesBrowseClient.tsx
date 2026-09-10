@@ -335,7 +335,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {loading && data && (
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+        <p className="text-eyebrow mb-3 text-zinc-500">
           Atualizando…
         </p>
       )}

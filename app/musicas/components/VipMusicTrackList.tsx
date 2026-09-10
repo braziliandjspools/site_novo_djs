@@ -241,14 +241,14 @@ function TrackRow({
         >
           <div className="flex min-w-0 items-center gap-1.5">
             {isPlaying ? <PlayingBars /> : null}
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-white sm:text-[15px]">
+            <p className="text-track-title min-w-0 flex-1 truncate text-white">
               {display.title}
             </p>
             <span className="hidden shrink-0 sm:inline">
               <TrackDownloadStatus fileId={track.id} />
             </span>
           </div>
-          <p className="mt-0.5 truncate text-[0.82rem] leading-tight text-white/55" title={artistLine}>
+          <p className="text-track-artist mt-0.5 truncate" title={artistLine}>
             {artistLine}
             {track.album?.trim() ? (
               <span className="hidden text-white/35 sm:inline"> · {track.album.trim()}</span>
@@ -429,13 +429,13 @@ function DiscographyTrackRow({
 
         <div className="min-w-0 overflow-hidden">
           <p
-            className={`truncate text-sm font-semibold ${
+            className={`text-track-title truncate ${
               isPlaying || isActive ? "text-[#1ed760]" : "text-white"
             }`}
           >
             {display.title}
           </p>
-          <p className="mt-0.5 truncate text-xs text-zinc-400">{display.artist}</p>
+          <p className="text-track-artist mt-0.5 truncate">{display.artist}</p>
         </div>
 
         <div className="text-right font-mono text-xs tabular-nums text-zinc-500">
@@ -555,13 +555,13 @@ function TrackTableRow({
             title={a11yName}
           >
             <p
-              className={`truncate text-sm font-medium leading-snug ${
+              className={`text-track-title truncate ${
                 isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
             >
               {display.title}
             </p>
-            <p className="mt-0.5 truncate text-[11px] text-zinc-500">{display.artist}</p>
+            <p className="text-track-artist mt-0.5 truncate">{display.artist}</p>
           </button>
         </div>
 
@@ -964,7 +964,7 @@ export function VipMusicTrackList({
               <button
                 type="button"
                 onClick={selectAllTracks}
-                className="rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:bg-white/5 hover:text-white"
+                className="rounded-md px-2.5 py-1.5 text-xs font-semibold tracking-[-0.01em] text-zinc-400 transition-colors hover:bg-white/5 hover:text-white"
               >
                 Todas
               </button>
@@ -972,14 +972,14 @@ export function VipMusicTrackList({
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
                 disabled={selectedCount === 0}
-                className="rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-40"
+                className="rounded-md px-2.5 py-1.5 text-xs font-semibold tracking-[-0.01em] text-zinc-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-40"
               >
                 Limpar
               </button>
               <button
                 type="button"
                 onClick={exitSelectionMode}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-300"
+                className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold tracking-[-0.01em] text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-300"
               >
                 <Square className="h-3 w-3" />
                 Cancelar
@@ -988,7 +988,7 @@ export function VipMusicTrackList({
                 type="button"
                 onClick={() => void handleSendSelectedToDownloader()}
                 disabled={selectedCount === 0 || batchSending}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-[#1ed760] px-2.5 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-black transition-opacity hover:opacity-90 disabled:opacity-40 sm:ml-auto sm:w-auto sm:py-1"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-[#1ed760] px-3 py-2 text-sm font-semibold tracking-[-0.01em] text-black transition-opacity hover:opacity-90 disabled:opacity-40 sm:ml-auto sm:w-auto sm:py-1.5"
               >
                 {batchSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <MonitorDown className="h-3 w-3" />}
                 {selectionLabel}
@@ -998,7 +998,7 @@ export function VipMusicTrackList({
             <button
               type="button"
               onClick={() => setSelectionMode(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:bg-white/5 hover:text-[#1ed760]"
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold tracking-[-0.01em] text-zinc-400 transition-colors hover:bg-white/5 hover:text-[#1ed760]"
             >
               <Check className="h-3 w-3" />
               Selecionar faixas
@@ -1010,7 +1010,7 @@ export function VipMusicTrackList({
       {useDiscography ? (
         <div>
           <div
-            className={`${DISCOGRAPHY_GRID} border-b border-white/[0.08] px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-zinc-500 sm:px-3`}
+            className={`${DISCOGRAPHY_GRID} border-b border-white/[0.08] px-2 pb-2 text-[11px] font-medium tracking-[-0.01em] text-zinc-500 sm:px-3`}
           >
             <span className="text-center">#</span>
             <span>Título</span>

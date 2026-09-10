@@ -28,9 +28,9 @@ export function MusicasPageHeader({ title, subtitle }: { title: string; subtitle
           />
         </div>
         <div className="min-w-0 flex-1 text-center sm:text-left">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1ed760]/90">BRS Music</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">{title}</h1>
-          {subtitle && <p className="mt-2 max-w-2xl text-sm text-zinc-300 sm:text-base">{subtitle}</p>}
+          <p className="text-eyebrow text-[#1ed760]/90">BRS Music</p>
+          <h1 className="text-page-title mt-2 text-white">{title}</h1>
+          {subtitle && <p className="text-secondary mt-2 max-w-2xl">{subtitle}</p>}
         </div>
       </div>
     </div>

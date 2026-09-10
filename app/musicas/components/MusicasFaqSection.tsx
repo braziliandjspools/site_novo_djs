@@ -7,7 +7,7 @@ export function MusicasFaqSection() {
   return (
     <section id="faq" className="mt-12 border-t border-zinc-800 pt-10">
       <div className="mb-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">FAQ</p>
+        <p className="text-eyebrow text-[#1ed760]">FAQ</p>
         <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">Perguntas frequentes</h2>
         <p className="mt-2 max-w-2xl text-sm text-zinc-400">
           Tudo sobre navegação, player, downloads e acesso VIP na plataforma de músicas.

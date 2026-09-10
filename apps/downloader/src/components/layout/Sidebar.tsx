@@ -73,7 +73,7 @@ export function Sidebar({
       <div className="br-stripe-thin" />
       <div className="px-5 py-6">
         <BrsLogo className="h-10 w-auto max-w-[220px] object-contain object-left" />
-        <p className="mt-2.5 text-[10px] font-semibold tracking-[0.22em] text-zinc-500 uppercase">
+        <p className="text-eyebrow mt-2.5 text-zinc-500">
           {DOWNLOADER_NAME}
         </p>
       </div>
@@ -83,7 +83,7 @@ export function Sidebar({
       </div>
 
       <nav className="mt-5 flex-1 space-y-1 overflow-y-auto px-3">
-        <p className="px-3 pb-2 text-[10px] font-semibold tracking-[0.22em] text-zinc-600 uppercase">
+        <p className="text-eyebrow px-3 pb-2 text-zinc-600">
           {t("navMenu")}
         </p>
         {NAV_ITEMS.map(({ id, labelKey, icon: Icon, countKey }) => {
@@ -95,7 +95,7 @@ export function Sidebar({
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
-              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
+              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[17px] font-medium leading-[1.4] tracking-[-0.01em] transition-all duration-200 ${
                 active
                   ? "bg-[#1db954]/14 text-white shadow-[inset_0_0_0_1px_rgba(29,185,84,0.18)]"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"

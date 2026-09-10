@@ -132,10 +132,10 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         <div className="relative flex flex-col gap-6 p-7 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <BrsLogo className="mb-5 h-12 w-auto max-w-[280px] object-contain object-left sm:h-14" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#1db954]">
+            <p className="text-eyebrow text-[#1db954]">
               {t("homeWelcomeEyebrow")}
             </p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#1db954] sm:text-4xl">
+            <h1 className="text-page-title mt-2 text-[#1db954]">
               {t("homeWelcome", { name: firstName })}
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-400">

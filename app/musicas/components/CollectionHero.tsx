@@ -84,12 +84,10 @@ export function CollectionHero({
         </div>
 
         <div className="min-w-0 flex-1 text-left">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70">{eyebrow}</p>
-          <h1 className="mt-1.5 break-words text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
-            {title}
-          </h1>
+          <p className="text-eyebrow text-white/70">{eyebrow}</p>
+          <h1 className="text-page-title mt-1.5 break-words text-white">{title}</h1>
           {description ? (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/65">{description}</p>
+            <p className="text-secondary mt-2 max-w-2xl">{description}</p>
           ) : null}
 
           {resolvedStats.length > 0 ? (
@@ -99,7 +97,9 @@ export function CollectionHero({
                   {index > 0 ? <span className="text-zinc-600" aria-hidden>·</span> : null}
                   <span
                     className={
-                      stat.accent ? "font-semibold text-[#1ed760]" : "font-medium tabular-nums text-zinc-300"
+                      stat.accent
+                        ? "text-badge text-[#1ed760]"
+                        : "text-badge tabular-nums text-zinc-300"
                     }
                   >
                     {stat.label}
