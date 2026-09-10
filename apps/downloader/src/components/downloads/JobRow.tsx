@@ -130,7 +130,7 @@ export const JobRow = memo(function JobRow({
 
   return (
     <article
-      className={`rounded-2xl border bg-[var(--bg-card)] px-3.5 py-3 ${
+      className={`rounded-2xl border bg-[var(--bg-card)] px-4 py-3.5 ${
         selected ? "border-[#1ed760]/40" : "border-white/[0.06]"
       }`}
       draggable={draggable && canReorder}
@@ -168,9 +168,9 @@ export const JobRow = memo(function JobRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <p className="truncate text-[0.78rem] font-extrabold text-white">{job.fileName}</p>
+            <p className="truncate text-[0.92rem] font-extrabold text-white">{job.fileName}</p>
             <span
-              className={`rounded-full px-1.5 py-0.5 text-[0.6rem] font-extrabold tracking-wide uppercase ${
+              className={`rounded-full px-2 py-0.5 text-[0.68rem] font-extrabold tracking-wide uppercase ${
                 job.status === "COMPLETED"
                   ? "bg-[#1ed760]/15 text-[#1ed760]"
                   : job.status === "FAILED"
@@ -187,9 +187,9 @@ export const JobRow = memo(function JobRow({
           </div>
 
           {waiting && !isActive && (
-            <p className="mt-1 text-[0.68rem] text-zinc-500">{t("jobsWaitingSlot")}</p>
+            <p className="mt-1 text-[0.78rem] text-zinc-500">{t("jobsWaitingSlot")}</p>
           )}
-          {paused && <p className="mt-1 text-[0.68rem] text-amber-300">{t("jobsPausedNotice")}</p>}
+          {paused && <p className="mt-1 text-[0.78rem] text-amber-300">{t("jobsPausedNotice")}</p>}
 
           {job.relativePath && (
             <p className="mt-1 truncate text-[0.65rem] text-zinc-600">

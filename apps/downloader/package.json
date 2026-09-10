@@ -1,7 +1,7 @@
 {
   "name": "brazilian-packs-downloader",
   "private": true,
-  "version": "1.0.8_estable",
+  "version": "1.0.9_estable",
   "type": "module",
   "scripts": {
     "dev": "vite",

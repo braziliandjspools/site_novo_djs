@@ -34,6 +34,7 @@ export type SeoPageKey =
   | "deemix"
   | "allavsoft"
   | "musicproducer"
+  | "gerador-maiusculas"
   | "portal"
   | "musicas"
   | "musicas-home"
@@ -138,6 +139,24 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.8,
+  },
+  "gerador-maiusculas": {
+    key: "gerador-maiusculas",
+    path: "/gerador-maiusculas",
+    title: `Gerador de maiúscula | ${SITE_NAME}`,
+    description:
+      "Converta texto para maiúsculo, minúsculo, alternado, invertido ou title case. Ferramenta gratuita do Brazilian Remix Service.",
+    ogImage: "home",
+    keywords: [
+      "gerador de maiúscula",
+      "converter maiúsculo minúsculo",
+      "title case",
+      "caixa alta",
+      "caixa baixa",
+    ],
+    sitemap: true,
+    changeFrequency: "monthly",
+    priority: 0.5,
   },
   portal: {
     key: "portal",

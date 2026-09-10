@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -8,11 +8,9 @@ import {
   ListOrdered,
   RefreshCw,
   Settings,
-  Wifi,
-  WifiOff,
 } from "lucide-react";
-import { BrsLogo } from "../components/Branding/BrsLogo";
 import { Button } from "../components/ui/Button";
+import { useToast } from "../components/ui/Toast";
 import { useDownloadManager } from "../context/DownloadManagerContext";
 import { openPlatform } from "../lib/open-site";
 import { SITE_NAME } from "../lib/site";
@@ -95,50 +93,72 @@ const QUICK_LINKS: {
 
 export function HomePage({ userName, onNavigate }: HomePageProps) {
   const { t } = useLocale();
+  const { showToast } = useToast();
   const { jobs, connectionState, activeJobIds, pendingCount, syncNow, workerError } = useDownloadManager();
   const firstName = userName.split(" ")[0] ?? userName;
   const counts = countByStatus(jobs, activeJobIds);
   const isOffline = connectionState === "offline";
   const recentJobs = jobs.slice(0, 5);
   const [syncing, setSyncing] = useState(false);
-  const [syncDone, setSyncDone] = useState(false);
+  const lastOfflineToast = useRef(false);
+  const lastWorkerError = useRef<string | null>(null);
 
   useEffect(() => {
     if (!syncing) return;
     const doneTimer = window.setTimeout(() => {
       setSyncing(false);
-      setSyncDone(true);
+      showToast(t("homeSyncedBody"), "success");
     }, 1600);
     return () => window.clearTimeout(doneTimer);
-  }, [syncing]);
+  }, [showToast, syncing, t]);
 
   useEffect(() => {
-    if (!syncDone) return;
-    const hideTimer = window.setTimeout(() => setSyncDone(false), 2800);
-    return () => window.clearTimeout(hideTimer);
-  }, [syncDone]);
+    if (isOffline && !lastOfflineToast.current) {
+      showToast(t("homeOfflineWarning"), "warning");
+      lastOfflineToast.current = true;
+    }
+    if (!isOffline) lastOfflineToast.current = false;
+  }, [isOffline, showToast, t]);
+
+  useEffect(() => {
+    if (!workerError) {
+      lastWorkerError.current = null;
+      return;
+    }
+    if (lastWorkerError.current === workerError) return;
+    lastWorkerError.current = workerError;
+    showToast(workerError, "error");
+  }, [showToast, workerError]);
 
   function handleSync() {
     if (isOffline || syncing) return;
-    setSyncDone(false);
     setSyncing(true);
+    showToast(t("homeSyncingBody", { site: SITE_NAME }), "info");
     syncNow();
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
-      <section className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[var(--bg-card)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(30,215,96,0.1),transparent_55%)]" />
-        <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <BrsLogo className="mb-3 h-9 w-auto max-w-[220px] object-contain object-left sm:h-10" />
-            <p className="text-eyebrow text-[#1ed760]">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+      <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_18px_48px_rgba(0,0,0,0.35)]">
+        <img
+          src="/images/home-hero.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/72 to-black/45" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/25" aria-hidden />
+        <div className="br-stripe-thin absolute inset-x-0 top-0 z-10" />
+
+        <div className="relative z-10 flex min-h-[220px] flex-col justify-end gap-5 p-6 sm:min-h-[260px] sm:flex-row sm:items-end sm:justify-between sm:p-8 lg:min-h-[280px]">
+          <div className="max-w-2xl min-w-0">
+            <p className="text-eyebrow text-[#1ed760] drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">
               {t("homeWelcomeEyebrow")}
             </p>
-            <h1 className="text-page-title mt-1.5 text-[#1ed760]">
+            <h1 className="text-page-title mt-2 text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.75)]">
               {t("homeWelcome", { name: firstName })}
             </h1>
-            <p className="mt-2 max-w-xl text-[0.78rem] leading-relaxed text-zinc-400">
+            <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-zinc-200/90 drop-shadow-[0_1px_10px_rgba(0,0,0,0.7)]">
               {t("homeIntro", { site: SITE_NAME })}
             </p>
           </div>
@@ -154,38 +174,6 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
           </div>
         </div>
       </section>
-
-      {(syncing || syncDone) && (
-        <div
-          className={`flex items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3.5 transition-all ${
-            syncing
-              ? "border-[#1db954]/35 bg-gradient-to-r from-[#1db954]/20 via-[#1db954]/10 to-sky-500/10"
-              : "border-sky-400/30 bg-gradient-to-r from-sky-500/15 to-[#1db954]/10"
-          }`}
-          role="status"
-          aria-live="polite"
-        >
-          <div
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${
-              syncing ? "bg-[#1db954]/20 text-[#1db954]" : "bg-sky-500/20 text-sky-300"
-            }`}
-          >
-            {syncing ? (
-              <RefreshCw className="h-5 w-5 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-5 w-5" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-white">
-              {syncing ? t("homeSyncingTitle") : t("homeSyncedTitle")}
-            </p>
-            <p className="mt-0.5 text-xs text-zinc-400">
-              {syncing ? t("homeSyncingBody", { site: SITE_NAME }) : t("homeSyncedBody")}
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -214,29 +202,16 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         />
       </div>
 
-      {(isOffline || workerError) && (
-        <div
-          className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${
-            isOffline
-              ? "border-amber-500/20 bg-amber-500/10 text-amber-200"
-              : "border-red-500/20 bg-red-500/10 text-red-300"
-          }`}
-        >
-          {isOffline ? <WifiOff className="mt-0.5 h-4 w-4 flex-shrink-0" /> : <Wifi className="mt-0.5 h-4 w-4 flex-shrink-0" />}
-          <p>{isOffline ? t("homeOfflineWarning") : workerError}</p>
-        </div>
-      )}
-
       <ImportPackPanel />
 
       <section>
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="mb-3.5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">{t("navMenu")}</p>
-            <h2 className="text-lg font-bold text-white">{t("homeQuickAccess")}</h2>
+            <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#1db954]">{t("navMenu")}</p>
+            <h2 className="text-xl font-bold text-white">{t("homeQuickAccess")}</h2>
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {QUICK_LINKS.map(({ route, labelKey, descriptionKey, icon: Icon, accent, iconBg, borderHover }) => {
             const badge =
               route === "downloads"
@@ -252,25 +227,25 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
                 key={route}
                 type="button"
                 onClick={() => onNavigate(route)}
-                className={`group flex min-h-[128px] flex-col rounded-2xl border border-white/[0.06] bg-[#1f1f1f] p-4 text-left transition-colors ${borderHover}`}
+                className={`group flex min-h-[148px] flex-col rounded-2xl border border-white/[0.06] bg-[#1f1f1f] p-5 text-left transition-colors ${borderHover}`}
               >
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBg}`}>
+                <div className="mb-4 flex items-center justify-between gap-2">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   {badge > 0 && (
-                    <span className="rounded-md bg-[#1db954] px-2 py-0.5 text-[10px] font-bold text-black">
+                    <span className="rounded-md bg-[#1db954] px-2.5 py-1 text-xs font-bold text-black">
                       {badge}
                     </span>
                   )}
                 </div>
-                <h3 className="font-semibold text-white">{t(labelKey)}</h3>
-                <p className="mt-1 flex-1 text-xs leading-relaxed text-zinc-500">{t(descriptionKey)}</p>
+                <h3 className="text-[1.05rem] font-bold text-white">{t(labelKey)}</h3>
+                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">{t(descriptionKey)}</p>
                 <span
-                  className={`mt-3 inline-flex items-center gap-1 text-xs font-semibold opacity-0 transition-opacity group-hover:opacity-100 ${accent}`}
+                  className={`mt-4 inline-flex items-center gap-1.5 text-sm font-semibold opacity-0 transition-opacity group-hover:opacity-100 ${accent}`}
                 >
                   {t("commonOpen")}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-4 w-4" />
                 </span>
               </button>
             );
@@ -279,26 +254,26 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a]">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4 sm:px-6">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-zinc-500">
               {t("homeRecentActivity")}
             </p>
-            <h2 className="text-base font-bold text-white">{t("homeRecentTitle")}</h2>
+            <h2 className="text-lg font-bold text-white">{t("homeRecentTitle")}</h2>
           </div>
           {jobs.length > 0 && (
             <button
               type="button"
               onClick={() => onNavigate("queue")}
-              className="text-xs font-semibold text-[#1db954] hover:underline"
+              className="text-sm font-semibold text-[#1db954] hover:underline"
             >
               {t("homeViewFullQueue")}
             </button>
           )}
         </div>
         {recentJobs.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <p className="text-sm text-zinc-500">{t("homeNoItems")}</p>
+          <div className="px-5 py-12 text-center sm:px-6">
+            <p className="text-base text-zinc-500">{t("homeNoItems")}</p>
             <Button className="mt-4" onClick={() => void openPlatform()}>
               <ExternalLink className="h-4 w-4" />
               {t("commonOpenPlatform")}
@@ -307,12 +282,12 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         ) : (
           <ul className="divide-y divide-white/[0.05]">
             {recentJobs.map((job) => (
-              <li key={job.id} className="flex items-center justify-between gap-4 px-5 py-3.5 text-sm">
+              <li key={job.id} className="flex items-center justify-between gap-4 px-5 py-4 text-base sm:px-6">
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-white">{job.fileName}</p>
-                  <p className="truncate text-xs text-zinc-500">{job.relativePath ?? job.provider}</p>
+                  <p className="truncate font-semibold text-white">{job.fileName}</p>
+                  <p className="truncate text-sm text-zinc-500">{job.relativePath ?? job.provider}</p>
                 </div>
-                <span className="flex-shrink-0 rounded-md bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-300">
+                <span className="flex-shrink-0 rounded-md bg-white/5 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
                   {job.status}
                 </span>
               </li>
@@ -365,10 +340,10 @@ function StatCard({
 }) {
   const colors = STAT_TONES[tone];
   return (
-    <div className={`rounded-2xl border px-3.5 py-3 ${colors.card}`}>
-      <p className={`text-[0.6rem] font-extrabold uppercase tracking-[0.12em] ${colors.label}`}>{label}</p>
-      <p className={`mt-1.5 text-xl font-black tracking-tight ${colors.value}`}>{value}</p>
-      <p className="mt-1 text-[0.68rem] text-zinc-500">{hint}</p>
+    <div className={`rounded-2xl border px-4 py-4 ${colors.card}`}>
+      <p className={`text-[0.7rem] font-extrabold uppercase tracking-[0.12em] ${colors.label}`}>{label}</p>
+      <p className={`mt-2 text-2xl font-black tracking-tight ${colors.value}`}>{value}</p>
+      <p className="mt-1.5 text-sm text-zinc-500">{hint}</p>
     </div>
   );
 }

@@ -26,12 +26,12 @@
   --tracking-title: -0.02em;
   --tracking-display: -0.03em;
   --tracking-label: 0.12em;
-  --text-xs: 0.6875rem;
-  --text-sm: 0.75rem;
-  --text-base: 0.8125rem;
-  --text-md: 0.875rem;
-  --text-lg: 1rem;
-  --text-xl: 1.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
 }
 
 @theme inline {
@@ -40,7 +40,7 @@
 }
 
 html {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 html,
@@ -175,28 +175,28 @@ body {
 }
 
 .text-page-title {
-  font-size: clamp(1.25rem, 3.2vw, 1.75rem);
+  font-size: clamp(1.55rem, 3.6vw, 2.15rem);
   font-weight: 800;
   letter-spacing: var(--tracking-display);
-  line-height: 1.15;
+  line-height: 1.12;
 }
 
 .text-nav-item {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: var(--tracking-body);
 }
 
 .text-eyebrow {
-  font-size: 0.625rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 
 .text-badge {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: var(--tracking-body);
 }

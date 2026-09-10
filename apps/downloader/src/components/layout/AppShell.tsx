@@ -68,11 +68,11 @@ export function AppShell({
             aria-hidden
           />
           <div className="min-w-0">
-            <h1 className="truncate text-[0.95rem] font-extrabold tracking-[-0.02em] text-white sm:text-[1.05rem]">
+            <h1 className="truncate text-[1.05rem] font-extrabold tracking-[-0.02em] text-white sm:text-[1.15rem]">
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-0.5 max-w-2xl truncate text-[0.72rem] leading-snug text-[var(--text-muted)]">
+              <p className="mt-0.5 max-w-2xl truncate text-[0.82rem] leading-snug text-[var(--text-muted)]">
                 {subtitle}
               </p>
             )}
@@ -95,7 +95,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
           <div className="animate-fade-up">{children}</div>
         </main>
       </div>

@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.8_estable";
-export const APP_CORE_VERSION = "1.0.8_estable";
+export const WEBUI_VERSION = "1.0.9_estable";
+export const APP_CORE_VERSION = "1.0.9_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,14 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.9_estable",
+    date: "2026-09-10",
+    items: [
+      "Home com hero BRS e tipografia maior nos cards, sidebar e fila",
+      "Avisos de sync, offline e erros em toasts (sem banners fixos)",
+    ],
+  },
   {
     version: "1.0.8_estable",
     date: "2026-09-10",

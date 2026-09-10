@@ -19,6 +19,7 @@ import { useWindowsIntegration } from "./hooks/useWindowsIntegration";
 import { DesktopRequiredNotice } from "./components/DesktopRequiredNotice";
 import { LanguageOnboardingPage } from "./pages/LanguageOnboardingPage";
 import { LocaleProvider, useLocale, type MessageKey } from "./i18n/LocaleContext";
+import { ToastProvider } from "./components/ui/Toast";
 import type { DownloadJob } from "./lib/api/jobs";
 
 const PAGE_META: Record<AppRoute, { title: MessageKey; subtitle: MessageKey }> = {
@@ -201,9 +202,11 @@ function AppContent() {
 function App() {
   return (
     <LocaleProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ToastProvider>
     </LocaleProvider>
   );
 }

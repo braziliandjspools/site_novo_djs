@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "BRS Downloader",
-  "version": "1.0.8-estable",
+  "version": "1.0.9-estable",
   "identifier": "com.brazilianpacks.downloader",
   "build": {
     "beforeDevCommand": "npm run dev",
