@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Download, Loader2, LogOut, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Download, Loader2, LogOut, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { daysUntilDue, getDueUrgency, toDateInputValue } from "../lib/due-queue";
 
-import { ServiceSelector, emptyServices, type ServiceDraft } from "./ServiceSelector";
+import { ServiceSelector, emptyServices, servicesSummary, type ServiceDraft } from "./ServiceSelector";
 
 type AdminUser = {
   id: number;
@@ -17,6 +17,7 @@ type AdminUser = {
   monthlyValueLabel: string;
   nextDueAt: string;
   active: boolean;
+  musicProducerDeliveriesEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -33,6 +34,7 @@ type DraftRow = {
   monthlyValue: string;
   nextDueAt: string;
   active: boolean;
+  musicProducerDeliveriesEnabled: boolean;
   /** Nova senha opcional — se preenchida no save, envia e-mail via Resend. */
   password: string;
 };
@@ -45,6 +47,7 @@ const emptyDraft = (): DraftRow => ({
   monthlyValue: "0",
   nextDueAt: "",
   active: true,
+  musicProducerDeliveriesEnabled: false,
   password: "",
 });
 
@@ -81,17 +84,19 @@ function dueUrgencyLabel(nextDueAt: string) {
   return `${days} dias`;
 }
 
+function formatDateBr(isoOrDate: string) {
+  const date = new Date(isoOrDate.includes("T") ? isoOrDate : `${isoOrDate}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("pt-BR").format(date);
+}
+
 const formInputClass =
   "w-full min-w-0 rounded-lg border border-white/10 bg-[#0a0a0a]/70 px-2.5 py-2 text-xs text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#009739]/55 focus:bg-black/40";
 
-const sheetInputClass =
-  "w-full min-w-0 rounded-none border-0 bg-transparent px-1.5 py-1 text-[12px] leading-snug text-white outline-none transition-colors placeholder:text-zinc-600 focus:bg-white/[0.04]";
-
-const sheetCell =
-  "border-b border-r border-white/[0.08] px-1.5 py-1 align-middle";
+const sheetCell = "border-b border-r border-white/[0.08] px-3 py-2.5 align-middle";
 
 const sheetHead =
-  "sticky top-0 z-20 border-b border-r border-white/15 bg-[#0b1524] px-1.5 py-2 text-left text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 whitespace-nowrap";
+  "sticky top-0 z-20 border-b border-r border-white/15 bg-[#0b1524] px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-[0.08em] text-zinc-400 whitespace-nowrap";
 
 function MoneyInput({
   value,
@@ -140,43 +145,225 @@ function MoneyInput({
   );
 }
 
-function SheetMoneyInput({
-  value,
+function UserAccountModal({
+  user,
+  draft,
+  isSaving,
+  onClose,
   onChange,
+  onSave,
+  onDelete,
 }: {
-  value: string;
-  onChange: (next: string) => void;
+  user: AdminUser;
+  draft: DraftRow;
+  isSaving: boolean;
+  onClose: () => void;
+  onChange: (patch: Partial<DraftRow>) => void;
+  onSave: () => void;
+  onDelete: () => void;
 }) {
-  const numeric = parseBrlInput(value) ?? 0;
-  const [focused, setFocused] = useState(false);
-  const [text, setText] = useState(value);
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const urgency = getDueUrgency(draft.nextDueAt);
+  const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
 
   useEffect(() => {
-    if (!focused) setText(value);
-  }, [value, focused]);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = panelRef.current?.querySelector<HTMLElement>(
+      "input, button, textarea, select, [tabindex]:not([tabindex='-1'])",
+    );
+    focusable?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
 
   return (
-    <input
-      type="text"
-      inputMode="decimal"
-      value={focused ? text : formatBrl(numeric)}
-      onFocus={() => {
-        setFocused(true);
-        setText(Number.isFinite(numeric) ? String(numeric).replace(".", ",") : "0");
-      }}
-      onBlur={() => {
-        setFocused(false);
-        const parsed = parseBrlInput(text);
-        onChange(String(parsed ?? 0));
-      }}
-      onChange={(e) => {
-        setText(e.target.value);
-        const parsed = parseBrlInput(e.target.value);
-        if (parsed !== null) onChange(String(parsed));
-      }}
-      className={`${sheetInputClass} font-mono tabular-nums`}
-      aria-label="Valor mensal"
-    />
+    <div className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <button
+        type="button"
+        aria-label="Fechar"
+        className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative z-[81] flex max-h-[min(92vh,880px)] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/15 bg-[#0d1628] shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:rounded-2xl"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-6">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FFDF00]">Conta do cliente</p>
+            <h2 id={titleId} className="mt-1 truncate font-display text-xl text-white sm:text-2xl">
+              {draft.name.trim() || user.name}
+            </h2>
+            <p className="mt-1 truncate text-xs text-zinc-500">{draft.email || user.email}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-white/10 p-2 text-zinc-400 transition hover:border-white/25 hover:text-white"
+            aria-label="Fechar popup"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+          <section className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Dados pessoais</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs text-gray-400 sm:col-span-2">
+                Nome completo
+                <input
+                  value={draft.name}
+                  onChange={(e) => onChange({ name: e.target.value })}
+                  className={`${formInputClass} mt-1`}
+                />
+              </label>
+              <label className="block text-xs text-gray-400">
+                E-mail
+                <input
+                  type="email"
+                  value={draft.email}
+                  onChange={(e) => onChange({ email: e.target.value })}
+                  className={`${formInputClass} mt-1`}
+                />
+              </label>
+              <label className="block text-xs text-gray-400">
+                WhatsApp
+                <input
+                  value={draft.whatsapp}
+                  onChange={(e) => onChange({ whatsapp: e.target.value })}
+                  className={`${formInputClass} mt-1`}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="mt-6 space-y-4 border-t border-white/10 pt-5">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Serviços e cobrança
+            </h3>
+            <div>
+              <p className="mb-2 text-xs text-gray-400">Serviços contratados</p>
+              <div className="rounded-lg border border-white/10 bg-black/25 p-3">
+                <ServiceSelector value={draft.services} onChange={(services) => onChange({ services })} />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs text-gray-400">
+                Valor mensal
+                <div className="mt-1">
+                  <MoneyInput value={draft.monthlyValue} onChange={(monthlyValue) => onChange({ monthlyValue })} />
+                </div>
+              </label>
+              <label className="block text-xs text-gray-400">
+                Próximo vencimento
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <input
+                    type="date"
+                    value={draft.nextDueAt}
+                    onChange={(e) => onChange({ nextDueAt: e.target.value })}
+                    className={`${formInputClass} font-mono`}
+                  />
+                  {urgencyLabel && (
+                    <span
+                      className={`inline-flex rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                        urgency === "overdue"
+                          ? "bg-red-500/20 text-red-300"
+                          : "bg-amber-500/20 text-amber-200"
+                      }`}
+                    >
+                      {urgencyLabel}
+                    </span>
+                  )}
+                </div>
+              </label>
+            </div>
+          </section>
+
+          <section className="mt-6 space-y-4 border-t border-white/10 pt-5">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Configurações da conta
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex items-center gap-3 rounded-lg border border-white/10 bg-black/25 px-3 py-3 text-sm text-zinc-200">
+                <input
+                  type="checkbox"
+                  checked={draft.active}
+                  onChange={(e) => onChange({ active: e.target.checked })}
+                  className="h-4 w-4 accent-[#009739]"
+                />
+                Conta ativa
+              </label>
+              <label className="flex items-center gap-3 rounded-lg border border-white/10 bg-black/25 px-3 py-3 text-sm text-zinc-200">
+                <input
+                  type="checkbox"
+                  checked={draft.musicProducerDeliveriesEnabled}
+                  onChange={(e) => onChange({ musicProducerDeliveriesEnabled: e.target.checked })}
+                  className="h-4 w-4 accent-[#009739]"
+                />
+                Entregas Music Producer
+              </label>
+            </div>
+            <label className="block text-xs text-gray-400">
+              Nova senha (opcional)
+              <input
+                type="text"
+                autoComplete="new-password"
+                placeholder="Mín. 8 caracteres — envia e-mail ao salvar"
+                value={draft.password}
+                onChange={(e) => onChange({ password: e.target.value })}
+                className={`${formInputClass} mt-1 font-mono`}
+              />
+            </label>
+            <p className="text-[11px] text-zinc-500">
+              Cliente desde {formatDateBr(user.createdAt)} · atualizado em {formatDateBr(user.updatedAt)}
+            </p>
+          </section>
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-white/10 bg-[#0a1220] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isSaving}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+          >
+            <Trash2 className="h-4 w-4" />
+            Remover cliente
+          </button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/15 px-4 py-2 text-sm text-zinc-300 hover:border-white/30 hover:text-white"
+            >
+              Fechar
+            </button>
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={isSaving}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#009739] px-5 py-2 text-sm font-semibold text-white hover:bg-[#00B347] disabled:opacity-60"
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Salvar alterações
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -188,6 +375,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<number, DraftRow>>({});
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -227,6 +415,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           monthlyValue: String(user.monthlyValue),
           nextDueAt: toDateInputValue(user.nextDueAt),
           active: user.active,
+          musicProducerDeliveriesEnabled: Boolean(user.musicProducerDeliveriesEnabled),
           password: "",
         };
       }
@@ -324,6 +513,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           monthlyValue,
           nextDueAt: draft.nextDueAt,
           active: draft.active,
+          musicProducerDeliveriesEnabled: draft.musicProducerDeliveriesEnabled,
           ...(newPassword ? { password: newPassword } : {}),
         }),
       });
@@ -359,6 +549,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     try {
       const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Erro ao remover.");
+      setSelectedUserId(null);
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao remover.");
@@ -426,6 +617,9 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     return getDueUrgency(nextDueAt) === "overdue";
   }).length;
 
+  const selectedUser = selectedUserId != null ? users.find((user) => user.id === selectedUserId) : null;
+  const selectedDraft = selectedUserId != null ? drafts[selectedUserId] : null;
+
   return (
     <div className="w-full min-w-0 space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -433,7 +627,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <p className="text-xs font-bold uppercase tracking-widest text-[#FFDF00]">Administração</p>
           <h1 className="font-display text-2xl text-white sm:text-3xl">Clientes do portal</h1>
           <p className="mt-1 text-sm text-gray-400 [overflow-wrap:anywhere]">
-            {total} clientes · lista ordenada pelo próximo vencimento
+            {total} clientes · clique no nome para editar a conta
             {dueSoonCount > 0 ? (
               <span className="ml-2 font-semibold text-amber-300">
                 · {dueSoonCount} vence{dueSoonCount === 1 ? "" : "m"} nos próximos 5 dias
@@ -560,27 +754,20 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
               <table className="w-max min-w-full border-separate border-spacing-0 text-left text-[12px]">
                 <thead>
                   <tr>
-                    <th className={`${sheetHead} sticky left-0 z-30 bg-[#0b1524]`}>#</th>
-                    <th className={sheetHead}>Nome</th>
+                    <th className={`${sheetHead} sticky left-0 z-30 w-12 bg-[#0b1524]`}>#</th>
+                    <th className={`${sheetHead} sticky left-12 z-30 bg-[#0b1524]`}>Nome</th>
                     <th className={sheetHead}>E-mail</th>
                     <th className={sheetHead}>WhatsApp</th>
                     <th className={sheetHead}>Serviços</th>
                     <th className={sheetHead}>Valor</th>
                     <th className={sheetHead}>Vencimento</th>
-                    <th className={sheetHead}>Ativo</th>
-                    <th className={sheetHead}>Nova senha</th>
-                    <th
-                      className={`${sheetHead} sticky right-0 z-30 border-l border-white/20 bg-[#0b1524] shadow-[-8px_0_12px_rgba(0,0,0,0.35)]`}
-                    >
-                      Ações
-                    </th>
+                    <th className={sheetHead}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user, index) => {
                     const draft = drafts[user.id];
                     if (!draft) return null;
-                    const isSaving = savingId === user.id;
                     const urgency = getDueUrgency(draft.nextDueAt);
                     const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
                     const rowBg =
@@ -595,53 +782,39 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                     return (
                       <tr key={user.id} className={`${rowBg} hover:bg-white/[0.04]`}>
                         <td
-                          className={`${sheetCell} sticky left-0 z-10 font-mono text-[11px] font-bold text-[#FFDF00] ${rowBg}`}
+                          className={`${sheetCell} sticky left-0 z-10 w-12 font-mono text-[11px] font-bold text-[#FFDF00] ${rowBg}`}
                         >
                           {String(index + 1).padStart(2, "0")}
                         </td>
-                        <td className={sheetCell}>
-                          <input
-                            value={draft.name}
-                            onChange={(e) => updateDraft(user.id, { name: e.target.value })}
-                            className={`${sheetInputClass} min-w-[9rem]`}
-                          />
+                        <td className={`${sheetCell} sticky left-12 z-10 min-w-[12rem] ${rowBg}`}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setError(null);
+                              setSelectedUserId(user.id);
+                            }}
+                            className="group text-left"
+                            title="Abrir conta do cliente"
+                          >
+                            <span className="block font-semibold text-white underline-offset-2 group-hover:text-[#FFDF00] group-hover:underline">
+                              {draft.name || user.name}
+                            </span>
+                            <span className="mt-0.5 block text-[10px] text-zinc-500 group-hover:text-zinc-400">
+                              Abrir ações e configurações
+                            </span>
+                          </button>
                         </td>
-                        <td className={sheetCell}>
-                          <input
-                            type="email"
-                            value={draft.email}
-                            onChange={(e) => updateDraft(user.id, { email: e.target.value })}
-                            className={`${sheetInputClass} min-w-[12rem]`}
-                          />
+                        <td className={`${sheetCell} min-w-[14rem] text-zinc-300`}>{draft.email}</td>
+                        <td className={`${sheetCell} min-w-[9rem] text-zinc-300`}>{draft.whatsapp || "—"}</td>
+                        <td className={`${sheetCell} whitespace-nowrap text-zinc-300`}>
+                          {servicesSummary(draft.services)}
                         </td>
-                        <td className={sheetCell}>
-                          <input
-                            value={draft.whatsapp}
-                            onChange={(e) => updateDraft(user.id, { whatsapp: e.target.value })}
-                            className={`${sheetInputClass} min-w-[8rem]`}
-                          />
-                        </td>
-                        <td className={`${sheetCell} whitespace-nowrap`}>
-                          <ServiceSelector
-                            compact
-                            value={draft.services}
-                            onChange={(services) => updateDraft(user.id, { services })}
-                          />
-                        </td>
-                        <td className={sheetCell}>
-                          <SheetMoneyInput
-                            value={draft.monthlyValue}
-                            onChange={(monthlyValue) => updateDraft(user.id, { monthlyValue })}
-                          />
+                        <td className={`${sheetCell} font-mono tabular-nums text-zinc-200`}>
+                          {formatBrl(parseBrlInput(draft.monthlyValue) ?? 0)}
                         </td>
                         <td className={sheetCell}>
                           <div className="inline-flex items-center gap-1.5">
-                            <input
-                              type="date"
-                              value={draft.nextDueAt}
-                              onChange={(e) => updateDraft(user.id, { nextDueAt: e.target.value })}
-                              className={`${sheetInputClass} font-mono`}
-                            />
+                            <span className="font-mono text-zinc-200">{formatDateBr(draft.nextDueAt)}</span>
                             {urgencyLabel && (
                               <span
                                 className={`inline-flex shrink-0 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
@@ -655,55 +828,16 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                             )}
                           </div>
                         </td>
-                        <td className={`${sheetCell} text-center`}>
-                          <input
-                            type="checkbox"
-                            checked={draft.active}
-                            onChange={(e) => updateDraft(user.id, { active: e.target.checked })}
-                            className="h-3.5 w-3.5 accent-[#009739]"
-                            aria-label="Cliente ativo"
-                          />
-                        </td>
                         <td className={sheetCell}>
-                          <input
-                            type="text"
-                            autoComplete="new-password"
-                            placeholder="Opcional"
-                            value={draft.password}
-                            onChange={(e) => updateDraft(user.id, { password: e.target.value })}
-                            className={`${sheetInputClass} min-w-[7rem] font-mono`}
-                            title="Preencha e salve para redefinir e enviar por e-mail"
-                          />
-                        </td>
-                        <td
-                          className={`${sheetCell} sticky right-0 z-10 border-l border-white/15 ${rowBg} shadow-[-8px_0_12px_rgba(0,0,0,0.35)]`}
-                        >
-                          <div className="flex items-center gap-1 whitespace-nowrap">
-                            <button
-                              type="button"
-                              onClick={() => void saveUser(user.id)}
-                              disabled={isSaving}
-                              className="inline-flex items-center gap-1 rounded border border-[#009739]/45 bg-[#009739]/20 px-2 py-1 text-[11px] font-semibold text-[#00B347] hover:bg-[#009739]/30 disabled:opacity-50"
-                              title="Salvar"
-                            >
-                              {isSaving ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Save className="h-3 w-3" />
-                              )}
-                              Salvar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void deleteUser(user.id, user.name)}
-                              disabled={isSaving}
-                              className="inline-flex items-center gap-1 rounded border border-red-500/35 bg-red-500/15 px-2 py-1 text-[11px] font-semibold text-red-300 hover:bg-red-500/25 disabled:opacity-50"
-                              title="Remover"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Remover
-                            </button>
-                          </div>
+                          <span
+                            className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                              draft.active
+                                ? "bg-[#009739]/20 text-[#1ed760]"
+                                : "bg-zinc-700/40 text-zinc-400"
+                            }`}
+                          >
+                            {draft.active ? "Ativo" : "Inativo"}
+                          </span>
                         </td>
                       </tr>
                     );
@@ -737,6 +871,18 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
             </div>
           </div>
         </>
+      )}
+
+      {selectedUser && selectedDraft && (
+        <UserAccountModal
+          user={selectedUser}
+          draft={selectedDraft}
+          isSaving={savingId === selectedUser.id}
+          onClose={() => setSelectedUserId(null)}
+          onChange={(patch) => updateDraft(selectedUser.id, patch)}
+          onSave={() => void saveUser(selectedUser.id)}
+          onDelete={() => void deleteUser(selectedUser.id, selectedDraft.name || selectedUser.name)}
+        />
       )}
     </div>
   );
