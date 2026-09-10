@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test app/lib/hotmart/hotmart.test.ts app/lib/hotmart/access-policy.ts app/lib/week-calendar.test.ts",
+    "test": "tsx --test app/lib/hotmart/hotmart.test.ts app/lib/hotmart/access-policy.ts app/lib/week-calendar.test.ts app/lib/track-display-metadata.test.ts",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",

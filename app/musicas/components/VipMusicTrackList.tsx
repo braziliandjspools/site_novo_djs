@@ -14,6 +14,7 @@ import {
   Square,
 } from "lucide-react";
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
+import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { TrackDownloadStatus } from "./TrackDownloadStatus";
@@ -166,6 +167,9 @@ function TrackRow({
   isSendingToDownloader,
   onToggleSelected,
 }: TrackRowProps) {
+  const display = getTrackDisplayMetadata(track);
+  const artistLine = [display.artist, track.album?.trim()].filter(Boolean).join(" · ");
+
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
@@ -184,7 +188,7 @@ function TrackRow({
           <button
             type="button"
             onClick={onToggleSelected}
-            aria-label={isSelected ? `Remover ${track.title} da seleção` : `Selecionar ${track.title}`}
+            aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
             className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
               isSelected
                 ? "border-[#1ed760] bg-[#1ed760] text-black"
@@ -204,7 +208,7 @@ function TrackRow({
             type="button"
             onClick={onToggle}
             disabled={isBusy || selectionMode}
-            aria-label={isPlaying ? `Pausar ${track.title}` : `Ouvir ${track.title}`}
+            aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
             className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
               isPlaying
                 ? "bg-white text-black"
@@ -236,24 +240,17 @@ function TrackRow({
               {isPlaying && <PlayingBars />}
               <p
                 className={`min-w-0 break-words text-xs font-medium leading-tight ${isActive ? "text-white" : "text-zinc-300"}`}
-                title={track.title}
+                title={display.title}
               >
-                {track.title}
+                {display.title}
               </p>
               <span className="hidden sm:inline">
                 <TrackDownloadStatus fileId={track.id} />
               </span>
             </div>
-            {track.artist ? (
-              <p className="mt-0.5 truncate text-[10px] text-zinc-500" title={track.artist}>
-                {track.artist}
-                {track.album ? ` · ${track.album}` : ""}
-              </p>
-            ) : track.album ? (
-              <p className="mt-0.5 truncate text-[10px] text-zinc-500" title={track.album}>
-                {track.album}
-              </p>
-            ) : null}
+            <p className="mt-0.5 truncate text-[10px] text-zinc-500" title={artistLine}>
+              {artistLine}
+            </p>
           </div>
         </button>
 
@@ -295,7 +292,7 @@ function TrackRow({
               disabled={isSendingToDownloader}
               className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
               title="Enviar para o Downloader"
-              aria-label={`Enviar ${track.title} para o Downloader`}
+              aria-label={`Enviar ${display.title} para o Downloader`}
             >
               {isSendingToDownloader ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -309,7 +306,7 @@ function TrackRow({
               disabled={isDownloading}
               className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
               title={`Baixar ${resolveDownloadFilename(track)}`}
-              aria-label={`Baixar ${track.title}`}
+              aria-label={`Baixar ${display.title}`}
             >
               {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             </button>
@@ -329,7 +326,7 @@ function TrackRow({
             onClick={onSendToDownloader}
             disabled={isSendingToDownloader}
             className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#1ed760]/35 bg-[#1ed760]/10 px-2 py-1.5 text-[11px] font-bold text-[#1ed760] disabled:opacity-50"
-            aria-label={`Enviar ${track.title} para o Downloader`}
+            aria-label={`Enviar ${display.title} para o Downloader`}
           >
             {isSendingToDownloader ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -343,7 +340,7 @@ function TrackRow({
             onClick={onDownload}
             disabled={isDownloading}
             className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-600 bg-zinc-900 px-2 py-1.5 text-[11px] font-bold text-zinc-200 disabled:opacity-50"
-            aria-label={`Baixar ${track.title}`}
+            aria-label={`Baixar ${display.title}`}
           >
             {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             Baixar
@@ -392,6 +389,9 @@ function DiscographyTrackRow({
   duration,
   onToggle,
 }: TrackRowProps) {
+  const display = getTrackDisplayMetadata(track);
+  const artistLine = [display.artist, track.album?.trim()].filter(Boolean).join(" · ");
+
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
@@ -430,18 +430,11 @@ function DiscographyTrackRow({
               isPlaying || isActive ? "text-[#1ed760]" : "text-white"
             }`}
           >
-            {track.title}
+            {display.title}
           </p>
-          {track.artist ? (
-            <p className="mt-0.5 truncate text-xs text-zinc-400" title={track.artist}>
-              {track.artist}
-              {track.album ? ` · ${track.album}` : ""}
-            </p>
-          ) : track.album ? (
-            <p className="mt-0.5 truncate text-xs text-zinc-400" title={track.album}>
-              {track.album}
-            </p>
-          ) : null}
+          <p className="mt-0.5 truncate text-xs text-zinc-400" title={artistLine}>
+            {artistLine}
+          </p>
         </div>
 
         <div className="text-right font-mono text-xs tabular-nums text-zinc-500">
@@ -482,6 +475,9 @@ function TrackTableRow({
   isSendingToDownloader,
   onToggleSelected,
 }: TrackTableRowProps) {
+  const display = getTrackDisplayMetadata(track);
+  const artistLine = [display.artist, track.album?.trim()].filter(Boolean).join(" · ");
+
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
@@ -500,7 +496,7 @@ function TrackTableRow({
             <button
               type="button"
               onClick={onToggleSelected}
-              aria-label={isSelected ? `Remover ${track.title} da seleção` : `Selecionar ${track.title}`}
+              aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
               className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
                 isSelected
                   ? "border-[#1ed760] bg-[#1ed760] text-black"
@@ -529,7 +525,7 @@ function TrackTableRow({
               type="button"
               onClick={onToggle}
               disabled={isBusy || selectionMode}
-              aria-label={isPlaying ? `Pausar ${track.title}` : `Ouvir ${track.title}`}
+              aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
               className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                 isPlaying
                   ? "bg-[#1ed760] text-black shadow-lg shadow-[#1ed760]/25"
@@ -559,20 +555,13 @@ function TrackTableRow({
               className={`truncate text-sm font-medium leading-snug ${
                 isActive || isPlaying ? "text-[#1ed760]" : "text-white"
               }`}
-              title={track.title}
+              title={display.title}
             >
-              {track.title}
+              {display.title}
             </p>
-            {track.artist ? (
-              <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={track.artist}>
-                {track.artist}
-                {track.album ? ` · ${track.album}` : ""}
-              </p>
-            ) : track.album ? (
-              <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={track.album}>
-                {track.album}
-              </p>
-            ) : null}
+            <p className="mt-0.5 truncate text-[11px] text-zinc-500" title={artistLine}>
+              {artistLine}
+            </p>
           </button>
         </div>
 
@@ -598,7 +587,7 @@ function TrackTableRow({
                 disabled={isSendingToDownloader}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-[#1ed760] disabled:opacity-50"
                 title="Enviar para o Downloader"
-                aria-label={`Enviar ${track.title} para o Downloader`}
+                aria-label={`Enviar ${display.title} para o Downloader`}
               >
                 {isSendingToDownloader ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -612,7 +601,7 @@ function TrackTableRow({
                 disabled={isDownloading}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50"
                 title={`Baixar ${resolveDownloadFilename(track)}`}
-                aria-label={`Baixar ${track.title}`}
+                aria-label={`Baixar ${display.title}`}
               >
                 {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               </button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { PreviewTrack } from "../../lib/google-drive";
+import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { PLACEHOLDER } from "../../lib/theme";
 
 export type MediaSessionHandlers = {
@@ -38,23 +39,12 @@ function absoluteUrl(src: string) {
   return `${window.location.origin}${path}`;
 }
 
-/** Separa title/artist/album a partir dos campos estruturados (parser só como fallback). */
+/** Metadados para Media Session (mesma regra de exibição da UI). */
 export function resolveTrackMediaMetadata(
   track: PreviewTrack,
   albumTitle?: string | null,
 ): { title: string; artist: string; album: string } {
-  let title = (track.title ?? "").trim();
-  let artist = (track.artist ?? "").trim();
-
-  if (!artist && title.includes(" - ")) {
-    const idx = title.indexOf(" - ");
-    artist = title.slice(0, idx).trim();
-    title = title.slice(idx + 3).trim() || title;
-  }
-
-  if (artist && title.toLowerCase().startsWith(`${artist.toLowerCase()} - `)) {
-    title = title.slice(artist.length + 3).trim();
-  }
+  const display = getTrackDisplayMetadata(track);
 
   const album =
     (albumTitle ?? "").trim() ||
@@ -63,8 +53,8 @@ export function resolveTrackMediaMetadata(
     "Brazilian Remix Service";
 
   return {
-    title: title || track.fileName?.replace(/\.[^.]+$/, "") || "Faixa",
-    artist: artist || "Brazilian Remix Service",
+    title: display.title,
+    artist: display.artist,
     album,
   };
 }

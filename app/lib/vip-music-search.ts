@@ -1,4 +1,5 @@
 import { getVipMusicTracks, listVipMusicFolders } from "./vip-music-catalog";
+import { getTrackDisplayMetadata } from "./track-display-metadata";
 import {
   childrenAreWeekFolders,
   displayFolderName,
@@ -98,10 +99,13 @@ export async function searchVipMusic(query: string, limit = 50): Promise<VipMusi
               " ",
             );
             if (matches(haystack, q)) {
+              const display = getTrackDisplayMetadata(track);
               results.push({
                 type: "track",
                 id: track.id,
-                label: track.title,
+                label: display.artist
+                  ? `${display.title} — ${display.artist}`
+                  : display.title,
                 path,
                 monthSlug,
                 weekSlug,
@@ -140,10 +144,11 @@ export async function searchVipMusic(query: string, limit = 50): Promise<VipMusi
 
         const haystack = [track.title, track.artist, track.pack, style.name, month.name].join(" ");
         if (matches(haystack, q)) {
+          const display = getTrackDisplayMetadata(track);
           results.push({
             type: "track",
             id: track.id,
-            label: track.title,
+            label: display.artist ? `${display.title} — ${display.artist}` : display.title,
             path,
             monthSlug,
             styleSlug,

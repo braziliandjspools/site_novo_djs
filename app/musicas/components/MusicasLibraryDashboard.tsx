@@ -13,6 +13,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
+import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { HomeTrackRow } from "./HomeTrackRow";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -77,6 +78,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
         (job) => job.status === "DOWNLOADING" || job.status === "RECEIVED",
       ).length
     : 0;
+  const continueDisplay = continueItem ? getTrackDisplayMetadata(continueItem) : null;
 
   if (loading) {
     return <MusicasListSkeleton rows={5} />;
@@ -168,12 +170,12 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-zinc-500">Você parou aqui →</p>
-              <p className="truncate font-semibold text-white" title={continueItem.title}>
-                {continueItem.title}
+              <p className="truncate font-semibold text-white" title={continueDisplay?.title}>
+                {continueDisplay?.title}
               </p>
-              {continueItem.styleName ? (
-                <p className="truncate text-xs text-zinc-500">{continueItem.styleName}</p>
-              ) : null}
+              <p className="truncate text-xs text-zinc-500">
+                {[continueDisplay?.artist, continueItem.styleName].filter(Boolean).join(" · ")}
+              </p>
             </div>
             <ArrowRight className="h-5 w-5 text-zinc-500" />
           </Link>

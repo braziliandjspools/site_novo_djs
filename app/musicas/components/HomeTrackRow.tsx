@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Download, Loader2, MonitorDown, Play } from "lucide-react";
 import type { HomeTrackItem } from "../../lib/vip-music-home";
+import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { sendTrackToDownloader } from "../lib/send-to-downloader";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
@@ -20,6 +21,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
   const { showToast } = useMusicasToast();
   const [downloading, setDownloading] = useState(false);
   const [sending, setSending] = useState(false);
+  const display = getTrackDisplayMetadata(track);
 
   async function handleDownload(event: React.MouseEvent) {
     event.preventDefault();
@@ -70,7 +72,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
         <Link
           href={track.href}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-white transition-colors hover:bg-[#1ed760] hover:text-black"
-          aria-label={`Abrir ${track.title}`}
+          aria-label={`Abrir ${display.title}`}
         >
           <Play className="h-4 w-4 pl-0.5" />
         </Link>
@@ -80,15 +82,15 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
         <Link
           href={track.href}
           className="block text-sm font-semibold leading-snug text-white hover:underline"
-          title={track.title}
+          title={display.title}
         >
-          {track.title}
+          {display.title}
         </Link>
-        {[track.bpm ? `${track.bpm} BPM` : null, track.styleName].filter(Boolean).length > 0 ? (
-          <p className="truncate text-xs text-zinc-500">
-            {[track.bpm ? `${track.bpm} BPM` : null, track.styleName].filter(Boolean).join(" · ")}
-          </p>
-        ) : null}
+        <p className="truncate text-xs text-zinc-500">
+          {[display.artist, track.bpm ? `${track.bpm} BPM` : null, track.styleName]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-0.5">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Download, MonitorDown, Pause, Play } from "lucide-react";
 import { PLACEHOLDER } from "../../lib/theme";
+import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 
@@ -22,6 +23,8 @@ export function VipMiniPlayerBar() {
 
   const track = player.currentTrack;
   const isPlaying = player.isPlaying;
+  const display = getTrackDisplayMetadata(track);
+  const artistLine = [display.artist, track.album?.trim() || track.pack?.trim()].filter(Boolean).join(" · ");
   const coverSrc =
     track.coverUrl?.trim() || player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
 
@@ -48,14 +51,12 @@ export function VipMiniPlayerBar() {
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-white" title={track?.title}>
-            {track?.title ?? "Reproduzindo…"}
+          <p className="truncate text-sm font-bold text-white" title={display.title}>
+            {display.title}
           </p>
-          {track?.artist || track?.album || track?.pack ? (
-            <p className="truncate text-xs text-zinc-500">
-              {[track.artist, track.album || track.pack].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
+          <p className="truncate text-xs text-zinc-500" title={artistLine}>
+            {artistLine}
+          </p>
           <div className="mt-1 flex items-center gap-2">
             <div
               className="h-1 flex-1 cursor-pointer rounded-full bg-zinc-800"

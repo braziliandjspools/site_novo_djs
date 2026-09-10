@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Disc3, FolderOpen, Loader2, Pause, Play } from "lucide-react";
 import { useProtectedPlayer } from "../hooks/useProtectedPlayer";
 import type { PreviewPlaylist, PreviewTrack } from "../lib/google-drive";
+import { getTrackDisplayMetadata } from "../lib/track-display-metadata";
 import { PLACEHOLDER } from "../lib/theme";
 import { SiteImage } from "./SiteImage";
 
@@ -102,6 +103,7 @@ type TrackRowProps = {
 
 function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progress, variant }: TrackRowProps) {
   const isMusicProducer = variant === "music-producer";
+  const display = getTrackDisplayMetadata(track);
 
   return (
     <div
@@ -133,7 +135,7 @@ function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progre
             type="button"
             onClick={onToggle}
             disabled={isBusy}
-            aria-label={isPlaying ? `Pausar ${track.title}` : `Ouvir ${track.title}`}
+            aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
             className={`absolute inset-0 flex items-center justify-center rounded-lg transition-all ${
               isPlaying ? "bg-[#009739]/80" : "bg-black/40 hover:bg-[#009739]/70"
             }`}
@@ -152,20 +154,22 @@ function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progre
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className={`truncate text-sm font-semibold sm:text-base ${isPlaying ? "text-[#00B347]" : "text-white"}`}>
-                {track.title}
+                {display.title}
               </p>
               {isMusicProducer ? (
                 <>
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFDF00]">{track.artist || track.pack}</p>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFDF00]">
+                    {display.artist || track.pack}
+                  </p>
                   {track.story && (
                     <p className={`mt-2 text-xs leading-relaxed text-gray-400 ${isPlaying ? "" : "line-clamp-2"}`}>
                       {track.story}
                     </p>
                   )}
                 </>
-              ) : track.artist && !track.title.startsWith(track.artist) ? (
-                <p className="truncate text-xs text-gray-400 sm:text-sm">{track.artist}</p>
-              ) : null}
+              ) : (
+                <p className="truncate text-xs text-gray-400 sm:text-sm">{display.artist}</p>
+              )}
             </div>
             <span className="hidden flex-shrink-0 font-mono text-[10px] text-gray-600 sm:inline">
               {String(index + 1).padStart(2, "0")}

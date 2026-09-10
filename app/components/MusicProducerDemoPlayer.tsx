@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, FolderOpen, Headphones, Loader2, Pause, Play, Volume2 } from "lucide-react";
 import { useProtectedPlayer } from "../hooks/useProtectedPlayer";
 import type { PreviewPlaylist, PreviewTrack } from "../lib/google-drive";
+import { getTrackDisplayMetadata } from "../lib/track-display-metadata";
 import { PLACEHOLDER } from "../lib/theme";
 import { SiteImage } from "./SiteImage";
 
@@ -76,6 +77,8 @@ function TrackRow({
   onToggle,
   onSeek,
 }: TrackRowProps) {
+  const display = getTrackDisplayMetadata(track);
+
   return (
     <article
       className={`group rounded-lg border px-3 py-2.5 transition-all sm:px-3.5 ${
@@ -98,7 +101,7 @@ function TrackRow({
               type="button"
               onClick={onToggle}
               disabled={isBusy}
-              aria-label={isPlaying ? `Pausar ${track.title}` : `Ouvir ${track.title}`}
+              aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
               className={`absolute inset-0 z-20 flex items-center justify-center bg-black/45 transition-opacity ${
                 isPlaying || isLoading ? "opacity-100" : "opacity-0 group-hover:opacity-100"
               }`}
@@ -124,7 +127,7 @@ function TrackRow({
               disabled={isBusy}
               className="min-w-0 truncate text-left text-sm font-semibold text-white transition-colors hover:text-[#ff5500] sm:text-[15px]"
             >
-              {track.title}
+              {display.title}
             </button>
             <span className="flex-shrink-0 font-mono text-[10px] text-[#999999] sm:text-[11px]">
               {isFocused && duration > 0 ? formatTime(duration) : "—:—"}
