@@ -1,0 +1,8 @@
+.git
+.next
+node_modules
+apps/downloader/src-tauri/target
+apps/downloader/dist
+**/*.log
+.env*.local
+.DS_Store

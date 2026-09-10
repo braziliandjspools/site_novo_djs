@@ -1,0 +1,12 @@
+# Dokploy / Nixpacks — Next.js 16 exige Node >= 20.9
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-9_x", "openssl"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
