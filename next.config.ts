@@ -1,6 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Evita embutir parsers pesados no bundle de toda function.
+  serverExternalPackages: ["music-metadata", "@prisma/client", "prisma"],
+  // Não embalar lixo local / apps desktop / engines Windows nas Serverless Functions.
+  outputFileTracingExcludes: {
+    "*": [
+      "apps/downloader/**",
+      "apps/downloader/src-tauri/**",
+      "node_modules/.prisma/client/query_engine-windows.dll.node",
+      "node_modules/.prisma/client/query_engine-windows.dll.node.tmp*",
+      "node_modules/.prisma/client/*.tmp*",
+      "node_modules/@prisma/engines/query_engine-windows*",
+      "node_modules/@prisma/engines/*.tmp*",
+      "public/downloads/**",
+      "**/*.exe",
+      "**/*.pdb",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

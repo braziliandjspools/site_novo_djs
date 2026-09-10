@@ -1,4 +1,6 @@
 import { execSync } from "node:child_process";
+import { existsSync, readdirSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
 
 function run(command, env = process.env) {
   execSync(command, { stdio: "inherit", env });
@@ -13,7 +15,22 @@ function tryRun(command, env = process.env) {
   }
 }
 
+function cleanPrismaEngineTemps() {
+  const clientDir = join(process.cwd(), "node_modules", ".prisma", "client");
+  if (!existsSync(clientDir)) return;
+  for (const name of readdirSync(clientDir)) {
+    if (name.includes(".tmp") || name.endsWith(".tmp")) {
+      try {
+        unlinkSync(join(clientDir, name));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
 run("npx prisma generate");
+cleanPrismaEngineTemps();
 
 const databaseUrl = process.env.DATABASE_URL?.trim();
 const directUrl = process.env.DIRECT_URL?.trim() || databaseUrl;
