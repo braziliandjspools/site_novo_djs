@@ -22,7 +22,7 @@ import {
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
-import { AtualizacoesPackBlocks } from "./AtualizacoesPackBlocks";
+import { StyleFolderLinks } from "./StyleFolderLinks";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
@@ -376,21 +376,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {!error && data && showingStyles && (
         <>
-          <AtualizacoesPackBlocks
+          <StyleFolderLinks
             folders={data.items}
             slugSegments={slugSegments}
-            monthName={monthTitle}
-            monthSlug={monthSlug}
-            weekName={weekTitle}
-            weekSlug={weekSlug}
-            canPlay={playbackEnabled}
-            canDownload={downloadEnabled}
+            newFolderIds={newChildIds}
           />
           {directTracks.length > 0 && (
             <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
               <div className={poolPanelHeaderClass}>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                  Faixas nesta pasta · {directTracks.length}
+                  Arquivos nesta pasta · {directTracks.length}
                 </p>
               </div>
               <VipMusicTrackList
