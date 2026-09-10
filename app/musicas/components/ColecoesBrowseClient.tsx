@@ -348,7 +348,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
       label: `${trackCount} ${trackCount === 1 ? "faixa" : "faixas"}`,
     },
     {
-      label: hasVip ? "Premium ativo" : "Prévia 1 min",
+      label: hasVip ? "Premium ativo" : "Só navegação",
       accent: hasVip,
     },
   ];

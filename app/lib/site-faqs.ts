@@ -18,11 +18,11 @@ export const SITE_FAQS: SiteFaq[] = [
   },
   {
     q: "Como funciona o BRS Downloader?",
-    a: "É o app Windows x64 oficial. Use a versão atual publicada no site (ex.: 1.0.6_estable), faça login com a mesma conta VIP e envie pastas/faixas da plataforma para a fila de download no PC.",
+    a: "É o app Windows x64 oficial. Use a versão atual publicada no site (ex.: 1.0.7_estable), faça login com a mesma conta VIP e envie pastas/faixas da plataforma para a fila de download no PC.",
   },
   {
     q: "Posso ouvir antes de assinar?",
-    a: "Sim. Visitantes e contas sem VIP ouvem cerca de 1 minuto de prévia por faixa. A faixa completa, download e fila do Downloader liberam com o plano VIP ativo.",
+    a: "Você pode navegar pastas e listas sem assinar. Ouvir, baixar e usar a fila do Downloader liberam com o plano VIP ativo.",
   },
   {
     q: "Com que frequência o acervo é atualizado?",

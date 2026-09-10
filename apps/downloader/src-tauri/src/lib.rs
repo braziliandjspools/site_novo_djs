@@ -60,6 +60,8 @@ pub fn run() {
 
             if let Ok(prefs) = app_prefs::read_preferences(app.handle()) {
                 app_prefs::sync_speed_limiter(app.handle(), &prefs);
+                // Reaplica no boot: updates/reinstalações apagam a chave Run do Windows.
+                let _ = app_prefs::sync_autostart(app.handle(), prefs.start_with_windows);
             }
 
             let args: Vec<String> = std::env::args().collect();

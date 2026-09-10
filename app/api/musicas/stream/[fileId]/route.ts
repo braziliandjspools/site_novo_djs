@@ -20,21 +20,14 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   try {
-    const upstream = await fetchDriveAudioUpstream(
-      fileId,
-      request,
-      access.mode === "preview" ? { previewMaxBytes: access.maxBytes } : undefined,
-    );
+    const upstream = await fetchDriveAudioUpstream(fileId, request);
     if ("error" in upstream) {
       return NextResponse.json({ error: upstream.error }, { status: upstream.status });
     }
 
     return new NextResponse(upstream.body, {
       status: upstream.status,
-      headers: driveAudioResponseHeaders(upstream, {
-        inline: true,
-        previewSeconds: access.mode === "preview" ? access.previewSeconds : null,
-      }),
+      headers: driveAudioResponseHeaders(upstream, { inline: true }),
     });
   } catch {
     return NextResponse.json({ error: "Falha no stream" }, { status: 502 });

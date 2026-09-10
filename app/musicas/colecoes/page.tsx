@@ -80,7 +80,7 @@ export default function ColecoesPage() {
                 },
                 { label: "Atualizações frequentes" },
                 {
-                  label: hasVip ? "Premium ativo" : "Prévia 1 min",
+                  label: hasVip ? "Premium ativo" : "Só navegação",
                   accent: hasVip,
                 },
               ]

@@ -72,7 +72,8 @@ export function VipMusicPlayerProvider({
   previewSecondsRef.current = previewSeconds;
   const currentTimeRef = useRef(0);
 
-  const isPreviewMode = !canPlayFull;
+  /** Prévia de áudio desativada: sem VIP não reproduz. */
+  const isPreviewMode = false;
   const advancingRef = useRef(false);
 
   const syncFolderVisuals = useCallback((folderId: string | null) => {
@@ -194,6 +195,7 @@ export function VipMusicPlayerProvider({
 
   const playQueue = useCallback(
     async (folderId: string, trackId: string, tracks: PreviewTrack[]) => {
+      if (!canPlayFullRef.current) return;
       for (const track of tracks) {
         trackMetaRef.current.set(track.id, track);
       }
@@ -221,6 +223,7 @@ export function VipMusicPlayerProvider({
 
   const toggleTrack = useCallback(
     async (folderId: string, trackId: string) => {
+      if (!canPlayFullRef.current) return;
       if (player.playingId === trackId && playingFolderIdRef.current === folderId) {
         player.pause();
         return;
@@ -374,6 +377,7 @@ export function VipMusicPlayerProvider({
     position: Math.min(player.currentTime, displayDuration),
     handlers: {
       onPlay: async () => {
+        if (!canPlayFullRef.current) return;
         const id = currentTrack?.id;
         if (!id) return;
         try {
@@ -401,7 +405,7 @@ export function VipMusicPlayerProvider({
       duration: displayDuration,
       progress: displayProgress,
       error: player.error,
-      canPlay: true,
+      canPlay: canPlayFull,
       canPlayFull,
       isPreviewMode,
       previewSeconds,

@@ -24,13 +24,13 @@ export function MusicasGuestBanner() {
         <div className="max-w-2xl">
           <p className="text-eyebrow mb-2 flex items-center gap-2 text-[#1ed760]">
             <Sparkles className="h-4 w-4" />
-            Prévia gratuita
+            Acervo VIP
           </p>
           <h2 className="text-page-title text-white">
-            Ouça 1 minuto de cada faixa. Assine para liberar tudo.
+            Explore pastas e faixas. Assine para ouvir e baixar.
           </h2>
           <p className="text-secondary mt-3">
-            Visitantes e contas sem VIP podem ouvir a prévia. O plano VIP libera a faixa completa, download e o
+            Visitantes e contas sem VIP podem navegar o acervo. O plano VIP libera a reprodução completa, download e o
             Downloader Windows.
           </p>
         </div>
@@ -74,12 +74,12 @@ export function VipUpgradeBanner() {
         </div>
         <div>
           <p className="text-sm font-bold text-white">
-            {authenticated ? "Você está na prévia de 1 minuto" : "Ouça a prévia · Assine para baixar"}
+            {authenticated ? "Assine o VIP para ouvir e baixar" : "Navegue o acervo · Assine para ouvir"}
           </p>
           <p className="mt-1 text-sm text-zinc-400">
             {authenticated
-              ? "Aproveite 60 segundos de cada faixa. Assine o VIP em /plans para ouvir completo e baixar."
-              : "Qualquer visitante pode ouvir 1 minuto. O VIP libera a música inteira e os downloads."}
+              ? "Você pode ver pastas e faixas. Assine o VIP em /plans para reproduzir e baixar."
+              : "Qualquer visitante pode explorar pastas e listas. O VIP libera a reprodução e os downloads."}
           </p>
         </div>
       </div>
@@ -115,7 +115,7 @@ export function VipUpgradeGate() {
         </div>
         <h1 className="mt-6 text-2xl font-bold text-white">Libere o acervo completo</h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          A prévia de 1 minuto é gratuita. Assine o VIP para ouvir e baixar as faixas sem limite.
+          Você pode explorar pastas e faixas. Assine o VIP para ouvir e baixar sem limite.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link

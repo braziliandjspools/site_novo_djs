@@ -54,7 +54,7 @@ export function AtualizacoesAcervoHero({ monthCount, hasVip, badgeActions }: Atu
                   : "bg-black/35 text-zinc-300 ring-white/15"
               }`}
             >
-              {hasVip ? "Premium ativo" : "Prévia 1 min"}
+              {hasVip ? "Premium ativo" : "Só navegação"}
             </span>
             {badgeActions}
           </div>

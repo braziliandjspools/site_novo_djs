@@ -6,7 +6,7 @@ export type MusicasFaq = {
 export const MUSICAS_FAQS: MusicasFaq[] = [
   {
     q: "Preciso ser assinante VIP para usar a plataforma?",
-    a: "Você pode navegar e ouvir cerca de 1 minuto de prévia sem assinar. Faixa completa, download e BRS Downloader exigem o plano VIP ativo (R$ 38,00/mês).",
+    a: "Você pode navegar pastas e listas sem assinar. Ouvir, baixar e usar o BRS Downloader exigem o plano VIP ativo (R$ 38,00/mês).",
   },
   {
     q: "Como o acervo está organizado?",
@@ -18,7 +18,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Posso baixar pela plataforma e pelo Downloader?",
-    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.6_estable) com o mesmo login da conta.",
+    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.7_estable) com o mesmo login da conta.",
   },
   {
     q: "O player funciona no celular?",

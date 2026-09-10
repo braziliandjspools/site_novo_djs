@@ -17,6 +17,8 @@ type TrackShowcaseProps = {
   playlistTrackLabel?: (count: number) => string;
   loadingLabel?: string;
   emptyLabel?: string;
+  /** Só VIP deve reproduzir; na home fica só a lista. */
+  allowPlayback?: boolean;
 };
 
 function formatTime(seconds: number) {
@@ -32,9 +34,17 @@ type TrackPlaylistPanelProps = {
   isGlobalBusy: boolean;
   trackCountLabel: (count: number) => string;
   variant: "default" | "music-producer";
+  allowPlayback: boolean;
 };
 
-function TrackPlaylistPanel({ playlist, player, isGlobalBusy, trackCountLabel, variant }: TrackPlaylistPanelProps) {
+function TrackPlaylistPanel({
+  playlist,
+  player,
+  isGlobalBusy,
+  trackCountLabel,
+  variant,
+  allowPlayback,
+}: TrackPlaylistPanelProps) {
   const isPreviewList = variant === "default";
   return (
     <div
@@ -60,14 +70,14 @@ function TrackPlaylistPanel({ playlist, player, isGlobalBusy, trackCountLabel, v
             <p className="text-xs text-gray-500">{trackCountLabel(playlist.tracks.length)}</p>
           </div>
         </div>
-        <span className="text-eyebrow text-[#1ed760]">Prévia</span>
+        <span className="text-eyebrow text-[#1ed760]">{allowPlayback ? "VIP" : "Acervo"}</span>
       </div>
 
       <div className={isPreviewList ? "max-h-[420px] space-y-px overflow-y-auto" : "max-h-[420px] space-y-2 overflow-y-auto p-3 sm:p-4"}>
         {playlist.tracks.map((track, index) => {
-          const isPlaying = player.playingId === track.id;
-          const isLoading = player.loadingId === track.id;
-          const isBusy = isGlobalBusy && player.loadingId !== track.id;
+          const isPlaying = allowPlayback && player.playingId === track.id;
+          const isLoading = allowPlayback && player.loadingId === track.id;
+          const isBusy = allowPlayback && isGlobalBusy && player.loadingId !== track.id;
 
           return (
             <TrackRow
@@ -77,7 +87,10 @@ function TrackPlaylistPanel({ playlist, player, isGlobalBusy, trackCountLabel, v
               isPlaying={isPlaying}
               isLoading={isLoading}
               isBusy={isBusy}
-              onToggle={() => void player.toggle(track.id)}
+              allowPlayback={allowPlayback}
+              onToggle={() => {
+                if (allowPlayback) void player.toggle(track.id);
+              }}
               progress={isPlaying ? player.progress : 0}
               variant={variant}
             />
@@ -94,12 +107,23 @@ type TrackRowProps = {
   isPlaying: boolean;
   isLoading: boolean;
   isBusy: boolean;
+  allowPlayback: boolean;
   onToggle: () => void;
   progress: number;
   variant: "default" | "music-producer";
 };
 
-function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progress, variant }: TrackRowProps) {
+function TrackRow({
+  track,
+  index,
+  isPlaying,
+  isLoading,
+  isBusy,
+  allowPlayback,
+  onToggle,
+  progress,
+  variant,
+}: TrackRowProps) {
   const isMusicProducer = variant === "music-producer";
   const display = getTrackDisplayMetadata(track);
 
@@ -129,23 +153,25 @@ function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progre
               className="rounded-lg object-cover ring-1 ring-white/10"
               sizes="64px"
             />
-            <button
-              type="button"
-              onClick={onToggle}
-              disabled={isBusy}
-              aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
-              className={`absolute inset-0 flex items-center justify-center rounded-lg transition-all ${
-                isPlaying ? "bg-[#009739]/80" : "bg-black/40 hover:bg-[#009739]/70"
-              }`}
-            >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-white" />
-              ) : isPlaying ? (
-                <Pause className="h-5 w-5 text-white" fill="white" />
-              ) : (
-                <Play className="ml-0.5 h-5 w-5 text-white" fill="white" />
-              )}
-            </button>
+            {allowPlayback ? (
+              <button
+                type="button"
+                onClick={onToggle}
+                disabled={isBusy}
+                aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
+                className={`absolute inset-0 flex items-center justify-center rounded-lg transition-all ${
+                  isPlaying ? "bg-[#009739]/80" : "bg-black/40 hover:bg-[#009739]/70"
+                }`}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                ) : isPlaying ? (
+                  <Pause className="h-5 w-5 text-white" fill="white" />
+                ) : (
+                  <Play className="ml-0.5 h-5 w-5 text-white" fill="white" />
+                )}
+              </button>
+            ) : null}
           </div>
           <div className="min-w-0 flex-1">
             <p className={`truncate text-sm font-semibold sm:text-base ${isPlaying ? "text-[#00B347]" : "text-white"}`}>
@@ -165,55 +191,41 @@ function TrackRow({ track, index, isPlaying, isLoading, isBusy, onToggle, progre
     );
   }
 
-  /* Prévia da home — mesmo visual da lista de /musicas/atualizacoes, só play */
+  /* Lista da home — só visualização; play fica no VIP */
   return (
-    <article
-      className={`border-b border-zinc-800/60 transition-colors last:border-b-0 ${
-        isPlaying ? "bg-white/[0.04]" : "hover:bg-white/[0.03]"
-      }`}
-    >
+    <article className="border-b border-zinc-800/60 transition-colors last:border-b-0 hover:bg-white/[0.03]">
       <div className="grid grid-cols-[28px_40px_minmax(0,1fr)] items-center gap-x-1.5 px-1.5 py-1.5 sm:grid-cols-[32px_44px_minmax(0,1fr)] sm:gap-x-2 sm:px-2 sm:py-2">
         <span className="text-center font-mono text-[10px] tabular-nums text-zinc-600 sm:text-[11px]">
           {String(index + 1).padStart(2, "0")}
         </span>
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={isBusy}
-          aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
-          className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
-            isPlaying ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
-          }`}
-        >
-          {isLoading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : isPlaying ? (
-            <Pause className="h-3.5 w-3.5" fill="currentColor" />
-          ) : (
-            <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={isBusy}
-          className="min-w-0 overflow-hidden text-left"
-          aria-label={`${display.title} — ${display.artist}`}
-          title={`${display.title} — ${display.artist}`}
-        >
+        {allowPlayback ? (
+          <button
+            type="button"
+            onClick={onToggle}
+            disabled={isBusy}
+            aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
+            className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
+              isPlaying ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            {isLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : isPlaying ? (
+              <Pause className="h-3.5 w-3.5" fill="currentColor" />
+            ) : (
+              <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />
+            )}
+          </button>
+        ) : (
+          <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-zinc-500 sm:h-10 sm:w-10">
+            <Disc3 className="h-3.5 w-3.5" />
+          </span>
+        )}
+        <div className="min-w-0 overflow-hidden text-left" title={`${display.title} — ${display.artist}`}>
           <p className="text-track-title truncate text-white">{display.title}</p>
           <p className="text-track-artist mt-0.5 truncate">{display.artist}</p>
-        </button>
-      </div>
-      {isPlaying ? (
-        <div className="flex items-center gap-2 px-1.5 pb-1.5 sm:pl-[calc(32px+44px+0.5rem)]">
-          <div className="h-3 min-w-0 flex-1 py-1">
-            <div className="h-0.5 rounded-full bg-zinc-800">
-              <div className="h-full rounded-full bg-zinc-300" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
         </div>
-      ) : null}
+      </div>
     </article>
   );
 }
@@ -222,11 +234,12 @@ export function TrackShowcase({
   initialPlaylists = [],
   variant = "default",
   fetchEndpoint = "/api/tracks",
-  summaryTitle = "Preview por pasta",
+  summaryTitle = "Pastas recentes do acervo",
   summarySubtitle,
   playlistTrackLabel = (count) => `${count} ${count === 1 ? "faixa" : "faixas"} nesta pasta`,
-  loadingLabel = "Carregando catálogo demo...",
-  emptyLabel = "Nenhuma faixa encontrada na pasta de preview.",
+  loadingLabel = "Carregando catálogo...",
+  emptyLabel = "Nenhuma faixa encontrada.",
+  allowPlayback = false,
 }: TrackShowcaseProps) {
   const [playlists, setPlaylists] = useState<PreviewPlaylist[]>(initialPlaylists);
   const [loading, setLoading] = useState(initialPlaylists.length === 0);
@@ -266,8 +279,12 @@ export function TrackShowcase({
   }, [initialPlaylists.length, fetchEndpoint]);
 
   const allTracks = playlists.flatMap((playlist) => playlist.tracks);
-  const activeTrack = allTracks.find((track) => track.id === player.playingId) ?? null;
-  const activePlaylist = playlists.find((playlist) => playlist.tracks.some((track) => track.id === player.playingId));
+  const activeTrack = allowPlayback
+    ? allTracks.find((track) => track.id === player.playingId) ?? null
+    : null;
+  const activePlaylist = allowPlayback
+    ? playlists.find((playlist) => playlist.tracks.some((track) => track.id === player.playingId))
+    : undefined;
   const totalTracks = allTracks.length;
   const isGlobalBusy = player.loadingId !== null;
 
@@ -309,11 +326,11 @@ export function TrackShowcase({
         </div>
       </div>
 
-      {(player.error || error) && (
+      {(allowPlayback && player.error) || error ? (
         <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-2 text-center text-xs text-red-300">
-          {player.error ?? error}
+          {(allowPlayback ? player.error : null) ?? error}
         </p>
-      )}
+      ) : null}
 
       {playlists.map((playlist) => (
         <TrackPlaylistPanel
@@ -323,6 +340,7 @@ export function TrackShowcase({
           isGlobalBusy={isGlobalBusy}
           trackCountLabel={playlistTrackLabel}
           variant={variant}
+          allowPlayback={allowPlayback}
         />
       ))}
 

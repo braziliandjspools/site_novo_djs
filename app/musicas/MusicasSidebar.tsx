@@ -197,7 +197,7 @@ export function MusicasTopNav({
             <p className="px-2 text-xs text-zinc-500">
               <span className="font-semibold text-white">{firstName}</span>
               {" · "}
-              {hasVip ? "Premium" : authenticated ? "Prévia" : "Visitante"}
+              {hasVip ? "Premium" : authenticated ? "Sem VIP" : "Visitante"}
             </p>
             {authenticated ? (
               <button

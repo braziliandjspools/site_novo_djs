@@ -127,6 +127,7 @@ export function SettingsPage() {
 
   async function updatePreference(patch: Partial<AppPreferences>) {
     setPrefsError(null);
+    const previous = prefs;
     const next = { ...prefs, ...patch, maxConcurrentDownloads: maxConcurrency };
     setPrefs(next);
     try {
@@ -137,6 +138,7 @@ export function SettingsPage() {
       downloadManager.setZipCompressDownloads(saved.zipCompressDownloads);
       notificationManager.setEnabled(saved.showNotifications);
     } catch (error) {
+      setPrefs(previous);
       setPrefsError(error instanceof Error ? error.message : t("settingsSaveError"));
     }
   }

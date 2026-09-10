@@ -50,7 +50,7 @@ export function CollectionHero({
         ? { label: `${trackCount} ${trackCount === 1 ? "faixa" : "faixas"}` }
         : null,
       {
-        label: hasVip ? "Premium ativo" : "Prévia 1 min",
+        label: hasVip ? "Premium ativo" : "Só navegação",
         accent: hasVip,
       },
     ].filter(Boolean) as CollectionHeroStat[];

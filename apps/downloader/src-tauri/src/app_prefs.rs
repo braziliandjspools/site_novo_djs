@@ -258,8 +258,13 @@ pub fn save_preferences(app: &AppHandle, prefs: &AppPreferences) -> Result<(), S
 pub fn sync_autostart(app: &AppHandle, enabled: bool) -> Result<(), String> {
     let autostart = app.autolaunch();
     if enabled {
+        // disable → enable atualiza o caminho do .exe após update/NSIS.
+        let _ = autostart.disable();
         autostart.enable().map_err(|e| e.to_string())?;
-    } else {
+        if !autostart.is_enabled().unwrap_or(false) {
+            return Err("Não foi possível registrar o início com o Windows.".into());
+        }
+    } else if autostart.is_enabled().unwrap_or(true) {
         autostart.disable().map_err(|e| e.to_string())?;
     }
     Ok(())

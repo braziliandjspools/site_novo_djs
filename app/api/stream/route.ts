@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAudioSourceUrl } from "../../lib/google-drive";
+import { resolveVipMusicStreamAccess } from "../../lib/vip-music-access";
 
 export async function POST(request: Request) {
+  const access = await resolveVipMusicStreamAccess();
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+
   let id: string | undefined;
 
   try {

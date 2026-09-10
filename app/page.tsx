@@ -137,8 +137,8 @@ export default async function Home() {
   const downloaderRelease = getDownloaderReleaseManifest();
   const downloaderUrl =
     downloaderRelease?.downloadUrl ??
-    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.6_estable_x64-setup.exe";
-  const downloaderVersion = downloaderRelease?.version ?? "1.0.6_estable";
+    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.7_estable_x64-setup.exe";
+  const downloaderVersion = downloaderRelease?.version ?? "1.0.7_estable";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -342,9 +342,9 @@ export default async function Home() {
       <section className="border-y border-white/5 site-section-yellow px-4 py-12 sm:px-6 md:py-20">
         <div className="mx-auto max-w-4xl">
           <SectionHeading
-            badge="Preview"
-            title="Ouça algumas faixas do acervo"
-            subtitle="Sempre as 3 pastas mais recentes do acervo — ouça remixes, edits e extended versions e conheça a variedade do Brazilian Remix Service."
+            badge="Acervo"
+            title="Veja pastas e faixas do acervo"
+            subtitle="Sempre as 3 pastas mais recentes — explore remixes, edits e extended versions. Para ouvir e baixar, assine o VIP."
           />
           <div className="mt-12">
             <TrackShowcase initialPlaylists={previewPlaylists} />
