@@ -2,14 +2,7 @@
 
 Instaladores do BRS Downloader servidos pelo site para atualização in-app.
 
+Mantenha **apenas a versão atual** aqui — cada `.exe` (~5 MB) entra em todo deploy da Vercel
+e soma no **Functions Storage**. Versões antigas devem ir para GitHub Releases / outro CDN.
+
 - `BRS-Downloader_1.0.6_estable_x64-setup.exe` — Windows x64 (NSIS) — **atual**
-- `BRS-Downloader_1.0.5_estable_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_1.0.4_public_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_1.0.3_public_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_1.0.2_public_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_1.0.1_public_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_1.0.0_public_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_0.5.1_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_0.5.0_beta_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_0.4.0_x64-setup.exe` — Windows x64 (NSIS)
-- `BRS-Downloader_0.3.0_x64-setup.exe` — Windows x64 (NSIS)

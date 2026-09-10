@@ -14,7 +14,13 @@ apps/downloader/**
 **/*.dll
 **/*.rlib
 **/src-tauri/target
-# binaries em geral, mas liberar instaladores públicos
+# binaries em geral, mas liberar só o instalador atual
 *.exe
-!public/downloads/
-!public/downloads/**
+!public/downloads/BRS-Downloader_1.0.6_estable_x64-setup.exe
+public/downloads/BRS-Downloader_0.*
+public/downloads/BRS-Downloader_1.0.0*
+public/downloads/BRS-Downloader_1.0.1*
+public/downloads/BRS-Downloader_1.0.2*
+public/downloads/BRS-Downloader_1.0.3*
+public/downloads/BRS-Downloader_1.0.4*
+public/downloads/BRS-Downloader_1.0.5*
