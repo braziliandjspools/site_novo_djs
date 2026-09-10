@@ -8,6 +8,7 @@ import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 import {
   childrenAreWeekFolders,
   displayFolderName,
+  slugifyFolderName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
 import { findFolderCover, folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
@@ -45,7 +46,14 @@ type DriveChild = {
   name: string;
   mimeType: string;
   modifiedTime?: string;
+  size?: string;
 };
+
+function parseDriveSizeBytes(size?: string | number | null): number | null {
+  if (size == null || size === "") return null;
+  const n = typeof size === "number" ? size : Number(size);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 export function getVipMusicRootFolderId() {
   return GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID.trim();
@@ -61,6 +69,7 @@ function toPreviewTrack(file: DriveChild, packName: string): PreviewTrack {
     pack: packName,
     fileName: file.name,
     modifiedAt: file.modifiedTime ?? null,
+    sizeBytes: parseDriveSizeBytes(file.size),
     ...parseTrackMeta(file.name),
   };
 }
@@ -251,11 +260,147 @@ export async function getVipMusicTracksPaginated(
   };
 }
 
-type LatestPreviewCandidate = {
+export const VIP_MUSIC_FEED_PAGE_SIZE = 6;
+
+export type VipMusicFeedPack = {
   id: string;
   name: string;
+  slugSegments: string[];
+  monthName: string;
+  weekName: string | null;
+  modifiedAt: string | null;
+  coverUrl: string | null;
+  tracks: PreviewTrack[];
+  trackCount: number;
+  totalSizeBytes: number;
+};
+
+export type VipMusicFeedResponse = {
+  packs: VipMusicFeedPack[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+};
+
+type FeedCandidate = {
+  id: string;
+  name: string;
+  slugSegments: string[];
+  monthName: string;
+  weekName: string | null;
   modifiedAt: number;
 };
+
+async function listVipMusicFeedCandidates(options?: {
+  monthSlug?: string;
+  weekSlug?: string;
+}): Promise<FeedCandidate[]> {
+  const months = await listVipMusicFolders();
+  if (!months.length) return [];
+
+  const monthSlug = options?.monthSlug?.trim() || null;
+  const weekSlug = options?.weekSlug?.trim() || null;
+  const scopedMonths = monthSlug
+    ? months.filter((month) => slugifyFolderName(month.name) === monthSlug)
+    : months.slice(0, 3);
+
+  const candidates: FeedCandidate[] = [];
+
+  for (const month of scopedMonths) {
+    const monthName = displayFolderName(month.name);
+    const monthSeg = slugifyFolderName(month.name);
+    const children = await listDriveFolderChildren(month.id);
+    const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
+    const modifiedById = new Map(
+      subfolders.map((folder) => [folder.id, folder.modifiedTime ? Date.parse(folder.modifiedTime) : 0]),
+    );
+
+    if (childrenAreWeekFolders(sorted)) {
+      const weeks = weekSlug
+        ? sorted.filter((week) => slugifyFolderName(week.name) === weekSlug)
+        : [...sorted].reverse();
+      for (const week of weeks) {
+        const weekName = displayFolderName(week.name);
+        const weekSeg = slugifyFolderName(week.name);
+        const weekChildren = await listDriveFolderChildren(week.id);
+        for (const style of weekChildren.filter((item) => item.mimeType === FOLDER_MIME)) {
+          candidates.push({
+            id: style.id,
+            name: displayFolderName(style.name),
+            slugSegments: [monthSeg, weekSeg, slugifyFolderName(style.name)],
+            monthName,
+            weekName,
+            modifiedAt: style.modifiedTime ? Date.parse(style.modifiedTime) : modifiedById.get(week.id) ?? 0,
+          });
+        }
+      }
+    } else {
+      for (const style of sorted) {
+        candidates.push({
+          id: style.id,
+          name: displayFolderName(style.name),
+          slugSegments: [monthSeg, slugifyFolderName(style.name)],
+          monthName,
+          weekName: null,
+          modifiedAt: modifiedById.get(style.id) ?? 0,
+        });
+      }
+    }
+  }
+
+  const hasTimestamps = candidates.some((item) => item.modifiedAt > 0);
+  if (hasTimestamps) {
+    candidates.sort((a, b) => b.modifiedAt - a.modifiedAt);
+  }
+  return candidates;
+}
+
+export async function getVipMusicUpdatesFeed(options?: {
+  page?: number;
+  pageSize?: number;
+  monthSlug?: string;
+  weekSlug?: string;
+}): Promise<VipMusicFeedResponse> {
+  const pageSizeRaw = options?.pageSize ?? VIP_MUSIC_FEED_PAGE_SIZE;
+  const pageSize = Number.isInteger(pageSizeRaw) && pageSizeRaw > 0 ? Math.min(pageSizeRaw, 12) : VIP_MUSIC_FEED_PAGE_SIZE;
+  const pageRaw = options?.page ?? 1;
+  const page = Number.isInteger(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+
+  const candidates = await listVipMusicFeedCandidates({
+    monthSlug: options?.monthSlug,
+    weekSlug: options?.weekSlug,
+  });
+  const total = candidates.length;
+  const start = (page - 1) * pageSize;
+  const slice = candidates.slice(start, start + pageSize);
+
+  const packs = await mapPool(slice, 3, async (candidate) => {
+    const tracks = await getVipMusicTracks(candidate.id, candidate.name);
+    const totalSizeBytes = tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0);
+    return {
+      id: candidate.id,
+      name: candidate.name,
+      slugSegments: candidate.slugSegments,
+      monthName: candidate.monthName,
+      weekName: candidate.weekName,
+      modifiedAt: candidate.modifiedAt > 0 ? new Date(candidate.modifiedAt).toISOString() : null,
+      coverUrl: null,
+      tracks,
+      trackCount: tracks.length,
+      totalSizeBytes,
+    } satisfies VipMusicFeedPack;
+  });
+
+  return {
+    packs,
+    page,
+    pageSize,
+    total,
+    hasMore: start + packs.length < total,
+  };
+}
 
 /**
  * Três pastas mais recentes do acervo VIP (estilo/pack) para o preview da home.
@@ -268,46 +413,9 @@ export async function getLatestVipPreviewPlaylists(limit = 3): Promise<PreviewPl
     return (await getPreviewPlaylists()).slice(0, limit);
   }
 
-  const months = await listVipMusicFolders();
-  if (!months.length) {
+  const candidates = await listVipMusicFeedCandidates();
+  if (!candidates.length) {
     return (await getPreviewPlaylists()).slice(0, limit);
-  }
-
-  const candidates: LatestPreviewCandidate[] = [];
-
-  for (const month of months.slice(0, 2)) {
-    const children = await listDriveFolderChildren(month.id);
-    const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
-    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
-    const modifiedById = new Map(
-      subfolders.map((folder) => [folder.id, folder.modifiedTime ? Date.parse(folder.modifiedTime) : 0]),
-    );
-
-    if (childrenAreWeekFolders(sorted)) {
-      for (const week of [...sorted].reverse()) {
-        const weekChildren = await listDriveFolderChildren(week.id);
-        for (const style of weekChildren.filter((item) => item.mimeType === FOLDER_MIME)) {
-          candidates.push({
-            id: style.id,
-            name: `${displayFolderName(week.name)} · ${displayFolderName(style.name)}`,
-            modifiedAt: style.modifiedTime ? Date.parse(style.modifiedTime) : modifiedById.get(week.id) ?? 0,
-          });
-        }
-      }
-    } else {
-      for (const style of sorted) {
-        candidates.push({
-          id: style.id,
-          name: displayFolderName(style.name),
-          modifiedAt: modifiedById.get(style.id) ?? 0,
-        });
-      }
-    }
-  }
-
-  const hasTimestamps = candidates.some((item) => item.modifiedAt > 0);
-  if (hasTimestamps) {
-    candidates.sort((a, b) => b.modifiedAt - a.modifiedAt);
   }
 
   const playlists: PreviewPlaylist[] = [];
@@ -317,7 +425,7 @@ export async function getLatestVipPreviewPlaylists(limit = 3): Promise<PreviewPl
     if (!tracks.length) continue;
     playlists.push({
       id: candidate.id,
-      name: candidate.name,
+      name: candidate.weekName ? `${candidate.weekName} · ${candidate.name}` : candidate.name,
       tracks: tracks.slice(0, 50),
     });
   }

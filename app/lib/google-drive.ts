@@ -24,6 +24,8 @@ export type PreviewTrack = {
   fileName?: string;
   /** ISO do `modifiedTime` do Google Drive, quando disponível via API. */
   modifiedAt?: string | null;
+  /** Tamanho do arquivo em bytes (Drive API `size`). */
+  sizeBytes?: number | null;
   /** Key Camelot (ex.: 11A, 12B) extraída do nome. */
   musicalKey: string | null;
   bpm: string | null;
@@ -46,6 +48,8 @@ type DriveFile = {
   name: string;
   mimeType: string;
   modifiedTime?: string;
+  /** Drive API devolve string. */
+  size?: string;
 };
 
 type DriveFolder = {
@@ -282,12 +286,19 @@ export function parseTrackMeta(fileName: string): Omit<PreviewTrack, "id" | "pac
   };
 }
 
+function parseDriveSizeBytes(size?: string | number | null): number | null {
+  if (size == null || size === "") return null;
+  const n = typeof size === "number" ? size : Number(size);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 function toPreviewTrack(file: DriveFile, packName: string): PreviewTrack {
   return {
     id: file.id,
     pack: packName,
     fileName: file.name,
     modifiedAt: file.modifiedTime ?? null,
+    sizeBytes: parseDriveSizeBytes(file.size),
     ...parseTrackMeta(file.name),
   };
 }
@@ -299,7 +310,7 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
   do {
     const params = new URLSearchParams({
       q: `'${folderId}' in parents and trashed=false`,
-      fields: "nextPageToken,files(id,name,mimeType,modifiedTime)",
+      fields: "nextPageToken,files(id,name,mimeType,modifiedTime,size)",
       pageSize: "100",
       orderBy: "folder,name",
       key: apiKey,

@@ -22,7 +22,7 @@ import {
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
-import { StyleFolderLinks } from "./StyleFolderLinks";
+import { AtualizacoesPackBlocks } from "./AtualizacoesPackBlocks";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
@@ -376,10 +376,15 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {!error && data && showingStyles && (
         <>
-          <StyleFolderLinks
+          <AtualizacoesPackBlocks
             folders={data.items}
             slugSegments={slugSegments}
-            newFolderIds={newChildIds}
+            monthName={monthTitle}
+            monthSlug={monthSlug}
+            weekName={weekTitle}
+            weekSlug={weekSlug}
+            canPlay={playbackEnabled}
+            canDownload={downloadEnabled}
           />
           {directTracks.length > 0 && (
             <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">

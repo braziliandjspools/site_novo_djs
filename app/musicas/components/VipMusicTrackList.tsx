@@ -14,6 +14,7 @@ import {
   Play,
   Square,
 } from "lucide-react";
+import { formatBytes } from "../../lib/format-bytes";
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
@@ -25,6 +26,7 @@ import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { poolPanelClass, poolRowTone, poolTableHeadClass } from "./atualizacoes-pool-ui";
+import { MusicalKeyBadge } from "./MusicalKeyBadge";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 
 type VipMusicTrackListProps = {
@@ -47,13 +49,15 @@ type VipMusicTrackListProps = {
   };
   /** `table` = Atualizações desktop; `discography` = coleções estilo Spotify. */
   layout?: "default" | "table" | "discography";
+  /** Sem borda extra quando o bloco pai já é um card. */
+  embedded?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
 };
 
-/** Colunas: nome | Key | BPM | ações — sem coluna #. */
+/** Colunas: nome | Key | BPM | tamanho | ações — sem coluna #. */
 const TABLE_GRID =
-  "grid grid-cols-[minmax(0,1fr)_2.75rem_3.75rem_2.75rem] items-center gap-x-2";
+  "grid grid-cols-[minmax(0,1fr)_2.75rem_3.25rem_3.75rem_2.75rem] items-center gap-x-2";
 
 /** Discografia Spotify: # | título/artista | duração */
 const DISCOGRAPHY_GRID = "grid grid-cols-[2rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
@@ -592,12 +596,16 @@ function TrackTableRow({
           </button>
         </div>
 
-        <p className="text-center font-mono text-[11px] tabular-nums text-zinc-400">
-          {track.musicalKey ?? "—"}
+        <p className="text-center">
+          <MusicalKeyBadge value={track.musicalKey} />
         </p>
 
         <p className="text-center font-mono text-[11px] tabular-nums text-zinc-400">
           {track.bpm ?? "—"}
+        </p>
+
+        <p className="text-right font-mono text-[11px] tabular-nums text-zinc-500">
+          {formatBytes(track.sizeBytes)}
         </p>
 
         <div className="flex items-center justify-end gap-1">
@@ -674,6 +682,7 @@ export function VipMusicTrackList({
   autoPlayTrackId,
   continueContext,
   layout = "default",
+  embedded = false,
   hasMore = false,
   onLoadMore,
 }: VipMusicTrackListProps) {
@@ -1040,11 +1049,12 @@ export function VipMusicTrackList({
 
           {/* Desktop table — Atualizações only */}
           {useTable && (
-            <div className={`hidden md:block ${poolPanelClass}`}>
+            <div className={`hidden md:block ${embedded ? "" : poolPanelClass}`}>
               <div className={`${poolTableHeadClass} ${TABLE_GRID}`}>
                 <span className="min-w-0">Nome</span>
                 <span className="text-center">Key</span>
                 <span className="text-center">BPM</span>
+                <span className="text-right">Tam.</span>
                 <span className="text-right">Ações</span>
               </div>
               <div>
