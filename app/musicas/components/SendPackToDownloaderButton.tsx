@@ -58,6 +58,18 @@ export function SendPackToDownloaderButton({
           ? "1 faixa adicionada ao BRS Downloader"
           : `${result.count} faixas adicionadas ao BRS Downloader (estrutura de pastas preservada)`,
       );
+      try {
+        const key = "brs-dl-sent-packs";
+        const raw = sessionStorage.getItem(key);
+        const list = raw ? (JSON.parse(raw) as string[]) : [];
+        const next = Array.isArray(list) ? list : [];
+        if (!next.includes(slug)) {
+          next.push(slug);
+          sessionStorage.setItem(key, JSON.stringify(next));
+        }
+      } catch {
+        /* ignore */
+      }
       await sync?.refresh();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");

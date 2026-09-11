@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
-import { listVipMusicFolders } from "../../../lib/vip-music-catalog";
+import { listVipMusicFoldersWithNav } from "../../../lib/vip-music-catalog";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 
 export const revalidate = 120;
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
   try {
     const run = async () => {
-      const folders = await listVipMusicFolders(folderId);
+      const folders = await listVipMusicFoldersWithNav(folderId);
       return NextResponse.json({ folders, ...access });
     };
     return forceRefresh ? withDriveForceRefresh(run) : run();

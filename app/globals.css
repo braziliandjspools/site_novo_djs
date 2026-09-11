@@ -268,6 +268,21 @@ body {
   background: linear-gradient(90deg, #009739, #1ed760);
 }
 
+@keyframes brs-eq {
+  from {
+    transform: scaleY(0.4);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.brs-eq-bar {
+  height: 12px;
+  transform-origin: bottom;
+  animation: brs-eq 0.85s ease-in-out infinite alternate;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

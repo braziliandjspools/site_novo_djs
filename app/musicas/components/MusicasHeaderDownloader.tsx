@@ -58,7 +58,7 @@ export function MusicasHeaderDownloader() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label="BRS Downloader"
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:bg-white/10 hover:text-white"
+        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#1ed760]/25 bg-[#1ed760]/10 px-2.5 py-1.5 text-xs font-semibold text-[#1ed760] transition-colors hover:border-[#1ed760]/45 hover:bg-[#1ed760]/20 hover:text-[#7dffb0]"
       >
         <span className="relative">
           <MonitorDown className="h-4 w-4 text-[#1ed760]" />

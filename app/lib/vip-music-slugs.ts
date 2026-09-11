@@ -55,7 +55,10 @@ export function parseMonthStatus(name: string): { label: string; status: MonthSt
 }
 
 export function displayFolderName(name: string): string {
-  return name.replace(/\s*\[[^\]]+\]\s*/gi, " ").trim();
+  return name
+    .replace(/\s*\[[^\]]+\]\s*/gi, " ")
+    .trim()
+    .toLocaleUpperCase("pt-BR");
 }
 
 /** Detecta pastas "SEMANA 01", "Semana 1", etc. */

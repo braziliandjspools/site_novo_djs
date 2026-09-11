@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
   displayFolderName,
-  folderHref,
   parseMonthFolderDate,
   parseMonthStatus,
   parseWeekNumber,
-  slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import {
@@ -19,16 +15,7 @@ import {
   getPackWeekDayRange,
   isCurrentPackWeek,
 } from "../../lib/week-calendar";
-import { CopyPackLinkButton } from "./CopyPackLinkButton";
-import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
-import {
-  packListFolderTitleClass,
-  packListPanelClass,
-  packListRowTone,
-  poolPanelHeaderBrClass,
-  poolPanelClass,
-} from "./atualizacoes-pool-ui";
-import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderList";
 
 type WeekFolderGridProps = {
   monthSlug: string;
@@ -50,106 +37,75 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
   const now = useLiveNow(1000);
   const monthDate = parseMonthFolderDate(monthName);
 
-  if (weeks.length === 0) {
-    return (
-      <p className={`${poolPanelClass} px-4 py-8 text-center text-sm text-zinc-500`}>
-        Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…
-      </p>
-    );
-  }
+  const items = useMemo((): LibraryFolderItem[] => {
+    return weeks.map((week) => {
+      const weekNumber = parseWeekNumber(week.name);
+      const days =
+        weekNumber != null && monthDate
+          ? getPackWeekDayRange(monthDate.year, monthDate.month, weekNumber, now)
+          : [];
+      const rangeLabel = formatPackWeekRangeLabel(days);
+      const isCurrent =
+        weekNumber != null && monthDate
+          ? isCurrentPackWeek(monthDate.year, monthDate.month, weekNumber, now)
+          : false;
+      const weekStatus = parseMonthStatus(week.name);
+      const weekTitle =
+        weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : displayFolderName(week.name);
+
+      let badge: string | null = null;
+      let badgeTone: LibraryFolderItem["badgeTone"] = "green";
+      if (weekStatus.status === "em-atualizacao") {
+        badge = "Em atualização";
+        badgeTone = "amber";
+      } else if (isCurrent) {
+        badge = "Esta semana";
+        badgeTone = "green";
+      }
+
+      return {
+        id: week.id,
+        name: week.name,
+        title: weekTitle,
+        folderCount: week.folderCount,
+        trackCount: week.trackCount,
+        detail: rangeLabel || null,
+        badge,
+        badgeTone: badge ? badgeTone : undefined,
+      };
+    });
+  }, [monthDate, now, weeks]);
 
   return (
-    <div className="space-y-4">
-      {monthDate && (
-        <div className={`${poolPanelClass} flex flex-wrap items-end justify-between gap-3 px-4 py-3`}>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">Calendário</p>
-            <p className="mt-1 text-sm font-semibold capitalize text-white">{formatLiveCalendarTitle(now)}</p>
-            <p className="mt-0.5 text-xs text-zinc-500">Semana 01 = dias 1–7 · Semana 02 = 8–14…</p>
+    <LibraryFolderList
+      className="mb-6"
+      folders={items}
+      slugSegments={[monthSlug]}
+      newFolderIds={newWeekIds}
+      title="Semanas"
+      description={`Semanas de ${monthName}`}
+      descriptionMobile={monthName}
+      emptyMessage="Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…"
+      before={
+        monthDate ? (
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3 rounded-[20px] border border-white/5 bg-[#0f1012] px-4 py-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">
+                Calendário
+              </p>
+              <p className="mt-1 text-sm font-semibold capitalize text-white">
+                {formatLiveCalendarTitle(now)}
+              </p>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Semana 01 = dias 1–7 · Semana 02 = 8–14…
+              </p>
+            </div>
+            <p className="rounded-full border border-[#1ed760]/25 bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760]">
+              {formatLiveClock(now)}
+            </p>
           </div>
-          <p className="rounded border border-[#1ed760]/25 bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760]">
-            {formatLiveClock(now)}
-          </p>
-        </div>
-      )}
-
-      <div className={packListPanelClass}>
-        <div className={poolPanelHeaderBrClass}>
-          <h2 className="text-sm font-semibold tracking-tight text-white">Semanas</h2>
-          <p className="text-[11px] text-zinc-500">{monthName}</p>
-        </div>
-        <ul>
-          {weeks.map((week, index) => {
-            const weekSlug = slugifyFolderName(week.name);
-            const label = displayFolderName(week.name);
-            const weekNumber = parseWeekNumber(week.name);
-            const href = folderHref([monthSlug, weekSlug]);
-            const isNew = newWeekIds?.has(week.id);
-            const days =
-              weekNumber != null && monthDate
-                ? getPackWeekDayRange(monthDate.year, monthDate.month, weekNumber, now)
-                : [];
-            const rangeLabel = formatPackWeekRangeLabel(days);
-            const isCurrent =
-              weekNumber != null && monthDate
-                ? isCurrentPackWeek(monthDate.year, monthDate.month, weekNumber, now)
-                : false;
-            const weekTitle =
-              weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : label;
-            const weekStatus = parseMonthStatus(week.name);
-
-            return (
-              <li
-                key={week.id}
-                className={`flex w-full min-w-0 items-center gap-2 px-3 py-3.5 sm:px-4 ${packListRowTone(index, isCurrent)}`}
-              >
-                <Link
-                  href={href}
-                  onMouseEnter={() =>
-                    prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(`${monthSlug}/${weekSlug}`)}`)
-                  }
-                  onFocus={() =>
-                    prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(`${monthSlug}/${weekSlug}`)}`)
-                  }
-                  className="group flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2"
-                >
-                  <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className={packListFolderTitleClass}>{weekTitle}</span>
-                    {weekStatus.status === "em-atualizacao" && (
-                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
-                        Em atualização
-                      </span>
-                    )}
-                    {isCurrent && weekStatus.status !== "em-atualizacao" && (
-                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
-                        Esta semana
-                      </span>
-                    )}
-                    {isNew && !isCurrent && weekStatus.status !== "em-atualizacao" && (
-                      <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
-                        Novo
-                      </span>
-                    )}
-                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
-                  </span>
-                  <span className="text-xs text-zinc-500 sm:whitespace-nowrap">{rangeLabel || "—"}</span>
-                </Link>
-                <div className="flex flex-shrink-0 items-center justify-end gap-1">
-                  <SendPackToDownloaderButton
-                    slug={`${monthSlug}/${weekSlug}`}
-                    compact
-                    label="Enviar semana ao Downloader"
-                  />
-                  <CopyPackLinkButton
-                    slugSegments={[monthSlug, weekSlug]}
-                    label="Copiar link da semana para o Downloader"
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
+        ) : null
+      }
+    />
   );
 }

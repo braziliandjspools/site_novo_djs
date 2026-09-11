@@ -11,7 +11,7 @@ import {
   slugifyFolderName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
-import { findFolderCover, folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
+import { folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
 import { mapPool } from "./map-pool";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
@@ -27,6 +27,10 @@ export type VipMusicFolder = {
 export type VipMusicCatalogItem = VipMusicFolder & {
   type: "folder";
   coverUrl?: string | null;
+  /** Subpastas imediatas (quando calculado). */
+  folderCount?: number;
+  /** Faixas imediatas (quando calculado). */
+  trackCount?: number;
 };
 
 export type VipMusicCatalogResponse = {
@@ -87,6 +91,22 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
   );
 }
 
+/** Pastas da raiz/pai com contagens para navegação de biblioteca. */
+export async function listVipMusicFoldersWithNav(
+  parentFolderId?: string,
+): Promise<VipMusicCatalogItem[]> {
+  const folders = await listVipMusicFolders(parentFolderId);
+  if (folders.length === 0) return [];
+  const stats = await mapPool(folders, 8, (folder) => getFolderNavStats(folder.id));
+  return folders.map((folder, index) => ({
+    ...folder,
+    type: "folder" as const,
+    coverUrl: stats[index]?.coverUrl ?? null,
+    folderCount: stats[index]?.folderCount ?? 0,
+    trackCount: stats[index]?.trackCount ?? 0,
+  }));
+}
+
 /**
  * Percorre a pasta e todas as subpastas até achar arquivos de áudio.
  */
@@ -118,6 +138,41 @@ async function collectTracksDeep(
   return tracks;
 }
 
+async function getFolderNavStats(folderId: string): Promise<{
+  folderCount: number;
+  trackCount: number;
+  coverUrl: string | null;
+}> {
+  try {
+    const children = await listDriveFolderChildren(folderId);
+    const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
+    const tracks = children.filter((item) => isDriveAudioFile(item));
+    const cover = children.find((item) => isFolderCoverFile(item));
+    let trackCount = tracks.length;
+
+    // Pasta só com subpastas: soma faixas do 1º nível interno (útil sem deep-walk caro).
+    if (trackCount === 0 && folders.length > 0 && folders.length <= 24) {
+      const nested = await mapPool(folders, 6, async (folder) => {
+        try {
+          const nestedChildren = await listDriveFolderChildren(folder.id);
+          return nestedChildren.filter((item) => isDriveAudioFile(item)).length;
+        } catch {
+          return 0;
+        }
+      });
+      trackCount = nested.reduce((sum, value) => sum + value, 0);
+    }
+
+    return {
+      folderCount: folders.length,
+      trackCount,
+      coverUrl: cover ? folderCoverUrl(cover.id) : null,
+    };
+  } catch {
+    return { folderCount: 0, trackCount: 0, coverUrl: null };
+  }
+}
+
 async function getDriveCatalog(folderId: string, folderName: string): Promise<VipMusicCatalogResponse> {
   const rootId = getVipMusicRootFolderId();
   const children = await listDriveFolderChildren(folderId);
@@ -133,15 +188,15 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
 
     const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
-    // Semanas/meses: sem capa — evita N+1 listagens no Drive.
-    const loadCovers = !childrenAreWeekFolders(sorted) && sorted.length <= 48;
-    const covers = loadCovers
-      ? await Promise.all(sorted.map((folder) => findFolderCover(folder.id)))
-      : sorted.map(() => null);
+    // Contagens + capa para todos os níveis (meses → semanas → estilos → subpastas).
+    const stats = await mapPool(sorted, 8, (folder) => getFolderNavStats(folder.id));
+
     const items: VipMusicCatalogItem[] = sorted.map((folder, index) => ({
       ...folder,
       type: "folder" as const,
-      coverUrl: covers[index]?.coverUrl ?? null,
+      coverUrl: stats[index]?.coverUrl ?? null,
+      folderCount: stats[index]?.folderCount ?? 0,
+      trackCount: stats[index]?.trackCount ?? 0,
     }));
 
     return {

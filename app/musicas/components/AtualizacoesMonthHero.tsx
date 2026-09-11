@@ -164,7 +164,7 @@ export function AtualizacoesMonthHero({
             {badgeActions ? <span className="inline-flex items-center gap-2">{badgeActions}</span> : null}
           </div>
           {actions ? (
-            <div className={`mt-5 flex flex-wrap justify-center gap-2 sm:justify-start ${isTracks ? "gap-3" : ""}`}>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               {actions}
             </div>
           ) : null}

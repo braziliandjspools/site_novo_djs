@@ -36,6 +36,8 @@ type VipMusicPlayerContextValue = {
   registerTrackMeta: (track: PreviewTrack) => void;
   toggleTrack: (folderId: string, trackId: string) => Promise<void>;
   playQueue: (folderId: string, trackId: string, tracks: PreviewTrack[]) => Promise<void>;
+  /** Marca faixa para tocar após a atual (menu Adicionar à fila). */
+  queueTrackNext: (folderId: string, trackId: string) => void;
   playNext: () => Promise<void>;
   playPrevious: () => Promise<void>;
   pause: () => void;
@@ -73,6 +75,8 @@ export function VipMusicPlayerProvider({
   const previewSecondsRef = useRef(previewSeconds);
   previewSecondsRef.current = previewSeconds;
   const currentTimeRef = useRef(0);
+  /** Próxima faixa forçada pelo menu "Adicionar à fila". */
+  const pendingNextIdRef = useRef<string | null>(null);
 
   /** Prévia de áudio desativada: sem VIP não reproduz. */
   const isPreviewMode = false;
@@ -104,6 +108,18 @@ export function VipMusicPlayerProvider({
       if (!folder) {
         if (!canPlayFullRef.current) setPreviewEnded(true);
         return;
+      }
+
+      const pendingId = pendingNextIdRef.current;
+      if (pendingId) {
+        pendingNextIdRef.current = null;
+        const pending = folder.tracks.find((track) => track.id === pendingId);
+        if (pending) {
+          setPreviewEnded(false);
+          setCurrentTrack(pending);
+          await playRef.current(pending.id);
+          return;
+        }
       }
 
       let tracks = folder.tracks;
@@ -244,6 +260,15 @@ export function VipMusicPlayerProvider({
     [player, syncFolderVisuals],
   );
 
+  const queueTrackNext = useCallback((folderId: string, trackId: string) => {
+    if (!canPlayFullRef.current) return;
+    if (playingFolderIdRef.current !== folderId || !player.playingId) {
+      void toggleTrack(folderId, trackId);
+      return;
+    }
+    pendingNextIdRef.current = trackId;
+  }, [player.playingId, toggleTrack]);
+
   const playNext = useCallback(async () => {
     const id = player.playingId ?? currentTrack?.id;
     if (!id) return;
@@ -376,13 +401,18 @@ export function VipMusicPlayerProvider({
   }, [player.pause, syncFolderVisuals]);
 
   const isPlaying = player.playingId !== null && player.loadingId === null;
-  const mediaActive = Boolean(currentTrack);
+  // Notificação Android: permanece "playing"/ativa enquanto a próxima faixa carrega.
+  const mediaSessionPlaying =
+    Boolean(currentTrack) &&
+    (player.loadingId !== null || player.playingId !== null);
+  const mediaActive =
+    Boolean(currentTrack) || Boolean(player.loadingId) || Boolean(player.playingId);
 
   useMediaSession({
     track: currentTrack,
     coverUrl: currentTrack?.coverUrl?.trim() || currentCoverUrl,
     albumTitle: currentAlbumTitle || currentTrack?.album || currentTrack?.pack || null,
-    isPlaying,
+    isPlaying: mediaSessionPlaying,
     isActive: mediaActive,
     duration: displayDuration,
     position: Math.min(player.currentTime, displayDuration),
@@ -428,6 +458,7 @@ export function VipMusicPlayerProvider({
       registerTrackMeta,
       toggleTrack,
       playQueue,
+      queueTrackNext,
       playNext,
       playPrevious,
       pause: player.pause,
@@ -456,6 +487,7 @@ export function VipMusicPlayerProvider({
       registerTrackMeta,
       toggleTrack,
       playQueue,
+      queueTrackNext,
       playNext,
       playPrevious,
       stop,

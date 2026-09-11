@@ -6,10 +6,14 @@ import { clearMusicasCache } from "../lib/musicas-fetch-cache";
 import { useMusicasToast } from "./MusicasToast";
 
 type AtualizacoesDriveSyncButtonProps = {
-  onSynced?: () => void | Promise<void>;
+  onSynced?: (result?: { syncedAt?: string; folderCount?: number }) => void | Promise<void>;
   className?: string;
   compact?: boolean;
 };
+
+/** Estilo único do botão Sincronizar (heroes, listas e pastas). */
+export const DRIVE_SYNC_BUTTON_CLASS =
+  "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 text-sm font-bold text-yellow-300 transition-colors transition-transform hover:scale-[1.01] hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100";
 
 /** Força invalidar o cache do Google Drive e recarregar a lista atual. */
 export function AtualizacoesDriveSyncButton({
@@ -25,12 +29,20 @@ export function AtualizacoesDriveSyncButton({
     setSyncing(true);
     try {
       const res = await fetch("/api/musicas/sync", { method: "POST", cache: "no-store" });
-      const data = (await res.json()) as { ok?: boolean; error?: string; folderCount?: number };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        folderCount?: number;
+        syncedAt?: string;
+      };
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Falha ao sincronizar.");
       }
       clearMusicasCache("/api/musicas/");
-      await onSynced?.();
+      await onSynced?.({
+        syncedAt: data.syncedAt,
+        folderCount: data.folderCount,
+      });
       showToast(
         typeof data.folderCount === "number"
           ? `Acervo atualizado · ${data.folderCount} pastas na raiz`
@@ -51,7 +63,7 @@ export function AtualizacoesDriveSyncButton({
         disabled={syncing}
         title="Sincronizar com o Google Drive"
         aria-label="Sincronizar com o Google Drive"
-        className={`inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-amber-400/45 bg-amber-400/20 text-amber-300 transition-colors hover:bg-amber-400/35 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-300 transition-colors hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
       </button>
@@ -63,9 +75,10 @@ export function AtualizacoesDriveSyncButton({
       type="button"
       onClick={() => void handleSync()}
       disabled={syncing}
-      className={`inline-flex cursor-pointer items-center gap-2 rounded-md border border-amber-400/45 bg-amber-400/15 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-amber-200 transition-colors hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      aria-label="Sincronizar com o Google Drive"
+      className={`${DRIVE_SYNC_BUTTON_CLASS} ${className}`}
     >
-      {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+      {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
       {syncing ? "Sincronizando…" : "Sincronizar"}
     </button>
   );

@@ -112,31 +112,63 @@ export function useMediaSession(input: MediaSessionInput) {
   const handlersRef = useRef(input.handlers);
   handlersRef.current = input.handlers;
 
-  const trackId = input.track?.id ?? null;
-  const coverUrl = input.coverUrl ?? null;
-  const albumTitle = input.albumTitle ?? null;
+  /** Mantém última faixa para não dropar a notificação no Android durante o load. */
+  const stickyTrackRef = useRef<PreviewTrack | null>(input.track);
+  if (input.track) stickyTrackRef.current = input.track;
+
+  const stickyCoverRef = useRef(input.coverUrl ?? null);
+  if (input.coverUrl) stickyCoverRef.current = input.coverUrl;
+
+  const stickyAlbumRef = useRef(input.albumTitle ?? null);
+  if (input.albumTitle) stickyAlbumRef.current = input.albumTitle;
+
+  const track = input.track ?? stickyTrackRef.current;
+  const trackId = track?.id ?? null;
+  const coverUrl = input.coverUrl ?? stickyCoverRef.current;
+  const albumTitle = input.albumTitle ?? stickyAlbumRef.current;
   const isPlaying = input.isPlaying;
   const isActive = input.isActive;
   const duration = input.duration;
   const position = input.position;
   const playbackRate = input.playbackRate ?? 1;
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Metadados + handlers quando a faixa muda / ativa.
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
 
-    if (!isActive || !input.track) {
-      clearMediaSession();
-      return;
+    if (clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
     }
 
-    const meta = resolveTrackMediaMetadata(input.track, albumTitle);
+    if (!isActive) {
+      // Atrasa limpeza: troca de faixa pode ficar inativa por um instante no load.
+      clearTimerRef.current = setTimeout(() => {
+        clearMediaSession();
+        stickyTrackRef.current = null;
+        stickyCoverRef.current = null;
+        stickyAlbumRef.current = null;
+        clearTimerRef.current = null;
+      }, 400);
+      return () => {
+        if (clearTimerRef.current) {
+          clearTimeout(clearTimerRef.current);
+          clearTimerRef.current = null;
+        }
+      };
+    }
+
+    const activeTrack = input.track ?? stickyTrackRef.current;
+    if (!activeTrack) return;
+
+    const meta = resolveTrackMediaMetadata(activeTrack, albumTitle);
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: meta.title,
         artist: meta.artist,
         album: meta.album,
-        artwork: buildArtwork(coverUrl || input.track?.coverUrl),
+        artwork: buildArtwork(coverUrl || activeTrack.coverUrl),
       });
     } catch {
       /* ignore */
@@ -167,18 +199,13 @@ export function useMediaSession(input: MediaSessionInput) {
         void handlersRef.current.onSeek?.(details.seekTime);
       }
     });
-
-    return () => {
-      // Não limpa no cleanup de troca de faixa — o próximo effect atualiza.
-      // Limpeza total só quando isActive fica false (abaixo) ou unmount.
-    };
   }, [trackId, coverUrl, albumTitle, isActive, input.track]);
 
-  // playbackState
+  // playbackState — mantém "playing" também durante load da próxima faixa.
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
     try {
-      if (!isActive) {
+      if (!isActive && !stickyTrackRef.current) {
         navigator.mediaSession.playbackState = "none";
       } else {
         navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
@@ -191,7 +218,7 @@ export function useMediaSession(input: MediaSessionInput) {
   // Position state (throttle ~1s via timeupdate-like deps from parent)
   const lastPosRef = useRef({ duration: -1, position: -1, playing: false });
   useEffect(() => {
-    if (!("mediaSession" in navigator) || !isActive) return;
+    if (!("mediaSession" in navigator) || (!isActive && !stickyTrackRef.current)) return;
     if (!(typeof navigator.mediaSession.setPositionState === "function")) return;
 
     const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
@@ -220,6 +247,7 @@ export function useMediaSession(input: MediaSessionInput) {
   // Unmount cleanup
   useEffect(() => {
     return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
       clearMediaSession();
     };
   }, []);

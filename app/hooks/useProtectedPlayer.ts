@@ -175,10 +175,8 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
 
       stopSource();
       revokeObjectUrl();
+      // Pausar sem zerar o src: limpar src demove a notificação Media Session no Android.
       audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-
       audio.src = src;
       audio.currentTime = 0;
 
@@ -246,7 +244,13 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
 
   const loadTrack = useCallback(
     async (id: string) => {
-      setState((prev) => ({ ...prev, loadingId: id, error: null }));
+      setState((prev) => ({
+        ...prev,
+        loadingId: id,
+        error: null,
+        // Evita a faixa anterior ficar como "tocando" enquanto a nova carrega.
+        playingId: prev.playingId === id ? prev.playingId : null,
+      }));
       if (useMediaElement) return loadTrackMedia(id);
       return loadTrackBuffer(id);
     },
