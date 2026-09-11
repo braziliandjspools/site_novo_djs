@@ -6,3 +6,5 @@ Mantenha **apenas a versão atual** aqui — cada `.exe` (~5 MB) entra em todo
 e soma no **Functions Storage**. Versões antigas devem ir para GitHub Releases / outro CDN.
 
 - `BRS-Downloader_1.0.10_estable_x64-setup.exe` — Windows x64 (NSIS) — **atual**
+
+- `BRS-Android_1.0.0-debug.apk` — Android (debug) — app WebView do site
