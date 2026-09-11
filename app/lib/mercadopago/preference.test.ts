@@ -33,8 +33,8 @@ test("preference body usa BRL, quantity 1, back_urls e auto_return", () => {
   assert.equal(body.metadata.brs_service_product, "poolsVip");
 });
 
-test("preference Deemix inclui metadata do produto e preço 30", () => {
-  const plan = getCanonicalPlanById("brs-deemix-1m");
+test("preference Deemix histórico (includeInactive) inclui metadata do produto e preço 30", () => {
+  const plan = getCanonicalPlanById("brs-deemix-1m", { includeInactive: true });
   assert.ok(plan);
 
   const body = buildMercadoPagoPreferenceBody({

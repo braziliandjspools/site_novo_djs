@@ -31,10 +31,9 @@ function baseUser(overrides: Partial<PortalUser> = {}): PortalUser {
 
 test("lista renováveis dentro de 5 dias com valores do billing", () => {
   const items = listPortalRenewableServices(baseUser());
-  assert.equal(items.length, 2);
-  assert.equal(items[0]?.dueDayKey, items[1]?.dueDayKey);
+  assert.equal(items.length, 1);
   assert.ok(items.some((i) => i.key === "poolsVip" && i.value === 45));
-  assert.ok(items.some((i) => i.key === "deemix" && i.value === 30));
+  assert.ok(!items.some((i) => (i as { key: string }).key === "deemix"));
 });
 
 test("buildPortalRenewalPlan usa valor do usuário e plano 1 mês", () => {

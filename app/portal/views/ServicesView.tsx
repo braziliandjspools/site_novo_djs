@@ -22,17 +22,8 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
       view: "service-pools" as PortalView,
       payKey: "poolsVip" as const,
     },
-    data.deemix && {
-      name: "Deemix — Download de Músicas",
-      badge: <PortalBadge>Ativo</PortalBadge>,
-      due: `${user.serviceBilling.deemix.valueLabel} · ${
-        user.serviceBilling.deemix.dueAt ? formatDateBr(user.serviceBilling.deemix.dueAt) : "—"
-      }`,
-      view: "service-deemix" as PortalView,
-      payKey: "deemix" as const,
-    },
     data.allavsoft && {
-      name: "Allavsoft — Download Universal",
+      name: "Allavsoft — Deezer, Spotify, YouTube e +1000 sites",
       badge: <PortalBadge>Vitalícia</PortalBadge>,
       due: `${user.serviceBilling.allavsoft.valueLabel} · Sem vencimento`,
       view: "service-allavsoft" as PortalView,
@@ -54,7 +45,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
     badge: ReactNode;
     due: string;
     view: PortalView;
-    payKey: "poolsVip" | "deemix" | null;
+    payKey: "poolsVip" | null;
   }>;
 
   return (

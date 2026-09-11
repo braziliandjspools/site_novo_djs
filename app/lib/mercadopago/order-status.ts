@@ -23,7 +23,7 @@ function toSafeDto(input: {
   accessActive: boolean;
 }): SafeOrderStatusDto {
   const phase = mapOrderStatusToPublicPhase(input.status);
-  const plan = getCanonicalPlanById(input.planId);
+  const plan = getCanonicalPlanById(input.planId, { includeInactive: true });
   return {
     phase,
     planLabel: plan?.title ?? null,

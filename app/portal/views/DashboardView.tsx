@@ -106,16 +106,6 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               actionLabel: "Gerenciar",
               payKey: "poolsVip" as const,
             },
-            data.deemix && {
-              name: "Deemix",
-              badge: <PortalBadge>Ativo</PortalBadge>,
-              due: `${user.serviceBilling.deemix.valueLabel} · ${
-                user.serviceBilling.deemix.dueAt ? formatDateBr(user.serviceBilling.deemix.dueAt) : "—"
-              }`,
-              action: () => onNavigate("service-deemix"),
-              actionLabel: "Gerenciar",
-              payKey: "deemix" as const,
-            },
             data.allavsoft && {
               name: "Allavsoft",
               badge: <PortalBadge>Vitalícia</PortalBadge>,
@@ -145,7 +135,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                 due: string;
                 action: () => void;
                 actionLabel: string;
-                payKey: "poolsVip" | "deemix" | null;
+                payKey: "poolsVip" | null;
               };
               return (
                 <div key={item.name} className="rounded-xl border border-zinc-800 bg-[#0a0a0a] p-4">
@@ -196,26 +186,6 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
                     <div className="flex flex-wrap items-center gap-3">
                       <PortalRenewPayButton service="poolsVip" renewables={renewables} />
                       <button type="button" onClick={() => onNavigate("service-pools")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
-                        Gerenciar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
-              {data.deemix && (
-                <tr className="hover:bg-zinc-800/30">
-                  <td className="py-3 pr-4 font-medium text-white">Deemix</td>
-                  <td className="py-3 pr-4"><PortalBadge>Ativo</PortalBadge></td>
-                  <td className="py-3 pr-4 text-zinc-400">
-                    {user.serviceBilling.deemix.valueLabel} ·{" "}
-                    {user.serviceBilling.deemix.dueAt
-                      ? formatDateBr(user.serviceBilling.deemix.dueAt)
-                      : "—"}
-                  </td>
-                  <td className="py-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <PortalRenewPayButton service="deemix" renewables={renewables} />
-                      <button type="button" onClick={() => onNavigate("service-deemix")} className="text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline">
                         Gerenciar
                       </button>
                     </div>

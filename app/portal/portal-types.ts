@@ -19,7 +19,7 @@ export type PortalServiceBilling = {
 };
 
 export type PortalRenewableService = {
-  key: "poolsVip" | "deemix";
+  key: "poolsVip";
   label: string;
   value: number;
   valueLabel: string;

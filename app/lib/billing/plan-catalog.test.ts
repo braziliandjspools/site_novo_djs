@@ -9,9 +9,9 @@ import {
   resolveCanonicalPlanId,
 } from "./plan-catalog";
 
-test("catálogo ativo tem Drive (4) + Deemix (3) + Allavsoft (1)", () => {
+test("catálogo ativo tem Drive (4) + Allavsoft (1); Deemix descontinuado", () => {
   const plans = listActiveCanonicalPlans();
-  assert.equal(plans.length, 8);
+  assert.equal(plans.length, 5);
   assert.deepEqual(
     plans.map((p) => p.id),
     [
@@ -19,9 +19,6 @@ test("catálogo ativo tem Drive (4) + Deemix (3) + Allavsoft (1)", () => {
       "brs-drive-1m",
       "brs-drive-3m",
       "brs-drive-12m",
-      "brs-deemix-1m",
-      "brs-deemix-3m",
-      "brs-deemix-6m",
       "brs-allavsoft-lifetime",
     ],
   );
@@ -35,19 +32,20 @@ test("Allavsoft vitalícia custa R$ 50,00", () => {
   assert.equal(plan?.durationDays, 0);
 });
 
-test("Deemix: 30 / 81 / 162 com 10% nos longos", () => {
-  assert.equal(getCanonicalPlanById("brs-deemix-1m")?.amountBrl, "30.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-1m")?.serviceProduct, "deemix");
-  assert.equal(getCanonicalPlanById("brs-deemix-1m")?.durationDays, 30);
+test("Deemix: planos históricos inativos (ainda resolvíveis com includeInactive)", () => {
+  assert.equal(getCanonicalPlanById("brs-deemix-1m"), null);
+  assert.equal(getCanonicalPlanById("brs-deemix-1m", { includeInactive: true })?.amountBrl, "30.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-1m", { includeInactive: true })?.serviceProduct, "deemix");
+  assert.equal(getCanonicalPlanById("brs-deemix-1m", { includeInactive: true })?.durationDays, 30);
 
   const monthly = 30;
   assert.equal((monthly * 3 * 0.9).toFixed(2), "81.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-3m")?.amountBrl, "81.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-3m")?.durationDays, 90);
+  assert.equal(getCanonicalPlanById("brs-deemix-3m", { includeInactive: true })?.amountBrl, "81.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-3m", { includeInactive: true })?.durationDays, 90);
 
   assert.equal((monthly * 6 * 0.9).toFixed(2), "162.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-6m")?.amountBrl, "162.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-6m")?.durationDays, 180);
+  assert.equal(getCanonicalPlanById("brs-deemix-6m", { includeInactive: true })?.amountBrl, "162.00");
+  assert.equal(getCanonicalPlanById("brs-deemix-6m", { includeInactive: true })?.durationDays, 180);
 });
 
 test("plano teste 3 dias custa R$ 1,00 e dura 3 dias", () => {

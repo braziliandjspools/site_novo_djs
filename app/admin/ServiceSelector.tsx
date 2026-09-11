@@ -20,7 +20,6 @@ type ServiceSelectorProps = {
 
 const ITEMS = [
   { key: "poolsVip" as const, label: "Pools VIP" },
-  { key: "deemix" as const, label: "Deemix" },
   { key: "allavsoft" as const, label: "Allavsoft" },
 ];
 

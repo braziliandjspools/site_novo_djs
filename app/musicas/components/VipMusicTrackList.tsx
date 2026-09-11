@@ -10,6 +10,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import Image from "next/image";
 import {
   Check,
   Copy,
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { PLACEHOLDER } from "../../lib/theme";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
 import { getTrackDownloadLabel } from "../lib/downloader-sync";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -34,6 +36,10 @@ import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
+import {
+  flattenTrackSections,
+  groupTracksByUploadDate,
+} from "../lib/track-date-groups";
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -54,14 +60,21 @@ type VipMusicTrackListProps = {
   /** `table` = Atualizações streaming; `discography` = coleções. */
   layout?: "default" | "table" | "discography";
   embedded?: boolean;
+  /** Agrupa por data de upload (Drive). Padrão: ligado em `table`. */
+  groupByDate?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[44px_minmax(0,1fr)_70px_48px_32px] md:items-center md:gap-x-2";
+  "hidden md:grid md:grid-cols-[48px_minmax(0,1fr)_70px_48px_32px] md:items-center md:gap-x-2";
 
-const DISCOGRAPHY_GRID = "grid grid-cols-[2rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
+const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
+
+/** Capa da faixa (tag) → capa do álbum/pasta → padrão BRS. */
+function resolveTrackCoverSrc(track: PreviewTrack, albumCoverUrl?: string | null) {
+  return track.coverUrl?.trim() || albumCoverUrl?.trim() || PLACEHOLDER.trackCover;
+}
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -194,6 +207,8 @@ type StreamingRowProps = {
   isBusy: boolean;
   isHighlighted: boolean;
   setDomAnchor?: boolean;
+  /** Capa da pasta/álbum (folder.jpg), fallback da faixa. */
+  albumCoverUrl?: string | null;
   progress: number;
   currentTime: number;
   /** Duração do player (só ativa) ou cache. */
@@ -211,10 +226,14 @@ type StreamingRowProps = {
 };
 
 function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
+  const coverSame =
+    prev.albumCoverUrl === next.albumCoverUrl &&
+    (prev.track.coverUrl ?? null) === (next.track.coverUrl ?? null);
   const activeChanged = prev.isActive !== next.isActive || prev.isPlaying !== next.isPlaying;
   if (prev.isActive || next.isActive || activeChanged) {
     return (
       prev.track.id === next.track.id &&
+      coverSame &&
       prev.index === next.index &&
       prev.canPlay === next.canPlay &&
       prev.canDownload === next.canDownload &&
@@ -236,6 +255,7 @@ function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
   }
   return (
     prev.track.id === next.track.id &&
+    coverSame &&
     prev.index === next.index &&
     prev.canPlay === next.canPlay &&
     prev.canDownload === next.canDownload &&
@@ -264,6 +284,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   isBusy,
   isHighlighted,
   setDomAnchor = true,
+  albumCoverUrl,
   progress,
   currentTime,
   displayDuration,
@@ -281,6 +302,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const display = getTrackDisplayMetadata(track);
   const a11yName = `${display.title} — ${display.artist}`;
   const showDuration = displayDuration > 0;
+  const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
+  const coverUnoptimized = coverSrc.startsWith("/api/");
 
   const menuActions = useMemo(() => {
     const actions: CollectionMenuAction[] = [
@@ -352,25 +375,52 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       onClick={onToggle}
       disabled={isBusy || selectionMode}
       aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
-      className="group/play flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-white transition-all duration-200 ease-out hover:bg-white/10 group-hover/row:scale-105 disabled:opacity-40 md:h-9 md:w-9"
+      className="group/play relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-transform duration-200 ease-out group-hover/row:scale-105 disabled:opacity-40 md:h-10 md:w-10"
     >
-      {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin text-[#1ed760]" />
-      ) : isPlaying ? (
-        <>
-          {/* EQ no lugar do play; pause/play reaparecem no hover (desktop). */}
-          <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden [@media(hover:hover)]:group-focus-visible/play:hidden">
-            <PlayingBars />
-          </span>
-          <Pause className="hidden h-4 w-4 [@media(hover:hover)]:group-hover/row:block [@media(hover:hover)]:group-focus-visible/play:block" fill="currentColor" />
-        </>
-      ) : (
-        <Play className="ml-0.5 h-4 w-4 transition-colors duration-200 group-hover/row:text-[#f9a8d4]" fill="currentColor" />
-      )}
+      <Image
+        src={coverSrc}
+        alt=""
+        fill
+        sizes="44px"
+        className="object-cover"
+        unoptimized={coverUnoptimized}
+      />
+      <span
+        className={`absolute inset-0 transition-colors duration-200 ${
+          isPlaying || isLoading
+            ? "bg-black/45"
+            : "bg-black/25 [@media(hover:hover)]:group-hover/row:bg-black/50"
+        }`}
+        aria-hidden
+      />
+      <span className="relative z-10 flex h-full w-full items-center justify-center text-white">
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-[#1ed760]" />
+        ) : isPlaying ? (
+          <>
+            <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden [@media(hover:hover)]:group-focus-visible/play:hidden">
+              <PlayingBars />
+            </span>
+            <Pause className="hidden h-4 w-4 [@media(hover:hover)]:group-hover/row:block [@media(hover:hover)]:group-focus-visible/play:block" fill="currentColor" />
+          </>
+        ) : (
+          <Play className="ml-0.5 h-4 w-4 drop-shadow" fill="currentColor" />
+        )}
+      </span>
     </button>
   ) : (
-    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-zinc-600 md:h-9 md:w-9" aria-hidden>
-      <Lock className="h-3.5 w-3.5" />
+    <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md md:h-10 md:w-10" aria-hidden>
+      <Image
+        src={coverSrc}
+        alt=""
+        fill
+        sizes="44px"
+        className="object-cover opacity-70"
+        unoptimized={coverUnoptimized}
+      />
+      <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-zinc-300">
+        <Lock className="h-3.5 w-3.5" />
+      </span>
     </div>
   );
 
@@ -545,7 +595,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
 /** Discografia (coleções) — layout compacto preservado. */
 function DiscographyTrackRow({
   track,
-  index,
+  index: _index,
   canPlay,
   isActive,
   isPlaying,
@@ -553,6 +603,7 @@ function DiscographyTrackRow({
   isBusy,
   isHighlighted,
   setDomAnchor = true,
+  albumCoverUrl,
   displayDuration,
   onToggle,
   menuActions,
@@ -566,11 +617,14 @@ function DiscographyTrackRow({
   isBusy: boolean;
   isHighlighted: boolean;
   setDomAnchor?: boolean;
+  albumCoverUrl?: string | null;
   displayDuration: number;
   onToggle: () => void;
   menuActions: CollectionMenuAction[];
 }) {
   const display = getTrackDisplayMetadata(track);
+  const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
+  const coverUnoptimized = coverSrc.startsWith("/api/");
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
@@ -585,28 +639,39 @@ function DiscographyTrackRow({
         className={`${DISCOGRAPHY_GRID} min-w-0 flex-1 px-2 py-2.5 text-left sm:px-3`}
         aria-label={`${display.title} — ${display.artist}`}
       >
-        <div className="flex items-center justify-center">
-          {isLoading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-400" />
-          ) : isPlaying ? (
-            <>
-              <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden">
-                <PlayingBars />
-              </span>
-              <Pause className="hidden h-3.5 w-3.5 text-[#1ed760] [@media(hover:hover)]:group-hover/row:block" fill="currentColor" />
-            </>
-          ) : (
-            <>
-              <span className="font-mono text-[13px] tabular-nums text-zinc-500 group-hover/row:hidden">
-                {index + 1}
-              </span>
-              {canPlay ? (
-                <Play className="ml-0.5 hidden h-3.5 w-3.5 fill-white text-white group-hover/row:block" />
-              ) : (
-                <Lock className="hidden h-3.5 w-3.5 text-zinc-500 group-hover/row:block" />
-              )}
-            </>
-          )}
+        <div className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+          <Image
+            src={coverSrc}
+            alt=""
+            fill
+            sizes="40px"
+            className="object-cover"
+            unoptimized={coverUnoptimized}
+          />
+          <span
+            className={`absolute inset-0 transition-colors ${
+              isPlaying || isLoading
+                ? "bg-black/45"
+                : "bg-black/20 [@media(hover:hover)]:group-hover/row:bg-black/50"
+            }`}
+            aria-hidden
+          />
+          <span className="relative z-10 flex h-full w-full items-center justify-center text-white">
+            {isLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />
+            ) : isPlaying ? (
+              <>
+                <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden">
+                  <PlayingBars />
+                </span>
+                <Pause className="hidden h-3.5 w-3.5 text-white [@media(hover:hover)]:group-hover/row:block" fill="currentColor" />
+              </>
+            ) : canPlay ? (
+              <Play className="ml-0.5 h-3.5 w-3.5 fill-white text-white drop-shadow" />
+            ) : (
+              <Lock className="h-3.5 w-3.5 text-zinc-300" />
+            )}
+          </span>
         </div>
         <div className="min-w-0 overflow-hidden">
           <p className={`truncate text-[14px] font-medium ${isPlaying || isActive ? "text-[#1ed760]" : "text-white"}`}>
@@ -642,6 +707,7 @@ export function VipMusicTrackList({
   continueContext,
   layout = "default",
   embedded = false,
+  groupByDate,
   hasMore = false,
   onLoadMore,
 }: VipMusicTrackListProps) {
@@ -674,16 +740,26 @@ export function VipMusicTrackList({
   loadMoreRef.current = onLoadMore;
   const isThisFolder = playingFolderId === folderId;
   const isGlobalBusy = loadingId !== null;
+  const shouldGroupByDate = groupByDate ?? layout === "table";
+
+  const trackSections = useMemo(
+    () => (shouldGroupByDate ? groupTracksByUploadDate(tracks) : null),
+    [shouldGroupByDate, tracks],
+  );
+  const orderedTracks = useMemo(
+    () => (trackSections ? flattenTrackSections(trackSections) : tracks),
+    [trackSections, tracks],
+  );
 
   useEffect(() => {
     setFolderPlayback(folderId, {
-      tracks,
+      tracks: orderedTracks,
       hasMore,
       loadMore: async () => loadMoreRef.current?.(),
       coverUrl: coverUrl ?? null,
       albumTitle: albumTitle ?? tracks[0]?.pack ?? null,
     });
-  }, [folderId, tracks, hasMore, setFolderPlayback, coverUrl, albumTitle]);
+  }, [folderId, orderedTracks, hasMore, setFolderPlayback, coverUrl, albumTitle, tracks]);
 
   useEffect(() => {
     if (!isThisFolder || !playingId || !(duration > 0)) return;
@@ -984,6 +1060,7 @@ export function VipMusicTrackList({
                 isLoading={isThisFolder && loadingId === track.id}
                 isBusy={isGlobalBusy && loadingId !== track.id}
                 isHighlighted={highlightTrackId === track.id}
+                albumCoverUrl={coverUrl}
                 displayDuration={displayDuration}
                 onToggle={() => void handleToggle(track.id)}
                 menuActions={menuActions}
@@ -995,44 +1072,76 @@ export function VipMusicTrackList({
 
       {useStreaming ? (
         <div>
-          {tracks.map((track, index) => {
-            const isActive = activeId === track.id;
-            const isPlaying = isThisFolder && playingId === track.id;
-            const displayDuration =
-              isActive && isThisFolder && duration > 0 ? duration : durationById[track.id] ?? 0;
-            return (
-              <StreamingTrackRow
-                key={track.id}
-                track={track}
-                index={index}
-                canPlay={canPlay}
-                canDownload={canDownload}
-                selectionMode={selectionMode}
-                isSelected={selectedIds.has(track.id)}
-                isActive={isActive}
-                isPlaying={isPlaying}
-                isLoading={isThisFolder && loadingId === track.id}
-                isBusy={isGlobalBusy && loadingId !== track.id}
-                isHighlighted={highlightTrackId === track.id}
-                progress={isActive && isThisFolder ? progress : 0}
-                currentTime={isActive && isThisFolder ? currentTime : 0}
-                displayDuration={displayDuration}
-                onToggle={() => void handleToggle(track.id)}
-                onSeek={(ratio) => void handleSeek(ratio)}
-                onDownload={() => void handleDownload(track)}
-                isDownloading={downloadingId === track.id}
-                onSendToDownloader={() => void handleSendToDownloader(track)}
-                isSendingToDownloader={sendingId === track.id}
-                onToggleSelected={() => toggleTrackSelected(track.id)}
-                onQueueNext={() => {
-                  queueTrackNext(folderId, track.id);
-                  showToast("Adicionada à fila");
-                }}
-                onShare={() => void shareTrack(track)}
-                onCopyLink={() => copyTrackLink(track)}
-              />
-            );
-          })}
+          {(trackSections ?? [{ id: "all", title: "", subtitle: "", isNew: false, tracks }]).map(
+            (section) => (
+              <section key={section.id} className="border-b border-[#1ed760]/10 last:border-b-0">
+                {trackSections && section.title ? (
+                  <header
+                    className={`flex items-center gap-2 border-b px-3 py-2.5 ${
+                      section.isNew
+                        ? "border-[#1ed760]/25 bg-[rgba(30,215,96,0.08)]"
+                        : "border-white/5 bg-white/[0.02]"
+                    }`}
+                  >
+                    {section.isNew ? (
+                      <span className="rounded-sm bg-[#1ed760] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">
+                        Novo
+                      </span>
+                    ) : null}
+                    <h3
+                      className={`text-[12px] font-bold uppercase tracking-[0.12em] ${
+                        section.isNew ? "text-[#1ed760]" : "text-white/70"
+                      }`}
+                    >
+                      {section.title}
+                    </h3>
+                    <span className="text-[11px] text-white/40">{section.subtitle}</span>
+                  </header>
+                ) : null}
+                {section.tracks.map((track, index) => {
+                  const isActive = activeId === track.id;
+                  const isPlaying = isThisFolder && playingId === track.id;
+                  const displayDuration =
+                    isActive && isThisFolder && duration > 0
+                      ? duration
+                      : durationById[track.id] ?? 0;
+                  return (
+                    <StreamingTrackRow
+                      key={track.id}
+                      track={track}
+                      index={index}
+                      canPlay={canPlay}
+                      canDownload={canDownload}
+                      selectionMode={selectionMode}
+                      isSelected={selectedIds.has(track.id)}
+                      isActive={isActive}
+                      isPlaying={isPlaying}
+                      isLoading={isThisFolder && loadingId === track.id}
+                      isBusy={isGlobalBusy && loadingId !== track.id}
+                      isHighlighted={highlightTrackId === track.id}
+                      albumCoverUrl={coverUrl}
+                      progress={isActive && isThisFolder ? progress : 0}
+                      currentTime={isActive && isThisFolder ? currentTime : 0}
+                      displayDuration={displayDuration}
+                      onToggle={() => void handleToggle(track.id)}
+                      onSeek={(ratio) => void handleSeek(ratio)}
+                      onDownload={() => void handleDownload(track)}
+                      isDownloading={downloadingId === track.id}
+                      onSendToDownloader={() => void handleSendToDownloader(track)}
+                      isSendingToDownloader={sendingId === track.id}
+                      onToggleSelected={() => toggleTrackSelected(track.id)}
+                      onQueueNext={() => {
+                        queueTrackNext(folderId, track.id);
+                        showToast("Adicionada à fila");
+                      }}
+                      onShare={() => void shareTrack(track)}
+                      onCopyLink={() => copyTrackLink(track)}
+                    />
+                  );
+                })}
+              </section>
+            ),
+          )}
         </div>
       ) : null}
 

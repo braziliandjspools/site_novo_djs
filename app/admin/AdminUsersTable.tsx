@@ -74,7 +74,6 @@ const SERVICE_BILLING_ITEMS: Array<{
   dueHint?: string;
 }> = [
   { key: "poolsVip", label: "Pools VIP", dueRequired: true },
-  { key: "deemix", label: "Deemix", dueRequired: true },
   {
     key: "allavsoft",
     label: "Allavsoft",

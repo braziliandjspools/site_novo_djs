@@ -1,2 +1,2 @@
-/** Flags temporárias de produto no site. */
-export const DEEMIX_ENABLED = true;
+/** Flags temporárias de produto no site. Deemix descontinuado — use Allavsoft. */
+export const DEEMIX_ENABLED = false;

@@ -38,6 +38,10 @@ import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { pushRecentFolder } from "../lib/music-library-storage";
 import { stylesReadKey, weeksReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
+import {
+  flattenTrackSections,
+  groupTracksByUploadDate,
+} from "../lib/track-date-groups";
 import { poolPanelHeaderClass } from "./atualizacoes-pool-ui";
 import { MusicasListSkeleton, MusicasPageSkeleton, MusicasTracksSkeleton } from "./MusicasSkeletons";
 
@@ -332,7 +336,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       pause();
       return;
     }
-    const first = directTracks[0];
+    const sections = groupTracksByUploadDate(directTracks);
+    const first = flattenTrackSections(sections)[0] ?? directTracks[0];
     if (!first) return;
     setPlayBusy(true);
     try {
@@ -614,6 +619,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
                 relativePath={relativeStyleBase}
+                coverUrl={data.coverUrl}
                 layout="table"
                 continueContext={
                   monthSlug

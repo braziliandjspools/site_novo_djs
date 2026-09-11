@@ -26,7 +26,6 @@ type PortalShellProps = {
   onNavigate: (view: PortalView) => void;
   onLogout: () => void;
   hasPools: boolean;
-  hasDeemix: boolean;
   hasAllavsoft: boolean;
   hasVip?: boolean;
   children: React.ReactNode;
@@ -79,7 +78,6 @@ export function PortalShell({
   onNavigate,
   onLogout,
   hasPools,
-  hasDeemix,
   hasAllavsoft,
   hasVip,
   children,
@@ -90,7 +88,6 @@ export function PortalShell({
 
   const serviceViews: PortalView[] = [];
   if (hasPools) serviceViews.push("service-pools");
-  if (hasDeemix) serviceViews.push("service-deemix");
   if (hasAllavsoft) serviceViews.push("service-allavsoft");
 
   const isServiceDetail = serviceViews.includes(activeView);
@@ -134,18 +131,6 @@ export function PortalShell({
                     setMobileOpen(false);
                   }}
                   label="Pools VIP"
-                  sub
-                />
-              )}
-              {hasDeemix && (
-                <NavLink
-                  href={portalPath("service-deemix")}
-                  active={activeView === "service-deemix"}
-                  onClick={() => {
-                    onNavigate("service-deemix");
-                    setMobileOpen(false);
-                  }}
-                  label="Deemix"
                   sub
                 />
               )}

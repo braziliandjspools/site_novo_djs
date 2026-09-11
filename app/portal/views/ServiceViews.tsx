@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Download, ExternalLink, KeyRound, MessageCircle, Music, Sparkles, Video } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, KeyRound, MessageCircle, Sparkles, Video } from "lucide-react";
 import { whatsappUrl } from "../../lib/site";
 import { CopyField } from "../../components/CopyField";
 import { PortalRenewPayButton } from "../PortalRenewalPay";
@@ -66,70 +66,9 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
   );
 }
 
-export function DeemixServiceView({ data }: { data: PortalData }) {
-  if (!data.deemix) return null;
-  const { deemix } = data;
-  const due = data.user.serviceBilling.deemix.dueAt;
-
-  return (
-    <div className="space-y-6">
-      <PortalPageHeader title="Deemix" subtitle="Download de músicas em alta qualidade." />
-
-      <PortalCard title="Status do serviço">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <PortalBadge>Ativo</PortalBadge>
-          <span className="text-xs text-zinc-500">
-            {data.user.serviceBilling.deemix.valueLabel}
-            {due ? ` · venc. ${formatDateBr(due)}` : ""}
-          </span>
-        </div>
-        {data.renewables?.some((item) => item.key === "deemix") && (
-          <div className="mb-4">
-            <PortalRenewPayButton service="deemix" renewables={data.renewables} />
-          </div>
-        )}
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {["Downloads ilimitados", "FLAC/MP3 320kbps", "ARL Premium", "Suporte técnico"].map((item) => (
-            <li key={item} className="flex items-center gap-2 text-sm text-zinc-300">
-              <CheckCircle2 className="h-4 w-4 text-[#00ff9d]" />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </PortalCard>
-
-      <PortalCard title="Credenciais de acesso">
-        <p className="mb-4 text-sm text-zinc-500">Use as credenciais abaixo no Deemix:</p>
-        <div className="space-y-4">
-          <CopyField label="ARL Premium (320 kbps)" value={deemix.arl320} variant="purple" theme="dark" compact />
-          <CopyField label="ARL (128 kbps)" value={deemix.arl128} variant="purple" theme="dark" compact />
-        </div>
-        {deemix.downloadUrl && (
-          <a
-            href={deemix.downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:border-[#00ff9d]/40 hover:text-[#00ff9d]"
-          >
-            <Download className="h-4 w-4" />
-            Baixar Deemix
-          </a>
-        )}
-      </PortalCard>
-
-      <PortalCard title="Configurações do Spotify (se necessário)">
-        <p className="mb-4 flex items-center gap-2 text-sm text-zinc-500">
-          <Music className="h-4 w-4" />
-          Preencha apenas se o Deemix solicitar integração com Spotify.
-        </p>
-        <div className="space-y-4">
-          <CopyField label="Client ID" value={deemix.spotify.clientId} variant="blue" theme="dark" compact />
-          <CopyField label="Client Secret" value={deemix.spotify.clientSecret} variant="blue" theme="dark" compact />
-          <CopyField label="User" value={deemix.spotify.user} variant="blue" theme="dark" mono={false} compact />
-        </div>
-      </PortalCard>
-    </div>
-  );
+/** Deemix descontinuado — view mantida só por compat de rotas antigas. */
+export function DeemixServiceView(_props: { data: PortalData }) {
+  return null;
 }
 
 export function AllavsoftServiceView({ data }: { data: PortalData }) {
@@ -138,7 +77,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
 
   return (
     <div className="space-y-6">
-      <PortalPageHeader title="Allavsoft" subtitle="Licença vitalícia de download de vídeos e áudios." />
+      <PortalPageHeader title="Allavsoft" subtitle="Deezer, Spotify, YouTube e +1000 sites — licença vitalícia." />
 
       <PortalCard title="Status do serviço">
         <PortalBadge variant="green">Licença vitalícia ativa</PortalBadge>
@@ -251,7 +190,7 @@ export function SupportView() {
         </PortalCard>
 
         <PortalCard title="FAQ">
-          <p className="text-sm text-zinc-400">Consulte as perguntas frequentes sobre pools, Deemix e Allavsoft.</p>
+          <p className="text-sm text-zinc-400">Consulte as perguntas frequentes sobre pools VIP e Allavsoft.</p>
           <Link
             href="/#faq"
             className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#00ff9d] hover:underline"

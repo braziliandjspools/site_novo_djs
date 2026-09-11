@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import type { VipMusicFolder } from "../../lib/vip-music-catalog";
+import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import { VIP_MUSIC_FEED_TRACKS_PAGE_SIZE } from "../../lib/vip-music-catalog";
 import { fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import { folderHref, slugifyFolderName, displayFolderName } from "../../lib/vip-music-slugs";
@@ -18,7 +18,7 @@ type TracksResponse = {
 };
 
 type AtualizacoesPackBlocksProps = {
-  folders: VipMusicFolder[];
+  folders: VipMusicCatalogItem[];
   slugSegments: string[];
   monthName: string;
   monthSlug: string;
@@ -69,6 +69,7 @@ export function AtualizacoesPackBlocks({
               monthName,
               weekName: weekName ?? null,
               modifiedAt: tracks[0]?.modifiedAt ?? null,
+              coverUrl: folder.coverUrl ?? null,
               tracks,
               trackCount: data.total ?? tracks.length,
               totalSizeBytes: tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0),

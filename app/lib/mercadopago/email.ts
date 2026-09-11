@@ -21,7 +21,7 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
     return { sent: false as const, reason: "missing_api_key" as const };
   }
 
-  const plan = getCanonicalPlanById(input.planId);
+  const plan = getCanonicalPlanById(input.planId, { includeInactive: true });
   const planLabel = plan?.title ?? "BRS Drive VIP";
   const durationLabel = plan?.lifetime
     ? "Licença vitalícia"
@@ -198,7 +198,7 @@ export async function sendMercadoPagoRefundEmail(input: {
     return { sent: false as const, reason: "missing_api_key" as const };
   }
 
-  const plan = getCanonicalPlanById(input.planId);
+  const plan = getCanonicalPlanById(input.planId, { includeInactive: true });
   const planLabel = plan?.title ?? "BRS Drive VIP";
   const firstName = escapeEmailHtml(input.name.trim().split(/\s+/)[0] || "DJ");
   const reasonTitle = escapeEmailHtml(input.reasonTitle);

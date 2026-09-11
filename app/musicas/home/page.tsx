@@ -72,12 +72,8 @@ const SITE_CARD_COPY: Record<string, { description: string; theme: keyof typeof 
     description: "Página principal do Brazilian Remix Service — pools, serviços e novidades.",
     theme: "cyan",
   },
-  "/deemix": {
-    description: "Download de músicas em alta qualidade com o Deemix.",
-    theme: "blue",
-  },
   "/allavsoft": {
-    description: "Baixe vídeos e áudio de plataformas com o Allavsoft.",
+    description: "Baixe Deezer, Spotify, YouTube e +1000 sites com o Allavsoft.",
     theme: "violet",
   },
   "/musicproducer": {

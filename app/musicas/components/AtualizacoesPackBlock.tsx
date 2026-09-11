@@ -20,6 +20,7 @@ export type AtualizacoesPackBlockData = {
   monthName: string;
   weekName: string | null;
   modifiedAt: string | null;
+  coverUrl?: string | null;
   tracks: PreviewTrack[];
   trackCount?: number;
   totalSizeBytes?: number;
@@ -196,6 +197,7 @@ export function AtualizacoesPackBlock({
             tracks={tracks}
             canPlay={canPlay}
             canDownload={canDownload}
+            coverUrl={pack.coverUrl}
             albumTitle={pack.name}
             layout="table"
             embedded

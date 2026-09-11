@@ -180,7 +180,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationMonths: 1,
     durationLabel: "1 mês",
     lifetime: false,
-    active: true,
+    active: false,
     renewalType: "manual",
     badge: "ARL 320",
     highlight: true,
@@ -204,7 +204,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationMonths: 3,
     durationLabel: "90 dias",
     lifetime: false,
-    active: true,
+    active: false,
     renewalType: "manual",
     badge: "10% off",
     highlight: false,
@@ -229,7 +229,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     durationMonths: 6,
     durationLabel: "180 dias",
     lifetime: false,
-    active: true,
+    active: false,
     renewalType: "manual",
     badge: "10% off",
     highlight: false,
@@ -248,7 +248,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     id: "brs-allavsoft-lifetime",
     title: "Allavsoft — Licença vitalícia",
     description:
-      "Licença vitalícia do Allavsoft. Pagamento único de R$ 50,00 via Mercado Pago. Serial gerenciado no portal do cliente após a confirmação do webhook.",
+      "Licença vitalícia do Allavsoft. Baixe de Deezer, Spotify, YouTube e +1000 sites. Pagamento único de R$ 50,00 via Mercado Pago. Serial no portal após o webhook.",
     amountBrl: "50.00",
     currency: PLAN_CURRENCY,
     durationDays: 0,
@@ -264,8 +264,8 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     equivalentMonthlyLabel: null,
     features: [
       "Licença vitalícia (pagamento único)",
+      "Deezer, Spotify, YouTube e +1000 sites",
       "Download e conversão de vídeos e áudios",
-      "Compatível com +1000 sites",
       "Serial no portal do cliente após o pagamento",
       "Liberação automática via webhook Mercado Pago",
     ],
@@ -294,11 +294,15 @@ export function resolveCanonicalPlanId(planId: string): CanonicalPlanId | null {
   return found?.id ?? null;
 }
 
-export function getCanonicalPlanById(planId: string): CanonicalPlan | null {
+export function getCanonicalPlanById(
+  planId: string,
+  options?: { includeInactive?: boolean },
+): CanonicalPlan | null {
   const id = resolveCanonicalPlanId(planId);
   if (!id) return null;
   const plan = CANONICAL_PLANS.find((item) => item.id === id) ?? null;
-  if (!plan || !plan.active) return null;
+  if (!plan) return null;
+  if (!plan.active && !options?.includeInactive) return null;
   return plan;
 }
 
@@ -310,16 +314,17 @@ export function listCanonicalPlansByProduct(product: PlanServiceProduct): Canoni
   return listActiveCanonicalPlans().filter((plan) => plan.serviceProduct === product);
 }
 
+/** Inclui planos inativos (histórico / webhooks / estornos). */
 export function isDeemixPlanId(planId: string): boolean {
-  return getCanonicalPlanById(planId)?.serviceProduct === "deemix";
+  return getCanonicalPlanById(planId, { includeInactive: true })?.serviceProduct === "deemix";
 }
 
 export function isPoolsVipPlanId(planId: string): boolean {
-  return getCanonicalPlanById(planId)?.serviceProduct === "poolsVip";
+  return getCanonicalPlanById(planId, { includeInactive: true })?.serviceProduct === "poolsVip";
 }
 
 export function isAllavsoftPlanId(planId: string): boolean {
-  return getCanonicalPlanById(planId)?.serviceProduct === "allavsoft";
+  return getCanonicalPlanById(planId, { includeInactive: true })?.serviceProduct === "allavsoft";
 }
 
 export type PublicPlanCard = {

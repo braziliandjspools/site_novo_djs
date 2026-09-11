@@ -162,12 +162,21 @@ export async function POST(request: Request) {
     }
     plan = trusted.plan;
 
+    if (plan.serviceProduct === "deemix") {
+      return NextResponse.json(
+        {
+          error: "Deemix foi descontinuado. Use o Allavsoft para baixar de Deezer, Spotify, YouTube e outros sites.",
+          code: "deemix_discontinued",
+          redirectTo: "/allavsoft",
+        },
+        { status: 410 },
+      );
+    }
+
     const loginReturn =
-      plan.serviceProduct === "deemix"
-        ? `/deemix?checkout=${encodeURIComponent(plan.id)}`
-        : plan.serviceProduct === "allavsoft"
-          ? `/allavsoft?checkout=${encodeURIComponent(plan.id)}`
-          : `/plans?checkout=${encodeURIComponent(plan.id)}`;
+      plan.serviceProduct === "allavsoft"
+        ? `/allavsoft?checkout=${encodeURIComponent(plan.id)}`
+        : `/plans?checkout=${encodeURIComponent(plan.id)}`;
     if (!user) {
       const loginUrl = `/musicas/entrar?return=${encodeURIComponent(loginReturn.split("?")[0]!)}&checkout=${encodeURIComponent(plan.id)}`;
       return NextResponse.json(
@@ -190,25 +199,6 @@ export async function POST(request: Request) {
         {
           error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
           code: "vip_already_active",
-          expiresAt: due.toISOString(),
-          expiresLabel,
-        },
-        { status: 409 },
-      );
-    }
-
-    if (
-      plan.serviceProduct === "deemix" &&
-      user.services.deemix &&
-      user.serviceBilling.deemix.dueAt &&
-      user.serviceBilling.deemix.dueAt.getTime() > Date.now()
-    ) {
-      const due = user.serviceBilling.deemix.dueAt;
-      const expiresLabel = formatDueDate(due);
-      return NextResponse.json(
-        {
-          error: `Você já tem Deemix ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
-          code: "deemix_already_active",
           expiresAt: due.toISOString(),
           expiresLabel,
         },

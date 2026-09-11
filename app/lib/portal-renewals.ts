@@ -5,7 +5,7 @@ import { formatMonthlyValue, type PortalUser } from "./portal-users";
 
 export const PORTAL_RENEWAL_WINDOW_DAYS = 5;
 
-export type PortalRenewalServiceKey = "poolsVip" | "deemix";
+export type PortalRenewalServiceKey = "poolsVip";
 
 export type PortalRenewableService = {
   key: PortalRenewalServiceKey;
@@ -57,30 +57,11 @@ export function listPortalRenewableServices(
     }
   }
 
-  if (user.services.deemix && user.serviceBilling.deemix.dueAt) {
-    const due = user.serviceBilling.deemix.dueAt;
-    const urgency = getDueUrgency(due);
-    const value = user.serviceBilling.deemix.value;
-    if (urgency && value > 0) {
-      items.push({
-        key: "deemix",
-        label: "Deemix",
-        value,
-        valueLabel: formatMonthlyValue(value),
-        dueAt: due.toISOString(),
-        dueLabel: formatDueDate(due),
-        dueDayKey: dueDayKey(due),
-        daysUntilDue: daysUntilDue(due),
-        urgency,
-      });
-    }
-  }
-
   return items.sort((a, b) => a.dueAt.localeCompare(b.dueAt) || a.key.localeCompare(b.key));
 }
 
 export function isPortalRenewalServiceKey(value: unknown): value is PortalRenewalServiceKey {
-  return value === "poolsVip" || value === "deemix";
+  return value === "poolsVip";
 }
 
 /**
@@ -100,8 +81,7 @@ export function buildPortalRenewalPlan(
     };
   }
 
-  const baseId = service === "deemix" ? "brs-deemix-1m" : "brs-drive-1m";
-  const base = getCanonicalPlanById(baseId);
+  const base = getCanonicalPlanById("brs-drive-1m");
   if (!base) {
     return { ok: false, error: "Plano de renovação indisponível.", code: "renewal_plan_missing" };
   }

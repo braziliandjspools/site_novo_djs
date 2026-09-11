@@ -21,7 +21,7 @@ import { PlansSection } from "../components/PlansSection";
 import { SectionHeading } from "../components/SectionHeading";
 import { formatDueDate } from "../lib/due-queue";
 import { userHasActiveVipAccess } from "../lib/mercadopago/webhook-policy";
-import { SITE_DEEMIX_PLANS, SITE_DRIVE_PLANS } from "../lib/plans";
+import { SITE_DRIVE_PLANS } from "../lib/plans";
 import { getAuthenticatedPortalUser } from "../lib/portal";
 import { SITE_NAME } from "../lib/branding";
 import { whatsappUrl } from "../lib/site";
@@ -150,7 +150,6 @@ export default async function PlansPage() {
       }));
 
   const drivePlans = toCards(SITE_DRIVE_PLANS);
-  const deemixPlans = toCards(SITE_DEEMIX_PLANS);
 
   const user = await getAuthenticatedPortalUser();
   const activeVip =
@@ -166,13 +165,6 @@ export default async function PlansPage() {
           ),
         }
       : null;
-  const activeDeemix =
-    user &&
-    user.services.deemix &&
-    user.serviceBilling.deemix.dueAt &&
-    user.serviceBilling.deemix.dueAt.getTime() > Date.now()
-      ? { expiresLabel: formatDueDate(user.serviceBilling.deemix.dueAt) }
-      : null;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -182,8 +174,8 @@ export default async function PlansPage() {
         <div className="relative mx-auto max-w-3xl text-center">
           <SectionHeading
             badge="Planos"
-            title="BRS Drive VIP + Deemix"
-            subtitle="Assine pools VIP ou Deemix (ARL 320) via Mercado Pago. Pagamento único, renovação manual e liberação automática no portal."
+            title="BRS Drive VIP"
+            subtitle="Assine o acervo VIP via Mercado Pago. Pagamento único, renovação manual e liberação automática no portal. Para baixar de Deezer, Spotify e YouTube, conheça o Allavsoft."
           />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold tracking-[-0.01em] text-zinc-400">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
@@ -192,7 +184,7 @@ export default async function PlansPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <Clock3 className="h-3.5 w-3.5 text-[#6B9FFF]" />
-              Drive · Deemix
+              Drive VIP
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[#FFDF00]" />
@@ -215,18 +207,23 @@ export default async function PlansPage() {
         />
       </Suspense>
 
-      <Suspense fallback={<div className="min-h-[280px]" />}>
-        <PlansSection
-          id="deemix-planos"
-          plans={deemixPlans}
-          badge="Deemix"
-          title="Planos Deemix"
-          subtitle="ARL 320 kbps no portal. Mensal R$ 30, ou 90/180 dias com 10% de desconto."
-          activeDeemix={activeDeemix}
-          showPixNotice={false}
-          loginReturnPath="/deemix"
-        />
-      </Suspense>
+      <section className="border-b border-white/5 px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-[#FFDF00]/25 bg-[#FFDF00]/5 px-5 py-6 text-center md:px-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FFDF00]">Allavsoft</p>
+          <h2 className="mt-2 font-display text-xl font-semibold text-white md:text-2xl">
+            Deezer, Spotify, YouTube e +1000 sites
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+            Licença vitalícia por R$ 50,00 — baixe músicas e vídeos com o Allavsoft, produto separado do Drive VIP.
+          </p>
+          <a
+            href="/allavsoft"
+            className="mt-5 inline-flex items-center justify-center rounded-full bg-[#FFDF00] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-[#002776] transition hover:bg-[#FFE566]"
+          >
+            Conhecer Allavsoft
+          </a>
+        </div>
+      </section>
 
       <section className="border-b border-white/5 px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto max-w-5xl">

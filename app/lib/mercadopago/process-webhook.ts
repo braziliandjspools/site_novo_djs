@@ -226,7 +226,7 @@ async function applyApprovedAccessInTx(
     approvedAt: Date;
   },
 ) {
-  const plan = getCanonicalPlanById(input.planId);
+  const plan = getCanonicalPlanById(input.planId, { includeInactive: true });
   if (!plan) {
     throw new Error("Plano do pedido inválido.");
   }
@@ -425,7 +425,7 @@ async function applyNonApprovedStatusInTx(
 
   // Só corta acesso se o pedido já tinha liberado (APPROVED → refund/cancel/chargeback).
   if (input.revokeAccess && wasApproved) {
-    const orderPlan = getCanonicalPlanById(order.planId);
+    const orderPlan = getCanonicalPlanById(order.planId, { includeInactive: true });
     const isDeemixOrder = orderPlan?.serviceProduct === "deemix";
     const isAllavsoftOrder = orderPlan?.serviceProduct === "allavsoft";
 

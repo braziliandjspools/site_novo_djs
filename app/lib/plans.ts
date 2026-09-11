@@ -43,13 +43,13 @@ function mapCards(product?: "poolsVip" | "deemix" | "allavsoft"): SitePlan[] {
   }));
 }
 
-/** Todos os planos públicos de assinatura (Drive + Deemix). Allavsoft fica em /allavsoft. */
+/** Planos públicos Drive VIP (Allavsoft em /allavsoft; Deemix descontinuado). */
 export const SITE_PLANS: SitePlan[] = mapCards();
 
 /** Só Drive VIP. */
 export const SITE_DRIVE_PLANS: SitePlan[] = mapCards("poolsVip");
 
-/** Só Deemix. */
+/** Deemix descontinuado — lista vazia. */
 export const SITE_DEEMIX_PLANS: SitePlan[] = mapCards("deemix");
 
 /** Só Allavsoft. */

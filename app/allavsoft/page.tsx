@@ -28,10 +28,10 @@ export const metadata: Metadata = buildPageMetadata("allavsoft");
 
 const features = [
   {
-    icon: FileVideo,
-    title: "Vídeos e Áudios",
+    icon: Music2,
+    title: "Deezer, Spotify e YouTube",
     description:
-      "Baixe vídeos em diferentes resoluções e extraia o áudio nos formatos mais usados, como MP3, WAV e FLAC, conforme a disponibilidade do conteúdo.",
+      "Baixe faixas e vídeos das principais plataformas de streaming e vídeo — Deezer, Spotify, YouTube e muito mais, conforme o suporte do Allavsoft.",
     color: "green" as const,
   },
   {
@@ -42,31 +42,31 @@ const features = [
     color: "yellow" as const,
   },
   {
+    icon: FileVideo,
+    title: "Vídeos e Áudios",
+    description:
+      "Baixe vídeos em diferentes resoluções e extraia o áudio nos formatos mais usados, como MP3, WAV e FLAC, conforme a disponibilidade do conteúdo.",
+    color: "blue" as const,
+  },
+  {
     icon: Film,
     title: "Conversão de Formatos",
     description:
       "Converta seus arquivos para MP4, AVI, MOV, MKV, MP3, AAC e diversos outros formatos de vídeo e áudio.",
-    color: "blue" as const,
+    color: "green" as const,
   },
   {
     icon: Download,
     title: "Download em Lote",
     description:
       "Adicione vários links de uma só vez e deixe o Allavsoft processar os downloads em sequência, economizando tempo em tarefas repetitivas.",
-    color: "green" as const,
+    color: "yellow" as const,
   },
   {
     icon: MonitorPlay,
     title: "Gravador de Tela",
     description:
       "Capture conteúdos reproduzidos no computador utilizando o recurso integrado de gravação de tela.",
-    color: "yellow" as const,
-  },
-  {
-    icon: Music2,
-    title: "Metadados e Legendas",
-    description:
-      "Quando disponíveis, preserve informações do arquivo e trabalhe com legendas para manter sua biblioteca mais completa e organizada.",
     color: "blue" as const,
   },
 ];
@@ -153,7 +153,7 @@ const faqs = [
   },
   {
     q: "Posso baixar de quais sites?",
-    a: "O Allavsoft é compatível com mais de mil sites e plataformas de mídia, incluindo serviços populares de vídeo, áudio e streaming, conforme suporte da ferramenta.",
+    a: "Sim. O Allavsoft cobre Deezer, Spotify, YouTube e mais de mil sites de áudio, vídeo e streaming, conforme o suporte atual da ferramenta.",
   },
   {
     q: "Quais formatos posso converter?",
@@ -202,7 +202,7 @@ export default async function AllavsoftPage() {
         <SectionHeading
           badge="Licença vitalícia"
           title="Allavsoft"
-          subtitle="Baixe vídeos, músicas e outros conteúdos de diferentes plataformas. Licença vitalícia por R$ 50,00 via Mercado Pago, com serial gerenciado no portal do cliente."
+          subtitle="Baixe de Deezer, Spotify, YouTube e +1000 sites. Licença vitalícia por R$ 50,00 via Mercado Pago, com serial no portal do cliente."
         />
         <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-2xl border border-[#002776]/60 bg-white/[0.03] p-2">
           <Image

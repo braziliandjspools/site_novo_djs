@@ -15,7 +15,6 @@ import { ServicesView } from "./views/ServicesView";
 import {
   AccountView,
   AllavsoftServiceView,
-  DeemixServiceView,
   PoolsServiceView,
   SupportView,
 } from "./views/ServiceViews";
@@ -111,7 +110,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
       case "service-pools":
         return <PoolsServiceView data={portalData} />;
       case "service-deemix":
-        return <DeemixServiceView data={portalData} />;
+        return <ServicesView data={portalData} onNavigate={navigate} />;
       case "service-allavsoft":
         return <AllavsoftServiceView data={portalData} />;
       case "service-music-producer":
@@ -132,7 +131,6 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
       onNavigate={navigate}
       onLogout={() => void handleLogout()}
       hasPools={Boolean(portalData.pools)}
-      hasDeemix={Boolean(portalData.deemix)}
       hasAllavsoft={Boolean(portalData.allavsoft)}
       hasVip={Boolean(portalData.pools)}
     >

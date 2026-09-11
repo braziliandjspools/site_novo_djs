@@ -29,7 +29,6 @@ import { whatsappUrl } from "./lib/site";
 import { SITE_FAQS } from "./lib/site-faqs";
 import { buildPageMetadata, faqJsonLd } from "./lib/seo";
 import { PLACEHOLDER } from "./lib/theme";
-import { DEEMIX_ENABLED } from "./lib/feature-flags";
 import { JsonLd } from "./components/JsonLd";
 
 export const metadata: Metadata = buildPageMetadata("home");
@@ -395,42 +394,12 @@ export default async function Home() {
         accent="green"
       />
 
-      {/* Deemix Server */}
-      {DEEMIX_ENABLED && (
-        <ToolPromoSection
-          id="deemix-server"
-          badge="Deemix Server"
-          title="Servidor dedicado para downloads rápidos"
-          description="Com o Deemix Server, o processamento acontece na nossa infraestrutura na nuvem. Você instala o programa no seu PC e baixa músicas com velocidade máxima, sem consumir sua banda nem configurar VPN ou proxies."
-          image={PLACEHOLDER.deemix}
-          imageAlt="Deemix Server"
-          href="/deemix"
-          buttonLabel="Conhecer o Deemix Server"
-          accent="blue"
-        />
-      )}
-
-      {/* Deemix */}
-      {DEEMIX_ENABLED && (
-        <ToolPromoSection
-          id="deemix"
-          badge="Deemix"
-          title="Deemix incluso no seu acesso"
-          description="Baixe e organize suas músicas com praticidade usando o Deemix. Uma ferramenta simples para ampliar seu repertório e agilizar a preparação dos seus sets."
-          image={PLACEHOLDER.deemix}
-          imageAlt="Deemix"
-          href="/deemix"
-          buttonLabel="Saiba mais sobre o Deemix"
-          accent="green"
-        />
-      )}
-
       {/* Allavsoft */}
       <ToolPromoSection
         id="allavsoft"
         badge="Allavsoft"
-        title="Licença vitalícia Allavsoft"
-        description="Baixe vídeos, músicas e outros conteúdos de diferentes plataformas. Licença vitalícia por R$ 50,00 via Mercado Pago, com serial gerenciado no portal do cliente."
+        title="Deezer, Spotify, YouTube e +1000 sites"
+        description="Licença vitalícia do Allavsoft por R$ 50,00. Baixe músicas e vídeos de Deezer, Spotify, YouTube e dezenas de outras plataformas — serial no portal do cliente."
         image={PLACEHOLDER.allavsoft}
         imageAlt="Allavsoft"
         href="/allavsoft"
@@ -493,7 +462,7 @@ export default async function Home() {
           <SectionHeading
             badge="FAQ"
             title="Perguntas frequentes"
-            subtitle="Tire suas dúvidas sobre o acervo, formas de acesso, atualizações, Deemix e como começar no Brazilian Remix Service."
+            subtitle="Tire suas dúvidas sobre o acervo, formas de acesso, atualizações, Allavsoft e como começar no Brazilian Remix Service."
           />
           <div className="mt-12 space-y-3">
             {SITE_FAQS.map((faq) => (
