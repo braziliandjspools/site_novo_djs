@@ -49,6 +49,7 @@ type DriveChild = {
   id: string;
   name: string;
   mimeType: string;
+  createdTime?: string;
   modifiedTime?: string;
   size?: string;
 };
@@ -72,10 +73,17 @@ function toPreviewTrack(file: DriveChild, packName: string): PreviewTrack {
     id: file.id,
     pack: packName,
     fileName: file.name,
-    modifiedAt: file.modifiedTime ?? null,
-    sizeBytes: parseDriveSizeBytes(file.size),
     ...parseTrackMeta(file.name),
+    modifiedAt: file.createdTime ?? file.modifiedTime ?? null,
+    sizeBytes: parseDriveSizeBytes(file.size),
   };
+}
+
+function sortTracksByUploadThenTitle(a: PreviewTrack, b: PreviewTrack) {
+  const am = a.modifiedAt ?? "";
+  const bm = b.modifiedAt ?? "";
+  if (am !== bm) return bm.localeCompare(am);
+  return a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" });
 }
 
 export async function listVipMusicFolders(parentFolderId?: string): Promise<VipMusicFolder[]> {
@@ -185,7 +193,7 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
   if (subfolders.length > 0) {
     const directTracks = audioFiles
       .map((file) => toPreviewTrack(file, folderName))
-      .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+      .sort(sortTracksByUploadThenTitle);
 
     const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
     // Contagens + capa para todos os níveis (meses → semanas → estilos → subpastas).
@@ -215,7 +223,7 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
   // Folha sem subpastas: usa a listagem já feita (não re-walk).
   const tracks = audioFiles
     .map((file) => toPreviewTrack(file, folderName))
-    .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+    .sort(sortTracksByUploadThenTitle);
 
   return {
     configured: true,
@@ -275,7 +283,7 @@ export const VIP_MUSIC_TRACKS_PAGE_SIZE = 50;
 /** Lista todas as faixas da pasta, incluindo subpastas aninhadas até os MP3. */
 export async function getVipMusicTracks(folderId: string, folderName: string): Promise<PreviewTrack[]> {
   const tracks = await collectTracksDeep(folderId, folderName);
-  return tracks.sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+  return tracks.sort(sortTracksByUploadThenTitle);
 }
 
 export type VipMusicTrackPage = {

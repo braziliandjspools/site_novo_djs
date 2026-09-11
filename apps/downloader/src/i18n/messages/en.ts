@@ -383,6 +383,8 @@ export const messagesEn = {
   homeStatConnectionOffline: "Queue saved locally",
   homeStatConnectionOnline: "Ready to sync",
   homeOfflineWarning: "No internet right now. The queue will sync as soon as you're back online.",
+  homeConnectionReplaced:
+    "Another PC connected with this account. Only one Downloader connection is allowed per user.",
   homeQuickAccess: "Quick access",
   homeQuickDownloadsDesc: "Follow what's downloading right now.",
   homeQuickQueueDesc: "Items waiting or ready to start.",

@@ -473,7 +473,11 @@ export class DownloadManager {
   }
 
   syncNow() {
-    if (!this.running) return;
+    if (!this.transport || !this.deviceId) return;
+    if (!this.running) {
+      this.start();
+      return;
+    }
     this.schedulePoll(POLL_MS.IMMEDIATE);
   }
 
@@ -1171,10 +1175,58 @@ export class DownloadManager {
       await this.transport.heartbeat();
       this.setOnline();
     } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        typeof error.payload === "object" &&
+        error.payload &&
+        "code" in error.payload &&
+        (error.payload as { code?: string }).code === "connection_replaced"
+      ) {
+        this.handleConnectionReplaced(error.message);
+        return;
+      }
       if (error instanceof NetworkError) {
         this.setOffline();
       }
     }
+  }
+
+  private handleConnectionReplaced(message: string) {
+    this.error = message;
+    this.connectionState = "offline";
+    this.notify(true);
+    // Para a fila sem apagar transport/device — Sync pode reassumir o slot.
+    this.running = false;
+    this.pollInFlight = false;
+    this.clearScheduleTimer();
+    if (this.pollTimer) {
+      clearTimeout(this.pollTimer);
+      this.pollTimer = null;
+    }
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    for (const jobId of [...this.activeJobIds]) {
+      const job = this.jobs.get(jobId);
+      if (job) {
+        void cancelNativeDownload({
+          jobId,
+          fileName: job.fileName,
+          relativePath: job.relativePath,
+          deletePart: false,
+        }).catch(() => undefined);
+      }
+      this.activeJobIds.delete(jobId);
+    }
+  }
+
+  /** Reassume a conexão exclusiva (após outro PC ter tomado o slot). */
+  reclaimConnection() {
+    if (!this.transport || !this.deviceId) return;
+    this.error = null;
+    this.start();
   }
 
   private pickNextReceivedJobs(limit: number) {

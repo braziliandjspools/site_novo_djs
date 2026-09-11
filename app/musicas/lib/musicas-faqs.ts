@@ -18,7 +18,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Posso baixar pela plataforma e pelo Downloader?",
-    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.9_estable) com o mesmo login da conta.",
+    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.10_estable) com o mesmo login da conta.",
   },
   {
     q: "O player funciona no celular?",

@@ -18,7 +18,7 @@ export const SITE_FAQS: SiteFaq[] = [
   },
   {
     q: "Como funciona o BRS Downloader?",
-    a: "É o app Windows x64 oficial. Use a versão atual publicada no site (ex.: 1.0.9_estable), faça login com a mesma conta VIP e envie pastas/faixas da plataforma para a fila de download no PC.",
+    a: "É o app Windows x64 oficial. Use a versão atual publicada no site (ex.: 1.0.10_estable), faça login com a mesma conta VIP e envie pastas/faixas da plataforma para a fila de download no PC.",
   },
   {
     q: "Posso ouvir antes de assinar?",

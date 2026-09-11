@@ -378,27 +378,41 @@ export async function registerDownloadDevice(
   input: { deviceId: string; deviceName: string; platform: string; appVersion: string },
 ) {
   const now = new Date();
-  const device = await prisma.downloadDevice.upsert({
-    where: {
-      portalUserId_deviceId: {
+  const device = await prisma.$transaction(async (tx) => {
+    const upserted = await tx.downloadDevice.upsert({
+      where: {
+        portalUserId_deviceId: {
+          portalUserId,
+          deviceId: input.deviceId,
+        },
+      },
+      create: {
         portalUserId,
         deviceId: input.deviceId,
+        deviceName: input.deviceName,
+        platform: input.platform,
+        appVersion: input.appVersion,
+        lastSeenAt: now,
       },
-    },
-    create: {
-      portalUserId,
-      deviceId: input.deviceId,
-      deviceName: input.deviceName,
-      platform: input.platform,
-      appVersion: input.appVersion,
-      lastSeenAt: now,
-    },
-    update: {
-      deviceName: input.deviceName,
-      platform: input.platform,
-      appVersion: input.appVersion,
-      lastSeenAt: now,
-    },
+      update: {
+        deviceName: input.deviceName,
+        platform: input.platform,
+        appVersion: input.appVersion,
+        lastSeenAt: now,
+      },
+    });
+
+    // Uma conexão ativa por conta: este PC assume o slot e desliga os demais.
+    await tx.downloadDevice.updateMany({
+      where: {
+        portalUserId,
+        deviceId: { not: input.deviceId },
+        lastSeenAt: { not: null },
+      },
+      data: { lastSeenAt: null },
+    });
+
+    return upserted;
   });
 
   return serializeDownloadDevice(device);
@@ -412,16 +426,61 @@ export async function listDownloadDevices(portalUserId: number) {
   return devices.map(serializeDownloadDevice);
 }
 
-export async function heartbeatDownloadDevice(portalUserId: number, externalDeviceId: string) {
-  const device = await getOwnedDevice(portalUserId, externalDeviceId);
-  if (!device) return null;
+export type HeartbeatDeviceResult =
+  | { ok: true; device: ReturnType<typeof serializeDownloadDevice> }
+  | {
+      ok: false;
+      code: "device_not_found" | "connection_replaced";
+      activeDeviceName?: string;
+    };
 
-  const updated = await prisma.downloadDevice.update({
-    where: { id: device.id },
-    data: { lastSeenAt: new Date() },
+export async function heartbeatDownloadDevice(
+  portalUserId: number,
+  externalDeviceId: string,
+): Promise<HeartbeatDeviceResult> {
+  const device = await getOwnedDevice(portalUserId, externalDeviceId);
+  if (!device) return { ok: false, code: "device_not_found" };
+
+  const activeOther = await prisma.downloadDevice.findFirst({
+    where: {
+      portalUserId,
+      deviceId: { not: externalDeviceId },
+      lastSeenAt: { not: null },
+    },
+    orderBy: [{ lastSeenAt: "desc" }, { id: "asc" }],
   });
 
-  return serializeDownloadDevice(updated);
+  if (activeOther && isDeviceOnline(activeOther.lastSeenAt)) {
+    if (device.lastSeenAt) {
+      await prisma.downloadDevice.update({
+        where: { id: device.id },
+        data: { lastSeenAt: null },
+      });
+    }
+    return {
+      ok: false,
+      code: "connection_replaced",
+      activeDeviceName: activeOther.deviceName,
+    };
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const next = await tx.downloadDevice.update({
+      where: { id: device.id },
+      data: { lastSeenAt: new Date() },
+    });
+    await tx.downloadDevice.updateMany({
+      where: {
+        portalUserId,
+        deviceId: { not: externalDeviceId },
+        lastSeenAt: { not: null },
+      },
+      data: { lastSeenAt: null },
+    });
+    return next;
+  });
+
+  return { ok: true, device: serializeDownloadDevice(updated) };
 }
 
 export async function createDownloadJob(portalUserId: number, input: DownloadJobInput) {

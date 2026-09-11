@@ -131,7 +131,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
   }, [showToast, workerError]);
 
   function handleSync() {
-    if (isOffline || syncing) return;
+    if (syncing) return;
     setSyncing(true);
     showToast(t("homeSyncingBody", { site: SITE_NAME }), "info");
     syncNow();
@@ -167,7 +167,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
               <ExternalLink className="h-4 w-4" />
               {t("commonOpenPlatform")}
             </Button>
-            <Button variant="secondary" disabled={syncing || isOffline} onClick={handleSync}>
+            <Button variant="secondary" disabled={syncing} onClick={handleSync}>
               <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
               {syncing ? t("homeSyncing") : t("homeSync")}
             </Button>

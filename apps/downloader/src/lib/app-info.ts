@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.9_estable";
-export const APP_CORE_VERSION = "1.0.9_estable";
+export const WEBUI_VERSION = "1.0.10_estable";
+export const APP_CORE_VERSION = "1.0.10_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.10_estable",
+    date: "2026-09-11",
+    items: [
+      "Uma única instância no Windows — abrir de novo só foca a janela já aberta",
+      "Uma conexão por conta VIP: outro PC assume e este encerra a fila",
+      "Nova imagem de hero na Home",
+    ],
+  },
   {
     version: "1.0.9_estable",
     date: "2026-09-10",

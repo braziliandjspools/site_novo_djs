@@ -740,7 +740,7 @@ export function VipMusicTrackList({
   loadMoreRef.current = onLoadMore;
   const isThisFolder = playingFolderId === folderId;
   const isGlobalBusy = loadingId !== null;
-  const shouldGroupByDate = groupByDate ?? layout === "table";
+  const shouldGroupByDate = groupByDate ?? true;
 
   const trackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(tracks) : null),

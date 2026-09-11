@@ -391,6 +391,8 @@ export const messagesPtBR = {
   homeStatConnectionOffline: "Fila salva localmente",
   homeStatConnectionOnline: "Pronto para sincronizar",
   homeOfflineWarning: "Sem internet no momento. A fila será sincronizada quando a conexão voltar.",
+  homeConnectionReplaced:
+    "Outro PC conectou com esta conta. Só uma conexão do Downloader é permitida por usuário.",
   homeQuickAccess: "Acesso rápido",
   homeQuickDownloadsDesc: "Acompanhe o que está baixando agora.",
   homeQuickQueueDesc: "Itens aguardando ou prontos para iniciar.",

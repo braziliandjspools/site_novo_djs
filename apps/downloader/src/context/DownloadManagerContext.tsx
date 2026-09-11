@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
+import { registerDevice } from "../lib/api/devices";
 import { downloadManager } from "../lib/download/download-manager";
 import { createRestQueueTransport } from "../lib/download/queue-transport";
 import type { DownloadManagerSnapshot, JobProgressMetrics, DiskSpaceSnapshot, ZipTask } from "../lib/download/types";
@@ -93,9 +94,29 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
     };
   }, [status, device?.deviceId, sessionToken]);
 
+  const syncNow = useCallback(() => {
+    if (status !== "authenticated" || !device || !sessionToken) {
+      downloadManager.syncNow();
+      return;
+    }
+    void (async () => {
+      try {
+        await registerDevice(sessionToken, {
+          deviceId: device.deviceId,
+          deviceName: device.deviceName,
+          platform: device.platform,
+        });
+      } catch {
+        /* sync tenta mesmo assim */
+      }
+      downloadManager.reclaimConnection();
+      downloadManager.syncNow();
+    })();
+  }, [device, sessionToken, status]);
+
   const actions = useMemo(
     () => ({
-      syncNow: () => downloadManager.syncNow(),
+      syncNow,
       pauseJob: (jobId: number) => downloadManager.pauseJob(jobId),
       resumeJob: (jobId: number) => downloadManager.resumeJob(jobId),
       cancelJob: (jobId: number) => downloadManager.cancelJob(jobId),
@@ -119,7 +140,7 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       dismissZipTask: (taskId: string) => downloadManager.dismissZipTask(taskId),
       retryZipTask: (taskId: string) => downloadManager.retryZipTask(taskId),
     }),
-    [],
+    [syncNow],
   );
 
   const value = useMemo<DownloadManagerContextValue>(

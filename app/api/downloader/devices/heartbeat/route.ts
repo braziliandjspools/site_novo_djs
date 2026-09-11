@@ -27,14 +27,31 @@ export async function POST(request: Request) {
     return withDownloaderCorsJson(request, { error: parsed.error }, { status: 400 });
   }
 
-  const device = await heartbeatDownloadDevice(access.user.id, parsed.value!.deviceId);
-  if (!device) {
+  const result = await heartbeatDownloadDevice(access.user.id, parsed.value!.deviceId);
+  if (!result.ok) {
+    if (result.code === "device_not_found") {
+      return withDownloaderCorsJson(
+        request,
+        { error: "Dispositivo não encontrado. Registre-o primeiro.", code: result.code },
+        { status: 404 },
+      );
+    }
+
+    const activeName = result.activeDeviceName?.trim();
+    const error = activeName
+      ? `Outro PC já está conectado com esta conta (${activeName}). Feche o Downloader nele ou use só este computador.`
+      : "Outro PC já está conectado com esta conta. Só é permitida uma conexão por usuário.";
+
     return withDownloaderCorsJson(
       request,
-      { error: "Dispositivo não encontrado. Registre-o primeiro." },
-      { status: 404 },
+      {
+        error,
+        code: result.code,
+        activeDeviceName: result.activeDeviceName ?? null,
+      },
+      { status: 409 },
     );
   }
 
-  return withDownloaderCorsJson(request, { ok: true, device });
+  return withDownloaderCorsJson(request, { ok: true, device: result.device });
 }

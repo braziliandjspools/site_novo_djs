@@ -385,6 +385,8 @@ export const messagesEs = {
   homeStatConnectionOnline: "Listo para sincronizar",
   homeOfflineWarning:
     "Sin internet por ahora. La cola se sincronizará en cuanto vuelva la conexión.",
+  homeConnectionReplaced:
+    "Otro PC conectó con esta cuenta. Solo se permite una conexión del Downloader por usuario.",
   homeQuickAccess: "Acceso rápido",
   homeQuickDownloadsDesc: "Sigue lo que se está descargando ahora.",
   homeQuickQueueDesc: "Elementos en espera o listos para empezar.",

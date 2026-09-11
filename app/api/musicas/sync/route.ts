@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { GOOGLE_DRIVE_CACHE_TAG, withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 import { listVipMusicFolders } from "../../../lib/vip-music-catalog";
+import { clearVipMusicInventoryCache } from "../../../lib/vip-music-inventory";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export async function POST() {
 
   try {
     revalidateTag(GOOGLE_DRIVE_CACHE_TAG, { expire: 0 });
+    clearVipMusicInventoryCache();
 
     const folders = await withDriveForceRefresh(() => listVipMusicFolders());
     const syncedAt = new Date().toISOString();

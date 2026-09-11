@@ -1,6 +1,6 @@
 [package]
 name = "brazilian-packs-downloader"
-version = "1.0.9-estable"
+version = "1.0.10-estable"
 description = "BRS Downloader — fila de downloads da plataforma VIP"
 authors = ["Brazilian Remix Service"]
 edition = "2021"
@@ -18,6 +18,7 @@ tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 keyring = "3"

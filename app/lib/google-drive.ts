@@ -22,7 +22,7 @@ export type PreviewTrack = {
   coverUrl?: string | null;
   /** Nome original do arquivo no Google Drive (com extensão). */
   fileName?: string;
-  /** ISO do `modifiedTime` do Google Drive, quando disponível via API. */
+  /** ISO do `createdTime`/`modifiedTime` do Drive (upload), quando disponível. */
   modifiedAt?: string | null;
   /** Tamanho do arquivo em bytes (Drive API `size`). */
   sizeBytes?: number | null;
@@ -47,6 +47,9 @@ type DriveFile = {
   id: string;
   name: string;
   mimeType: string;
+  /** Quando o arquivo foi criado/enviado no Drive. */
+  createdTime?: string;
+  /** Última alteração no Drive. */
   modifiedTime?: string;
   /** Drive API devolve string. */
   size?: string;
@@ -297,9 +300,10 @@ function toPreviewTrack(file: DriveFile, packName: string): PreviewTrack {
     id: file.id,
     pack: packName,
     fileName: file.name,
-    modifiedAt: file.modifiedTime ?? null,
-    sizeBytes: parseDriveSizeBytes(file.size),
     ...parseTrackMeta(file.name),
+    // createdTime = upload/cópia no Drive; melhor para “novas faixas”.
+    modifiedAt: file.createdTime ?? file.modifiedTime ?? null,
+    sizeBytes: parseDriveSizeBytes(file.size),
   };
 }
 
@@ -310,9 +314,11 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
   do {
     const params = new URLSearchParams({
       q: `'${folderId}' in parents and trashed=false`,
-      fields: "nextPageToken,files(id,name,mimeType,modifiedTime,size)",
+      fields: "nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size)",
       pageSize: "100",
       orderBy: "folder,name",
+      includeItemsFromAllDrives: "true",
+      supportsAllDrives: "true",
       key: apiKey,
     });
     if (pageToken) params.set("pageToken", pageToken);
@@ -327,6 +333,59 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
   } while (pageToken);
 
   return files;
+}
+
+/** Completa createdTime/modifiedTime quando a listagem HTML não traz datas. */
+async function enrichDriveFileTimes(files: DriveFile[], apiKey: string): Promise<DriveFile[]> {
+  const missing = files.filter(
+    (file) =>
+      file.mimeType !== FOLDER_MIME &&
+      !file.createdTime &&
+      !file.modifiedTime &&
+      isAudioFile(file.name, file.mimeType),
+  );
+  if (missing.length === 0) return files;
+
+  const enriched = new Map<string, DriveFile>();
+  let nextIndex = 0;
+  const concurrency = Math.min(8, missing.length);
+
+  async function worker() {
+    while (nextIndex < missing.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      const file = missing[index]!;
+      try {
+        const params = new URLSearchParams({
+          fields: "id,createdTime,modifiedTime,size",
+          supportsAllDrives: "true",
+          key: apiKey,
+        });
+        const res = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(file.id)}?${params}`,
+          driveListFetchInit(300),
+        );
+        if (!res.ok) continue;
+        const data = (await res.json()) as {
+          createdTime?: string;
+          modifiedTime?: string;
+          size?: string;
+        };
+        enriched.set(file.id, {
+          ...file,
+          createdTime: data.createdTime,
+          modifiedTime: data.modifiedTime,
+          size: data.size ?? file.size,
+        });
+      } catch {
+        /* mantém sem data */
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
+  if (enriched.size === 0) return files;
+  return files.map((file) => enriched.get(file.id) ?? file);
 }
 
 function collectFoldersFromHtml(html: string, parentFolderId?: string) {
@@ -793,22 +852,28 @@ export async function listDriveFolderChildren(folderId: string): Promise<DriveFi
 async function listDriveFolderChildrenUncached(folderId: string): Promise<DriveFile[]> {
   if (GOOGLE_DRIVE_API_KEY) {
     try {
-      return await listChildrenViaApi(folderId, GOOGLE_DRIVE_API_KEY);
+      const viaApi = await listChildrenViaApi(folderId, GOOGLE_DRIVE_API_KEY);
+      return await enrichDriveFileTimes(viaApi, GOOGLE_DRIVE_API_KEY);
     } catch {
       /* fallback abaixo */
     }
   }
 
   // Uma única leitura HTML → pastas + áudio (antes eram 2 scrapes).
+  // O scrape não traz datas — enriquecer via API quando a key existir.
   try {
     const html = await fetchPublicFolderHtml(folderId);
     const folders = collectFoldersFromHtml(html, folderId);
     const audioMap = new Map<string, DriveFile>();
     collectFilesFromHtml(html, audioMap);
-    return [
+    let files: DriveFile[] = [
       ...folders.map((folder) => ({ id: folder.id, name: folder.name, mimeType: FOLDER_MIME })),
       ...audioMap.values(),
     ];
+    if (GOOGLE_DRIVE_API_KEY) {
+      files = await enrichDriveFileTimes(files, GOOGLE_DRIVE_API_KEY);
+    }
+    return files;
   } catch {
     return [];
   }
