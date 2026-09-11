@@ -20,7 +20,9 @@ import {
   isCurrentPackWeek,
 } from "../../lib/week-calendar";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
+  packListFolderTitleClass,
   packListPanelClass,
   packListRowTone,
   poolPanelHeaderBrClass,
@@ -112,9 +114,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   className="group flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2"
                 >
                   <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="min-w-0 break-words text-base font-medium text-zinc-100 group-hover:text-white">
-                      {weekTitle}
-                    </span>
+                    <span className={packListFolderTitleClass}>{weekTitle}</span>
                     {weekStatus.status === "em-atualizacao" && (
                       <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
                         Em atualização
@@ -135,6 +135,11 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                   <span className="text-xs text-zinc-500 sm:whitespace-nowrap">{rangeLabel || "—"}</span>
                 </Link>
                 <div className="flex flex-shrink-0 items-center justify-end gap-1">
+                  <SendPackToDownloaderButton
+                    slug={`${monthSlug}/${weekSlug}`}
+                    compact
+                    label="Enviar semana ao Downloader"
+                  />
                   <CopyPackLinkButton
                     slugSegments={[monthSlug, weekSlug]}
                     label="Copiar link da semana para o Downloader"

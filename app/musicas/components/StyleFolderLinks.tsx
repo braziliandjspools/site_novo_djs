@@ -7,7 +7,9 @@ import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import { displayFolderName, folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
+  packListFolderTitleClass,
   packListPanelClass,
   packListRowTone,
   poolPanelClass,
@@ -76,9 +78,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 ) : (
                   <FolderOpen className="h-4 w-4 flex-shrink-0 text-zinc-500" />
                 )}
-                <span className="min-w-0 flex-1 break-words text-base font-medium text-zinc-100 group-hover:text-white">
-                  {label}
-                </span>
+                <span className={packListFolderTitleClass}>{label}</span>
                 {isNew && (
                   <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
                     Novo
@@ -87,6 +87,11 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                 <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
               </Link>
               <div className="flex flex-shrink-0 items-center justify-end gap-1">
+                <SendPackToDownloaderButton
+                  slug={resolveSlug}
+                  compact
+                  label={`Enviar ${label} ao Downloader`}
+                />
                 <CopyPackLinkButton
                   slugSegments={nextSegments}
                   label={`Copiar link de ${label} para o Downloader`}

@@ -14,7 +14,9 @@ import {
 } from "../../lib/vip-music-slugs";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import {
+  packListFolderTitleClass,
   packListPanelClass,
   packListRowTone,
   poolPanelHeaderBrClass,
@@ -106,9 +108,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                   onFocus={() => prefetchFolder(slug)}
                   className="group flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
-                  <span className="min-w-0 flex-1 break-words text-base font-medium text-zinc-100 group-hover:text-white">
-                    {name}
-                  </span>
+                  <span className={packListFolderTitleClass}>{name}</span>
                   {isNew && (
                     <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#1ed760]">
                       Novo
@@ -118,6 +118,11 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
                   <ChevronRight className="h-4 w-4 flex-shrink-0 text-zinc-600 group-hover:text-zinc-300" />
                 </Link>
                 <div className="flex flex-shrink-0 items-center justify-end gap-1">
+                  <SendPackToDownloaderButton
+                    slug={slug}
+                    compact
+                    label="Enviar mês inteiro ao Downloader"
+                  />
                   <CopyPackLinkButton
                     slugSegments={[slug]}
                     label="Copiar link do mês para o Downloader"
@@ -152,7 +157,7 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
               onFocus={() => prefetchFolder(slug)}
               className="inline-flex cursor-pointer items-center gap-2 py-1.5 hover:text-white"
             >
-              <span>{name}</span>
+              <span className="text-[15px] font-medium sm:text-base">{name}</span>
               {isNew && (
                 <span className="rounded bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
                   Novas
@@ -160,6 +165,11 @@ export function MusicasMonthLinks({ folders, newFolderIds, variant = "inline" }:
               )}
               <StatusBadge label={label} status={status} />
             </Link>
+            <SendPackToDownloaderButton
+              slug={slug}
+              compact
+              label="Enviar mês inteiro ao Downloader"
+            />
             <CopyPackLinkButton slugSegments={[slug]} label="Copiar link do mês para o Downloader" />
           </div>
         );

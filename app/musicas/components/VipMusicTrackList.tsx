@@ -297,6 +297,22 @@ function TrackRow({
               </button>
             </>
           ) : null}
+          {canDownload && !selectionMode ? (
+            <button
+              type="button"
+              onClick={onSendToDownloader}
+              disabled={isSendingToDownloader}
+              title="Enviar ao Downloader"
+              aria-label={`Enviar ${display.title} ao Downloader`}
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[#1ed760]/45 bg-[#1ed760]/20 text-[#1ed760] transition-colors hover:bg-[#1ed760]/35 disabled:opacity-50"
+            >
+              {isSendingToDownloader ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <MonitorDown className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : null}
           {!selectionMode ? (
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
@@ -532,7 +548,7 @@ function TrackTableRow({
             : poolRowTone(index, isActive)
       }`}
     >
-      <div className={`${TABLE_GRID} border-b border-white/[0.04] px-3 py-2.5 last:border-b-0 sm:px-4`}>
+      <div className={`${TABLE_GRID} px-3 py-2.5 sm:px-4`}>
         {/* # / play */}
         <div className="flex items-center justify-center">
           {selectionMode && canDownload ? (
@@ -605,6 +621,22 @@ function TrackTableRow({
 
         <div className="flex items-center justify-end gap-1">
           <TrackDownloadStatus fileId={track.id} />
+          {canDownload && !selectionMode ? (
+            <button
+              type="button"
+              onClick={onSendToDownloader}
+              disabled={isSendingToDownloader}
+              title="Enviar ao Downloader"
+              aria-label={`Enviar ${display.title} ao Downloader`}
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[#1ed760]/45 bg-[#1ed760]/20 text-[#1ed760] transition-colors hover:bg-[#1ed760]/35 hover:text-[#7dffb0] disabled:opacity-50"
+            >
+              {isSendingToDownloader ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <MonitorDown className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : null}
           {!selectionMode ? (
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
