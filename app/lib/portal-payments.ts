@@ -1,8 +1,8 @@
 import "server-only";
 import type { MercadoPagoOrderStatus } from "@prisma/client";
-import { getCanonicalPlanById } from "../billing/plan-catalog";
-import { prisma } from "../prisma";
-import { formatMonthlyValue } from "../portal-users";
+import { getCanonicalPlanById } from "./billing/plan-catalog";
+import { prisma } from "./prisma";
+import { formatMonthlyValue } from "./portal-users";
 
 export type PortalPaymentStatusUi = "pago" | "pendente" | "cancelado" | "reembolsado";
 
