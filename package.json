@@ -27,6 +27,12 @@
     "downloader:web:dev": "npm run dev --prefix apps/downloader",
     "downloader:web:build": "npm run build --prefix apps/downloader"
   },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 111",
+    "safari >= 16.4"
+  ],
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "archiver": "^8.0.0",

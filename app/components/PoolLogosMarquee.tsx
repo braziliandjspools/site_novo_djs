@@ -30,7 +30,9 @@ function LogoCard({ logo }: { logo: PoolLogo }) {
         alt={logo.name}
         width={180}
         height={180}
-        unoptimized
+        sizes="160px"
+        quality={70}
+        loading="lazy"
         className={`h-full w-full object-contain ${
           logo.dark
             ? "pool-logo-dark"

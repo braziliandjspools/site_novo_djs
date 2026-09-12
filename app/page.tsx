@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import {
   ChevronDown,
   Download,
@@ -16,16 +17,10 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { AllavsoftPlatformsMarquee } from "./components/AllavsoftPlatformsMarquee";
-import { DriveCatalog } from "./components/DriveCatalog";
 import { Hero } from "./components/Hero";
 import { IconBox } from "./components/IconBox";
-import { PoolLogosMarquee } from "./components/PoolLogosMarquee";
-import { PoolsMarquee } from "./components/PoolsMarquee";
 import { SectionHeading } from "./components/SectionHeading";
 import { SiteImage } from "./components/SiteImage";
-import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
-import { TopDownloadsTable } from "./components/TopDownloadsTable";
 import { SpotifyDjSection } from "./components/SpotifyDjSection";
 import { ToolPromoSection } from "./components/ToolPromoSection";
 import { getMostDownloadedTracks } from "./lib/top-downloads";
@@ -35,6 +30,32 @@ import { SITE_FAQS } from "./lib/site-faqs";
 import { buildPageMetadata, faqJsonLd } from "./lib/seo";
 import { PLACEHOLDER } from "./lib/theme";
 import { JsonLd } from "./components/JsonLd";
+
+const AllavsoftPlatformsMarquee = dynamic(
+  () =>
+    import("./components/AllavsoftPlatformsMarquee").then((m) => m.AllavsoftPlatformsMarquee),
+  { ssr: true },
+);
+const DriveCatalog = dynamic(
+  () => import("./components/DriveCatalog").then((m) => m.DriveCatalog),
+  { ssr: true },
+);
+const PoolLogosMarquee = dynamic(
+  () => import("./components/PoolLogosMarquee").then((m) => m.PoolLogosMarquee),
+  { ssr: true },
+);
+const PoolsMarquee = dynamic(
+  () => import("./components/PoolsMarquee").then((m) => m.PoolsMarquee),
+  { ssr: true },
+);
+const TestimonialsCarousel = dynamic(
+  () => import("./components/TestimonialsCarousel").then((m) => m.TestimonialsCarousel),
+  { ssr: true },
+);
+const TopDownloadsTable = dynamic(
+  () => import("./components/TopDownloadsTable").then((m) => m.TopDownloadsTable),
+  { ssr: true },
+);
 
 export const metadata: Metadata = buildPageMetadata("home");
 
@@ -206,15 +227,14 @@ export default async function Home() {
               </p>
             </div>
 
-            <div className="relative min-h-[20rem] overflow-hidden rounded-2xl bg-[#0a0a0a] sm:min-h-[24rem] lg:min-h-full">
+            <div className="relative aspect-[4/5] min-h-[20rem] overflow-hidden rounded-2xl bg-[#0a0a0a] sm:min-h-[24rem] lg:aspect-auto lg:min-h-full">
               <SiteImage
                 src={PLACEHOLDER.curadoria}
                 alt="DJ BRS — Brazilian Remix Service"
                 fill
-                quality={100}
-                unoptimized
+                quality={75}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 560px"
                 className="object-cover object-[center_18%]"
-                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
           </div>
@@ -302,6 +322,7 @@ export default async function Home() {
                 height={900}
                 className="h-auto w-full rounded-xl object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
+                quality={70}
               />
               <figcaption className="px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-zinc-500">
                 Início · visão geral e importação por link
@@ -315,6 +336,7 @@ export default async function Home() {
                 height={900}
                 className="h-auto w-full rounded-xl object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
+                quality={70}
               />
               <figcaption className="px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-zinc-500">
                 Downloads · fila, filtros e metadados

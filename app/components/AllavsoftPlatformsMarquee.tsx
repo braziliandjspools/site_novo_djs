@@ -17,7 +17,9 @@ function LogoCard({ src, name }: { src: string; name: string }) {
         alt={name}
         width={80}
         height={80}
-        unoptimized
+        sizes="80px"
+        quality={70}
+        loading="lazy"
         className="h-full w-full object-cover"
       />
     </div>

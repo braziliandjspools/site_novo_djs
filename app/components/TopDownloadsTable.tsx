@@ -142,6 +142,10 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                         <img
                           src={coverSrc}
                           alt=""
+                          width={56}
+                          height={56}
+                          decoding="async"
+                          loading="lazy"
                           className="h-full w-full object-cover"
                           onError={() => setCoverFailed((prev) => ({ ...prev, [track.id]: true }))}
                         />

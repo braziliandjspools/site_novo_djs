@@ -99,7 +99,7 @@ export function ToolPromoSection({
               height={675}
               className="h-auto w-full rounded-xl object-contain"
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 896px"
-              quality={82}
+              quality={75}
             />
           </div>
 
