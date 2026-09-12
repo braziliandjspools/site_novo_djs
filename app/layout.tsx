@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Sora } from "next/font/google";
 import "./globals.css";
 import { BackToTopButton } from "./components/BackToTopButton";
@@ -32,12 +32,20 @@ const sora = Sora({
 
 export const metadata: Metadata = buildRootMetadata();
 
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#121212" },
+    { media: "(prefers-color-scheme: dark)", color: "#121212" },
+  ],
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${dmSans.variable} ${sora.variable} h-full w-full max-w-[100vw] overflow-x-clip antialiased`}
+      className={`${dmSans.variable} ${sora.variable} dark h-full w-full max-w-[100vw] overflow-x-clip bg-[#121212] antialiased`}
     >
       <head>
         <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />

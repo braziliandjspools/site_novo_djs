@@ -31,6 +31,37 @@ export type MediaSessionInput = {
 
 const ARTWORK_SIZES = ["96x96", "128x128", "192x192", "256x256", "384x384", "512x512"] as const;
 
+type CapMediaImage = { src: string; sizes?: string; type?: string };
+type CapPlaybackState = "none" | "paused" | "playing";
+type CapAction =
+  | "play"
+  | "pause"
+  | "seekbackward"
+  | "seekforward"
+  | "previoustrack"
+  | "nexttrack"
+  | "seekto"
+  | "stop";
+
+type CapMediaSessionPlugin = {
+  setMetadata: (options: {
+    title?: string;
+    artist?: string;
+    album?: string;
+    artwork?: CapMediaImage[];
+  }) => Promise<void>;
+  setPlaybackState: (options: { playbackState: CapPlaybackState }) => Promise<void>;
+  setActionHandler: (
+    options: { action: CapAction },
+    handler: ((details: { action: CapAction; seekTime?: number | null }) => void) | null,
+  ) => Promise<void>;
+  setPositionState: (options: {
+    duration?: number;
+    playbackRate?: number;
+    position?: number;
+  }) => Promise<void>;
+};
+
 function absoluteUrl(src: string) {
   if (!src) return src;
   if (/^https?:\/\//i.test(src)) return src;
@@ -59,7 +90,7 @@ export function resolveTrackMediaMetadata(
   };
 }
 
-function buildArtwork(coverUrl?: string | null): MediaImage[] {
+function buildArtwork(coverUrl?: string | null): CapMediaImage[] {
   const src = absoluteUrl((coverUrl?.trim() || PLACEHOLDER.trackCover).trim());
   const lower = src.toLowerCase();
   const type = lower.includes(".png")
@@ -71,7 +102,20 @@ function buildArtwork(coverUrl?: string | null): MediaImage[] {
   return ARTWORK_SIZES.map((sizes) => ({ src, sizes, type }));
 }
 
-function safeSetActionHandler(
+/** Plugin nativo do APK Capacitor — o WebView Android não implementa Media Session Web API. */
+function getNativeMediaSession(): CapMediaSessionPlugin | null {
+  if (typeof window === "undefined") return null;
+  const Cap = (window as unknown as {
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+      Plugins?: { MediaSession?: CapMediaSessionPlugin };
+    };
+  }).Capacitor;
+  if (!Cap?.isNativePlatform?.()) return null;
+  return Cap.Plugins?.MediaSession ?? null;
+}
+
+function safeSetWebActionHandler(
   action: MediaSessionAction,
   handler: MediaSessionActionHandler | null,
 ) {
@@ -83,7 +127,32 @@ function safeSetActionHandler(
   }
 }
 
-function clearMediaSession() {
+async function clearSessions(native: CapMediaSessionPlugin | null) {
+  if (native) {
+    try {
+      await native.setPlaybackState({ playbackState: "none" });
+    } catch {
+      /* ignore */
+    }
+    for (const action of [
+      "play",
+      "pause",
+      "previoustrack",
+      "nexttrack",
+      "seekbackward",
+      "seekforward",
+      "seekto",
+      "stop",
+    ] as CapAction[]) {
+      try {
+        await native.setActionHandler({ action }, null);
+      } catch {
+        /* ignore */
+      }
+    }
+    return;
+  }
+
   if (!("mediaSession" in navigator)) return;
   try {
     navigator.mediaSession.metadata = null;
@@ -100,13 +169,13 @@ function clearMediaSession() {
     "seekforward",
     "seekto",
   ] as MediaSessionAction[]) {
-    safeSetActionHandler(action, null);
+    safeSetWebActionHandler(action, null);
   }
 }
 
 /**
- * Integra Media Session API ao player existente (notificação / tela de bloqueio no Android).
- * Feature detection + try/catch — não quebra FB/IG in-app nem desktop sem suporte.
+ * Integra Media Session ao player (notificação / tela de bloqueio).
+ * No APK Capacitor usa plugin nativo; no Chrome usa a Web API.
  */
 export function useMediaSession(input: MediaSessionInput) {
   const handlersRef = useRef(input.handlers);
@@ -135,7 +204,8 @@ export function useMediaSession(input: MediaSessionInput) {
 
   // Metadados + handlers quando a faixa muda / ativa.
   useEffect(() => {
-    if (!("mediaSession" in navigator)) return;
+    const native = getNativeMediaSession();
+    if (!native && !("mediaSession" in navigator)) return;
 
     if (clearTimerRef.current) {
       clearTimeout(clearTimerRef.current);
@@ -143,9 +213,8 @@ export function useMediaSession(input: MediaSessionInput) {
     }
 
     if (!isActive) {
-      // Atrasa limpeza: troca de faixa pode ficar inativa por um instante no load.
       clearTimerRef.current = setTimeout(() => {
-        clearMediaSession();
+        void clearSessions(native);
         stickyTrackRef.current = null;
         stickyCoverRef.current = null;
         stickyAlbumRef.current = null;
@@ -163,38 +232,80 @@ export function useMediaSession(input: MediaSessionInput) {
     if (!activeTrack) return;
 
     const meta = resolveTrackMediaMetadata(activeTrack, albumTitle);
+    const artwork = buildArtwork(coverUrl || activeTrack.coverUrl);
+
+    if (native) {
+      void native.setMetadata({
+        title: meta.title,
+        artist: meta.artist,
+        album: meta.album,
+        artwork,
+      });
+
+      const wire = (action: CapAction, fn: (seekTime?: number | null) => void) => {
+        void native.setActionHandler({ action }, (details) => {
+          fn(details.seekTime);
+        });
+      };
+
+      wire("play", () => {
+        void handlersRef.current.onPlay();
+      });
+      wire("pause", () => {
+        handlersRef.current.onPause();
+      });
+      wire("previoustrack", () => {
+        void handlersRef.current.onPrevious();
+      });
+      wire("nexttrack", () => {
+        void handlersRef.current.onNext();
+      });
+      wire("seekbackward", () => {
+        void handlersRef.current.onSeekBy?.(-10);
+      });
+      wire("seekforward", () => {
+        void handlersRef.current.onSeekBy?.(10);
+      });
+      wire("seekto", (seekTime) => {
+        if (typeof seekTime === "number" && Number.isFinite(seekTime)) {
+          void handlersRef.current.onSeek?.(seekTime);
+        }
+      });
+      return;
+    }
+
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: meta.title,
         artist: meta.artist,
         album: meta.album,
-        artwork: buildArtwork(coverUrl || activeTrack.coverUrl),
+        artwork: artwork as MediaImage[],
       });
     } catch {
       /* ignore */
     }
 
-    safeSetActionHandler("play", () => {
+    safeSetWebActionHandler("play", () => {
       void handlersRef.current.onPlay();
     });
-    safeSetActionHandler("pause", () => {
+    safeSetWebActionHandler("pause", () => {
       handlersRef.current.onPause();
     });
-    safeSetActionHandler("previoustrack", () => {
+    safeSetWebActionHandler("previoustrack", () => {
       void handlersRef.current.onPrevious();
     });
-    safeSetActionHandler("nexttrack", () => {
+    safeSetWebActionHandler("nexttrack", () => {
       void handlersRef.current.onNext();
     });
-    safeSetActionHandler("seekbackward", (details) => {
+    safeSetWebActionHandler("seekbackward", (details) => {
       const offset = -(details.seekOffset ?? 10);
       void handlersRef.current.onSeekBy?.(offset);
     });
-    safeSetActionHandler("seekforward", (details) => {
+    safeSetWebActionHandler("seekforward", (details) => {
       const offset = details.seekOffset ?? 10;
       void handlersRef.current.onSeekBy?.(offset);
     });
-    safeSetActionHandler("seekto", (details) => {
+    safeSetWebActionHandler("seekto", (details) => {
       if (typeof details.seekTime === "number" && Number.isFinite(details.seekTime)) {
         void handlersRef.current.onSeek?.(details.seekTime);
       }
@@ -203,23 +314,27 @@ export function useMediaSession(input: MediaSessionInput) {
 
   // playbackState — mantém "playing" também durante load da próxima faixa.
   useEffect(() => {
+    const native = getNativeMediaSession();
+    const state: CapPlaybackState =
+      !isActive && !stickyTrackRef.current ? "none" : isPlaying ? "playing" : "paused";
+
+    if (native) {
+      void native.setPlaybackState({ playbackState: state }).catch(() => undefined);
+      return;
+    }
+
     if (!("mediaSession" in navigator)) return;
     try {
-      if (!isActive && !stickyTrackRef.current) {
-        navigator.mediaSession.playbackState = "none";
-      } else {
-        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      }
+      navigator.mediaSession.playbackState = state === "none" ? "none" : state;
     } catch {
       /* ignore */
     }
   }, [isActive, isPlaying]);
 
-  // Position state (throttle ~1s via timeupdate-like deps from parent)
+  // Position state
   const lastPosRef = useRef({ duration: -1, position: -1, playing: false });
   useEffect(() => {
-    if (!("mediaSession" in navigator) || (!isActive && !stickyTrackRef.current)) return;
-    if (!(typeof navigator.mediaSession.setPositionState === "function")) return;
+    if (!isActive && !stickyTrackRef.current) return;
 
     const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
     if (safeDuration <= 0) return;
@@ -233,6 +348,20 @@ export function useMediaSession(input: MediaSessionInput) {
     if (!movedEnough && !durationChanged && !playChanged) return;
     lastPosRef.current = { duration: safeDuration, position: safePosition, playing: isPlaying };
 
+    const native = getNativeMediaSession();
+    if (native) {
+      void native
+        .setPositionState({
+          duration: safeDuration,
+          playbackRate: playbackRate > 0 ? playbackRate : 1,
+          position: safePosition,
+        })
+        .catch(() => undefined);
+      return;
+    }
+
+    if (!("mediaSession" in navigator)) return;
+    if (!(typeof navigator.mediaSession.setPositionState === "function")) return;
     try {
       navigator.mediaSession.setPositionState({
         duration: safeDuration,
@@ -248,7 +377,7 @@ export function useMediaSession(input: MediaSessionInput) {
   useEffect(() => {
     return () => {
       if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-      clearMediaSession();
+      void clearSessions(getNativeMediaSession());
     };
   }, []);
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Home, Layers, LogIn, LogOut, Menu, RefreshCw, X } from "lucide-react";
 import { BrsLogo } from "../components/BrsLogo";
-import { SITE_NAV_LINKS } from "../lib/site-nav";
+import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
 import { checkoutUrl } from "../lib/site";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
 import { MusicasHeaderDownloader } from "./components/MusicasHeaderDownloader";
@@ -118,7 +118,22 @@ export function MusicasTopNav({
               </button>
               {siteOpen && (
                 <div className="absolute left-0 top-[calc(100%+0.65rem)] z-50 min-w-[240px] overflow-hidden rounded-2xl border border-white/10 bg-[#121414] py-2 shadow-2xl shadow-black/60 ring-1 ring-[#1ed760]/10">
-                  {SITE_NAV_LINKS.map(({ href, label, icon: Icon }) => (
+                  {SITE_PRIMARY_NAV.map(({ href, label, icon: Icon }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setSiteOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#1ed760]/10 hover:text-white"
+                    >
+                      <Icon className="h-4 w-4 text-[#1ed760]/80" />
+                      {label}
+                    </Link>
+                  ))}
+                  <div className="my-1.5 border-t border-white/5" />
+                  <p className="px-4 pb-1 pt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                    {SITE_TOOLS_MENU.label}
+                  </p>
+                  {SITE_TOOLS_MENU.items.map(({ href, label, icon: Icon }) => (
                     <Link
                       key={href}
                       href={href}
@@ -200,7 +215,24 @@ export function MusicasTopNav({
             Site
           </p>
           <nav className="mt-1 space-y-1">
-            {SITE_NAV_LINKS.map(({ href, label, icon: Icon }) => (
+            {SITE_PRIMARY_NAV.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => onMobileOpenChange(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 hover:bg-white/5 hover:text-white"
+              >
+                <Icon className="h-4 w-4 text-[#1ed760]/70" />
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <p className="mt-4 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-600">
+            {SITE_TOOLS_MENU.label}
+          </p>
+          <nav className="mt-1 space-y-1">
+            {SITE_TOOLS_MENU.items.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}

@@ -52,6 +52,8 @@ model PortalUser {
   noticeReceipts        SiteNoticeReceipt[]
   hotmartSubscriptions  HotmartSubscription[]
   mercadoPagoOrders     MercadoPagoOrder[]
+  generatedSongs        GeneratedSong[]
+  musicGenerationUsages MusicGenerationUsage[]
 
   @@index([nextDueAt])
   @@index([servicePoolsVipDueAt])
@@ -350,4 +352,73 @@ model MusicProducerBriefing {
   @@index([status, createdAt])
   @@index([createdAt])
   @@map("music_producer_briefings")
+}
+
+enum GeneratedSongStatus {
+  QUEUED
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+/** Música gerada no estúdio BRS Flow (Lyria via OpenRouter). */
+model GeneratedSong {
+  id               String              @id @default(cuid())
+  portalUserId     Int                 @map("portal_user_id")
+  portalUser       PortalUser          @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  /** Agrupa versões da mesma “música”. */
+  songGroupId      String              @map("song_group_id")
+  versionNumber    Int                 @default(1) @map("version_number")
+  title            String
+  style            String?
+  mood             String?
+  voice            String?
+  language         String?             @default("pt-BR")
+  bpm              Int?
+  instrumental     Boolean             @default(false)
+  prompt           String
+  lyrics           String?
+  /** Instrução final enviada ao modelo (não expor a key). */
+  modelPrompt      String?             @map("model_prompt") @db.Text
+  status           GeneratedSongStatus @default(QUEUED)
+  errorMessage     String?             @map("error_message")
+  provider         String              @default("openrouter")
+  model            String
+  generationId     String?             @map("generation_id")
+  idempotencyKey   String?             @unique @map("idempotency_key")
+  audioUrl         String?             @map("audio_url")
+  audioStorageKey  String?             @map("audio_storage_key")
+  /** Fallback MVP quando R2 não está configurado — nunca expor em listagens. */
+  audioBase64      String?             @map("audio_base64") @db.Text
+  audioMimeType    String?             @map("audio_mime_type")
+  artworkUrl       String?             @map("artwork_url")
+  durationSeconds  Float?              @map("duration_seconds")
+  favorite         Boolean             @default(false)
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  usages MusicGenerationUsage[]
+
+  @@unique([songGroupId, versionNumber])
+  @@index([portalUserId, createdAt])
+  @@index([portalUserId, favorite])
+  @@index([songGroupId])
+  @@index([status, createdAt])
+  @@map("generated_songs")
+}
+
+model MusicGenerationUsage {
+  id            String         @id @default(cuid())
+  portalUserId  Int            @map("portal_user_id")
+  portalUser    PortalUser     @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  songId        String?        @map("song_id")
+  song          GeneratedSong? @relation(fields: [songId], references: [id], onDelete: SetNull)
+  model         String
+  status        String
+  estimatedCost Decimal?       @map("estimated_cost") @db.Decimal(10, 4)
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  @@index([portalUserId, createdAt])
+  @@index([songId])
+  @@map("music_generation_usages")
 }

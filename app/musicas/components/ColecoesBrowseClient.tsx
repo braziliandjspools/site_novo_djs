@@ -404,7 +404,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
               type="button"
               onClick={() => void handlePlay()}
               disabled={!canPlay || playBusy || (!isAlbumPage && childItems.length === 0)}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-black transition hover:scale-[1.02] hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 text-sm font-bold text-black transition hover:scale-[1.02] hover:bg-[#2dff7a] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {playBusy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

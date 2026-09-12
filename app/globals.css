@@ -48,9 +48,11 @@
 }
 
 html {
+  color-scheme: dark;
   scroll-behavior: smooth;
   max-width: 100%;
   overflow-x: clip;
+  background: var(--background);
 }
 
 body {
@@ -65,6 +67,18 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(0, 151, 57, 0.45);
+  color: #fff;
+}
+
+input,
+textarea,
+select,
+button {
+  color-scheme: dark;
 }
 
 @layer base {
@@ -379,4 +393,55 @@ body {
 
 .site-glow-spotify {
   background: radial-gradient(ellipse at top, rgba(29, 185, 84, 0.15), transparent 55%);
+}
+
+/* Marquee de pools — direita → esquerda */
+@keyframes pools-marquee-rtl {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.pools-marquee-track {
+  animation: pools-marquee-rtl 42s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pools-marquee-track {
+    animation: none;
+  }
+}
+
+@keyframes allavsoft-marquee-rtl {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.allavsoft-marquee-track {
+  animation: allavsoft-marquee-rtl 28s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .allavsoft-marquee-track {
+    animation: none;
+  }
+}
+
+/* Logos de pools — remove fundo preto e realça as escuras */
+.pool-logo-light {
+  mix-blend-mode: screen;
+  filter: brightness(1.12) contrast(1.08);
+}
+
+.pool-logo-dark {
+  filter: invert(1) brightness(1.15) contrast(1.05);
 }

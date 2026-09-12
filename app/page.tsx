@@ -2,30 +2,35 @@ import type { Metadata } from "next";
 import {
   ChevronDown,
   Download,
+  Infinity,
+  KeyRound,
   Layers,
   ListMusic,
-  MessageCircle,
   Monitor,
   Music2,
   RefreshCw,
   Smartphone,
   Sparkles,
   Users,
+  Wallet,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { AllavsoftPlatformsMarquee } from "./components/AllavsoftPlatformsMarquee";
 import { DriveCatalog } from "./components/DriveCatalog";
 import { Hero } from "./components/Hero";
 import { IconBox } from "./components/IconBox";
+import { PoolLogosMarquee } from "./components/PoolLogosMarquee";
+import { PoolsMarquee } from "./components/PoolsMarquee";
 import { SectionHeading } from "./components/SectionHeading";
 import { SiteImage } from "./components/SiteImage";
 import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
-import { TrackShowcase } from "./components/TrackShowcase";
+import { TopDownloadsTable } from "./components/TopDownloadsTable";
+import { SpotifyDjSection } from "./components/SpotifyDjSection";
 import { ToolPromoSection } from "./components/ToolPromoSection";
-import { getLatestVipPreviewPlaylists } from "./lib/vip-music-catalog";
+import { getMostDownloadedTracks } from "./lib/top-downloads";
 import { getDownloaderReleaseManifest } from "./lib/downloader-updates";
 import { DOWNLOADER_NAME } from "./lib/branding";
-import { whatsappUrl } from "./lib/site";
 import { SITE_FAQS } from "./lib/site-faqs";
 import { buildPageMetadata, faqJsonLd } from "./lib/seo";
 import { PLACEHOLDER } from "./lib/theme";
@@ -132,7 +137,7 @@ const testimonials = [
 ];
 
 export default async function Home() {
-  const previewPlaylists = await getLatestVipPreviewPlaylists(3).catch(() => []);
+  const topDownloads = await getMostDownloadedTracks(12).catch(() => []);
   const downloaderRelease = getDownloaderReleaseManifest();
   const downloaderUrl =
     downloaderRelease?.downloadUrl ??
@@ -154,44 +159,69 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Curadoria + imagem */}
-      <section id="curadoria" className="border-y border-white/5 site-section-blue px-4 py-12 sm:px-6 md:py-20">
-        <div className="mx-auto grid max-w-6xl gap-8 text-center md:grid-cols-2 md:items-center md:gap-12 md:text-left">
-          <div className="mx-auto max-w-lg md:mx-0 md:max-w-none">
-            <SectionHeading
-              badge="Curadoria"
-              title="Seleção pensada para a pista brasileira"
-              centered={false}
-            />
-            <div className="mt-8 space-y-4 text-sm leading-relaxed text-gray-400">
+      {/* Curadoria — 2 colunas (texto + imagem) + marquee de pools */}
+      <section id="curadoria" className="border-y border-white/5 site-section-blue py-12 md:py-20">
+        <div className="mx-auto w-full px-4 sm:px-6 lg:px-10 xl:px-16">
+          <div className="mb-2 flex items-center justify-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#009739]/40 bg-[#009739]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#00B347]">
+              Curadoria
+            </span>
+          </div>
+          <div className="mb-5 flex justify-center gap-1">
+            <span className="h-1 w-8 rounded-full bg-[#009739]" />
+            <span className="h-1 w-8 rounded-full bg-[#FFDF00]" />
+            <span className="h-1 w-8 rounded-full bg-[#002776]" />
+          </div>
+          <h2 className="font-display mx-auto max-w-4xl text-center text-3xl font-semibold text-white sm:text-4xl xl:text-5xl">
+            Seleção pensada para a pista brasileira
+          </h2>
+
+          {/* Imagem alinha só com o texto — título fica fora */}
+          <div className="mt-6 grid items-stretch gap-6 lg:mt-8 lg:grid-cols-2 lg:gap-8 xl:gap-10">
+            <div className="space-y-4 text-justify text-sm leading-relaxed text-gray-400 sm:text-[15px] sm:leading-7 lg:text-base lg:leading-8">
               <p>
-                Um repertório selecionado especialmente para DJs que precisam estar sempre preparados para qualquer
-                pista. Reunimos músicas, remixes, edits e versões que fazem sentido para o público brasileiro, com foco
-                no que realmente funciona nos eventos.
+                Um repertório criado para DJs que precisam estar preparados para diferentes públicos, estilos e
+                momentos da pista. Nossa seleção reúne músicas, remixes, edits, versões extended, intros e faixas
+                escolhidas com foco no que realmente funciona em eventos no Brasil.
               </p>
               <p>
-                Do funk ao sertanejo, do pop ao eletrônico, passando pelo open format e pelos grandes sucessos
-                nacionais e internacionais. Nossa curadoria acompanha as tendências e prioriza conteúdos que ajudam você
-                a manter seu repertório atual, variado e competitivo.
+                A curadoria acompanha o comportamento das pistas, os lançamentos em alta, os clássicos que continuam
+                funcionando e as versões que ajudam o DJ a construir sets mais completos. Do funk ao sertanejo, do pop
+                ao eletrônico, passando por house, dance, flashbacks, open format e grandes sucessos nacionais e
+                internacionais, o objetivo é oferecer variedade sem transformar sua preparação em uma busca
+                interminável.
               </p>
               <p>
-                Tudo organizado para facilitar sua preparação, economizar tempo e deixar você pronto para tocar em
-                festas, clubs, eventos e diferentes formatos de pista.
+                Também priorizamos conteúdos que facilitem a mixagem e o trabalho durante a apresentação. Versões
+                estendidas, edits, intros e remixes podem ajudar na transição entre estilos, na construção de energia
+                e na adaptação do repertório para diferentes tipos de evento.
+              </p>
+              <p>
+                Tudo é organizado para que você encontre o que precisa com mais rapidez, descubra novas opções para o
+                seu set e mantenha uma biblioteca atual, versátil e pronta para uso.
+              </p>
+              <p>
+                A proposta é simples: reduzir o tempo gasto procurando música e aumentar o tempo disponível para
+                preparar apresentações melhores.
               </p>
             </div>
-          </div>
-          <div className="mx-auto w-full max-w-md md:max-w-none">
-            <div className="overflow-hidden rounded-2xl border border-[#009739]/40 bg-white/[0.03] p-2 shadow-2xl shadow-[#002776]/40">
+
+            <div className="relative min-h-[20rem] overflow-hidden rounded-2xl bg-[#0a0a0a] sm:min-h-[24rem] lg:min-h-full">
               <SiteImage
                 src={PLACEHOLDER.curadoria}
-                alt="Curadoria Brazilian Remix Service"
-                width={960}
-                height={720}
-                className="h-auto w-full rounded-xl object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                alt="DJ BRS — Brazilian Remix Service"
+                fill
+                quality={100}
+                unoptimized
+                className="object-cover object-[center_18%]"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
           </div>
+        </div>
+
+        <div className="mt-12 w-full md:mt-16">
+          <PoolsMarquee />
         </div>
       </section>
 
@@ -324,32 +354,39 @@ export default async function Home() {
       />
 
       {/* Catálogo */}
-      <section id="acervo" className="px-4 py-12 br-pattern sm:px-6 md:py-20">
-        <div className="mx-auto max-w-5xl">
+      <section id="acervo" className="py-12 br-pattern md:py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <SectionHeading
             badge="Catálogo"
             title="Pools & remix services disponíveis"
             subtitle="Explore centenas de pools, remix services e fontes de conteúdo reunidos no acervo Brazilian Remix Service. Encontre edits, remixes, extended versions e materiais de diferentes estilos, tudo organizado para facilitar sua busca e a preparação dos seus sets."
           />
-          <div className="mt-12">
-            <DriveCatalog />
+        </div>
+
+        <div className="mt-10 w-full md:mt-12">
+          <PoolLogosMarquee />
+        </div>
+
+        <div className="mx-auto mt-10 max-w-5xl px-4 sm:px-6 md:mt-12">
+          <DriveCatalog />
+        </div>
+      </section>
+
+      {/* Mais baixadas — uma tabela com player */}
+      <section className="border-y border-white/5 site-section-yellow px-4 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            badge="Acervo"
+            title="Veja pastas e faixas do acervo"
+            subtitle="As mais baixadas em tempo real — toque na capa para ouvir sem login e conhecer o acervo."
+          />
+          <div className="mt-10 md:mt-12">
+            <TopDownloadsTable tracks={topDownloads} />
           </div>
         </div>
       </section>
 
-      {/* Faixas exemplo */}
-      <section className="border-y border-white/5 site-section-yellow px-4 py-12 sm:px-6 md:py-20">
-        <div className="mx-auto max-w-4xl">
-          <SectionHeading
-            badge="Acervo"
-            title="Veja pastas e faixas do acervo"
-            subtitle="Sempre as 3 pastas mais recentes — explore remixes, edits e extended versions. Para ouvir e baixar, assine o VIP."
-          />
-          <div className="mt-12">
-            <TrackShowcase initialPlaylists={previewPlaylists} />
-          </div>
-        </div>
-      </section>
+      <SpotifyDjSection />
 
       {/* Produção Musical */}
       <ToolPromoSection
@@ -360,11 +397,13 @@ export default async function Home() {
           <>
             <p>
               Você traz a <strong className="font-semibold text-gray-200">ideia, a história e a mensagem</strong>.
-              Nós transformamos tudo em uma música criada especialmente para você.
+              Nós transformamos tudo em uma música criada especialmente para você — com identidade sonora, emoção e
+              acabamento profissional.
             </p>
             <p>
-              Da composição da letra à escolha do estilo, voz, instrumental, arranjo, mixagem e finalização, cada
-              detalhe é desenvolvido de acordo com o seu projeto.
+              Da composição da letra à escolha do estilo, voz, instrumental, arranjo, mixagem e masterização, cada
+              detalhe é desenvolvido sob medida. Nada de template genérico: a faixa nasce do seu briefing e fica
+              pronta para tocar em festa, campanha, set ou redes sociais.
             </p>
             <p>
               Produzimos{" "}
@@ -372,21 +411,30 @@ export default async function Home() {
                 músicas para aniversários, casamentos, empresas, escolas, eventos, jingles comerciais e políticos,
                 música eletrônica, vinhetas, intros e projetos especiais
               </strong>
-              .
+              . Também criamos drops, opens de DJ, trilhas para vídeo e homenagens que a família guarda pra sempre.
             </p>
             <p>
-              Você não precisa entender de produção musical. Basta contar o que imagina, enviar suas referências e
-              explicar o que deseja transmitir.
+              Você não precisa entender de produção musical. Basta contar o que imagina, enviar referências (playlists,
+              artistas, mood) e explicar o que deseja transmitir. Nossa equipe conduz o processo do conceito ao arquivo
+              final — WAV/MP3 entregues, revisões alinhadas e acompanhamento próximo.
+            </p>
+            <p>
+              Quer um diferencial? Podemos trabalhar{" "}
+              <strong className="font-semibold text-gray-200">
+                letra exclusiva, voz feminina ou masculina, clima emocional ou dancefloor
+              </strong>
+              , e ainda orientar distribuição digital quando o projeto pede presença no Spotify e outras plataformas.
             </p>
             <p>
               <strong className="font-semibold text-gray-200">
-                Sua ideia. Sua história. Sua música — produzida do zero.
+                Sua ideia. Sua história. Sua música — produzida do zero, com a assinatura BRS.
               </strong>
             </p>
           </>
         }
-        descriptionClassName="max-w-3xl text-justify"
-        imageMaxWidth="max-w-md"
+        descriptionClassName="w-full max-w-5xl text-justify"
+        contentMaxWidth="max-w-5xl"
+        imageMaxWidth="w-full max-w-5xl"
         image={PLACEHOLDER.musicProducerHero}
         imageAlt="DJ Jéssika Luana — Produção Musical Brazilian Remix Service"
         href="/musicproducer"
@@ -398,13 +446,75 @@ export default async function Home() {
       <ToolPromoSection
         id="allavsoft"
         badge="Allavsoft"
-        title="Deezer, Spotify, YouTube e +1000 sites"
-        description="Licença vitalícia do Allavsoft por R$ 50,00. Baixe músicas e vídeos de Deezer, Spotify, YouTube e dezenas de outras plataformas — serial no portal do cliente."
+        title="Licença vitalícia do Allavsoft"
+        description={
+          <>
+            <p>
+              Tenha acesso a uma ferramenta completa para facilitar seus downloads de músicas e vídeos de diferentes
+              plataformas em um só lugar. O Allavsoft é uma solução prática para quem trabalha com música, vídeo,
+              criação de conteúdo ou simplesmente quer organizar seus arquivos de forma mais rápida e eficiente.
+            </p>
+            <p>
+              Com ele, você pode baixar conteúdos de plataformas como{" "}
+              <strong className="font-semibold text-gray-200">Deezer, Spotify, YouTube</strong> e diversos outros
+              serviços compatíveis, reunindo em um único programa várias possibilidades de download. Isso ajuda a
+              economizar tempo, evita depender de várias ferramentas diferentes e deixa sua rotina muito mais simples.
+            </p>
+            <p>
+              É uma opção interessante para DJs, produtores, criadores de conteúdo e usuários que baixam músicas e
+              vídeos com frequência. O processo é simples: adquire a licença, acessa o portal do cliente, consulta o
+              serial e ativa o programa — sem cobrança recorrente.
+            </p>
+            <p className="text-sm text-zinc-500 md:text-base">
+              Use sempre de acordo com os termos de cada plataforma e apenas para conteúdos que você tenha autorização
+              ou direito de baixar.
+            </p>
+          </>
+        }
+        descriptionClassName="w-full max-w-5xl text-justify"
+        contentMaxWidth="max-w-5xl"
+        imageMaxWidth="w-full max-w-5xl"
+        extras={
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <IconBox
+              icon={Wallet}
+              title="R$ 50,00"
+              description="Pagamento único. Sem mensalidade e sem surpresa no cartão."
+              color="yellow"
+            />
+            <IconBox
+              icon={Infinity}
+              title="Licença vitalícia"
+              description="Um pagamento e o Allavsoft fica disponível para você continuar usando."
+              color="green"
+            />
+            <IconBox
+              icon={KeyRound}
+              title="Serial no portal"
+              description="Após a compra, o serial de ativação fica no portal do cliente."
+              color="blue"
+            />
+            <IconBox
+              icon={Download}
+              title="Várias plataformas"
+              description="Deezer, Spotify, YouTube e +1000 sites compatíveis em um só app."
+              color="yellow"
+            />
+          </div>
+        }
         image={PLACEHOLDER.allavsoft}
         imageAlt="Allavsoft"
+        belowImage={
+          <div className="space-y-3">
+            <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+              Compatível com Deezer, Spotify, YouTube, Vimeo e +1000 sites
+            </p>
+            <AllavsoftPlatformsMarquee />
+          </div>
+        }
         href="/allavsoft"
         buttonLabel="Comprar Allavsoft"
-        accent="yellow"
+        accent="green"
       />
 
       {/* Depoimentos */}
@@ -418,41 +528,6 @@ export default async function Home() {
           <div className="mt-12">
             <TestimonialsCarousel testimonials={testimonials} />
           </div>
-        </div>
-      </section>
-
-      {/* Planos — CTA para /plans */}
-      <section className="border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <SectionHeading
-            badge="Acesso"
-            title="Escolha seu plano"
-            subtitle="Compare 1 mês, 3 meses e 1 ano e assine pelo WhatsApp com acesso completo ao acervo e às ferramentas."
-          />
-          <Link
-            href="/plans"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#009739] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-[#009739]/30 transition-all hover:scale-105 hover:bg-[#00B347]"
-          >
-            Ver planos e preços
-          </Link>
-        </div>
-      </section>
-
-      {/* CTA WhatsApp */}
-      <section className="px-4 py-12 text-center sm:px-6 md:py-16">
-        <div className="mx-auto max-w-2xl">
-          <SectionHeading
-            title="Ainda tem dúvidas?"
-            subtitle="Nossa equipe está pronta para ajudar. Fale com a gente pelo WhatsApp para tirar dúvidas sobre o acervo, formas de acesso, planos, downloads e funcionamento da plataforma antes de assinar."
-          />
-          <a
-            href={whatsappUrl("Olá! Vim pelo site e quero saber mais sobre pools e curadoria.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#009739] px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#009739]/30 transition-all hover:scale-105 hover:bg-[#00B347]"
-          >
-            <MessageCircle size={18} /> Falar no WhatsApp
-          </a>
         </div>
       </section>
 

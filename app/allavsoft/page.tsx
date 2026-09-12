@@ -6,16 +6,12 @@ import {
   ChevronDown,
   Clipboard,
   Download,
-  FileVideo,
-  Film,
-  Globe,
+  Infinity,
   KeyRound,
-  MonitorPlay,
-  Music2,
   Shield,
-  Star,
-  Zap,
+  Wallet,
 } from "lucide-react";
+import { AllavsoftPlatformsMarquee } from "../components/AllavsoftPlatformsMarquee";
 import { AllavsoftPurchaseCta } from "../components/AllavsoftPurchaseCta";
 import { IconBox } from "../components/IconBox";
 import { SectionHeading } from "../components/SectionHeading";
@@ -26,93 +22,30 @@ import { buildPageMetadata } from "../lib/seo";
 
 export const metadata: Metadata = buildPageMetadata("allavsoft");
 
-const features = [
+const highlightBoxes = [
   {
-    icon: Music2,
-    title: "Deezer, Spotify e YouTube",
-    description:
-      "Baixe faixas e vídeos das principais plataformas de streaming e vídeo — Deezer, Spotify, YouTube e muito mais, conforme o suporte do Allavsoft.",
-    color: "green" as const,
-  },
-  {
-    icon: Globe,
-    title: "+1000 Sites",
-    description:
-      "Compatível com uma ampla variedade de sites e plataformas de mídia, permitindo centralizar seus downloads em uma única ferramenta.",
+    icon: Wallet,
+    title: "R$ 50,00",
+    description: "Pagamento único. Sem mensalidade e sem surpresa no cartão.",
     color: "yellow" as const,
   },
   {
-    icon: FileVideo,
-    title: "Vídeos e Áudios",
-    description:
-      "Baixe vídeos em diferentes resoluções e extraia o áudio nos formatos mais usados, como MP3, WAV e FLAC, conforme a disponibilidade do conteúdo.",
-    color: "blue" as const,
-  },
-  {
-    icon: Film,
-    title: "Conversão de Formatos",
-    description:
-      "Converta seus arquivos para MP4, AVI, MOV, MKV, MP3, AAC e diversos outros formatos de vídeo e áudio.",
-    color: "green" as const,
-  },
-  {
-    icon: Download,
-    title: "Download em Lote",
-    description:
-      "Adicione vários links de uma só vez e deixe o Allavsoft processar os downloads em sequência, economizando tempo em tarefas repetitivas.",
-    color: "yellow" as const,
-  },
-  {
-    icon: MonitorPlay,
-    title: "Gravador de Tela",
-    description:
-      "Capture conteúdos reproduzidos no computador utilizando o recurso integrado de gravação de tela.",
-    color: "blue" as const,
-  },
-];
-
-const highlights = [
-  {
-    icon: Zap,
-    title: "Download Rápido",
-    description:
-      "Gerencie seus downloads de forma prática e aproveite os recursos do Allavsoft para baixar e converter arquivos em uma única operação.",
-    color: "green" as const,
-  },
-  {
-    icon: Shield,
+    icon: Infinity,
     title: "Licença vitalícia",
-    description:
-      "Pagamento único via Mercado Pago. Após a confirmação do webhook, o acesso fica liberado na sua conta sem renovação mensal.",
-    color: "yellow" as const,
+    description: "Um pagamento e o Allavsoft fica disponível para você continuar usando.",
+    color: "green" as const,
   },
   {
     icon: KeyRound,
     title: "Serial no portal",
-    description:
-      "O gerenciamento do serial fica na área do cliente. A geração e a exibição do serial serão disponibilizadas após a liberação do pagamento.",
+    description: "Após a compra, o serial de ativação fica no portal do cliente.",
     color: "blue" as const,
   },
   {
-    icon: Film,
-    title: "Conversão Total",
-    description:
-      "Transforme vídeos e áudios entre diversos formatos e escolha a opção mais adequada para computador, celular, players, edição ou arquivamento.",
-    color: "green" as const,
-  },
-  {
-    icon: Star,
-    title: "Interface Intuitiva",
-    description:
-      "Cole o link, escolha suas preferências e inicie o processo. A interface foi desenvolvida para tornar downloads e conversões mais simples.",
+    icon: Download,
+    title: "Várias plataformas",
+    description: "Deezer, Spotify, YouTube e +1000 sites compatíveis em um só app.",
     color: "yellow" as const,
-  },
-  {
-    icon: MonitorPlay,
-    title: "Gravador de Tela",
-    description:
-      "Além dos downloads, utilize a captura de tela para gravar conteúdos reproduzidos diretamente no seu computador.",
-    color: "blue" as const,
   },
 ];
 
@@ -156,10 +89,6 @@ const faqs = [
     a: "Sim. O Allavsoft cobre Deezer, Spotify, YouTube e mais de mil sites de áudio, vídeo e streaming, conforme o suporte atual da ferramenta.",
   },
   {
-    q: "Quais formatos posso converter?",
-    a: "É possível trabalhar com formatos de vídeo como MP4, AVI, MOV e MKV, além de áudio em MP3, WAV, FLAC, AAC, M4A e outras opções compatíveis.",
-  },
-  {
     q: "Preciso instalar o programa no computador?",
     a: "Sim. O Allavsoft é instalado no seu computador para gerenciar downloads, conversões e gravações de tela de forma local.",
   },
@@ -192,50 +121,94 @@ export default async function AllavsoftPage() {
         </div>
         <a
           href="#allavsoft-plano"
-          className="inline-flex items-center justify-center rounded-full bg-[#FFDF00] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-[#002776] transition hover:bg-[#FFE566]"
+          className="inline-flex items-center justify-center rounded-full bg-[#009739] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#00B347]"
         >
           Comprar por R$ 50
         </a>
       </div>
 
-      <section className="text-center">
-        <SectionHeading
-          badge="Licença vitalícia"
-          title="Allavsoft"
-          subtitle="Baixe de Deezer, Spotify, YouTube e +1000 sites. Licença vitalícia por R$ 50,00 via Mercado Pago, com serial no portal do cliente."
-        />
-        <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-2xl border border-[#002776]/60 bg-white/[0.03] p-2">
+      <section>
+        <SectionHeading badge="Licença vitalícia" title="Licença vitalícia do Allavsoft" />
+        <div className="mx-auto mt-6 max-w-5xl space-y-4 text-justify text-base leading-relaxed text-gray-400 md:text-lg">
+          <p>
+            Tenha acesso a uma ferramenta completa para facilitar seus downloads de músicas e vídeos de diferentes
+            plataformas em um só lugar. O Allavsoft é uma solução prática para quem trabalha com música, vídeo,
+            criação de conteúdo ou simplesmente quer organizar seus arquivos de forma mais rápida e eficiente.
+          </p>
+          <p>
+            Com ele, você pode baixar conteúdos de plataformas como{" "}
+            <strong className="font-semibold text-gray-200">Deezer, Spotify, YouTube</strong> e diversos outros
+            serviços compatíveis, reunindo em um único programa várias possibilidades de download. Isso ajuda a
+            economizar tempo, evita depender de várias ferramentas diferentes e deixa sua rotina muito mais simples.
+          </p>
+          <p>
+            A licença é <strong className="font-semibold text-gray-200">vitalícia</strong>, ou seja, você faz um único
+            pagamento de <strong className="font-semibold text-gray-200">R$ 50,00</strong> e não precisa pagar
+            mensalidade para continuar usando. Após a confirmação da compra, o serial de ativação fica disponível
+            diretamente no portal do cliente, para que você possa consultar sempre que precisar.
+          </p>
+          <p>
+            É uma opção interessante para DJs, produtores, criadores de conteúdo e usuários que baixam músicas e
+            vídeos com frequência e procuram uma solução prática para o dia a dia.
+          </p>
+          <p>
+            Além da facilidade de uso, o Allavsoft permite centralizar vários tipos de download em um único aplicativo,
+            trazendo mais agilidade para quem precisa montar repertórios, salvar referências, organizar conteúdos ou
+            preparar materiais para uso posterior.
+          </p>
+          <p>
+            O processo é simples: você adquire a licença, acessa o portal do cliente, consulta seu serial e realiza a
+            ativação do programa. Depois disso, a licença permanece disponível para seu uso, sem cobrança recorrente.
+          </p>
+          <p>
+            <strong className="font-semibold text-gray-200">Valor da licença: R$ 50,00</strong>
+            <br />
+            Pagamento único. Licença vitalícia. Serial disponível no portal do cliente.
+          </p>
+          <p>
+            Compatível com downloads de músicas e vídeos de diferentes plataformas suportadas pelo programa. Uma
+            solução prática para quem quer mais liberdade, organização e rapidez na hora de baixar seus conteúdos.
+          </p>
+          <p className="text-sm text-zinc-500 md:text-base">
+            Use sempre de acordo com os termos de cada plataforma e apenas para conteúdos que você tenha autorização
+            ou direito de baixar.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {highlightBoxes.map((box) => (
+            <IconBox
+              key={box.title}
+              icon={box.icon}
+              title={box.title}
+              description={box.description}
+              color={box.color}
+            />
+          ))}
+        </div>
+
+        <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-[#009739]/30 bg-white/[0.03] p-2">
           <Image
             src={PLACEHOLDER.allavsoft}
             alt="Allavsoft"
             width={1200}
             height={600}
             className="h-auto w-full rounded-xl object-contain"
-            sizes="(max-width: 768px) 100vw, 768px"
+            sizes="(max-width: 768px) 100vw, 1024px"
             quality={82}
+            priority
           />
+        </div>
+
+        <div className="mt-8 space-y-3">
+          <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+            Compatível com Deezer, Spotify, YouTube, Vimeo e +1000 sites
+          </p>
+          <AllavsoftPlatformsMarquee />
         </div>
       </section>
 
       <AllavsoftPurchaseCta plans={plans} alreadyOwned={alreadyOwned} />
-
-      <section>
-        <SectionHeading badge="Funcionalidades" title="Principais recursos" />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <IconBox key={f.title} icon={f.icon} title={f.title} description={f.description} color={f.color} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <SectionHeading title="Recursos em destaque" />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {highlights.map((h) => (
-            <IconBox key={h.title} icon={h.icon} title={h.title} description={h.description} color={h.color} />
-          ))}
-        </div>
-      </section>
 
       <section>
         <SectionHeading title="Como funciona" />

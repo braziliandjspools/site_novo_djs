@@ -9,6 +9,7 @@ type SiteImageBaseProps = {
   priority?: boolean;
   sizes?: string;
   quality?: number;
+  unoptimized?: boolean;
 };
 
 type SiteImageFillProps = SiteImageBaseProps & {
@@ -33,6 +34,7 @@ export function SiteImage({
   priority = false,
   sizes,
   quality = 80,
+  unoptimized = false,
   ...sizeProps
 }: SiteImageProps) {
   if ("fill" in sizeProps && sizeProps.fill) {
@@ -46,6 +48,7 @@ export function SiteImage({
         priority={priority}
         sizes={sizes ?? "100vw"}
         quality={quality}
+        unoptimized={unoptimized}
       />
     );
   }
@@ -63,6 +66,7 @@ export function SiteImage({
       priority={priority}
       sizes={sizes}
       quality={quality}
+      unoptimized={unoptimized}
     />
   );
 }

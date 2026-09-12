@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test app/lib/hotmart/hotmart.test.ts app/lib/hotmart/access-policy.ts app/lib/week-calendar.test.ts app/lib/track-display-metadata.test.ts app/lib/mercadopago/orders.test.ts app/lib/mercadopago/preference.test.ts app/lib/mercadopago/webhook.test.ts app/lib/mercadopago/return-policy.test.ts app/lib/billing/plan-catalog.test.ts app/lib/rate-limit.test.ts app/lib/checkout-ui.test.ts app/lib/music-producer-email.test.ts",
+    "test": "tsx --test app/lib/hotmart/hotmart.test.ts app/lib/hotmart/access-policy.ts app/lib/week-calendar.test.ts app/lib/track-display-metadata.test.ts app/lib/mercadopago/orders.test.ts app/lib/mercadopago/preference.test.ts app/lib/mercadopago/webhook.test.ts app/lib/mercadopago/return-policy.test.ts app/lib/billing/plan-catalog.test.ts app/lib/rate-limit.test.ts app/lib/checkout-ui.test.ts app/lib/music-producer-email.test.ts app/lib/music-studio/prompt.test.ts",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",

@@ -77,36 +77,18 @@ export function AtualizacoesMonthHero({
     <section
       className={`relative mb-6 overflow-hidden ${isTracks ? "rounded-2xl" : "rounded-xl"}`}
     >
-      {isTracks ? (
-        <>
-          <Image
-            src={cover}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="scale-110 object-cover object-center blur-2xl saturate-125"
-            aria-hidden
-            unoptimized={cover.startsWith("/api/")}
-          />
-          <div className="absolute inset-0 bg-black/55" aria-hidden />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/75 to-black/25" aria-hidden />
-        </>
-      ) : (
-        <>
-          <Image
-            src={MUSICAS_HERO_BG_SRC}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-            aria-hidden
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/65 to-black/35" aria-hidden />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/25" aria-hidden />
-        </>
-      )}
+      <Image
+        src={MUSICAS_HERO_BG_SRC}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/25" aria-hidden />
+      {isTracks ? <div className="absolute inset-0 bg-black/20" aria-hidden /> : null}
 
       <div
         className={`relative z-10 flex flex-col gap-5 px-4 sm:flex-row sm:items-end sm:gap-7 sm:px-7 ${

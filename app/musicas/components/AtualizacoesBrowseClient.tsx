@@ -511,7 +511,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           eyebrow="Pack"
           description="Ouça no navegador, baixe no dispositivo ou envie direto ao BRS Downloader."
           coverUrl={data.coverUrl}
-          backgroundImage={data.coverUrl}
           stats={packStats}
           playing={packPlaying}
           playBusy={playBusy}

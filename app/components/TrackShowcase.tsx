@@ -205,7 +205,9 @@ function TrackRow({
             disabled={isBusy}
             aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
             className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
-              isPlaying ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
+              isPlaying
+                ? "bg-[#1ed760] text-black"
+                : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
             {isLoading ? (
@@ -359,7 +361,7 @@ export function TrackShowcase({
                     sizes="48px"
                   />
                   <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#009739]">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#1ed760]" />
                   </span>
                 </div>
                 <div className="min-w-0">

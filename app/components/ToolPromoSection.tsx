@@ -13,22 +13,25 @@ type ToolPromoSectionProps = {
   buttonLabel: string;
   accent?: "green" | "yellow" | "blue";
   imageMaxWidth?: string;
+  contentMaxWidth?: string;
   descriptionClassName?: string;
+  extras?: ReactNode;
+  belowImage?: ReactNode;
 };
 const accentStyles = {
   green: {
     badge: "border-[#009739]/40 bg-[#009739]/15 text-[#00B347]",
-    button: "bg-[#009739] hover:bg-[#00B347] shadow-[#009739]/30",
+    button: "bg-[#009739] text-white hover:bg-[#00B347] shadow-[#009739]/30",
     ring: "border-[#009739]/30",
   },
   yellow: {
     badge: "border-[#FFDF00]/40 bg-[#FFDF00]/10 text-[#FFDF00]",
-    button: "bg-[#FFDF00] hover:bg-[#FFE566] text-[#002776] shadow-[#FFDF00]/20",
+    button: "bg-[#FFDF00] text-[#002776] hover:bg-[#FFE566] shadow-[#FFDF00]/20",
     ring: "border-[#FFDF00]/30",
   },
   blue: {
     badge: "border-[#6B9FFF]/40 bg-[#002776]/30 text-[#6B9FFF]",
-    button: "bg-[#002776] hover:bg-[#1A3D8F] border border-[#6B9FFF]/40 shadow-[#002776]/40",
+    button: "bg-[#002776] text-white hover:bg-[#1A3D8F] border border-[#6B9FFF]/40 shadow-[#002776]/40",
     ring: "border-[#6B9FFF]/30",
   },
 };
@@ -44,8 +47,12 @@ export function ToolPromoSection({
   buttonLabel,
   accent = "green",
   imageMaxWidth = "max-w-3xl",
+  contentMaxWidth = "max-w-4xl",
   descriptionClassName = "",
-}: ToolPromoSectionProps) {  const styles = accentStyles[accent];
+  extras,
+  belowImage,
+}: ToolPromoSectionProps) {
+  const styles = accentStyles[accent];
 
   return (
     <section
@@ -57,7 +64,7 @@ export function ToolPromoSection({
       <div className="relative flex flex-1 items-start justify-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.04)_0%,_transparent_70%)]" />
 
-        <div className="relative z-10 mx-auto w-full max-w-4xl px-4 pb-12 pt-6 text-center sm:px-6 md:pb-20 md:pt-10">
+        <div className={`relative z-10 mx-auto w-full px-4 pb-12 pt-6 text-center sm:px-6 md:pb-20 md:pt-10 ${contentMaxWidth}`}>
           <span
             className={`mb-2 inline-flex rounded-full border px-4 py-1.5 text-eyebrow ${styles.badge}`}
           >
@@ -75,10 +82,12 @@ export function ToolPromoSection({
           </h2>
 
           <div
-            className={`mx-auto mt-4 max-w-2xl space-y-4 text-base leading-relaxed text-gray-400 md:text-lg ${descriptionClassName}`}
+            className={`mx-auto mt-4 space-y-4 text-base leading-relaxed text-gray-400 md:text-lg ${descriptionClassName || "max-w-2xl"}`}
           >
             {description}
           </div>
+
+          {extras ? <div className="mx-auto mt-8 w-full">{extras}</div> : null}
 
           <div
             className={`relative mx-auto mt-8 overflow-hidden rounded-2xl border ${styles.ring} bg-[#1a1a1a] p-2 shadow-2xl shadow-black/50 ${imageMaxWidth}`}
@@ -93,9 +102,12 @@ export function ToolPromoSection({
               quality={82}
             />
           </div>
+
+          {belowImage ? <div className="mx-auto mt-8 w-full">{belowImage}</div> : null}
+
           <Link
             href={href}
-            className={`mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold tracking-[-0.01em] text-white shadow-lg transition-all hover:scale-105 ${styles.button}`}
+            className={`mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold uppercase tracking-wide shadow-lg transition-all hover:scale-105 ${styles.button}`}
           >
             {buttonLabel}
             <ArrowRight className="h-4 w-4" />

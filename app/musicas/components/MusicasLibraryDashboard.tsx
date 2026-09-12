@@ -198,7 +198,9 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
                 type="button"
                 onClick={() => setPeriod(id)}
                 className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
-                  period === id ? "bg-white text-black" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                  period === id
+                    ? "bg-[#1ed760] text-black"
+                    : "bg-zinc-800 text-zinc-400 hover:text-white"
                 }`}
               >
                 {label}

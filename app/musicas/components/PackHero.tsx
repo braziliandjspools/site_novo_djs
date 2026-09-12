@@ -9,7 +9,7 @@ import {
   Play,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
+import { MUSICAS_HERO_BG_SRC, MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 
 export type PackHeroStat = {
@@ -23,7 +23,7 @@ type PackHeroProps = {
   eyebrow?: string;
   description?: string;
   coverUrl?: string | null;
-  /** Imagem de fundo desfocada; padrão = capa. */
+  /** @deprecated Fundo fixo do acervo; ignorado. */
   backgroundImage?: string | null;
   stats?: PackHeroStat[];
   playing?: boolean;
@@ -49,7 +49,6 @@ export function PackHero({
   eyebrow = "Pack",
   description = "Ouça no navegador, baixe no dispositivo ou envie direto ao BRS Downloader.",
   coverUrl,
-  backgroundImage,
   stats = [],
   playing = false,
   playBusy = false,
@@ -64,24 +63,21 @@ export function PackHero({
   extraActions,
 }: PackHeroProps) {
   const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
-  const bg = backgroundImage?.trim() || cover;
 
   return (
     <section className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#0d0f0f] shadow-2xl shadow-black/40">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <Image
-          src={bg}
+          src={MUSICAS_HERO_BG_SRC}
           alt=""
           fill
           priority
           sizes="100vw"
-          className="scale-110 object-cover object-center opacity-35 blur-3xl saturate-125"
-          unoptimized={bg.startsWith("/api/")}
+          className="object-cover object-center opacity-55"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-emerald-950/40" />
-        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-48 w-96 bg-green-500/5 blur-3xl" />
-        <div className="absolute inset-0 bg-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f0f] via-transparent to-black/25" />
+        <div className="absolute inset-0 bg-black/25" />
       </div>
 
       <div className="relative z-10 grid gap-6 p-5 sm:p-7 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end lg:gap-8 lg:p-8">

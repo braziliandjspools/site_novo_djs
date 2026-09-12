@@ -40,8 +40,9 @@ export function MusicalKeyBadge({ value }: { value: string | null }) {
     <span
       className="inline-flex min-w-[2rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums"
       style={{
-        backgroundColor: `hsl(${hue} 72% 82%)`,
-        color: `hsl(${hue} 45% 22%)`,
+        backgroundColor: `hsl(${hue} 42% 22%)`,
+        color: `hsl(${hue} 70% 78%)`,
+        boxShadow: `inset 0 0 0 1px hsl(${hue} 40% 35%)`,
       }}
     >
       {value}

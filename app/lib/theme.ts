@@ -20,8 +20,8 @@ export const SITE = {
 } as const;
 
 export const PLACEHOLDER = {
-  hero: "https://placehold.co/1920x900/002776/FFDF00?text=Imagem+Hero+%E2%80%94+substituir",
-  curadoria: "/images/curadoria.png",
+  curadoria: "/images/curadoria-brs-v3.jpg",
+  topDownloadsBanner: "/images/top-downloads-banner.jpg",
   googleDrive: "/images/google-drive.png",
   raidrive: "/images/raidrive.png",
   showcase: "https://placehold.co/600x400/009739/FFDF00?text=Showcase+%E2%80%94+substituir",
