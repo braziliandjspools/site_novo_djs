@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
+/** Folder grid — category cards premium do acervo. */
 import {
   memo,
   useCallback,
-  useEffect,
   useMemo,
   useState,
   type MouseEvent,
@@ -23,11 +23,12 @@ import {
   Share2,
 } from "lucide-react";
 import { buildPackDownloadUrl } from "../../lib/pack-download-link";
-import { PLACEHOLDER } from "../../lib/theme";
 import { displayFolderName, folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
+import { resolveLibraryCategoryMeta } from "../lib/library-category-meta";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
+import { LibraryCategoryCard } from "./LibraryCategoryCard";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
@@ -80,10 +81,13 @@ type LibraryFolderListProps = {
   description?: string;
   descriptionMobile?: string;
   emptyMessage?: string;
+  /** Cabeçalho acima do grid (ex.: raiz de atualizações). */
+  sectionTitle?: string;
+  sectionDescription?: string;
   /** Conteúdo acima da lista (ex.: calendário). */
   before?: ReactNode;
   className?: string;
-  /** list = file manager (default); grid = capas estilo biblioteca. */
+  /** list = file manager; grid = capas (padrão do acervo). */
   layout?: "list" | "grid";
 };
 
@@ -189,7 +193,7 @@ const FolderDownloaderButton = memo(function FolderDownloaderButton({
         <MonitorDown className="h-3.5 w-3.5" />
       )}
       <span className="hidden sm:inline">{isDone ? "Enviada" : sending ? "Enviando" : null}</span>
-      <span className="sm:hidden">{isDone ? "✓" : null}</span>
+      <span className="sm:hidden">{isDone ? "âœ“" : null}</span>
     </button>
   );
 });
@@ -461,210 +465,6 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
   );
 });
 
-const LibraryFolderCard = memo(function LibraryFolderCard({
-  folder,
-  slugSegments,
-  isNew,
-  sent,
-  onMarkedSent,
-}: FolderRowProps) {
-  const router = useRouter();
-  const { showToast } = useMusicasToast();
-  const { authenticated, openLogin, hasVip } = useMusicasSession();
-  const sync = useDownloaderSync();
-  const [sending, setSending] = useState(false);
-  const [coverSrc, setCoverSrc] = useState(
-    () => folder.coverUrl?.trim() || PLACEHOLDER.trackCover,
-  );
-
-  useEffect(() => {
-    setCoverSrc(folder.coverUrl?.trim() || PLACEHOLDER.trackCover);
-  }, [folder.coverUrl]);
-
-  const folderSlug = slugifyFolderName(folder.name);
-  const nextSegments = useMemo(() => [...slugSegments, folderSlug], [slugSegments, folderSlug]);
-  const href = folderHref(nextSegments);
-  const resolveSlug = nextSegments.join("/");
-  const label = (folder.title?.trim() || displayFolderName(folder.name)).toLocaleUpperCase("pt-BR");
-  const folderCount = folder.folderCount ?? 0;
-  const trackCount = folder.trackCount ?? 0;
-  const metaParts = formatMeta(folderCount, trackCount, folder.detail);
-  const badge = folder.badge?.trim() || (isNew ? "Novo" : null);
-  const badgeTone = folder.badgeTone ?? "green";
-
-  const prefetch = useCallback(() => {
-    prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`);
-  }, [resolveSlug]);
-
-  const openFolder = useCallback(() => {
-    router.push(href);
-  }, [href, router]);
-
-  const sendToDownloader = useCallback(async () => {
-    if (sending || sent) return;
-    if (!authenticated) {
-      openLogin();
-      return;
-    }
-    if (!hasVip) {
-      showToast("Plano VIP necessário para usar o Downloader.", "error");
-      return;
-    }
-    setSending(true);
-    try {
-      const result = await sendPackSlugToDownloader(resolveSlug, {
-        target: sync?.selectedTarget,
-        devices: sync?.devices,
-        root: "vip",
-      });
-      markPackSent(resolveSlug);
-      onMarkedSent(resolveSlug);
-      showToast(
-        result.count === 1
-          ? "1 faixa adicionada ao BRS Downloader"
-          : `${result.count} faixas adicionadas ao BRS Downloader`,
-      );
-      await sync?.refresh();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");
-    } finally {
-      setSending(false);
-    }
-  }, [
-    authenticated,
-    hasVip,
-    onMarkedSent,
-    openLogin,
-    resolveSlug,
-    sending,
-    sent,
-    showToast,
-    sync,
-  ]);
-
-  const copyLink = useCallback(() => {
-    const url = buildPackDownloadUrl(nextSegments);
-    void navigator.clipboard
-      .writeText(url)
-      .then(() => showToast("Link copiado"))
-      .catch(() => showToast("Não foi possível copiar o link.", "error"));
-  }, [nextSegments, showToast]);
-
-  const shareFolder = useCallback(async () => {
-    const url = buildPackDownloadUrl(nextSegments);
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: label, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      showToast("Link copiado para compartilhar");
-    } catch {
-      /* cancelado */
-    }
-  }, [label, nextSegments, showToast]);
-
-  const downloadFolderLink = useCallback(() => {
-    const url = buildPackDownloadUrl(nextSegments);
-    void navigator.clipboard
-      .writeText(url)
-      .then(() => showToast("Link da pasta copiado — cole no BRS Downloader"))
-      .catch(() => showToast("Não foi possível copiar o link.", "error"));
-  }, [nextSegments, showToast]);
-
-  const menuActions = useMemo((): CollectionMenuAction[] => {
-    return [
-      { id: "open", label: "Abrir pasta", icon: Folder, onClick: openFolder },
-      {
-        id: "downloader",
-        label: sent ? "Já enviada ao Downloader" : "Enviar ao Downloader",
-        icon: MonitorDown,
-        disabled: sending || sent,
-        onClick: () => void sendToDownloader(),
-      },
-      { id: "copy", label: "Copiar link", icon: Copy, onClick: copyLink },
-      { id: "share", label: "Compartilhar", icon: Share2, onClick: () => void shareFolder() },
-      { id: "download", label: "Baixar pasta", icon: Download, onClick: downloadFolderLink },
-    ];
-  }, [copyLink, downloadFolderLink, openFolder, sendToDownloader, sending, sent, shareFolder]);
-
-  return (
-    <article
-      role="link"
-      tabIndex={0}
-      onClick={openFolder}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openFolder();
-        }
-      }}
-      onMouseEnter={prefetch}
-      onFocus={prefetch}
-      className="group/card cursor-pointer outline-none"
-      aria-label={`Abrir ${label}`}
-    >
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-[#14181E] shadow-[0_12px_32px_-16px_rgba(0,0,0,0.85)] ring-1 ring-white/[0.06] transition duration-300 group-hover/card:ring-[#1ed760]/35 group-hover/card:shadow-[0_16px_40px_-12px_rgba(30,215,96,0.2)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={coverSrc}
-          alt=""
-          className="h-full w-full object-cover transition duration-500 group-hover/card:scale-[1.04]"
-          onError={() => {
-            setCoverSrc((current) =>
-              current === PLACEHOLDER.logo ? current : PLACEHOLDER.logo,
-            );
-          }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80" />
-
-        {badge ? (
-          <span
-            className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              badgeTone === "amber"
-                ? "bg-amber-500/90 text-black"
-                : badgeTone === "muted"
-                  ? "bg-white/20 text-white"
-                  : "bg-[#1ed760] text-black"
-            }`}
-          >
-            {badge}
-          </span>
-        ) : null}
-
-        <div
-          className="absolute bottom-2 right-2 flex items-center gap-1.5 opacity-100 transition sm:opacity-0 sm:group-hover/card:opacity-100"
-          onClick={(event) => event.stopPropagation()}
-          onKeyDown={(event) => event.stopPropagation()}
-        >
-          <FolderDownloaderButton
-            slug={resolveSlug}
-            label={`Enviar ${label} ao Downloader`}
-            sent={sent}
-            onMarkedSent={onMarkedSent}
-          />
-          <CollectionContextMenu
-            label={`Opções · ${label}`}
-            buttonClassName="!h-8 !w-8 rounded-md border border-white/15 bg-black/55 text-white/80 backdrop-blur hover:text-white"
-            actions={menuActions}
-          />
-        </div>
-      </div>
-
-      <div className="mt-2.5 min-w-0 px-0.5">
-        <p className="truncate text-[13px] font-semibold tracking-tight text-white transition-colors group-hover/card:text-[#1ed760] sm:text-sm">
-          {label}
-        </p>
-        {metaParts.length > 0 ? (
-          <p className="mt-0.5 truncate text-[11px] text-white/45 sm:text-xs">{metaParts.join(" · ")}</p>
-        ) : (
-          <p className="mt-0.5 text-[11px] text-white/35">Abrir pasta</p>
-        )}
-      </div>
-    </article>
-  );
-});
-
 /** Lista de pastas/subpastas no padrão biblioteca (até chegar nas faixas). */
 export function LibraryFolderList({
   folders,
@@ -674,15 +474,13 @@ export function LibraryFolderList({
   description = "Explore as categorias e subpastas deste pack",
   descriptionMobile = "Categorias e subpastas",
   emptyMessage = "Nenhuma pasta neste nível. Adicione subpastas no Google Drive.",
+  sectionTitle,
+  sectionDescription,
   before,
   className = "",
-  layout = "list",
+  layout = "grid",
 }: LibraryFolderListProps) {
-  const [sentSlugs, setSentSlugs] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    setSentSlugs(readSentPacks());
-  }, []);
+  const [sentSlugs, setSentSlugs] = useState<Set<string>>(() => readSentPacks());
 
   const onMarkedSent = useCallback((slug: string) => {
     setSentSlugs((current) => {
@@ -693,49 +491,62 @@ export function LibraryFolderList({
     });
   }, []);
 
+  const useGrid = layout !== "list";
+
   if (folders.length === 0) {
     return (
       <div className={className}>
         {before}
-        <p className="rounded-[20px] border border-white/5 bg-[#0f1012] px-4 py-8 text-center text-sm text-zinc-500">
+        <p className="mx-auto max-w-md rounded-2xl border border-white/5 bg-[#0f1012] px-4 py-10 text-center text-sm text-zinc-500">
           {emptyMessage}
         </p>
       </div>
     );
   }
 
-  if (layout === "grid") {
+  if (useGrid) {
     return (
-      <div className={className}>
+      <div className={className} data-layout="folder-grid">
         {before}
-        <section>
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3 px-0.5">
-            <div className="min-w-0">
-              <h2 className="text-base font-semibold tracking-tight text-white sm:text-lg">{title}</h2>
-              {description ? (
-                <p className="mt-0.5 hidden text-sm text-white/45 sm:block">{description}</p>
-              ) : null}
-              {descriptionMobile ? (
-                <p className="mt-0.5 text-xs text-white/40 sm:hidden">{descriptionMobile}</p>
+        <section className="mx-auto w-full max-w-[1280px]">
+          {sectionTitle ? (
+            <div className="mb-6 text-center sm:mb-8">
+              <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">{sectionTitle}</h2>
+              {sectionDescription ? (
+                <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-white/50 sm:text-[15px]">
+                  {sectionDescription}
+                </p>
               ) : null}
             </div>
-            <p className="text-[12px] tabular-nums text-white/40">
-              {folders.length} pasta{folders.length === 1 ? "" : "s"}
-            </p>
-          </div>
+          ) : null}
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {folders.map((folder) => {
+          <div className="grid grid-cols-1 justify-items-center gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
+            {folders.map((folder, index) => {
               const folderSlug = slugifyFolderName(folder.name);
-              const resolveSlug = [...slugSegments, folderSlug].join("/");
+              const nextSegments = [...slugSegments, folderSlug];
+              const resolveSlug = nextSegments.join("/");
+              const href = folderHref(nextSegments);
+              const titleLabel = (
+                folder.title?.trim() || displayFolderName(folder.name)
+              ).toLocaleUpperCase("pt-BR");
+              const meta = resolveLibraryCategoryMeta(folder.name, index);
+              const badge = folder.badge?.trim() || (newFolderIds?.has(folder.id) ? "Novo" : null);
+
               return (
-                <LibraryFolderCard
+                <LibraryCategoryCard
                   key={folder.id}
-                  folder={folder}
-                  slugSegments={slugSegments}
-                  isNew={Boolean(newFolderIds?.has(folder.id))}
-                  sent={sentSlugs.has(resolveSlug)}
-                  onMarkedSent={onMarkedSent}
+                  title={titleLabel}
+                  eyebrow={meta.eyebrow}
+                  folderCount={folder.folderCount}
+                  trackCount={folder.trackCount}
+                  href={href}
+                  resolveSlug={resolveSlug}
+                  gradient={meta.gradient}
+                  icon={meta.icon}
+                  cta={meta.cta}
+                  singularFolderLabel={meta.singularFolderLabel}
+                  badge={badge}
+                  index={index}
                 />
               );
             })}

@@ -8,7 +8,7 @@ import { monthsReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
-import { MusicasListSkeleton } from "./MusicasSkeletons";
+import { MusicasFolderGridSkeleton } from "./MusicasSkeletons";
 import { MusicasMonthLinks } from "./MusicasMonthLinks";
 import { UpdatesHero, UpdatesHeroSkeleton } from "./UpdatesHero";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
@@ -143,7 +143,7 @@ export function AtualizacoesRootClient() {
 
       <div id="atualizacoes-pastas">
         {loading && folders.length === 0 ? (
-          <MusicasListSkeleton rows={8} />
+          <MusicasFolderGridSkeleton cards={8} />
         ) : (
           <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
         )}

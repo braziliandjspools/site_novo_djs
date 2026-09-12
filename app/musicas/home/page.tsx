@@ -7,7 +7,7 @@ import { MusicasPageHeader } from "../MusicasShell";
 import { MusicasFaqSection } from "../components/MusicasFaqSection";
 import { MusicasLibraryDashboard } from "../components/MusicasLibraryDashboard";
 import { MusicasMonthLinks } from "../components/MusicasMonthLinks";
-import { MusicasListSkeleton } from "../components/MusicasSkeletons";
+import { MusicasFolderGridSkeleton } from "../components/MusicasSkeletons";
 import { useMusicasSession } from "../components/MusicasSessionContext";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
@@ -45,7 +45,7 @@ export default function MusicasHomePage() {
 
       {loadingTree ? (
         <div className="mt-10">
-          <MusicasListSkeleton rows={6} />
+          <MusicasFolderGridSkeleton cards={6} />
         </div>
       ) : null}
 

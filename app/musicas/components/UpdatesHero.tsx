@@ -133,10 +133,14 @@ export function UpdatesHero({
           <h1 className="mt-1.5 font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
             Atualizações
           </h1>
-          <div className="mt-3 max-w-xl space-y-1 text-sm leading-relaxed text-white/65 md:text-base">
-            <p className="font-medium text-white/80">Seu acervo sempre atualizado.</p>
-            <p>Novos packs, coleções e faixas adicionados quase todos os dias.</p>
-            <p>Ouça online ou envie direto ao BRS Downloader.</p>
+          <div className="mt-3 max-w-xl space-y-1.5 text-sm leading-relaxed text-white/65 md:text-base">
+            <p className="font-medium text-white/85">Seu acervo sempre atualizado.</p>
+            <p>
+              Lançamentos VIP frescos quase todo dia — packs, coleções e faixas prontos para o set.
+            </p>
+            <p className="text-white/55">
+              Ouça no navegador ou envie em um toque para o BRS Downloader.
+            </p>
           </div>
 
           <div className="mt-5">

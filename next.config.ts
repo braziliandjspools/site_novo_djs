@@ -41,7 +41,15 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/_next/static/:path*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+        headers: [
+          {
+            key: "Cache-Control",
+            value:
+              process.env.NODE_ENV === "development"
+                ? "no-store, must-revalidate"
+                : "public, max-age=31536000, immutable",
+          },
+        ],
       },
       {
         source: "/downloads/:path*",

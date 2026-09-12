@@ -8,7 +8,7 @@ import {
   sortFoldersByMonthDate,
   sortFoldersByYearCollection,
 } from "../../lib/vip-music-slugs";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderList";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 
 type MusicasMonthLinksProps = {
   folders: Array<VipMusicFolder | VipMusicCatalogItem>;
@@ -37,10 +37,9 @@ export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksPr
     return sorted.map((folder) => {
       const { label, status } = parseMonthStatus(folder.name);
       const catalog = folder as VipMusicCatalogItem;
-      let badge: string | null = label || null;
-      let badgeTone: LibraryFolderItem["badgeTone"] = "muted";
-      if (status === "em-atualizacao") badgeTone = "amber";
-      else if (status === "completo") badgeTone = "green";
+      const badge: string | null = label || null;
+      const badgeTone: LibraryFolderItem["badgeTone"] =
+        status === "em-atualizacao" ? "amber" : status === "completo" ? "green" : "muted";
 
       return {
         id: folder.id,
@@ -60,9 +59,8 @@ export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksPr
       slugSegments={[]}
       newFolderIds={newFolderIds}
       layout="grid"
-      title="Pastas"
-      description="Escolha o pack ou mês e continue até as faixas"
-      descriptionMobile="Packs e meses do acervo"
+      sectionTitle="Seu acervo"
+      sectionDescription="Tudo organizado para você encontrar, ouvir e baixar mais rápido."
       emptyMessage="Nenhum mês encontrado."
     />
   );

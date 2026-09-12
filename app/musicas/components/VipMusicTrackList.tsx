@@ -68,7 +68,7 @@ type VipMusicTrackListProps = {
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[48px_minmax(0,1fr)_70px_48px_32px] md:items-center md:gap-x-2";
+  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_48px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -180,8 +180,8 @@ function TrackDownloaderButton({
       disabled={isSending || (isQueued && !isError)}
       title={tooltip}
       aria-label={`Enviar ${title} ao Downloader`}
-      className={`inline-flex flex-shrink-0 items-center justify-center gap-1 rounded-md border text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-70 ${toneClass} ${
-        compact ? "h-10 w-10 px-0 md:h-8 md:w-8" : "h-8 gap-1 px-2"
+      className={`inline-flex flex-shrink-0 items-center justify-center gap-1 rounded-xl border text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-70 ${toneClass} ${
+        compact ? "h-10 w-10 px-0 md:h-9 md:w-9" : "h-8 gap-1 px-2"
       }`}
     >
       {icon}
@@ -360,9 +360,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     selectionMode,
   ]);
 
-  const rowBg = isHighlighted || isSelected || isActive
-    ? "bg-[rgba(0,255,110,0.05)]"
-    : "bg-transparent hover:bg-[rgba(249,168,212,0.06)]";
+  const rowBg =
+    isHighlighted || isSelected || isActive
+      ? "bg-white/[0.05]"
+      : "bg-transparent hover:bg-white/[0.04]";
 
   function handleSeekClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -370,27 +371,30 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     onSeek(Math.max(0, Math.min(1, ratio)));
   }
 
+  const coverButtonClass =
+    "group/play relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl ring-1 ring-white/[0.08] shadow-[0_8px_20px_-12px_rgba(0,0,0,0.7)] transition-[transform,box-shadow] duration-200 ease-out group-hover/row:scale-[1.03] group-hover/row:ring-white/[0.14] disabled:opacity-40 md:h-11 md:w-11";
+
   const playButton = canPlay ? (
     <button
       type="button"
       onClick={onToggle}
       disabled={isBusy || selectionMode}
       aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
-      className="group/play relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-transform duration-200 ease-out group-hover/row:scale-105 disabled:opacity-40 md:h-10 md:w-10"
+      className={coverButtonClass}
     >
       <Image
         src={coverSrc}
         alt=""
         fill
-        sizes="44px"
+        sizes="48px"
         className="object-cover"
         unoptimized={coverUnoptimized}
       />
       <span
         className={`absolute inset-0 transition-colors duration-200 ${
           isPlaying || isLoading
-            ? "bg-black/45"
-            : "bg-black/25 [@media(hover:hover)]:group-hover/row:bg-black/50"
+            ? "bg-black/50"
+            : "bg-black/20 [@media(hover:hover)]:group-hover/row:bg-black/55"
         }`}
         aria-hidden
       />
@@ -405,7 +409,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             <Pause className="hidden h-4 w-4 [@media(hover:hover)]:group-hover/row:block [@media(hover:hover)]:group-focus-visible/play:block" fill="currentColor" />
           </>
         ) : (
-          <Play className="ml-0.5 h-4 w-4 drop-shadow" fill="currentColor" />
+          <Play className="ml-0.5 h-4 w-4 opacity-90 drop-shadow" fill="currentColor" />
         )}
       </span>
     </button>
@@ -414,13 +418,13 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       <button
         type="button"
         aria-label={`Play bloqueado — ${display.title}. Assine o VIP para ouvir.`}
-        className="group/play relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-transform duration-200 ease-out group-hover/row:scale-105 md:h-10 md:w-10"
+        className={coverButtonClass}
       >
         <Image
           src={coverSrc}
           alt=""
           fill
-          sizes="44px"
+          sizes="48px"
           className="object-cover opacity-75"
           unoptimized={coverUnoptimized}
         />
@@ -442,15 +446,13 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         title={a11yName}
       >
         <p
-          className={`truncate text-[14px] font-medium leading-snug transition-colors duration-200 ${
-            isActive || isPlaying
-              ? "text-[#1ed760]"
-              : "text-white group-hover/row:text-[#f9a8d4]"
+          className={`truncate text-[14px] font-semibold leading-snug tracking-[-0.01em] transition-colors duration-200 ${
+            isActive || isPlaying ? "text-[#1ed760]" : "text-white"
           }`}
         >
           {display.title}
         </p>
-        <p className="mt-0.5 truncate text-[12px] leading-snug text-white/45 transition-colors duration-200 group-hover/row:text-[#f9a8d4]/70">
+        <p className="mt-0.5 truncate text-[12px] leading-snug text-white/45 transition-colors duration-200 group-hover/row:text-white/65">
           {display.artist}
         </p>
       </button>
@@ -491,23 +493,23 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative border-b border-[#1ed760]/15 transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
+      className={`group/row relative border-b border-white/[0.06] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#1ed760]"
-          : "hover:shadow-[inset_3px_0_0_0_#1ed760]"
+          : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
       }`}
     >
       {/* Mobile — play | título/progresso | download/menu */}
-      <div className="flex items-center gap-2.5 px-3 py-3 md:hidden">
+      <div className="flex items-center gap-3 px-3.5 py-3.5 md:hidden">
         {selectionMode && canDownload ? (
           <button
             type="button"
             onClick={onToggleSelected}
             aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
-            className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded border ${
+            className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-colors ${
               isSelected
                 ? "border-[#1ed760] bg-[#1ed760] text-black"
-                : "border-zinc-600 text-transparent"
+                : "border-white/20 text-transparent hover:border-white/40"
             }`}
           >
             {isSelected ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
@@ -518,13 +520,13 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {titleBlock}
           {progressBlock}
           {showSideDuration ? (
-            <p className="mt-1 font-mono text-[11px] tabular-nums text-white/40">
+            <p className="mt-1.5 font-mono text-[11px] tabular-nums text-white/40">
               {formatTime(displayDuration)}
             </p>
           ) : null}
         </div>
         {!selectionMode ? (
-          <div className="flex flex-shrink-0 flex-col items-center gap-1.5">
+          <div className="flex flex-shrink-0 items-center gap-1">
             {canDownload ? (
               <TrackDownloaderButton
                 fileId={track.id}
@@ -536,7 +538,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             ) : null}
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
-              buttonClassName="!h-10 !w-10 text-white/60 hover:text-white"
+              buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
               actions={menuActions}
             />
           </div>
@@ -544,17 +546,17 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       </div>
 
       {/* Desktop */}
-      <div className={`${STREAM_DESKTOP_GRID} px-3 py-2`}>
+      <div className={`${STREAM_DESKTOP_GRID} px-3.5 py-2.5`}>
         <div className="flex items-center justify-center">
           {selectionMode && canDownload ? (
             <button
               type="button"
               onClick={onToggleSelected}
               aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
-              className={`flex h-5 w-5 items-center justify-center rounded border ${
+              className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${
                 isSelected
                   ? "border-[#1ed760] bg-[#1ed760] text-black"
-                  : "border-zinc-600 text-transparent hover:border-zinc-400"
+                  : "border-white/20 text-transparent hover:border-white/40"
               }`}
             >
               {isSelected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
@@ -573,7 +575,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {showSideDuration ? formatTime(displayDuration) : null}
         </div>
 
-        <div className="flex items-center justify-center opacity-80 transition-opacity group-hover/row:opacity-100">
+        <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
           {canDownload && !selectionMode ? (
             <TrackDownloaderButton
               fileId={track.id}
@@ -585,11 +587,11 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-end opacity-50 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
+        <div className="flex items-center justify-end opacity-45 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
           {!selectionMode ? (
             <CollectionContextMenu
               label={`Opções · ${display.title}`}
-              buttonClassName="!h-8 !w-8 text-white/50 hover:text-white"
+              buttonClassName="!h-9 !w-9 rounded-xl text-white/50 hover:bg-white/[0.06] hover:text-white"
               actions={menuActions}
             />
           ) : null}
@@ -1016,19 +1018,25 @@ export function VipMusicTrackList({
   const useDiscography = layout === "discography";
 
   return (
-    <div className={embedded ? "" : "overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f1012]"}>
+    <div
+      className={
+        embedded
+          ? ""
+          : "overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12141a] to-[#0f1012] shadow-[0_18px_40px_rgba(0,0,0,0.28)]"
+      }
+    >
       {error && isThisFolder && (
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
 
       {canDownload && tracks.length > 1 && !useDiscography && (
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-white/[0.06] px-3 py-2">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-white/[0.015] px-3.5 py-2.5">
           {selectionMode ? (
             <>
               <button
                 type="button"
                 onClick={selectAllTracks}
-                className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white"
+                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
               >
                 Todas
               </button>
@@ -1036,14 +1044,14 @@ export function VipMusicTrackList({
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
                 disabled={selectedCount === 0}
-                className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white disabled:opacity-40"
+                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-white/20 hover:text-white disabled:opacity-40"
               >
                 Limpar
               </button>
               <button
                 type="button"
                 onClick={exitSelectionMode}
-                className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-white"
+                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-white/20 hover:text-white"
               >
                 Cancelar
               </button>
@@ -1052,7 +1060,7 @@ export function VipMusicTrackList({
             <button
               type="button"
               onClick={() => setSelectionMode(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-zinc-400 hover:bg-white/5 hover:text-[#1ed760]"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
             >
               <Check className="h-3 w-3" />
               Selecionar faixas
@@ -1110,28 +1118,28 @@ export function VipMusicTrackList({
         <div>
           {(trackSections ?? [{ id: "all", title: "", subtitle: "", isNew: false, tracks }]).map(
             (section) => (
-              <section key={section.id} className="border-b border-[#1ed760]/10 last:border-b-0">
+              <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
                 {trackSections && section.title ? (
                   <header
-                    className={`flex items-center gap-2 border-b px-3 py-2.5 ${
+                    className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
                       section.isNew
-                        ? "border-[#1ed760]/25 bg-[rgba(30,215,96,0.08)]"
-                        : "border-white/5 bg-white/[0.02]"
+                        ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
+                        : "border-white/[0.05] bg-white/[0.02]"
                     }`}
                   >
                     {section.isNew ? (
-                      <span className="rounded-sm bg-[#1ed760] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">
+                      <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
                         Novo
                       </span>
                     ) : null}
                     <h3
-                      className={`text-[12px] font-bold uppercase tracking-[0.12em] ${
-                        section.isNew ? "text-[#1ed760]" : "text-white/70"
+                      className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                        section.isNew ? "text-[#1ed760]" : "text-white/60"
                       }`}
                     >
                       {section.title}
                     </h3>
-                    <span className="text-[11px] text-white/40">{section.subtitle}</span>
+                    <span className="text-[11px] text-white/35">{section.subtitle}</span>
                   </header>
                 ) : null}
                 {section.tracks.map((track, index) => {
@@ -1182,7 +1190,7 @@ export function VipMusicTrackList({
       ) : null}
 
       {selectionMode && selectedCount > 0 ? (
-        <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/10 bg-[#0f1012]/95 px-3 py-3 backdrop-blur-md">
+        <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#0f1012]/95 px-3.5 py-3 backdrop-blur-md">
           <p className="text-xs font-semibold text-white">
             {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
           </p>
@@ -1190,7 +1198,7 @@ export function VipMusicTrackList({
             type="button"
             onClick={() => void handleSendSelectedToDownloader()}
             disabled={batchSending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[#1ed760] px-3 py-2 text-xs font-bold text-black disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3.5 py-2 text-xs font-bold text-black disabled:opacity-50"
           >
             {batchSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
             Enviar ao Downloader
@@ -1198,7 +1206,7 @@ export function VipMusicTrackList({
           <button
             type="button"
             onClick={() => void handleDownloadSelected()}
-            className="inline-flex items-center gap-1.5 rounded-md border border-white/15 px-3 py-2 text-xs font-semibold text-white hover:bg-white/5"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/5"
           >
             <Download className="h-3.5 w-3.5" />
             Baixar
@@ -1206,7 +1214,7 @@ export function VipMusicTrackList({
           <button
             type="button"
             onClick={exitSelectionMode}
-            className="ml-auto inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white"
+            className="ml-auto inline-flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
           >
             <Square className="h-3 w-3" />
             Cancelar

@@ -65,9 +65,9 @@ export function CollectionContextMenu({
       if (!button) return;
 
       const rect = button.getBoundingClientRect();
-      const menuWidth = menu?.offsetWidth || 264;
+      const menuWidth = menu?.offsetWidth || 280;
       const menuHeight = menu?.offsetHeight || 240;
-      const gap = 6;
+      const gap = 8;
       const margin = 12;
 
       let left = rect.right - menuWidth;
@@ -85,7 +85,6 @@ export function CollectionContextMenu({
     }
 
     place();
-    // Reposition after first paint when menu size is known
     const raf = requestAnimationFrame(place);
     window.addEventListener("resize", place);
     window.addEventListener("scroll", place, true);
@@ -133,8 +132,8 @@ export function CollectionContextMenu({
   if (actions.length === 0) return null;
 
   const menuItems = (
-    <div className="py-1">
-      {actions.map((action) => {
+    <div className="p-1.5">
+      {actions.map((action, index) => {
         const Icon = action.icon;
         return (
           <button
@@ -142,15 +141,24 @@ export function CollectionContextMenu({
             type="button"
             disabled={action.disabled}
             onClick={() => runAction(action)}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 md:py-2.5"
+            className={`group/item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium tracking-wide text-white/80 transition-all duration-200 hover:bg-[#1ed760]/12 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent md:py-2.5 ${
+              index > 0 ? "" : ""
+            }`}
           >
-            {Icon ? <Icon className="h-4 w-4 flex-shrink-0 text-zinc-500" /> : null}
-            <span className="min-w-0 flex-1 break-words">{action.label}</span>
+            {Icon ? (
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/55 transition-colors group-hover/item:border-[#1ed760]/30 group-hover/item:bg-[#1ed760]/10 group-hover/item:text-[#1ed760]">
+                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+              </span>
+            ) : null}
+            <span className="min-w-0 flex-1 break-words leading-snug">{action.label}</span>
           </button>
         );
       })}
     </div>
   );
+
+  const panelClass =
+    "overflow-hidden border border-white/[0.12] bg-[#12151a]/95 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.04),inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-xl";
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
@@ -165,7 +173,9 @@ export function CollectionContextMenu({
           event.stopPropagation();
           setOpen((value) => !value);
         }}
-        className={`inline-flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/10 hover:text-white active:scale-95 ${buttonClassName}`}
+        className={`inline-flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-95 ${
+          open ? "bg-white/10 text-white ring-1 ring-white/15" : ""
+        } ${buttonClassName}`}
       >
         {trigger ?? <MoreHorizontal className="h-5 w-5" />}
       </button>
@@ -184,8 +194,13 @@ export function CollectionContextMenu({
                 ? { position: "fixed", top: coords.top, left: coords.left, zIndex: 10050 }
                 : { position: "fixed", top: -9999, left: -9999, zIndex: 10050, visibility: "hidden" }
             }
-            className="max-h-[min(70vh,24rem)] w-[min(calc(100vw-1.5rem),16.5rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-[#181818] py-1 shadow-2xl shadow-black/70"
+            className={`max-h-[min(70vh,26rem)] w-[min(calc(100vw-1.5rem),17.5rem)] overflow-y-auto overflow-x-hidden rounded-2xl ${panelClass}`}
           >
+            <div className="border-b border-white/[0.06] px-3.5 py-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+                {label}
+              </p>
+            </div>
             {menuItems}
           </div>,
           document.body,
@@ -199,21 +214,23 @@ export function CollectionContextMenu({
             <button
               type="button"
               aria-label="Fechar menu"
-              className="absolute inset-0 bg-black/65 backdrop-blur-[2px]"
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
               onClick={() => setOpen(false)}
             />
             <div
               id={menuId}
               role="menu"
               aria-label={label}
-              className="absolute inset-x-0 bottom-0 max-h-[min(78vh,28rem)] overflow-y-auto rounded-t-2xl border border-white/10 bg-[#181818] pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl"
+              className={`absolute inset-x-0 bottom-0 max-h-[min(78vh,30rem)] overflow-y-auto rounded-t-[28px] pb-[max(1rem,env(safe-area-inset-bottom))] ${panelClass}`}
             >
-              <div className="flex justify-center pt-3 pb-2">
-                <span className="h-1 w-10 rounded-full bg-zinc-600" />
+              <div className="flex justify-center pt-3.5 pb-2">
+                <span className="h-1 w-10 rounded-full bg-white/20" />
               </div>
-              <p className="px-4 pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-                {label}
-              </p>
+              <div className="border-b border-white/[0.06] px-4 pb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                  {label}
+                </p>
+              </div>
               {menuItems}
             </div>
           </div>,

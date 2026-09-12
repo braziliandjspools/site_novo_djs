@@ -15,7 +15,7 @@ import {
   getPackWeekDayRange,
   isCurrentPackWeek,
 } from "../../lib/week-calendar";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderList";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 
 type WeekFolderGridProps = {
   monthSlug: string;
@@ -84,9 +84,6 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
       slugSegments={[monthSlug]}
       newFolderIds={newWeekIds}
       layout="grid"
-      title="Semanas"
-      description={`Semanas de ${monthName}`}
-      descriptionMobile={monthName}
       emptyMessage="Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…"
       before={
         monthDate ? (

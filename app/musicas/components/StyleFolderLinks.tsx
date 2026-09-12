@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderList";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 
 type StyleFolderLinksProps = {
   folders: VipMusicCatalogItem[];
@@ -29,9 +29,6 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
       slugSegments={slugSegments}
       newFolderIds={newFolderIds}
       layout="grid"
-      title="Pastas"
-      description="Explore as categorias e subpastas deste pack"
-      descriptionMobile="Categorias e subpastas"
       emptyMessage="Nenhuma pasta nesta pasta. Adicione subpastas no Google Drive."
     />
   );
