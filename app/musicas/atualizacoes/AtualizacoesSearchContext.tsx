@@ -1,7 +1,15 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { folderHref } from "../../lib/vip-music-slugs";
 import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 
@@ -20,6 +28,9 @@ type AtualizacoesSearchContextValue = {
 
 const AtualizacoesSearchContext = createContext<AtualizacoesSearchContextValue | null>(null);
 
+const FETCH_DEBOUNCE_MS = 160;
+const URL_DEBOUNCE_MS = 450;
+
 export function hitHref(hit: VipMusicSearchHit, query?: string) {
   const segments = [hit.monthSlug];
   if (hit.weekSlug) segments.push(hit.weekSlug);
@@ -30,6 +41,33 @@ export function hitHref(hit: VipMusicSearchHit, query?: string) {
   if (query?.trim()) params.set("q", query.trim());
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
+}
+
+async function parseSearchResponse(res: Response): Promise<{
+  results?: VipMusicSearchHit[];
+  error?: string;
+}> {
+  const contentType = res.headers.get("content-type") ?? "";
+  const raw = await res.text();
+
+  if (!raw) {
+    if (!res.ok) throw new Error("Busca indisponível.");
+    return { results: [] };
+  }
+
+  if (!contentType.includes("application/json") && raw.trimStart().startsWith("<")) {
+    throw new Error(
+      res.status >= 500
+        ? "Busca sobrecarregada. Tente de novo em instantes."
+        : "Busca indisponível no momento.",
+    );
+  }
+
+  try {
+    return JSON.parse(raw) as { results?: VipMusicSearchHit[]; error?: string };
+  } catch {
+    throw new Error("Resposta inválida da busca.");
+  }
 }
 
 export function AtualizacoesSearchProvider({ children }: { children: React.ReactNode }) {
@@ -43,13 +81,20 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const abortRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
+  const urlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+
+  // Só sincroniza do URL → estado quando a URL muda por navegação externa (não a cada tecla).
   useEffect(() => {
-    setQueryState(urlQuery);
+    setQueryState((prev) => (prev === urlQuery ? prev : urlQuery));
   }, [urlQuery]);
 
   const syncUrl = useCallback(
     (nextQuery: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParamsRef.current.toString());
       const trimmed = nextQuery.trim();
       if (trimmed.length >= 2) {
         params.set("q", trimmed);
@@ -62,32 +107,37 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
       const next = qs ? `${pathname}?${qs}` : pathname;
       router.replace(next, { scroll: false });
     },
-    [pathname, router, searchParams],
+    [pathname, router],
   );
 
   const setQuery = useCallback(
     (value: string) => {
       setQueryState(value);
-      syncUrl(value);
+      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
+      urlTimerRef.current = setTimeout(() => syncUrl(value), URL_DEBOUNCE_MS);
     },
     [syncUrl],
   );
 
   const clearQuery = useCallback(() => {
+    if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
+    abortRef.current?.abort();
     setQueryState("");
     setResults([]);
     setError(null);
-    const params = new URLSearchParams(searchParams.toString());
+    setLoading(false);
+    const params = new URLSearchParams(searchParamsRef.current.toString());
     params.delete("q");
     params.delete("estilo");
     params.delete("faixa");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+  }, [pathname, router]);
 
   useEffect(() => {
     const q = query.trim();
     if (q.length < 2) {
+      abortRef.current?.abort();
       setResults([]);
       setLoading(false);
       setError(null);
@@ -96,29 +146,56 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
 
     setLoading(true);
     setError(null);
+
     const timer = setTimeout(() => {
-      void fetch(`/api/musicas/search?q=${encodeURIComponent(q)}`, { cache: "no-store" })
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const requestId = ++requestIdRef.current;
+
+      void fetch(`/api/musicas/search?q=${encodeURIComponent(q)}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      })
         .then(async (res) => {
-          const data = (await res.json()) as { results?: VipMusicSearchHit[]; error?: string };
+          const data = await parseSearchResponse(res);
           if (!res.ok) throw new Error(data.error ?? "Busca indisponível.");
+          if (requestId !== requestIdRef.current) return;
           setResults(data.results ?? []);
+          setError(null);
         })
-        .catch((err: Error) => {
-          setError(err.message);
+        .catch((err: unknown) => {
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          if (requestId !== requestIdRef.current) return;
+          const message = err instanceof Error ? err.message : "Busca indisponível.";
+          setError(message);
           setResults([]);
         })
-        .finally(() => setLoading(false));
-    }, 350);
+        .finally(() => {
+          if (requestId === requestIdRef.current) setLoading(false);
+        });
+    }, FETCH_DEBOUNCE_MS);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [query]);
+
+  useEffect(() => {
+    return () => {
+      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const navigateToHit = useCallback(
     (hit: VipMusicSearchHit) => {
-      // Fecha resultados e limpa a busca antes de abrir o destino.
+      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
+      abortRef.current?.abort();
       setQueryState("");
       setResults([]);
       setError(null);
+      setLoading(false);
       router.push(hitHref(hit), { scroll: true });
     },
     [router],

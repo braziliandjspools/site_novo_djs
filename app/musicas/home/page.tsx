@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Crown, Headphones } from "lucide-react";
 import { BrsLogo } from "../../components/BrsLogo";
-import { checkoutUrl } from "../../lib/site";
 import { SITE_NAV_LINKS } from "../../lib/site-nav";
 import { MusicasPageHeader } from "../MusicasShell";
 import { MusicasFaqSection } from "../components/MusicasFaqSection";
@@ -23,17 +21,11 @@ type CardTheme = {
 };
 
 const CARD_THEMES = {
-  emerald: {
-    gradient: "from-emerald-700 via-emerald-900 to-[#0a0a0a]",
+  cyan: {
+    gradient: "from-cyan-700 via-cyan-950 to-[#0a0a0a]",
     button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-emerald-400/20",
-    icon: "text-emerald-200",
-  },
-  blue: {
-    gradient: "from-blue-700 via-blue-950 to-[#0a0a0a]",
-    button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-sky-400/20",
-    icon: "text-sky-200",
+    iconWrap: "bg-cyan-400/20",
+    icon: "text-cyan-200",
   },
   violet: {
     gradient: "from-violet-700 via-violet-950 to-[#0a0a0a]",
@@ -41,29 +33,17 @@ const CARD_THEMES = {
     iconWrap: "bg-violet-400/20",
     icon: "text-violet-200",
   },
-  amber: {
-    gradient: "from-amber-700 via-amber-950 to-[#0a0a0a]",
-    button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-amber-400/20",
-    icon: "text-amber-100",
-  },
   rose: {
     gradient: "from-rose-700 via-rose-950 to-[#0a0a0a]",
     button: "bg-white/10 text-white hover:bg-white/15",
     iconWrap: "bg-rose-400/20",
     icon: "text-rose-200",
   },
-  cyan: {
-    gradient: "from-cyan-700 via-cyan-950 to-[#0a0a0a]",
+  amber: {
+    gradient: "from-amber-700 via-amber-950 to-[#0a0a0a]",
     button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-cyan-400/20",
-    icon: "text-cyan-200",
-  },
-  vip: {
-    gradient: "from-[#0d7a36] via-[#052e16] to-[#0a0a0a]",
-    button: "bg-[#1ed760] text-black hover:bg-[#1fdf64]",
-    iconWrap: "bg-white/10",
-    icon: "text-white",
+    iconWrap: "bg-amber-400/20",
+    icon: "text-amber-100",
   },
 } as const satisfies Record<string, CardTheme>;
 
@@ -125,17 +105,22 @@ function QuickCard({
 }
 
 export default function MusicasHomePage() {
-  const { authenticated, hasVip } = useMusicasSession();
+  const { authenticated, hasVip, userName } = useMusicasSession();
   const { folders, home, loadingTree, loadingHome, error, newFolderIds } = useMusicasLibraryHome();
+  const firstName = userName.trim().split(/\s+/)[0] || "DJ";
 
   return (
     <div>
       <div className="mb-8 flex justify-center">
-        <BrsLogo href={null} priority className="h-14 w-auto max-w-[320px] object-contain sm:h-16 sm:max-w-[380px] md:h-20 md:max-w-[440px]" />
+        <BrsLogo
+          href={null}
+          priority
+          className="h-14 w-auto max-w-[320px] object-contain sm:h-16 sm:max-w-[380px] md:h-20 md:max-w-[440px]"
+        />
       </div>
 
       <MusicasPageHeader
-        title={authenticated ? "Bem-vindo de volta" : "Ouça sem limites"}
+        title={authenticated ? `Bem-vindo de volta, ${firstName}` : "Ouça sem limites"}
         subtitle="Atualizações semanais, pools curados e downloads diretos — tudo em um só lugar."
       />
 
@@ -161,27 +146,6 @@ export default function MusicasHomePage() {
       )}
 
       <section className="mb-10 mt-10">
-        <h2 className="mb-4 text-xl font-bold text-white">Plataforma</h2>
-        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <QuickCard
-            title="Atualizações 2026"
-            description="Navegue por mês e estilo. Veja o catálogo completo de músicas."
-            href="/musicas/atualizacoes"
-            icon={Headphones}
-            theme={CARD_THEMES.emerald}
-          />
-          {!hasVip && (
-            <QuickCard
-              title="Assinar VIP"
-              description="Libere player, downloads e novidades toda semana."
-              href={checkoutUrl("VIP")}
-              icon={Crown}
-              theme={CARD_THEMES.vip}
-              actionLabel="Assinar VIP"
-            />
-          )}
-        </div>
-
         <h2 className="mb-4 text-xl font-bold text-white">Site</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {SITE_NAV_LINKS.map(({ href, label, icon }) => {

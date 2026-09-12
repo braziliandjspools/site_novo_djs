@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { CheckCircle2, Download, ExternalLink, KeyRound, MessageCircle, Sparkles, Video } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, MessageCircle, Sparkles, Video } from "lucide-react";
 import { whatsappUrl } from "../../lib/site";
 import { CopyField } from "../../components/CopyField";
 import { PortalRenewPayButton } from "../PortalRenewalPay";
 import { PortalBadge, PortalCard, PortalPageHeader } from "../PortalShell";
 import { formatDateBr, type PortalData } from "../portal-types";
+import { AllavsoftLicensesPanel } from "./AllavsoftLicensesPanel";
 
 export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
@@ -82,8 +83,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
       <PortalCard title="Status do serviço">
         <PortalBadge variant="green">Licença vitalícia ativa</PortalBadge>
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-          Seu acesso Allavsoft está liberado nesta conta. O serial será gerenciado aqui no portal — a geração e a
-          disponibilidade do serial entram em uma próxima etapa.
+          Seu acesso Allavsoft está liberado nesta conta. Gere e copie o serial abaixo para ativar o software.
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {[
@@ -100,15 +100,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
         </ul>
       </PortalCard>
 
-      <PortalCard title="Serial">
-        <div className="flex items-start gap-3">
-          <KeyRound className="h-5 w-5 text-[#FFDF00]" />
-          <p className="text-sm text-zinc-400">
-            Em breve você verá e gerenciará o serial Allavsoft nesta página. Enquanto isso, o serviço já aparece como
-            ativo após a confirmação do pagamento (webhook Mercado Pago).
-          </p>
-        </div>
-      </PortalCard>
+      <AllavsoftLicensesPanel />
 
       {user.services.poolsVip && (
         <PortalCard title="Pools VIP">

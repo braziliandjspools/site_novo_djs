@@ -6,6 +6,7 @@ import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import { clearMusicasCache, fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import { monthsReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
+import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { MusicasMonthLinks } from "./MusicasMonthLinks";
@@ -107,6 +108,9 @@ export function AtualizacoesRootClient() {
 
   return (
     <div className="w-full">
+      <AtualizacoesSearch />
+      <AtualizacoesSearchResults />
+
       {showHeroSkeleton ? (
         <UpdatesHeroSkeleton />
       ) : (

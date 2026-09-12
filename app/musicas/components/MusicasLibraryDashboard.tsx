@@ -272,24 +272,48 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
         </div>
       </section>
 
-      <section className="rounded-xl border border-[#1DB954]/20 bg-gradient-to-r from-[#0f1f14] to-[#1a1a1a] p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-eyebrow flex items-center gap-2 text-[#1DB954]">
+      <section className="overflow-hidden rounded-2xl border border-[#1DB954]/25 bg-gradient-to-br from-[#0c1a12] via-[#121212] to-[#1a1a1a] p-5 sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-eyebrow inline-flex items-center gap-2 text-[#1DB954]">
               <Sparkles className="h-3.5 w-3.5" />
               Produção exclusiva
             </p>
-            <h2 className="mt-2 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">
+            <h2 className="mt-2 font-display text-2xl font-bold tracking-[-0.02em] text-white sm:text-3xl">
               Quer uma música exclusiva? Nossa DJ produz para você
             </h2>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-400 sm:text-base">
+              Do briefing ao arquivo final: letra, arranjo, voz, mix e master sob medida para aniversário, casamento,
+              campanha, set ou projeto especial.
+            </p>
           </div>
           <Link
             href="/musicproducer#conte-sua-ideia"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-5 py-3 text-sm font-semibold tracking-[-0.01em] text-black hover:bg-[#1ed760]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_24px_rgba(29,185,84,0.25)] transition hover:scale-[1.02] hover:bg-[#1ed760]"
           >
             Pedir minha música
             <Flame className="h-4 w-4" />
           </Link>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { icon: Music2, title: "Letra e estilo", desc: "Composição alinhada à sua história e ao clima que você quer." },
+            { icon: Sparkles, title: "Produção do zero", desc: "Arranjo, instrumental e identidade sonora feitos sob medida." },
+            { icon: Flame, title: "Voz profissional", desc: "Gravação e interpretação para a faixa ficar pronta de verdade." },
+            { icon: ArrowRight, title: "Arquivo final", desc: "Mix, master e entrega pronta para usar na festa ou nas redes." },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="rounded-xl border border-white/10 bg-black/30 p-4 transition hover:border-[#1DB954]/35"
+            >
+              <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1DB954]/15 text-[#1DB954]">
+                <item.icon className="h-5 w-5" />
+              </span>
+              <p className="text-sm font-bold text-white">{item.title}</p>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500">{item.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
     </div>

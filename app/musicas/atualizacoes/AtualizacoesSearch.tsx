@@ -79,6 +79,10 @@ export function AtualizacoesSearchResults() {
 
       {error && <p className="px-4 py-3 text-sm text-red-400">{error}</p>}
 
+      {!error && loading && results.length === 0 && (
+        <p className="px-4 py-8 text-center text-sm text-zinc-500">Buscando…</p>
+      )}
+
       {!error && !loading && results.length === 0 && (
         <p className="px-4 py-8 text-center text-sm text-zinc-500">
           Nenhum resultado para &quot;{query}&quot;

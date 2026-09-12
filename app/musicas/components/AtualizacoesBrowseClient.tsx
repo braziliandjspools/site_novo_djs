@@ -407,13 +407,27 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       showToast("Plano VIP necessário para baixar o pack.", "error");
       return;
     }
+
+    const trackLabel =
+      directTracks.length === 1 ? "1 música" : `${directTracks.length} músicas`;
+    const confirmed = window.confirm(
+      `As ${trackLabel} serão baixadas pelo navegador.\n\n` +
+        "Isso exige alto processamento da máquina e pode deixar o navegador lento.\n\n" +
+        "Prefira o BRS Downloader (botão Downloader) para baixar com mais estabilidade.\n\n" +
+        "Deseja continuar mesmo assim?",
+    );
+    if (!confirmed) {
+      showToast("Download cancelado — use o Downloader para melhor desempenho.");
+      return;
+    }
+
     setDownloadingPack(true);
     let ok = 0;
     let failed = 0;
     try {
       showToast(
         directTracks.length === 1
-          ? "Baixando 1 faixa…"
+          ? "Baixando 1 faixa no navegador…"
           : `Baixando ${directTracks.length} faixas no navegador…`,
       );
       for (const track of directTracks) {
