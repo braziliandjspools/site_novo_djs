@@ -163,7 +163,7 @@ export const APP_CHANGELOG: ChangelogEntry[] = [
     date: "2026-09-03",
     items: [
       "Gerenciamento avançado da fila: baixar agora, mover topo/cima/baixo/final, pausar, retomar e cancelar",
-      "Ordem da fila local com drag-and-drop e persistência ao reiniciar (sem spam no Neon)",
+      "Ordem da fila local com drag-and-drop e persistência ao reiniciar (sem spam no servidor)",
       "Importar pasta por link do site: validar, ver quantidade de faixas e baixar todas",
       "Agendamento de downloads por janela de horário",
       "Limite global de velocidade de download",

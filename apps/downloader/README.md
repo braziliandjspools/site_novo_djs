@@ -103,7 +103,7 @@ DownloadManager
         └── (futuro) PushQueueTransport
 ```
 
-Polling adaptativo (Neon-friendly):
+Polling adaptativo (leve no Postgres):
 
 | Situação | Intervalo |
 |----------|-----------|

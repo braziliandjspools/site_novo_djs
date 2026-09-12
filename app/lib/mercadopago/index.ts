@@ -1,7 +1,7 @@
 import "server-only";
 
 /**
- * Mercado Pago Checkout Pro — Preference + pedidos Neon.
+ * Mercado Pago Checkout Pro — Preference + pedidos no Postgres.
  */
 export {
   getMercadoPagoEnv,

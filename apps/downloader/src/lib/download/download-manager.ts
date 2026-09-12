@@ -75,7 +75,7 @@ export class DownloadManager {
   private authToken: string | null = null;
   private jobs = new Map<number, DownloadJob>();
   private knownJobIds = new Set<number>();
-  /** Ordem local da fila (prioridade). Não sincroniza com o Neon. */
+  /** Ordem local da fila (prioridade). Não sincroniza com o servidor. */
   private queueOrder: number[] = [];
   private listeners = new Set<DownloadManagerListener>();
   private connectionState: ConnectionState = "connecting";
@@ -595,7 +595,7 @@ export class DownloadManager {
     void this.processQueue();
   }
 
-  /** Reordena a fila local a partir de uma lista de IDs (drag-and-drop). Sem escrita no Neon. */
+  /** Reordena a fila local a partir de uma lista de IDs (drag-and-drop). Sem escrita no servidor. */
   reorderQueue(orderedIds: number[]) {
     const activeIds = new Set(
       Array.from(this.jobs.values())

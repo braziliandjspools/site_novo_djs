@@ -34,7 +34,7 @@ const TEXT_EXTENSIONS = new Set([
 
 const PATTERNS = [
   { name: "DATABASE_URL", regex: /DATABASE_URL\s*[=:]\s*['"]?postgres/i },
-  { name: "Neon host", regex: /neon\.tech/i },
+  { name: "legacy Neon host (leak)", regex: /neon\.tech/i },
   { name: "JWT secret", regex: /JWT_SECRET|PORTAL_SESSION_SECRET/i },
   { name: "Admin secret", regex: /PORTAL_ADMIN_SECRET/i },
   { name: "Service role", regex: /SERVICE_ROLE|service_role/i },

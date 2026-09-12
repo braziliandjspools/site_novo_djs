@@ -178,7 +178,7 @@ export const downloaderPrivacyDocument: LegalDocument = {
       blocks: [
         {
           type: "p",
-          text: "Podemos utilizar infraestrutura de banco de dados fornecida pela Neon para armazenar informações necessárias ao funcionamento da plataforma, como:",
+          text: "Podemos utilizar infraestrutura de banco de dados PostgreSQL hospedada em nossos servidores para armazenar informações necessárias ao funcionamento da plataforma, como:",
         },
         {
           type: "list",
@@ -190,7 +190,7 @@ export const downloaderPrivacyDocument: LegalDocument = {
             "histórico e informações operacionais necessárias.",
           ],
         },
-        { type: "p", text: "Os arquivos de música não são armazenados no Neon." },
+        { type: "p", text: "Os arquivos de música não são armazenados nesse banco de dados." },
       ],
     },
     {

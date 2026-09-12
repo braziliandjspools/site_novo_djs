@@ -1,4 +1,4 @@
-/** Intervalos de polling adaptativo (Neon-friendly). */
+/** Intervalos de polling adaptativo (reduz carga no Postgres). */
 export const POLL_MS = {
   /** Consulta imediata ao conectar ou reconectar. */
   IMMEDIATE: 0,

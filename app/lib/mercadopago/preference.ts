@@ -31,7 +31,7 @@ export {
 } from "./preference-policy";
 
 /**
- * Cria pedido PENDING no Neon e Preference no Mercado Pago.
+ * Cria pedido PENDING no Postgres e Preference no Mercado Pago.
  * Em falha da Preference, marca o pedido como CANCELLED.
  */
 export async function createMercadoPagoCheckoutPreference(input: {
