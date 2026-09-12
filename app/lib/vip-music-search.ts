@@ -209,8 +209,6 @@ async function scanStyleTracks(
         if (!matches(haystack, q)) continue;
 
         const display = getTrackDisplayMetadata({
-          id: file.id,
-          pack: style.name,
           fileName: file.name,
           ...meta,
         });
@@ -246,8 +244,6 @@ async function scanStyleTracks(
             if (!matches(haystack, q)) continue;
 
             const display = getTrackDisplayMetadata({
-              id: file.id,
-              pack: folder.name,
               fileName: file.name,
               ...meta,
             });
