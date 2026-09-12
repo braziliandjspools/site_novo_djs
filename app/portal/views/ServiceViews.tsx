@@ -8,6 +8,10 @@ import { formatDateBr, type PortalData } from "../portal-types";
 import { AllavsoftLicensesPanel } from "./AllavsoftLicensesPanel";
 import { AccountPaymentsPanel } from "./AccountPaymentsPanel";
 import { DownloaderStatsPanel } from "./DownloaderStatsPanel";
+import {
+  ALLAVSOFT_INSTALLER_VERSION,
+  getAllavsoftDownloadUrl,
+} from "../../lib/allavsoft-download";
 
 
 export function PoolsServiceView({ data }: { data: PortalData }) {
@@ -80,6 +84,7 @@ export function DeemixServiceView(_props: { data: PortalData }) {
 export function AllavsoftServiceView({ data }: { data: PortalData }) {
   if (!data.allavsoft) return null;
   const { user } = data;
+  const allavsoftDownloadUrl = getAllavsoftDownloadUrl();
 
   return (
     <div className="space-y-6">
@@ -88,7 +93,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
       <PortalCard title="Status do serviço">
         <PortalBadge variant="green">Licença vitalícia ativa</PortalBadge>
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-          Seu acesso Allavsoft está liberado nesta conta. Gere e copie o serial abaixo para ativar o software.
+          Seu acesso Allavsoft está liberado nesta conta. Baixe o programa, gere o serial abaixo e ative no software.
         </p>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {[
@@ -103,6 +108,18 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
             </li>
           ))}
         </ul>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <a
+            href={allavsoftDownloadUrl}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-amber-300"
+          >
+            <Download className="h-4 w-4" />
+            Baixar Allavsoft (Windows)
+          </a>
+        </div>
+        <p className="mt-3 text-xs text-zinc-500">
+          Windows · versão {ALLAVSOFT_INSTALLER_VERSION} · depois ative com o serial gerado abaixo
+        </p>
       </PortalCard>
 
       <AllavsoftLicensesPanel />
