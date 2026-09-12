@@ -14,9 +14,9 @@ type PortalLoginProps = {
 };
 
 const inputClassName =
-  "w-full rounded-lg border border-zinc-700 bg-[#0a0a0a] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-700 focus:border-[#00ff9d] focus:ring-1 focus:ring-[#00ff9d]/30";
+  "w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1ed760]/50 focus:ring-2 focus:ring-[#1ed760]/20";
 
-const labelClassName = "text-eyebrow mb-2 block text-zinc-500";
+const labelClassName = "block text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500";
 
 function generateSecurePassword(length = 12) {
   const chars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*";
@@ -60,7 +60,7 @@ function PasswordField({
           <button
             type="button"
             onClick={handleGenerate}
-            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#00ff9d] hover:text-[#00e68a]"
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#1ed760] hover:text-[#7dffb0]"
           >
             <Sparkles className="h-3 w-3" />
             Gerar senha
@@ -177,33 +177,41 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden px-4 ${
-        embedded ? "min-h-0 bg-transparent py-6" : "min-h-screen bg-[#0a0a0a] py-12"
+        embedded ? "min-h-0 bg-transparent py-6" : "min-h-screen bg-[#0a0a0a] py-12 sm:py-16"
       }`}
     >
       {!embedded && (
         <>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#00973915,_transparent_50%),radial-gradient(ellipse_at_bottom_right,_#FFDF0010,_transparent_40%)]" />
-          <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#00ff9d]/50 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(30,215,96,0.18),transparent_45%),radial-gradient(ellipse_at_90%_100%,rgba(255,223,0,0.08),transparent_40%),radial-gradient(ellipse_at_50%_50%,rgba(0,39,118,0.2),transparent_55%)]" />
+          <div className="pointer-events-none absolute inset-0 br-pattern opacity-40" />
+          <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#1ed760]/60 to-transparent" />
         </>
       )}
 
-      <div className="relative w-full max-w-xl lg:max-w-2xl">
+      <div className="relative w-full max-w-md sm:max-w-lg">
         <div className="mb-8 text-center">
           <div className="flex justify-center">
-            <BrsLogo href="/" className="h-12 w-auto max-w-[280px] object-contain" />
+            <BrsLogo href="/" className="h-12 w-auto max-w-[280px] object-contain sm:h-14" />
           </div>
-          <p className="text-eyebrow mt-3 text-zinc-600">Client Area</p>
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#1ed760]/80">
+            Área do cliente
+          </p>
+          <p className="mt-2 text-sm text-zinc-500">
+            Portal VIP · licenças, produções e serviços BRS
+          </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
-          <div className="h-1 bg-gradient-to-r from-[#009739] via-[#00ff9d] to-[#FFDF00]" />
-          <div className="p-8">
-            <div className="flex gap-2 rounded-lg bg-[#0a0a0a] p-1">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#121212]/90 shadow-[0_30px_100px_rgba(0,0,0,0.65)] backdrop-blur-xl">
+          <div className="br-stripe-thin" />
+          <div className="p-6 sm:p-8">
+            <div className="flex gap-1.5 rounded-2xl border border-white/5 bg-black/40 p-1.5">
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-colors ${
-                  mode === "login" ? "bg-[#00ff9d] text-black" : "text-zinc-500 hover:text-white"
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] transition-all ${
+                  mode === "login"
+                    ? "bg-[#1ed760] text-black shadow-[0_8px_24px_rgba(30,215,96,0.25)]"
+                    : "text-zinc-500 hover:text-white"
                 }`}
               >
                 <LogIn className="h-3.5 w-3.5" />
@@ -212,8 +220,10 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("register")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-colors ${
-                  mode === "register" ? "bg-[#00ff9d] text-black" : "text-zinc-500 hover:text-white"
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] transition-all ${
+                  mode === "register"
+                    ? "bg-[#1ed760] text-black shadow-[0_8px_24px_rgba(30,215,96,0.25)]"
+                    : "text-zinc-500 hover:text-white"
                 }`}
               >
                 <UserPlus className="h-3.5 w-3.5" />
@@ -223,12 +233,14 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
 
             {mode === "login" ? (
               <>
-                <h1 className="mt-6 text-xl font-bold tracking-[-0.02em] text-white">Login</h1>
-                <p className="mt-1 text-sm text-zinc-500">Acesse suas licenças, produções e serviços</p>
+                <h1 className="mt-7 text-2xl font-bold tracking-tight text-white">Bem-vindo de volta</h1>
+                <p className="mt-1.5 text-sm text-zinc-500">
+                  Entre para acessar o acervo VIP, portal e Downloader.
+                </p>
 
                 <form onSubmit={(e) => void handleLogin(e)} className="mt-8 space-y-5">
                   <div>
-                    <label htmlFor="portal-email" className={labelClassName}>
+                    <label htmlFor="portal-email" className={`${labelClassName} mb-2`}>
                       E-mail
                     </label>
                     <input
@@ -239,6 +251,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={inputClassName}
+                      placeholder="seu@email.com"
                     />
                   </div>
                   <PasswordField
@@ -250,7 +263,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   />
 
                   {error && (
-                    <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                    <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
                       {error}
                     </p>
                   )}
@@ -258,7 +271,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-6 py-3.5 text-sm font-semibold tracking-[-0.01em] text-black transition-all hover:bg-[#00e68a] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:scale-[1.01] hover:bg-[#2dff7a] disabled:opacity-60 disabled:hover:scale-100"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                     Entrar
@@ -267,15 +280,15 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               </>
             ) : (
               <>
-                <h1 className="mt-6 text-xl font-bold tracking-[-0.02em] text-white">Criar conta</h1>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Preencha seus dados. Você entra sem plano de licença — escolha um plano ou peça uma produção depois.
+                <h1 className="mt-7 text-2xl font-bold tracking-tight text-white">Crie sua conta</h1>
+                <p className="mt-1.5 text-sm text-zinc-500">
+                  Sem plano no cadastro — depois você assina VIP, Allavsoft ou pede uma produção.
                 </p>
 
                 <form onSubmit={(e) => void handleRegister(e)} className="mt-8 space-y-5">
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <label htmlFor="portal-name" className={labelClassName}>
+                      <label htmlFor="portal-name" className={`${labelClassName} mb-2`}>
                         Nome completo
                       </label>
                       <input
@@ -290,7 +303,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                       />
                     </div>
                     <div>
-                      <label htmlFor="portal-register-email" className={labelClassName}>
+                      <label htmlFor="portal-register-email" className={`${labelClassName} mb-2`}>
                         E-mail
                       </label>
                       <input
@@ -305,7 +318,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                       />
                     </div>
                     <div>
-                      <label htmlFor="portal-whatsapp" className={labelClassName}>
+                      <label htmlFor="portal-whatsapp" className={`${labelClassName} mb-2`}>
                         WhatsApp
                       </label>
                       <input
@@ -331,7 +344,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   />
 
                   {error && (
-                    <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                    <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
                       {error}
                     </p>
                   )}
@@ -339,7 +352,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-6 py-3.5 text-sm font-semibold tracking-[-0.01em] text-black transition-all hover:bg-[#00e68a] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:scale-[1.01] hover:bg-[#2dff7a] disabled:opacity-60 disabled:hover:scale-100"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
                     Criar conta
@@ -357,7 +370,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("register")}
-                className="font-bold uppercase tracking-wide text-[#00ff9d] hover:underline"
+                className="font-bold uppercase tracking-wide text-[#1ed760] hover:underline"
               >
                 Criar conta
               </button>
@@ -368,7 +381,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className="font-bold uppercase tracking-wide text-[#00ff9d] hover:underline"
+                className="font-bold uppercase tracking-wide text-[#1ed760] hover:underline"
               >
                 Entrar
               </button>

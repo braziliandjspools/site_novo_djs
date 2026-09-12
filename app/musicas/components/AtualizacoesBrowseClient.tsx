@@ -670,11 +670,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && data && showingTracks && (
-        <div className="overflow-hidden">
+        <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
+          <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
           {directTracks.length === 0 && loading ? (
             <MusicasTracksSkeleton />
           ) : directTracks.length === 0 ? (
-            <p className="rounded-md border border-zinc-700 bg-black px-4 py-8 text-center text-sm text-zinc-500">
+            <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
               Nenhuma faixa nesta pasta.
             </p>
           ) : (

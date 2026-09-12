@@ -25,7 +25,7 @@ function MusicasEntrarContent() {
     <div className="relative min-h-screen bg-[#0a0a0a]">
       <Link
         href="/musicas/home"
-        className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-black/40 px-4 py-2 text-sm font-semibold text-zinc-400 backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:left-6 sm:top-6"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-semibold text-zinc-300 backdrop-blur-md transition-colors hover:border-[#1ed760]/40 hover:text-[#1ed760] sm:left-6 sm:top-6"
       >
         <ArrowLeft className="h-4 w-4" />
         Voltar ao catálogo

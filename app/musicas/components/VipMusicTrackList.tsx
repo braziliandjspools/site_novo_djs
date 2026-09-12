@@ -493,8 +493,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
       className={`group/row relative border-b border-[#1ed760]/15 transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
-          ? ""
-          : "hover:shadow-[inset_3px_0_0_0_#f9a8d4]"
+          ? "shadow-[inset_3px_0_0_0_#1ed760]"
+          : "hover:shadow-[inset_3px_0_0_0_#1ed760]"
       }`}
     >
       {/* Mobile — play | título/progresso | download/menu */}

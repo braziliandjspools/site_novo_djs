@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 /data/
+.tmp/
 
 # debug
 npm-debug.log*
@@ -52,4 +53,6 @@ apps/downloader/release
 # instalador publicado para updates in-app
 !public/downloads/
 !public/downloads/*.exe
+# Allavsoft: hospedar no servidor (não versionar ~70MB no git)
+public/downloads/allavsoft.exe
 .env*

@@ -79,6 +79,7 @@ export function PackHero({
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f0f] via-transparent to-black/25" />
         <div className="absolute inset-0 bg-black/25" />
       </div>
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1ed760] via-[#1ed760]/40 to-transparent" />
 
       <div className="relative z-10 grid gap-6 p-5 sm:p-7 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end lg:gap-8 lg:p-8">
         <div className="mx-auto w-full max-w-[220px] sm:max-w-[240px] lg:mx-0 lg:max-w-none">
