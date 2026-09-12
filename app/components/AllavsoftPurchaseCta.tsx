@@ -116,51 +116,50 @@ function AllavsoftCheckoutInner({ plans, alreadyOwned = false }: AllavsoftPurcha
 
   if (!plan) return null;
 
-  return (
-    <section
+  <section
       id="allavsoft-plano"
-      className="overflow-hidden rounded-2xl border border-[#FFDF00]/25 bg-gradient-to-br from-[#FFDF00]/10 via-[#002776]/20 to-black/40"
+      className="w-full min-w-0 overflow-hidden rounded-2xl border border-[#FFDF00]/25 bg-gradient-to-br from-[#FFDF00]/10 via-[#002776]/20 to-black/40"
     >
-      <div className="border-b border-white/10 px-5 py-5 sm:px-8 sm:py-6">
+      <div className="border-b border-white/10 px-4 py-5 sm:px-8 sm:py-6">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#FFDF00]">Mercado Pago</p>
-        <h2 className="mt-2 font-display text-2xl text-white sm:text-3xl">Licença vitalícia</h2>
+        <h2 className="mt-2 break-words font-display text-2xl text-white sm:text-3xl">Licença vitalícia</h2>
         <p className="mt-2 max-w-2xl text-sm text-zinc-400">
           Pagamento único de {plan.price}. Após a confirmação, o webhook libera o acesso na sua conta. O serial será
           gerenciado na área do cliente.
         </p>
       </div>
 
-      <div className="grid gap-6 p-5 sm:grid-cols-[1.1fr_0.9fr] sm:p-8">
-        <div>
-          <p className="text-sm font-semibold text-white">{plan.name}</p>
+      <div className="grid min-w-0 gap-6 p-4 sm:grid-cols-[1.1fr_0.9fr] sm:p-8">
+        <div className="min-w-0">
+          <p className="break-words text-sm font-semibold text-white">{plan.name}</p>
           <p className="mt-1 text-xs uppercase tracking-wider text-zinc-500">{plan.period}</p>
           <ul className="mt-5 space-y-2.5">
             {plan.features.map((feature) => (
               <li key={feature} className="flex items-start gap-2 text-sm text-zinc-300">
                 <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#1ed760]" />
-                <span>{feature}</span>
+                <span className="min-w-0 break-words">{feature}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-6 flex flex-wrap gap-3 text-xs text-zinc-500">
+          <div className="mt-6 flex flex-wrap gap-2 text-xs text-zinc-500 sm:gap-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-3 py-1.5">
-              <Infinity className="h-3.5 w-3.5 text-[#FFDF00]" />
+              <Infinity className="h-3.5 w-3.5 flex-shrink-0 text-[#FFDF00]" />
               Sem renovação
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-3 py-1.5">
-              <KeyRound className="h-3.5 w-3.5 text-[#FFDF00]" />
+              <KeyRound className="h-3.5 w-3.5 flex-shrink-0 text-[#FFDF00]" />
               Serial no portal
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-3 py-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-[#FFDF00]" />
+              <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#FFDF00]" />
               Liberação via webhook
             </span>
           </div>
         </div>
 
-        <div className="flex flex-col justify-center rounded-xl border border-white/10 bg-black/40 p-5 text-center sm:p-6">
+        <div className="flex min-w-0 flex-col justify-center rounded-xl border border-white/10 bg-black/40 p-4 text-center sm:p-6">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Valor único</p>
-          <p className="mt-2 font-display text-4xl text-[#FFDF00] sm:text-5xl">{plan.price}</p>
+          <p className="mt-2 break-words font-display text-4xl text-[#FFDF00] sm:text-5xl">{plan.price}</p>
           <p className="mt-1 text-sm text-zinc-400">pagamento único · vitalícia</p>
 
           {alreadyOwned ? (
@@ -172,7 +171,7 @@ function AllavsoftCheckoutInner({ plans, alreadyOwned = false }: AllavsoftPurcha
               type="button"
               disabled={loading}
               onClick={() => void startCheckout(plan.id)}
-              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#FFDF00] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-[#002776] shadow-lg shadow-[#FFDF00]/20 transition hover:scale-[1.02] hover:bg-[#FFE566] disabled:cursor-wait disabled:opacity-70"
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#FFDF00] px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-[#002776] shadow-lg shadow-[#FFDF00]/20 transition hover:scale-[1.02] hover:bg-[#FFE566] disabled:cursor-wait disabled:opacity-70 sm:px-6"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {loading ? "Abrindo Mercado Pago…" : "Pagar com Mercado Pago"}

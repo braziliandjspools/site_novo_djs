@@ -16,7 +16,7 @@ export function MarketingChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      {children}
+      <div className="w-full min-w-0 flex-1">{children}</div>
       <Footer />
       <WhatsAppFloat />
     </>

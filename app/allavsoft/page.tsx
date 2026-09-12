@@ -108,28 +108,30 @@ export default async function AllavsoftPage() {
   const alreadyOwned = Boolean(user?.services.allavsoft);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-12 px-4 py-12 sm:space-y-16 sm:px-6 sm:py-16">
-      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div className="flex items-center gap-3 sm:gap-4">
+    <div className="mx-auto w-full min-w-0 max-w-5xl space-y-12 overflow-x-clip px-4 py-12 sm:space-y-16 sm:px-6 sm:py-16">
+      <div className="flex w-full min-w-0 flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Link
             href="/"
-            className="rounded-xl border border-[#002776]/60 bg-[#002776]/20 p-2 transition-colors hover:bg-[#002776]/40"
+            className="flex-shrink-0 rounded-xl border border-[#002776]/60 bg-[#002776]/20 p-2 transition-colors hover:bg-[#002776]/40"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <h1 className="font-display text-3xl tracking-wide text-[#FFDF00]">ALLAVSOFT</h1>
+          <h1 className="font-display break-words text-2xl tracking-wide text-[#FFDF00] sm:text-3xl">
+            ALLAVSOFT
+          </h1>
         </div>
         <a
           href="#allavsoft-plano"
-          className="inline-flex items-center justify-center rounded-full bg-[#009739] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#00B347]"
+          className="inline-flex w-full max-w-xs items-center justify-center rounded-full bg-[#009739] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#00B347] sm:w-auto sm:max-w-none"
         >
           Comprar por R$ 50
         </a>
       </div>
 
-      <section>
+      <section className="w-full min-w-0">
         <SectionHeading badge="Licença vitalícia" title="Licença vitalícia do Allavsoft" />
-        <div className="mx-auto mt-6 max-w-5xl space-y-4 text-justify text-base leading-relaxed text-gray-400 md:text-lg">
+        <div className="mx-auto mt-6 w-full max-w-5xl space-y-4 text-left text-base leading-relaxed text-gray-400 sm:text-justify md:text-lg">
           <p>
             Tenha acesso a uma ferramenta completa para facilitar seus downloads de músicas e vídeos de diferentes
             plataformas em um só lugar. O Allavsoft é uma solução prática para quem trabalha com música, vídeo,
@@ -175,7 +177,7 @@ export default async function AllavsoftPage() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid w-full min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {highlightBoxes.map((box) => (
             <IconBox
               key={box.title}
@@ -187,7 +189,7 @@ export default async function AllavsoftPage() {
           ))}
         </div>
 
-        <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-[#009739]/30 bg-white/[0.03] p-2">
+        <div className="mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-[#009739]/30 bg-white/[0.03] p-2">
           <Image
             src={PLACEHOLDER.allavsoft}
             alt="Allavsoft"
@@ -200,8 +202,8 @@ export default async function AllavsoftPage() {
           />
         </div>
 
-        <div className="mt-8 space-y-3">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+        <div className="mt-8 w-full min-w-0 space-y-3">
+          <p className="px-1 text-center text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500 sm:tracking-[0.18em]">
             Compatível com Deezer, Spotify, YouTube, Vimeo e +1000 sites
           </p>
           <AllavsoftPlatformsMarquee />
@@ -210,17 +212,17 @@ export default async function AllavsoftPage() {
 
       <AllavsoftPurchaseCta plans={plans} alreadyOwned={alreadyOwned} />
 
-      <section>
+      <section className="w-full min-w-0">
         <SectionHeading title="Como funciona" />
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {steps.map((step, index) => {
             const c = CARD_COLORS[COLOR_CYCLE[index % COLOR_CYCLE.length]];
             return (
-              <div key={step.title} className={`rounded-2xl border ${c.border} bg-white/[0.04] p-6`}>
+              <div key={step.title} className={`min-w-0 rounded-2xl border ${c.border} bg-white/[0.04] p-5 sm:p-6`}>
                 <span className={`font-display text-3xl font-bold ${c.text} opacity-50`}>{`0${index + 1}`}</span>
-                <div className="mt-3 flex items-center gap-2">
-                  <step.icon className={`h-5 w-5 ${c.text}`} />
-                  <h4 className="font-semibold text-white">{step.title}</h4>
+                <div className="mt-3 flex min-w-0 items-center gap-2">
+                  <step.icon className={`h-5 w-5 flex-shrink-0 ${c.text}`} />
+                  <h4 className="min-w-0 break-words font-semibold text-white">{step.title}</h4>
                 </div>
                 <p className="mt-2 text-sm text-gray-400">{step.text}</p>
               </div>
@@ -231,22 +233,25 @@ export default async function AllavsoftPage() {
 
       <AllavsoftPurchaseCta plans={plans} alreadyOwned={alreadyOwned} />
 
-      <section id="faq" className="border-t border-white/5 site-section-blue px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-3xl">
+      <section
+        id="faq"
+        className="w-full min-w-0 border-t border-white/5 site-section-blue px-0 py-12 sm:py-16"
+      >
+        <div className="mx-auto w-full min-w-0 max-w-3xl">
           <SectionHeading
             badge="FAQ"
             title="Perguntas frequentes"
             subtitle="Pagamento, webhook, serial no portal e uso do Allavsoft."
           />
-          <div className="mt-12 space-y-3">
+          <div className="mt-10 space-y-3 sm:mt-12">
             {faqs.map((faq) => (
               <details
                 key={faq.q}
                 className="group rounded-xl border border-[#002776]/60 bg-white/[0.04] p-4 open:border-[#009739]/50"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
-                  {faq.q}
-                  <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform group-open:rotate-180" />
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 text-sm font-semibold text-white">
+                  <span className="min-w-0 flex-1 break-words">{faq.q}</span>
+                  <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform group-open:rotate-180" />
                 </summary>
                 <p className="mt-3 text-sm text-gray-400">{faq.a}</p>
               </details>

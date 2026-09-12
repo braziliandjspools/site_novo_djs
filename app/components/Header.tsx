@@ -39,8 +39,8 @@ export function Header() {
   return (
     <>
       <div className="br-stripe" />
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0e0e0e]/92 backdrop-blur-xl">
-        <div className="relative mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 md:h-[72px] md:px-6">
+      <header className="sticky top-0 z-50 w-full min-w-0 border-b border-white/10 bg-[#0e0e0e]/92 backdrop-blur-xl">
+        <div className="relative mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center gap-3 px-4 md:h-[72px] md:px-6">
           <div className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 lg:static lg:translate-x-0">
             <BrsLogo
               href="/"

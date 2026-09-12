@@ -64,7 +64,7 @@ export function ToolPromoSection({
       <div className="relative flex flex-1 items-start justify-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.04)_0%,_transparent_70%)]" />
 
-        <div className={`relative z-10 mx-auto w-full px-4 pb-12 pt-6 text-center sm:px-6 md:pb-20 md:pt-10 ${contentMaxWidth}`}>
+        <div className={`relative z-10 mx-auto w-full min-w-0 px-4 pb-12 pt-6 text-center sm:px-6 md:pb-20 md:pt-10 ${contentMaxWidth}`}>
           <span
             className={`mb-2 inline-flex rounded-full border px-4 py-1.5 text-eyebrow ${styles.badge}`}
           >
