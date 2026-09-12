@@ -14,13 +14,15 @@ function errorStatus(code: AllavsoftLicenseError["code"]) {
     case "FORBIDDEN":
       return 403;
     case "QUOTA":
+    case "ALREADY_COPIED":
+    case "REGEN_LIMIT":
+    case "ALREADY_NOTIFIED":
+    case "NO_LICENSES":
       return 409;
     case "POOL_EMPTY":
       return 503;
     case "NOT_FOUND":
       return 404;
-    case "ALREADY_COPIED":
-      return 409;
     default:
       return 500;
   }

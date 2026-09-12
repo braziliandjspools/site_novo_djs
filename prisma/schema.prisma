@@ -74,14 +74,18 @@ model AllavsoftKeyPool {
 
 /** Serial atribuído a um usuário do portal; copiedAt marca consumo (uso único). */
 model AllavsoftLicenseAssignment {
-  id           String           @id @default(cuid())
-  portalUserId Int              @map("portal_user_id")
-  portalUser   PortalUser       @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
-  keyId        String           @unique @map("key_id")
-  key          AllavsoftKeyPool @relation(fields: [keyId], references: [id], onDelete: Restrict)
-  licenseName  String           @map("license_name")
-  issuedAt     DateTime         @default(now()) @map("issued_at")
-  copiedAt     DateTime?        @map("copied_at")
+  id                   String           @id @default(cuid())
+  portalUserId         Int              @map("portal_user_id")
+  portalUser           PortalUser       @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  keyId                String           @unique @map("key_id")
+  key                  AllavsoftKeyPool @relation(fields: [keyId], references: [id], onDelete: Restrict)
+  licenseName          String           @map("license_name")
+  /** Quantas vezes o nome User_XXXXXX já foi regenerado (máx. 5). */
+  licenseNameRegenCount Int             @default(0) @map("license_name_regen_count")
+  issuedAt             DateTime         @default(now()) @map("issued_at")
+  copiedAt             DateTime?        @map("copied_at")
+  /** Usuário pediu suporte porque o serial não ativou. */
+  supportNotifiedAt    DateTime?        @map("support_notified_at")
 
   @@index([portalUserId, issuedAt])
   @@map("allavsoft_license_assignments")

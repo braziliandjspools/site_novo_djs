@@ -213,18 +213,21 @@ export function PortalCard({
   title,
   children,
   className = "",
+  action,
 }: {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  action?: React.ReactNode;
 }) {
   return (
     <div
       className={`overflow-hidden rounded-2xl border border-zinc-800 bg-[#1a1a1a] shadow-[0_8px_32px_rgba(0,0,0,0.4)] ${className}`}
     >
       {title && (
-        <div className="border-b border-zinc-800 bg-[#222] px-5 py-3.5 lg:px-7 lg:py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-zinc-800 bg-[#222] px-5 py-3.5 lg:px-7 lg:py-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-300 lg:text-sm">{title}</h2>
+          {action}
         </div>
       )}
       <div className="p-5 lg:p-7">{children}</div>

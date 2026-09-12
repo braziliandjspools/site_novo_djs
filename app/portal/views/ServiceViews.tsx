@@ -6,6 +6,7 @@ import { PortalRenewPayButton } from "../PortalRenewalPay";
 import { PortalBadge, PortalCard, PortalPageHeader } from "../PortalShell";
 import { formatDateBr, type PortalData } from "../portal-types";
 import { AllavsoftLicensesPanel } from "./AllavsoftLicensesPanel";
+import { DownloaderStatsPanel } from "./DownloaderStatsPanel";
 
 export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
@@ -63,6 +64,8 @@ export function PoolsServiceView({ data }: { data: PortalData }) {
           Windows x64 · versão {downloader.version} · mesmo login da conta VIP
         </p>
       </PortalCard>
+
+      <DownloaderStatsPanel />
     </div>
   );
 }

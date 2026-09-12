@@ -1,10 +1,14 @@
 import { randomInt } from "crypto";
 import type { AllavsoftLicenseAssignment, AllavsoftKeyPool } from "@prisma/client";
+import { sendAllavsoftPoolLowAlert, sendAllavsoftSupportAlert } from "./allavsoft-email";
 import { prisma } from "./prisma";
 import { findUserById, userHasAllavsoft } from "./portal-users";
 
 export const MAX_ISSUES_PER_30_DAYS = 2;
 export const WINDOW_DAYS = 30;
+export const MAX_LICENSE_NAME_REGENS = 5;
+/** Dispara e-mail ao admin quando o pool livre chega exatamente a este valor. */
+export const POOL_LOW_ALERT_AT = 5;
 
 export const SEED_ALLAVSOFT_SERIALS = [
   "CD14-7158-4E06-9F7A-3CE1-CAD0-4DA2-C630",
@@ -24,7 +28,10 @@ export type AllavsoftLicenseErrorCode =
   | "QUOTA"
   | "POOL_EMPTY"
   | "NOT_FOUND"
-  | "ALREADY_COPIED";
+  | "ALREADY_COPIED"
+  | "REGEN_LIMIT"
+  | "ALREADY_NOTIFIED"
+  | "NO_LICENSES";
 
 export class AllavsoftLicenseError extends Error {
   readonly code: AllavsoftLicenseErrorCode;
@@ -54,9 +61,9 @@ export async function ensurePoolSeeded() {
   });
 }
 
-export async function listActiveAssignments(portalUserId: number) {
+export async function listAssignmentsForUser(portalUserId: number) {
   return prisma.allavsoftLicenseAssignment.findMany({
-    where: { portalUserId, copiedAt: null },
+    where: { portalUserId },
     include: { key: true },
     orderBy: { issuedAt: "desc" },
   });
@@ -82,13 +89,35 @@ async function oldestIssuedInWindow(portalUserId: number, now = new Date()) {
   });
 }
 
+async function countAvailableKeys() {
+  const [total, assigned] = await Promise.all([
+    prisma.allavsoftKeyPool.count(),
+    prisma.allavsoftLicenseAssignment.count(),
+  ]);
+  return { available: Math.max(0, total - assigned), assigned, total };
+}
+
+async function maybeNotifyPoolLow() {
+  const { available, assigned } = await countAvailableKeys();
+  if (available !== POOL_LOW_ALERT_AT) return;
+  await sendAllavsoftPoolLowAlert({
+    availableCount: available,
+    totalAssigned: assigned,
+  });
+}
+
 export function serializeAssignment(assignment: AssignmentWithKey) {
+  const regenCount = assignment.licenseNameRegenCount ?? 0;
   return {
     id: assignment.id,
     licenseName: assignment.licenseName,
     serial: assignment.key.serial,
     issuedAt: assignment.issuedAt.toISOString(),
     copiedAt: assignment.copiedAt?.toISOString() ?? null,
+    consumed: Boolean(assignment.copiedAt),
+    licenseNameRegenCount: regenCount,
+    licenseNameRegenRemaining: Math.max(0, MAX_LICENSE_NAME_REGENS - regenCount),
+    supportNotifiedAt: assignment.supportNotifiedAt?.toISOString() ?? null,
   };
 }
 
@@ -112,17 +141,26 @@ export async function getLicenseQuota(portalUserId: number, now = new Date()) {
     issuedInWindow,
     remaining,
     nextSlotAt,
+    maxLicenseNameRegens: MAX_LICENSE_NAME_REGENS,
   };
 }
 
 export async function listLicensesForPortal(portalUserId: number) {
-  const [active, quota] = await Promise.all([
-    listActiveAssignments(portalUserId),
+  const [assignments, quota] = await Promise.all([
+    listAssignmentsForUser(portalUserId),
     getLicenseQuota(portalUserId),
   ]);
 
+  const inWindow = assignments.filter(
+    (a) => a.issuedAt.getTime() >= windowStart().getTime(),
+  );
+  const supportAlreadyNotified = inWindow.some((a) => Boolean(a.supportNotifiedAt));
+  const canNotifySupport = inWindow.length > 0 && !supportAlreadyNotified;
+
   return {
-    licenses: active.map(serializeAssignment),
+    licenses: assignments.map(serializeAssignment),
+    canNotifySupport,
+    supportAlreadyNotified,
     ...quota,
   };
 }
@@ -188,6 +226,11 @@ export async function generateLicense(portalUserId: number) {
       });
     });
 
+    // Fora da transaction: e-mail não deve travar a geração.
+    void maybeNotifyPoolLow().catch((err) => {
+      console.error("[allavsoft] falha ao notificar pool baixo:", err);
+    });
+
     return serializeAssignment(assignment);
   } catch (error) {
     if (error instanceof AllavsoftLicenseError) throw error;
@@ -195,6 +238,7 @@ export async function generateLicense(portalUserId: number) {
   }
 }
 
+/** Copia o serial: consome a key, mas o registro permanece visível (desativado). */
 export async function markCopied(portalUserId: number, assignmentId: string) {
   const existing = await prisma.allavsoftLicenseAssignment.findFirst({
     where: { id: assignmentId, portalUserId },
@@ -219,4 +263,108 @@ export async function markCopied(portalUserId: number, assignmentId: string) {
   });
 
   return serializeAssignment(updated);
+}
+
+/** Regenera User_XXXXXX até MAX_LICENSE_NAME_REGENS vezes por serial. */
+export async function regenerateLicenseName(
+  portalUserId: number,
+  assignmentId: string,
+) {
+  const existing = await prisma.allavsoftLicenseAssignment.findFirst({
+    where: { id: assignmentId, portalUserId },
+    include: { key: true },
+  });
+
+  if (!existing) {
+    throw new AllavsoftLicenseError("NOT_FOUND", "Licença não encontrada.");
+  }
+
+  if (existing.licenseNameRegenCount >= MAX_LICENSE_NAME_REGENS) {
+    throw new AllavsoftLicenseError(
+      "REGEN_LIMIT",
+      `Limite de ${MAX_LICENSE_NAME_REGENS} regenerações de nome atingido para este serial.`,
+    );
+  }
+
+  let nextName = randomLicenseName();
+  // Evita colisão trivial com o nome atual.
+  for (let i = 0; i < 5 && nextName === existing.licenseName; i += 1) {
+    nextName = randomLicenseName();
+  }
+
+  const updated = await prisma.allavsoftLicenseAssignment.update({
+    where: { id: existing.id },
+    data: {
+      licenseName: nextName,
+      licenseNameRegenCount: { increment: 1 },
+    },
+    include: { key: true },
+  });
+
+  return serializeAssignment(updated);
+}
+
+/** Avisa o admin que nenhum dos seriais da janela ativou. */
+export async function notifySupportLicensesFailed(
+  portalUserId: number,
+  note?: string,
+) {
+  const user = await findUserById(portalUserId);
+  if (!user || !userHasAllavsoft(user)) {
+    throw new AllavsoftLicenseError(
+      "FORBIDDEN",
+      "Seu plano não inclui Allavsoft.",
+    );
+  }
+
+  const inWindow = await prisma.allavsoftLicenseAssignment.findMany({
+    where: {
+      portalUserId,
+      issuedAt: { gte: windowStart() },
+    },
+    include: { key: true },
+    orderBy: { issuedAt: "desc" },
+  });
+
+  if (inWindow.length === 0) {
+    throw new AllavsoftLicenseError(
+      "NO_LICENSES",
+      "Gere ao menos um serial antes de avisar o suporte.",
+    );
+  }
+
+  if (inWindow.some((a) => a.supportNotifiedAt)) {
+    throw new AllavsoftLicenseError(
+      "ALREADY_NOTIFIED",
+      "O suporte já foi avisado nesta janela de 30 dias.",
+    );
+  }
+
+  const result = await sendAllavsoftSupportAlert({
+    userName: user.name,
+    userEmail: user.email,
+    userWhatsapp: user.whatsapp,
+    note,
+    licenses: inWindow.map((a) => ({
+      licenseName: a.licenseName,
+      serial: a.key.serial,
+      issuedAt: a.issuedAt.toISOString(),
+      copiedAt: a.copiedAt?.toISOString() ?? null,
+    })),
+  });
+
+  if (!result.sent) {
+    throw new AllavsoftLicenseError(
+      "FORBIDDEN",
+      "Não foi possível enviar o aviso agora. Tente mais tarde ou fale pelo WhatsApp.",
+    );
+  }
+
+  const now = new Date();
+  await prisma.allavsoftLicenseAssignment.updateMany({
+    where: { id: { in: inWindow.map((a) => a.id) } },
+    data: { supportNotifiedAt: now },
+  });
+
+  return listLicensesForPortal(portalUserId);
 }

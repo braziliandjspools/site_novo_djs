@@ -294,13 +294,15 @@ function billingFromLegacy(
 function prismaBillingData(services: PortalServices, billing: ServiceBilling, aggregateFallbackDue: Date) {
   const monthlyValue = computeAggregateMonthlyValue(services, billing);
   const nextDueAt = computeAggregateNextDueAt(services, billing, aggregateFallbackDue);
+  // Valores e vencimentos ficam gravados mesmo com o serviço desligado,
+  // para o admin editar preços sem o total “puxar” o que não está ativo.
   return {
-    servicePoolsVipValue: new Decimal(services.poolsVip ? billing.poolsVip.value : 0),
-    servicePoolsVipDueAt: services.poolsVip ? billing.poolsVip.dueAt : null,
-    serviceDeemixValue: new Decimal(services.deemix ? billing.deemix.value : 0),
-    serviceDeemixDueAt: services.deemix ? billing.deemix.dueAt : null,
-    serviceAllavsoftValue: new Decimal(services.allavsoft ? billing.allavsoft.value : 0),
-    serviceAllavsoftDueAt: services.allavsoft ? billing.allavsoft.dueAt : null,
+    servicePoolsVipValue: new Decimal(billing.poolsVip.value),
+    servicePoolsVipDueAt: billing.poolsVip.dueAt,
+    serviceDeemixValue: new Decimal(billing.deemix.value),
+    serviceDeemixDueAt: billing.deemix.dueAt,
+    serviceAllavsoftValue: new Decimal(billing.allavsoft.value),
+    serviceAllavsoftDueAt: billing.allavsoft.dueAt,
     monthlyValue: new Decimal(monthlyValue),
     nextDueAt,
   };

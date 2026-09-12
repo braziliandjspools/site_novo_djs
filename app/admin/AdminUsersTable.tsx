@@ -74,6 +74,7 @@ const SERVICE_BILLING_ITEMS: Array<{
   dueHint?: string;
 }> = [
   { key: "poolsVip", label: "Pools VIP", dueRequired: true },
+  { key: "deemix", label: "Deemix", dueRequired: true },
   {
     key: "allavsoft",
     label: "Allavsoft",
@@ -129,6 +130,18 @@ function formatBrl(value: number) {
     style: "currency",
     currency: "BRL",
   }).format(Number.isFinite(value) ? value : 0);
+}
+
+/** Total só dos serviços marcados como ativos. */
+function computeDraftMonthlyValue(
+  services: ServiceDraft,
+  billing: ServiceBillingDraft,
+): number {
+  let total = 0;
+  if (services.poolsVip) total += parseBrlInput(billing.poolsVip.value) ?? 0;
+  if (services.deemix) total += parseBrlInput(billing.deemix.value) ?? 0;
+  if (services.allavsoft) total += parseBrlInput(billing.allavsoft.value) ?? 0;
+  return Math.round(total * 100) / 100;
 }
 
 /** Aceita "50", "50,00", "R$ 50,00", "1.250,90". */
@@ -264,17 +277,21 @@ function UserAccountModal({
   }, []);
 
   function patchServiceBilling(key: ServiceBillingKey, patch: Partial<ServiceBillingLineDraft>) {
+    const serviceBilling = {
+      ...draft.serviceBilling,
+      [key]: { ...draft.serviceBilling[key], ...patch },
+    };
     onChange({
-      serviceBilling: {
-        ...draft.serviceBilling,
-        [key]: { ...draft.serviceBilling[key], ...patch },
-      },
+      serviceBilling,
+      monthlyValue: String(computeDraftMonthlyValue(draft.services, serviceBilling)),
     });
   }
 
   function toggleService(key: ServiceBillingKey, enabled: boolean) {
+    const services = { ...draft.services, [key]: enabled };
     onChange({
-      services: { ...draft.services, [key]: enabled },
+      services,
+      monthlyValue: String(computeDraftMonthlyValue(services, draft.serviceBilling)),
     });
   }
 
@@ -348,7 +365,8 @@ function UserAccountModal({
               Serviços e cobrança
             </h3>
             <p className="text-[11px] text-zinc-500">
-              Defina valor e vencimento por serviço. Allavsoft sem data = vitalícia. Resumo atual:{" "}
+              Valor e vencimento podem ser editados mesmo com o serviço desligado — o resumo
+              soma apenas os ativos. Allavsoft sem data = vitalícia. Resumo atual:{" "}
               <span className="font-mono text-zinc-300">{formatBrl(parseBrlInput(draft.monthlyValue) ?? 0)}</span>
               {draft.nextDueAt ? (
                 <>
@@ -367,7 +385,11 @@ function UserAccountModal({
                 return (
                   <div
                     key={key}
-                    className="rounded-lg border border-white/10 bg-black/25 p-3"
+                    className={`rounded-lg border p-3 ${
+                      enabled
+                        ? "border-white/10 bg-black/25"
+                        : "border-white/5 bg-black/15 opacity-90"
+                    }`}
                   >
                     <label className="flex items-center gap-3 text-sm text-zinc-200">
                       <input
@@ -377,50 +399,53 @@ function UserAccountModal({
                         className="h-4 w-4 accent-[#009739]"
                       />
                       <span className="font-medium">{label}</span>
-                      {!dueRequired && (
+                      {!enabled && (
+                        <span className="text-[10px] font-normal uppercase tracking-wide text-zinc-500">
+                          inativo — preço não entra no total
+                        </span>
+                      )}
+                      {enabled && !dueRequired && (
                         <span className="text-[10px] font-normal uppercase tracking-wide text-zinc-500">
                           vitalícia opcional
                         </span>
                       )}
                     </label>
 
-                    {enabled && (
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <label className="block text-xs text-gray-400">
-                          Valor
-                          <div className="mt-1">
-                            <MoneyInput
-                              value={line.value}
-                              onChange={(value) => patchServiceBilling(key, { value })}
-                              ariaLabel={`Valor ${label}`}
-                            />
-                          </div>
-                        </label>
-                        <label className="block text-xs text-gray-400">
-                          {dueRequired ? "Vencimento" : "Vencimento (opcional)"}
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <input
-                              type="date"
-                              value={line.dueAt}
-                              onChange={(e) => patchServiceBilling(key, { dueAt: e.target.value })}
-                              className={`${formInputClass} font-mono`}
-                            />
-                            {urgencyLabel && urgency && (
-                              <span
-                                className={`inline-flex rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                                  urgency === "overdue"
-                                    ? "bg-red-500/20 text-red-300"
-                                    : "bg-amber-500/20 text-amber-200"
-                                }`}
-                              >
-                                {urgencyLabel}
-                              </span>
-                            )}
-                          </div>
-                          {dueHint ? <p className="mt-1 text-[10px] text-zinc-500">{dueHint}</p> : null}
-                        </label>
-                      </div>
-                    )}
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <label className="block text-xs text-gray-400">
+                        Valor
+                        <div className="mt-1">
+                          <MoneyInput
+                            value={line.value}
+                            onChange={(value) => patchServiceBilling(key, { value })}
+                            ariaLabel={`Valor ${label}`}
+                          />
+                        </div>
+                      </label>
+                      <label className="block text-xs text-gray-400">
+                        {dueRequired ? "Vencimento" : "Vencimento (opcional)"}
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <input
+                            type="date"
+                            value={line.dueAt}
+                            onChange={(e) => patchServiceBilling(key, { dueAt: e.target.value })}
+                            className={`${formInputClass} font-mono`}
+                          />
+                          {urgencyLabel && urgency && (
+                            <span
+                              className={`inline-flex rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                                urgency === "overdue"
+                                  ? "bg-red-500/20 text-red-300"
+                                  : "bg-amber-500/20 text-amber-200"
+                              }`}
+                            >
+                              {urgencyLabel}
+                            </span>
+                          )}
+                        </div>
+                        {dueHint ? <p className="mt-1 text-[10px] text-zinc-500">{dueHint}</p> : null}
+                      </label>
+                    </div>
                   </div>
                 );
               })}
@@ -542,13 +567,14 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
 
       const nextDrafts: Record<number, DraftRow> = {};
       for (const user of data.users ?? []) {
+        const serviceBilling = billingFromUser(user.serviceBilling);
         nextDrafts[user.id] = {
           name: user.name,
           email: user.email,
           whatsapp: user.whatsapp,
           services: user.services,
-          serviceBilling: billingFromUser(user.serviceBilling),
-          monthlyValue: String(user.monthlyValue),
+          serviceBilling,
+          monthlyValue: String(computeDraftMonthlyValue(user.services, serviceBilling)),
           nextDueAt: toDateInputValue(user.nextDueAt),
           active: user.active,
           musicProducerDeliveriesEnabled: Boolean(user.musicProducerDeliveriesEnabled),
@@ -618,15 +644,13 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     }
 
     for (const { key, label, dueRequired } of SERVICE_BILLING_ITEMS) {
-      if (!draft.services[key]) continue;
-
       const line = draft.serviceBilling[key];
       const value = parseBrlInput(line.value);
       if (value === null) {
         setError(`Valor inválido para ${label}.`);
         return;
       }
-      if (dueRequired && !line.dueAt) {
+      if (draft.services[key] && dueRequired && !line.dueAt) {
         setError(`Informe o vencimento de ${label}.`);
         return;
       }
