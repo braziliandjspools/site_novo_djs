@@ -111,6 +111,8 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <a
             href={allavsoftDownloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-amber-300"
           >
             <Download className="h-4 w-4" />
@@ -118,7 +120,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
           </a>
         </div>
         <p className="mt-3 text-xs text-zinc-500">
-          Windows · versão {ALLAVSOFT_INSTALLER_VERSION} · depois ative com o serial gerado abaixo
+          Windows · versão {ALLAVSOFT_INSTALLER_VERSION} · download externo · depois ative com o serial gerado abaixo
         </p>
       </PortalCard>
 
