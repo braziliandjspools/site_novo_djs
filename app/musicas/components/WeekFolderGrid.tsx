@@ -69,6 +69,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
         title: weekTitle,
         folderCount: week.folderCount,
         trackCount: week.trackCount,
+        coverUrl: week.coverUrl ?? null,
         detail: rangeLabel || null,
         badge,
         badgeTone: badge ? badgeTone : undefined,
@@ -78,17 +79,18 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
 
   return (
     <LibraryFolderList
-      className="mb-6"
+      className="mb-8"
       folders={items}
       slugSegments={[monthSlug]}
       newFolderIds={newWeekIds}
+      layout="grid"
       title="Semanas"
       description={`Semanas de ${monthName}`}
       descriptionMobile={monthName}
       emptyMessage="Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…"
       before={
         monthDate ? (
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3 rounded-[20px] border border-white/5 bg-[#0f1012] px-4 py-3">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 rounded-2xl bg-[#14181E] px-4 py-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">
                 Calendário
@@ -100,7 +102,7 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
                 Semana 01 = dias 1–7 · Semana 02 = 8–14…
               </p>
             </div>
-            <p className="rounded-full border border-[#1ed760]/25 bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760]">
+            <p className="rounded-full bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760] ring-1 ring-[#1ed760]/25">
               {formatLiveClock(now)}
             </p>
           </div>

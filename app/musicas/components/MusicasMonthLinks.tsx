@@ -47,6 +47,7 @@ export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksPr
         name: folder.name,
         folderCount: catalog.folderCount,
         trackCount: catalog.trackCount,
+        coverUrl: catalog.coverUrl ?? null,
         badge,
         badgeTone: badge ? badgeTone : undefined,
       };
@@ -58,6 +59,7 @@ export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksPr
       folders={items}
       slugSegments={[]}
       newFolderIds={newFolderIds}
+      layout="grid"
       title="Pastas"
       description="Escolha o pack ou mês e continue até as faixas"
       descriptionMobile="Packs e meses do acervo"

@@ -96,7 +96,7 @@ export function UpdatesHero({
   }
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#0d0f0f] shadow-2xl shadow-black/40">
+    <section className="relative mb-8 overflow-hidden rounded-[28px] bg-[#0d0f0f] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06]">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <Image
           src={MUSICAS_HERO_BG_SRC}
@@ -193,7 +193,7 @@ export function UpdatesHero({
 export function UpdatesHeroSkeleton() {
   return (
     <section
-      className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#0d0f0f] p-5 sm:p-7 lg:p-8"
+      className="relative mb-8 overflow-hidden rounded-[28px] bg-[#0d0f0f] p-5 ring-1 ring-white/[0.06] sm:p-7 lg:p-8"
       aria-busy="true"
       aria-label="Carregando acervo"
     >

@@ -75,7 +75,7 @@ export function AtualizacoesMonthHero({
 
   return (
     <section
-      className={`relative mb-6 overflow-hidden ${isTracks ? "rounded-2xl" : "rounded-xl"}`}
+      className={`relative mb-8 overflow-hidden ${isTracks ? "rounded-2xl" : "rounded-2xl"} ring-1 ring-white/[0.06]`}
     >
       <Image
         src={MUSICAS_HERO_BG_SRC}
