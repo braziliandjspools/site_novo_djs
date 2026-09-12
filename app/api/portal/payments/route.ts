@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedPortalUser } from "../../../../lib/portal";
-import { listPortalPaymentsForUser } from "../../../../lib/portal-payments";
+import { getAuthenticatedPortalUser } from "../../../lib/portal";
+import { listPortalPaymentsForUser } from "../../../lib/portal-payments";
 
 export const dynamic = "force-dynamic";
 
