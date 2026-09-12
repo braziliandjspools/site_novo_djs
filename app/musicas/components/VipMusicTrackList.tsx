@@ -33,6 +33,7 @@ import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
+import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
@@ -409,19 +410,25 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       </span>
     </button>
   ) : (
-    <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md md:h-10 md:w-10" aria-hidden>
-      <Image
-        src={coverSrc}
-        alt=""
-        fill
-        sizes="44px"
-        className="object-cover opacity-70"
-        unoptimized={coverUnoptimized}
-      />
-      <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-zinc-300">
-        <Lock className="h-3.5 w-3.5" />
-      </span>
-    </div>
+    <VipLockedPlayHint>
+      <button
+        type="button"
+        aria-label={`Play bloqueado — ${display.title}. Assine o VIP para ouvir.`}
+        className="group/play relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-transform duration-200 ease-out group-hover/row:scale-105 md:h-10 md:w-10"
+      >
+        <Image
+          src={coverSrc}
+          alt=""
+          fill
+          sizes="44px"
+          className="object-cover opacity-75"
+          unoptimized={coverUnoptimized}
+        />
+        <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#1ed760] transition-colors group-hover/locked:bg-black/70">
+          <Lock className="h-3.5 w-3.5" />
+        </span>
+      </button>
+    </VipLockedPlayHint>
   );
 
   const titleBlock = (
@@ -632,57 +639,86 @@ function DiscographyTrackRow({
         isActive || isPlaying ? "bg-white/[0.04]" : ""
       }`}
     >
-      <button
-        type="button"
-        onClick={canPlay ? onToggle : undefined}
-        disabled={!canPlay || isBusy}
-        className={`${DISCOGRAPHY_GRID} min-w-0 flex-1 px-2 py-2.5 text-left sm:px-3`}
-        aria-label={`${display.title} — ${display.artist}`}
-      >
-        <div className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-          <Image
-            src={coverSrc}
-            alt=""
-            fill
-            sizes="40px"
-            className="object-cover"
-            unoptimized={coverUnoptimized}
-          />
-          <span
-            className={`absolute inset-0 transition-colors ${
-              isPlaying || isLoading
-                ? "bg-black/45"
-                : "bg-black/20 [@media(hover:hover)]:group-hover/row:bg-black/50"
-            }`}
-            aria-hidden
-          />
-          <span className="relative z-10 flex h-full w-full items-center justify-center text-white">
-            {isLoading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />
-            ) : isPlaying ? (
-              <>
-                <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden">
-                  <PlayingBars />
-                </span>
-                <Pause className="hidden h-3.5 w-3.5 text-white [@media(hover:hover)]:group-hover/row:block" fill="currentColor" />
-              </>
-            ) : canPlay ? (
-              <Play className="ml-0.5 h-3.5 w-3.5 fill-white text-white drop-shadow" />
-            ) : (
-              <Lock className="h-3.5 w-3.5 text-zinc-300" />
-            )}
+      {canPlay ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={isBusy}
+          className={`${DISCOGRAPHY_GRID} min-w-0 flex-1 px-2 py-2.5 text-left sm:px-3`}
+          aria-label={`${display.title} — ${display.artist}`}
+        >
+          <div className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+            <Image
+              src={coverSrc}
+              alt=""
+              fill
+              sizes="40px"
+              className="object-cover"
+              unoptimized={coverUnoptimized}
+            />
+            <span
+              className={`absolute inset-0 transition-colors ${
+                isPlaying || isLoading
+                  ? "bg-black/45"
+                  : "bg-black/20 [@media(hover:hover)]:group-hover/row:bg-black/50"
+              }`}
+              aria-hidden
+            />
+            <span className="relative z-10 flex h-full w-full items-center justify-center text-white">
+              {isLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />
+              ) : isPlaying ? (
+                <>
+                  <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden">
+                    <PlayingBars />
+                  </span>
+                  <Pause className="hidden h-3.5 w-3.5 text-white [@media(hover:hover)]:group-hover/row:block" fill="currentColor" />
+                </>
+              ) : (
+                <Play className="ml-0.5 h-3.5 w-3.5 fill-white text-white drop-shadow" />
+              )}
+            </span>
+          </div>
+          <div className="min-w-0 overflow-hidden">
+            <p className={`truncate text-[14px] font-medium ${isPlaying || isActive ? "text-[#1ed760]" : "text-white"}`}>
+              {display.title}
+            </p>
+            <p className="truncate text-[12px] text-white/45">{display.artist}</p>
+          </div>
+          <span className="hidden text-center font-mono text-[11px] tabular-nums text-white/35 sm:block">
+            {formatTime(displayDuration)}
           </span>
-        </div>
-        <div className="min-w-0 overflow-hidden">
-          <p className={`truncate text-[14px] font-medium ${isPlaying || isActive ? "text-[#1ed760]" : "text-white"}`}>
-            {display.title}
-          </p>
-          <p className="mt-0.5 truncate text-[12px] text-white/45">{display.artist}</p>
-        </div>
-        <div className="text-right font-mono text-xs tabular-nums text-zinc-500">
-          {displayDuration > 0 ? formatTime(displayDuration) : null}
-        </div>
-      </button>
+        </button>
+      ) : (
+        <VipLockedPlayHint className="min-w-0 flex-1" side="top">
+          <button
+            type="button"
+            className={`${DISCOGRAPHY_GRID} w-full min-w-0 px-2 py-2.5 text-left sm:px-3`}
+            aria-label={`Play bloqueado — ${display.title}. Assine o VIP para ouvir.`}
+          >
+            <div className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+              <Image
+                src={coverSrc}
+                alt=""
+                fill
+                sizes="40px"
+                className="object-cover opacity-75"
+                unoptimized={coverUnoptimized}
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#1ed760] transition-colors group-hover/locked:bg-black/70">
+                <Lock className="h-3.5 w-3.5" />
+              </span>
+            </div>
+            <div className="min-w-0 overflow-hidden">
+              <p className="truncate text-[14px] font-medium text-white">{display.title}</p>
+              <p className="truncate text-[12px] text-white/45">{display.artist}</p>
+            </div>
+            <span className="hidden text-center font-mono text-[11px] tabular-nums text-white/35 sm:block">
+              {formatTime(displayDuration)}
+            </span>
+          </button>
+        </VipLockedPlayHint>
+      )}
       <div className="flex-shrink-0 pr-1 sm:pr-2">
         <CollectionContextMenu
           label={`Opções · ${display.title}`}
