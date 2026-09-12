@@ -42,11 +42,14 @@ function LogoCard({ logo }: { logo: PoolLogo }) {
 }
 
 /** 10 logos de pools correndo sob o catálogo — pausa no hover. */
-export function PoolLogosMarquee() {
+export function PoolLogosMarquee({ className = "" }: { className?: string }) {
   const loop = [...POOL_LOGOS, ...POOL_LOGOS];
 
   return (
-    <div className="relative w-full overflow-hidden py-1" aria-label="Logos de pools">
+    <div
+      className={`relative w-full min-w-0 max-w-full overflow-hidden py-1 ${className}`}
+      aria-label="Logos de pools"
+    >
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-[#121212] to-transparent sm:w-20" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-[#121212] to-transparent sm:w-20" />
 

@@ -60,13 +60,19 @@ export function MusicasPageHeader({ title, subtitle }: { title: string; subtitle
           <h1 className="text-page-title mt-2 text-white">{title}</h1>
           {subtitle && <p className="text-secondary mt-2 max-w-2xl">{subtitle}</p>}
           {clock ? (
-            <p className="mt-3 text-sm capitalize text-zinc-400">
-              <span className="text-zinc-300">{clock.datePart}</span>
-              <span className="mx-2 text-zinc-600">·</span>
-              <span className="font-mono tabular-nums text-[#1ed760]">{clock.timePart}</span>
-            </p>
+            <div className="mt-4 space-y-1">
+              <p className="text-base capitalize text-zinc-200 sm:text-lg md:text-xl">
+                {clock.datePart}
+              </p>
+              <p className="font-mono text-2xl font-semibold tabular-nums tracking-tight text-[#1ed760] sm:text-3xl md:text-4xl">
+                {clock.timePart}
+              </p>
+            </div>
           ) : (
-            <p className="mt-3 h-5 w-48 animate-pulse rounded bg-white/10" aria-hidden />
+            <div className="mt-4 space-y-2" aria-hidden>
+              <p className="h-5 w-56 animate-pulse rounded bg-white/10 sm:h-6 sm:w-72" />
+              <p className="h-8 w-36 animate-pulse rounded bg-white/10 sm:h-9" />
+            </div>
           )}
         </div>
       </div>

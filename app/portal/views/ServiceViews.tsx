@@ -6,7 +6,9 @@ import { PortalRenewPayButton } from "../PortalRenewalPay";
 import { PortalBadge, PortalCard, PortalPageHeader } from "../PortalShell";
 import { formatDateBr, type PortalData } from "../portal-types";
 import { AllavsoftLicensesPanel } from "./AllavsoftLicensesPanel";
+import { AccountPaymentsPanel } from "./AccountPaymentsPanel";
 import { DownloaderStatsPanel } from "./DownloaderStatsPanel";
+
 
 export function PoolsServiceView({ data }: { data: PortalData }) {
   if (!data.pools) return null;
@@ -153,6 +155,8 @@ export function AccountView({ data }: { data: PortalData }) {
           ))}
         </dl>
       </PortalCard>
+
+      <AccountPaymentsPanel />
 
       <PortalCard title="Segurança">
         <p className="text-sm text-zinc-400">

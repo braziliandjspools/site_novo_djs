@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
+import { PoolLogosMarquee } from "../../components/PoolLogosMarquee";
 import { BrsLogo } from "../../components/BrsLogo";
-import { SITE_NAV_LINKS } from "../../lib/site-nav";
 import { MusicasPageHeader } from "../MusicasShell";
 import { MusicasFaqSection } from "../components/MusicasFaqSection";
 import { MusicasLibraryDashboard } from "../components/MusicasLibraryDashboard";
@@ -12,97 +11,6 @@ import { MusicasListSkeleton } from "../components/MusicasSkeletons";
 import { useMusicasSession } from "../components/MusicasSessionContext";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
-
-type CardTheme = {
-  gradient: string;
-  button: string;
-  iconWrap: string;
-  icon: string;
-};
-
-const CARD_THEMES = {
-  cyan: {
-    gradient: "from-cyan-700 via-cyan-950 to-[#0a0a0a]",
-    button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-cyan-400/20",
-    icon: "text-cyan-200",
-  },
-  violet: {
-    gradient: "from-violet-700 via-violet-950 to-[#0a0a0a]",
-    button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-violet-400/20",
-    icon: "text-violet-200",
-  },
-  rose: {
-    gradient: "from-rose-700 via-rose-950 to-[#0a0a0a]",
-    button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-rose-400/20",
-    icon: "text-rose-200",
-  },
-  amber: {
-    gradient: "from-amber-700 via-amber-950 to-[#0a0a0a]",
-    button: "bg-white/10 text-white hover:bg-white/15",
-    iconWrap: "bg-amber-400/20",
-    icon: "text-amber-100",
-  },
-} as const satisfies Record<string, CardTheme>;
-
-const SITE_CARD_COPY: Record<string, { description: string; theme: keyof typeof CARD_THEMES }> = {
-  "/": {
-    description: "Página principal do Brazilian Remix Service — pools, serviços e novidades.",
-    theme: "cyan",
-  },
-  "/allavsoft": {
-    description: "Baixe Deezer, Spotify, YouTube e +1000 sites com o Allavsoft.",
-    theme: "violet",
-  },
-  "/musicproducer": {
-    description: "Produções exclusivas e demos da nossa DJ.",
-    theme: "rose",
-  },
-  "/portal": {
-    description: "Sua conta, pedidos, licenças e suporte.",
-    theme: "amber",
-  },
-};
-
-function QuickCard({
-  title,
-  description,
-  href,
-  icon: Icon,
-  theme,
-  actionLabel = "Abrir",
-}: {
-  title: string;
-  description: string;
-  href: string;
-  icon: LucideIcon;
-  theme: CardTheme;
-  actionLabel?: string;
-}) {
-  const external = href.startsWith("http");
-
-  return (
-    <Link
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className={`group relative flex min-h-[168px] flex-col overflow-hidden rounded-md bg-gradient-to-br p-5 transition-transform hover:scale-[1.02] ${theme.gradient}`}
-    >
-      <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-md ${theme.iconWrap}`}>
-        <Icon className={`h-5 w-5 ${theme.icon}`} />
-      </div>
-      <h3 className="text-lg font-bold text-white">{title}</h3>
-      <p className="mt-1 flex-1 text-sm text-white/75">{description}</p>
-      <span
-        className={`mt-4 inline-flex w-fit items-center justify-center rounded-full px-4 py-2 text-xs font-bold transition-colors ${theme.button}`}
-      >
-        {actionLabel}
-      </span>
-    </Link>
-  );
-}
 
 export default function MusicasHomePage() {
   const { authenticated, hasVip, userName } = useMusicasSession();
@@ -126,6 +34,13 @@ export default function MusicasHomePage() {
 
       {authenticated && !hasVip && <VipUpgradeBanner />}
 
+      <section className="mb-8 w-full min-w-0 overflow-hidden" aria-label="Pools parceiras">
+        <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+          Pools do acervo
+        </p>
+        <PoolLogosMarquee />
+      </section>
+
       <MusicasLibraryDashboard home={home} loading={loadingHome} />
 
       {loadingTree ? (
@@ -144,26 +59,6 @@ export default function MusicasHomePage() {
           <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} />
         </section>
       )}
-
-      <section className="mb-10 mt-10">
-        <h2 className="mb-4 text-xl font-bold text-white">Site</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {SITE_NAV_LINKS.map(({ href, label, icon }) => {
-            const copy = SITE_CARD_COPY[href];
-            if (!copy) return null;
-            return (
-              <QuickCard
-                key={href}
-                title={label}
-                description={copy.description}
-                href={href}
-                icon={icon}
-                theme={CARD_THEMES[copy.theme]}
-              />
-            );
-          })}
-        </div>
-      </section>
 
       <MusicasFaqSection />
     </div>
