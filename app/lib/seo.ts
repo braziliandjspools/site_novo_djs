@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { DEEMIX_ENABLED } from "./feature-flags";
-import { SITE_NAME, SITE_PRODUCTION_URL, SITE_SHORT, SITE_TAGLINE } from "./branding";
+import {
+  DOWNLOADER_NAME,
+  SITE_NAME,
+  SITE_PRODUCTION_URL,
+  SITE_SHORT,
+  SITE_TAGLINE,
+} from "./branding";
 
 /** URL canônica do site (produção). Sobrescreva com NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (() => {
@@ -14,9 +20,11 @@ export const SITE_URL = (() => {
 })();
 
 export const SITE_LOCALE = "pt_BR";
+export const SITE_LANGUAGE = "pt-BR";
 export const TWITTER_HANDLE = "@brazilianremixservice";
+export const SUPPORT_EMAIL = "brazilianremixservice@gmail.com";
 
-/** Imagem padrão até você enviar as artes por página (1200×630). */
+/** Imagem padrão até as artes por página (1200×630). */
 export const OG_IMAGE_FALLBACK = "/images/og/default.jpg";
 
 /**
@@ -26,7 +34,6 @@ export const OG_IMAGE_FALLBACK = "/images/og/default.jpg";
 export const READY_OG_IMAGES = new Set<string>([
   // Ex.: "home", "plans" — ative após salvar public/images/og/{slug}.jpg
 ]);
-
 
 export type SeoPageKey =
   | "home"
@@ -46,7 +53,12 @@ export type SeoPageKey =
   | "privacy-downloader"
   | "privacy-cookies"
   | "privacy-conduct"
-  | "admin";
+  | "admin"
+  | "pagamento-sucesso"
+  | "pagamento-pendente"
+  | "pagamento-erro"
+  | "checkout-success"
+  | "checkout-pending";
 
 export type SeoPageConfig = {
   key: SeoPageKey;
@@ -57,7 +69,7 @@ export type SeoPageConfig = {
   /** Slug do arquivo OG: /images/og/{ogImage}.jpg */
   ogImage: string;
   keywords?: string[];
-  /** noindex para áreas privadas/admin */
+  /** noindex para áreas privadas/admin/checkout */
   noIndex?: boolean;
   /** Incluir no sitemap.xml */
   sitemap?: boolean;
@@ -65,21 +77,30 @@ export type SeoPageConfig = {
   priority?: number;
 };
 
+const SHARED_KEYWORDS = [
+  "Brazilian Remix Service",
+  "BRS",
+  "pools DJ Brasil",
+  "remix service DJ",
+  "edits DJ",
+  "packs DJ",
+  "acervo VIP DJ",
+  "Downloader DJ Windows",
+] as const;
+
 export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   home: {
     key: "home",
     path: "/",
-    title: `${SITE_NAME} | Pools, curadoria e remix services para DJs`,
+    title: `${SITE_NAME} | Pools, edits e remixes para DJs`,
     description:
-      "Acervo com mais de 400 pools e remix services curados para DJs no Brasil. Atualizações mensais, plataforma VIP e Downloader para montar sets com praticidade.",
+      "Acervo VIP para DJs no Brasil: pools, edits, extended e remixes curados, atualizações mensais, plataforma online e BRS Downloader. Assine a partir de R$ 38/mês via Mercado Pago.",
     ogImage: "home",
     keywords: [
-      "Brazilian Remix Service",
-      "pools DJ",
-      "remix service Brasil",
-      "edits DJ",
-      "packs DJ",
-      "curadoria musical",
+      ...SHARED_KEYWORDS,
+      "assinatura pools DJ",
+      "plataforma músicas DJ",
+      "Mercado Pago VIP",
     ],
     sitemap: true,
     changeFrequency: "weekly",
@@ -88,30 +109,30 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   plans: {
     key: "plans",
     path: "/plans",
-    title: `Planos VIP | ${SITE_NAME}`,
+    title: `Planos VIP e preços | ${SITE_NAME}`,
     description:
-      "Assine o BRS Drive VIP via Mercado Pago: teste 3 dias (R$ 1), 1 mês, 3 meses ou 1 ano. Acervo VIP, plataforma /musicas e Downloader Windows. Acesso liberado após confirmação oficial.",
+      "Planos BRS Drive VIP: teste 3 dias por R$ 1, mensal R$ 38, trimestral e anual. Acervo completo, plataforma /musicas e Downloader Windows. Pagamento seguro no Mercado Pago.",
     ogImage: "plans",
     keywords: [
+      ...SHARED_KEYWORDS,
       "plano VIP DJ",
-      "assinatura pools",
+      "assinatura pools preço",
       "BRS Drive VIP",
-      "Mercado Pago",
-      "Downloader DJ",
       "teste 3 dias",
+      "Mercado Pago",
     ],
     sitemap: true,
     changeFrequency: "monthly",
-    priority: 0.9,
+    priority: 0.95,
   },
   deemix: {
     key: "deemix",
     path: "/deemix",
     title: `Deemix | ${SITE_NAME}`,
     description:
-      "Deemix incluso no Brazilian Remix Service: baixe e organize músicas com praticidade para ampliar seu repertório e preparar sets com mais velocidade.",
+      "Deemix no Brazilian Remix Service: baixe e organize músicas com praticidade para ampliar o repertório e preparar sets com mais velocidade.",
     ogImage: "deemix",
-    keywords: ["Deemix", "download música DJ", "Deemix Server"],
+    keywords: ["Deemix", "download música DJ", "Deemix Server", "ARL 320"],
     sitemap: DEEMIX_ENABLED,
     changeFrequency: "monthly",
     priority: 0.7,
@@ -119,130 +140,127 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   allavsoft: {
     key: "allavsoft",
     path: "/allavsoft",
-    title: `Allavsoft | ${SITE_NAME}`,
+    title: `Allavsoft vitalício R$ 50 | ${SITE_NAME}`,
     description:
-      "Licença vitalícia Allavsoft por R$ 50,00. Baixe de Deezer, Spotify, YouTube e +1000 sites — serial no portal do cliente via Mercado Pago.",
+      "Licença Allavsoft vitalícia por R$ 50. Baixe de Spotify, Deezer, YouTube e +1000 sites. Serial liberado no portal após pagamento no Mercado Pago.",
     ogImage: "allavsoft",
     keywords: [
       "Allavsoft",
-      "download Deezer",
+      "Allavsoft vitalício",
       "download Spotify",
+      "download Deezer",
       "download YouTube",
-      "licença vitalícia",
-      "Mercado Pago",
+      "licença Allavsoft Brasil",
+    ],
+    sitemap: true,
+    changeFrequency: "monthly",
+    priority: 0.9,
+  },
+  musicproducer: {
+    key: "musicproducer",
+    path: "/musicproducer",
+    title: `Produção musical sob demanda | ${SITE_NAME}`,
+    description:
+      "Music Producer BRS: briefing, ideia, letra e entrega de faixas personalizadas para DJs e eventos. Acompanhe o pedido no portal do cliente.",
+    ogImage: "musicproducer",
+    keywords: [
+      "produção musical sob demanda",
+      "music producer DJ",
+      "música personalizada",
+      "remix sob encomenda",
+      "briefing musical",
     ],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.85,
   },
-  musicproducer: {
-    key: "musicproducer",
-    path: "/musicproducer",
-    title: `Music Producer | ${SITE_NAME}`,
-    description:
-      "Produção musical sob demanda com o Brazilian Remix Service. Envie seu briefing, acompanhe entregas e receba faixas personalizadas para seus projetos.",
-    ogImage: "musicproducer",
-    keywords: ["produção musical", "music producer", "música sob encomenda"],
-    sitemap: true,
-    changeFrequency: "monthly",
-    priority: 0.8,
-  },
   "gerador-maiusculas": {
     key: "gerador-maiusculas",
     path: "/gerador-maiusculas",
-    title: `Gerador de maiúscula | ${SITE_NAME}`,
+    title: `Gerador de maiúsculas online | ${SITE_NAME}`,
     description:
-      "Converta texto para maiúsculo, minúsculo, alternado, invertido ou title case. Ferramenta gratuita do Brazilian Remix Service.",
+      "Ferramenta gratuita: converta texto para MAIÚSCULO, minúsculo, Title Case, alternado ou invertido. Ideal para tags, pastas e nomes de faixas.",
     ogImage: "home",
     keywords: [
-      "gerador de maiúscula",
+      "gerador de maiúsculas",
       "converter maiúsculo minúsculo",
-      "title case",
+      "title case online",
       "caixa alta",
       "caixa baixa",
     ],
     sitemap: true,
-    changeFrequency: "monthly",
-    priority: 0.5,
+    changeFrequency: "yearly",
+    priority: 0.45,
   },
   portal: {
     key: "portal",
     path: "/portal",
-    title: `Portal do Cliente | ${SITE_NAME}`,
+    title: `Portal do cliente | ${SITE_NAME}`,
     description:
-      "Área do cliente Brazilian Remix Service: gerencie plano, serviços VIP, produções musicais e suporte em um só lugar.",
+      "Área logada do Brazilian Remix Service: planos, serviços VIP, Allavsoft, produções e suporte.",
     ogImage: "portal",
-    keywords: ["portal VIP", "área do cliente DJ"],
-    sitemap: true,
-    changeFrequency: "weekly",
-    priority: 0.8,
+    noIndex: true,
+    sitemap: false,
   },
   musicas: {
     key: "musicas",
     path: "/musicas",
-    title: `Plataforma de Músicas | ${SITE_NAME}`,
+    title: `Plataforma VIP de músicas | ${SITE_NAME}`,
     description:
-      "Plataforma VIP do Brazilian Remix Service: ouça e baixe atualizações, coleções e packs organizados para DJs.",
+      "Área VIP para ouvir e baixar packs, atualizações e coleções do Brazilian Remix Service.",
     ogImage: "musicas",
-    keywords: ["plataforma VIP músicas", "baixar packs DJ", "atualizações pools"],
-    sitemap: true,
-    changeFrequency: "daily",
-    priority: 0.95,
+    noIndex: true,
+    sitemap: false,
   },
   "musicas-home": {
     key: "musicas-home",
     path: "/musicas/home",
-    title: `Início — Plataforma VIP | ${SITE_NAME}`,
-    description:
-      "Painel inicial da plataforma de músicas: acervo VIP, atualizações e atalhos para baixar e ouvir packs do Brazilian Remix Service.",
+    title: `Início VIP | ${SITE_NAME}`,
+    description: "Painel inicial da plataforma VIP de músicas BRS.",
     ogImage: "musicas-home",
-    keywords: ["plataforma músicas DJ", "acervo VIP"],
-    sitemap: true,
-    changeFrequency: "daily",
-    priority: 0.9,
+    noIndex: true,
+    sitemap: false,
   },
   "musicas-atualizacoes": {
     key: "musicas-atualizacoes",
     path: "/musicas/atualizacoes",
-    title: `Atualizações — Plataforma VIP | ${SITE_NAME}`,
-    description:
-      "Atualizações mensais do acervo VIP: packs, edits e remixes organizados por período e estilo para DJs.",
+    title: `Atualizações VIP | ${SITE_NAME}`,
+    description: "Atualizações mensais do acervo VIP Brazilian Remix Service.",
     ogImage: "musicas-atualizacoes",
-    keywords: ["atualizações pools", "novos packs DJ", "edits do mês"],
-    sitemap: true,
-    changeFrequency: "daily",
-    priority: 0.9,
+    noIndex: true,
+    sitemap: false,
   },
   "musicas-colecoes": {
     key: "musicas-colecoes",
     path: "/musicas/colecoes",
-    title: `Coleções — Plataforma VIP | ${SITE_NAME}`,
-    description:
-      "Coleções e pastas especiais do acervo VIP Brazilian Remix Service para montar sets com repertório organizado.",
+    title: `Coleções VIP | ${SITE_NAME}`,
+    description: "Coleções e pastas especiais do acervo VIP BRS.",
     ogImage: "musicas-colecoes",
-    keywords: ["coleções DJ", "pastas VIP", "repertório organizado"],
-    sitemap: true,
-    changeFrequency: "weekly",
-    priority: 0.75,
+    noIndex: true,
+    sitemap: false,
   },
   "musicas-entrar": {
     key: "musicas-entrar",
     path: "/musicas/entrar",
-    title: `Entrar na Plataforma | ${SITE_NAME}`,
+    title: `Entrar na plataforma VIP | ${SITE_NAME}`,
     description:
-      "Faça login na plataforma VIP do Brazilian Remix Service para ouvir e baixar atualizações do acervo.",
+      "Login da plataforma VIP do Brazilian Remix Service. Acesse atualizações, coleções, player e fila do BRS Downloader com sua conta.",
     ogImage: "musicas-entrar",
-    keywords: ["login VIP", "entrar plataforma músicas"],
+    keywords: [
+      "login VIP BRS",
+      "entrar plataforma músicas",
+      "login Brazilian Remix Service",
+    ],
     sitemap: true,
     changeFrequency: "yearly",
-    priority: 0.5,
+    priority: 0.55,
   },
   privacidade: {
     key: "privacidade",
     path: "/privacidade",
     title: `Política de Privacidade | ${SITE_NAME}`,
     description:
-      "Saiba como o Brazilian Remix Service trata dados pessoais, contato, pagamento e suporte aos assinantes.",
+      "Como o Brazilian Remix Service trata dados pessoais, conta, pagamentos Mercado Pago e suporte aos assinantes.",
     ogImage: "privacidade",
     sitemap: true,
     changeFrequency: "yearly",
@@ -253,7 +271,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/termos",
     title: `Termos de Serviço | ${SITE_NAME}`,
     description:
-      "Termos de uso do Brazilian Remix Service: acesso ao acervo, planos, responsabilidades e regras da plataforma.",
+      "Termos de uso do Brazilian Remix Service: acesso ao acervo VIP, planos, responsabilidades e regras da plataforma.",
     ogImage: "termos",
     sitemap: true,
     changeFrequency: "yearly",
@@ -262,9 +280,9 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "privacy-downloader": {
     key: "privacy-downloader",
     path: "/privacy/downloader",
-    title: `Privacidade — BRS Downloader | ${SITE_NAME}`,
+    title: `Privacidade do ${DOWNLOADER_NAME} | ${SITE_NAME}`,
     description:
-      "Política de privacidade do aplicativo BRS Downloader: dados coletados, autenticação e uso no desktop.",
+      "Política de privacidade do app BRS Downloader para Windows: autenticação, dados locais e sincronização com a conta VIP.",
     ogImage: "privacy-downloader",
     sitemap: true,
     changeFrequency: "yearly",
@@ -275,11 +293,11 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/privacy/cookies",
     title: `Política de Cookies | ${SITE_NAME}`,
     description:
-      "Política de cookies da Brazilian Remix Service: tipos utilizados, finalidade e preferências do visitante.",
+      "Cookies usados no site Brazilian Remix Service: sessão, preferências e finalidade de cada tipo.",
     ogImage: "privacy-cookies",
     sitemap: true,
     changeFrequency: "yearly",
-    priority: 0.3,
+    priority: 0.25,
   },
   "privacy-conduct": {
     key: "privacy-conduct",
@@ -290,7 +308,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     ogImage: "privacy-conduct",
     sitemap: true,
     changeFrequency: "yearly",
-    priority: 0.3,
+    priority: 0.25,
   },
   admin: {
     key: "admin",
@@ -298,6 +316,51 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     title: `Admin | ${SITE_NAME}`,
     description: "Painel administrativo Brazilian Remix Service.",
     ogImage: "admin",
+    noIndex: true,
+    sitemap: false,
+  },
+  "pagamento-sucesso": {
+    key: "pagamento-sucesso",
+    path: "/pagamento/sucesso",
+    title: `Pagamento confirmado | ${SITE_NAME}`,
+    description: "Retorno de pagamento Mercado Pago.",
+    ogImage: "home",
+    noIndex: true,
+    sitemap: false,
+  },
+  "pagamento-pendente": {
+    key: "pagamento-pendente",
+    path: "/pagamento/pendente",
+    title: `Pagamento pendente | ${SITE_NAME}`,
+    description: "Retorno de pagamento Mercado Pago.",
+    ogImage: "home",
+    noIndex: true,
+    sitemap: false,
+  },
+  "pagamento-erro": {
+    key: "pagamento-erro",
+    path: "/pagamento/erro",
+    title: `Pagamento não concluído | ${SITE_NAME}`,
+    description: "Retorno de pagamento Mercado Pago.",
+    ogImage: "home",
+    noIndex: true,
+    sitemap: false,
+  },
+  "checkout-success": {
+    key: "checkout-success",
+    path: "/checkout/success",
+    title: `Checkout | ${SITE_NAME}`,
+    description: "Retorno legado de checkout.",
+    ogImage: "home",
+    noIndex: true,
+    sitemap: false,
+  },
+  "checkout-pending": {
+    key: "checkout-pending",
+    path: "/checkout/pending",
+    title: `Checkout pendente | ${SITE_NAME}`,
+    description: "Retorno legado de checkout.",
+    ogImage: "home",
     noIndex: true,
     sitemap: false,
   },
@@ -343,7 +406,7 @@ export function buildPageMetadata(key: SeoPageKey, overrides?: Partial<Metadata>
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: title,
+          alt: `${SITE_NAME} — ${title}`,
         },
       ],
     },
@@ -353,10 +416,21 @@ export function buildPageMetadata(key: SeoPageKey, overrides?: Partial<Metadata>
       description,
       images: [ogImage],
       site: TWITTER_HANDLE,
+      creator: TWITTER_HANDLE,
     },
     robots: page.noIndex
-      ? { index: false, follow: false, googleBot: { index: false, follow: false } }
-      : { index: true, follow: true },
+      ? { index: false, follow: false, googleBot: { index: false, follow: false, noimageindex: true } }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        },
   };
 
   return {
@@ -405,6 +479,9 @@ export function buildRootMetadata(): Metadata {
     manifest: "/site.webmanifest",
     alternates: {
       canonical: "/",
+      languages: {
+        "pt-BR": SITE_URL,
+      },
     },
     openGraph: {
       type: "website",
@@ -421,6 +498,7 @@ export function buildRootMetadata(): Metadata {
       description: home.description,
       images: [ogImage],
       site: TWITTER_HANDLE,
+      creator: TWITTER_HANDLE,
     },
     robots: {
       index: true,
@@ -443,18 +521,29 @@ export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
     name: SITE_NAME,
-    alternateName: SITE_SHORT,
+    alternateName: [SITE_SHORT, "BRS Drive", "Brazilian Remix Service VIP"],
     url: SITE_URL,
-    logo: absoluteUrl("/images/logo.png"),
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteUrl("/images/logo.png"),
+    },
+    image: absoluteUrl("/images/og/default.jpg"),
     description: SITE_TAGLINE,
+    email: SUPPORT_EMAIL,
+    areaServed: {
+      "@type": "Country",
+      name: "Brazil",
+    },
     sameAs: [] as string[],
     contactPoint: [
       {
         "@type": "ContactPoint",
         contactType: "customer support",
-        availableLanguage: ["Portuguese"],
-        url: absoluteUrl("/portal"),
+        email: SUPPORT_EMAIL,
+        availableLanguage: ["Portuguese", "pt-BR"],
+        url: absoluteUrl("/plans"),
       },
     ],
   };
@@ -464,15 +553,13 @@ export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
     name: SITE_NAME,
+    alternateName: SITE_SHORT,
     url: SITE_URL,
     description: SEO_PAGES.home.description,
-    inLanguage: "pt-BR",
-    publisher: {
-      "@type": "Organization",
-      name: SITE_NAME,
-      logo: absoluteUrl("/images/logo.png"),
-    },
+    inLanguage: SITE_LANGUAGE,
+    publisher: { "@id": `${SITE_URL}/#organization` },
   };
 }
 
@@ -480,16 +567,103 @@ export function serviceJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: `${SITE_NAME} VIP`,
-    serviceType: "Music library subscription for DJs",
-    provider: {
-      "@type": "Organization",
-      name: SITE_NAME,
-      url: SITE_URL,
-    },
+    "@id": `${SITE_URL}/#vip-service`,
+    name: `${SITE_NAME} — BRS Drive VIP`,
+    serviceType: "Assinatura de acervo musical para DJs",
+    provider: { "@id": `${SITE_URL}/#organization` },
     areaServed: "BR",
     url: absoluteUrl("/plans"),
     description: SEO_PAGES.plans.description,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "BRL",
+      lowPrice: "1.00",
+      highPrice: "384.00",
+      offerCount: 4,
+      url: absoluteUrl("/plans"),
+      availability: "https://schema.org/InStock",
+    },
+  };
+}
+
+export function softwareApplicationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: DOWNLOADER_NAME,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Windows 10+",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "BRL",
+      description: "Incluso na assinatura VIP ativa",
+    },
+    description:
+      "Aplicativo Windows do Brazilian Remix Service para baixar packs e faixas da plataforma VIP com login da conta.",
+    url: absoluteUrl("/plans"),
+    publisher: { "@id": `${SITE_URL}/#organization` },
+  };
+}
+
+export function plansProductJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "BRS Drive VIP",
+    description: SEO_PAGES.plans.description,
+    brand: {
+      "@type": "Brand",
+      name: SITE_NAME,
+    },
+    url: absoluteUrl("/plans"),
+    image: absoluteUrl(resolveOgImagePath("plans")),
+    category: "Music subscription",
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "BRL",
+      lowPrice: "1.00",
+      highPrice: "384.00",
+      offerCount: 4,
+      availability: "https://schema.org/InStock",
+      url: absoluteUrl("/plans"),
+    },
+  };
+}
+
+export function allavsoftProductJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Allavsoft — Licença vitalícia",
+    description: SEO_PAGES.allavsoft.description,
+    brand: {
+      "@type": "Brand",
+      name: "Allavsoft",
+    },
+    url: absoluteUrl("/allavsoft"),
+    image: absoluteUrl(resolveOgImagePath("allavsoft")),
+    offers: {
+      "@type": "Offer",
+      price: "50.00",
+      priceCurrency: "BRL",
+      availability: "https://schema.org/InStock",
+      url: absoluteUrl("/allavsoft"),
+      priceValidUntil: "2027-12-31",
+    },
+  };
+}
+
+export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
   };
 }
 
@@ -532,3 +706,16 @@ export function expectedOgAssets() {
     ready: slug === "default" || READY_OG_IMAGES.has(slug),
   }));
 }
+
+/** Paths bloqueados no robots.txt (além do noindex nas pages). */
+export const ROBOTS_DISALLOW = [
+  "/admin",
+  "/api/",
+  "/portal",
+  "/musicas/home",
+  "/musicas/atualizacoes",
+  "/musicas/colecoes",
+  "/musicas/dl/",
+  "/pagamento/",
+  "/checkout/",
+] as const;

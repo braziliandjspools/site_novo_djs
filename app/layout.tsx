@@ -9,6 +9,7 @@ import {
   buildRootMetadata,
   organizationJsonLd,
   serviceJsonLd,
+  softwareApplicationJsonLd,
   websiteJsonLd,
 } from "./lib/seo";
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <JsonLd data={organizationJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
         <JsonLd data={serviceJsonLd()} />
+        <JsonLd data={softwareApplicationJsonLd()} />
       </head>
       <body
         className="flex min-h-full w-full max-w-[100vw] flex-col overflow-x-clip bg-[#121212] font-sans text-white"

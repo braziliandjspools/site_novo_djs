@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, User } from "lucide-react";
 import { SectionHeading } from "../../components/SectionHeading";
-import { SITE_NAME } from "../../lib/branding";
+import { buildPageMetadata } from "../../lib/seo";
 
-export const metadata: Metadata = {
-  title: `Pagamento recebido | ${SITE_NAME}`,
-  description: "Estamos confirmando sua assinatura no Mercado Pago.",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = buildPageMetadata("checkout-success");
 
 /** Rota legada — preferir /pagamento/sucesso. */
 export default function CheckoutSuccessPage() {

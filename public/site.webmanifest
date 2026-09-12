@@ -1,12 +1,14 @@
 {
   "name": "Brazilian Remix Service",
   "short_name": "BRS",
-  "description": "Pools, curadoria e remix services para DJs",
+  "description": "Acervo VIP para DJs: pools, edits, remixes, plataforma online e BRS Downloader.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#121212",
   "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["music", "entertainment"],
   "icons": [
     {
       "src": "/images/logo.png",

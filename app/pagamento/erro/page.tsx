@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { PaymentReturnClient } from "../../components/PaymentReturnClient";
-import { SITE_NAME } from "../../lib/branding";
+import { buildPageMetadata } from "../../lib/seo";
 
-export const metadata: Metadata = {
-  title: `Pagamento não concluído | ${SITE_NAME}`,
-  description: "Não foi possível concluir o pagamento no Mercado Pago.",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = buildPageMetadata("pagamento-erro");
 
 function Fallback() {
   return (

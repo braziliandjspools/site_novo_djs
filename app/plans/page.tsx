@@ -25,7 +25,12 @@ import { SITE_DRIVE_PLANS } from "../lib/plans";
 import { getAuthenticatedPortalUser } from "../lib/portal";
 import { SITE_NAME } from "../lib/branding";
 import { whatsappUrl } from "../lib/site";
-import { buildPageMetadata } from "../lib/seo";
+import { JsonLd } from "../components/JsonLd";
+import {
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  plansProductJsonLd,
+} from "../lib/seo";
 
 export const metadata: Metadata = buildPageMetadata("plans");
 
@@ -168,6 +173,13 @@ export default async function PlansPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <JsonLd data={plansProductJsonLd()} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Planos VIP", path: "/plans" },
+        ])}
+      />
       <section className="relative overflow-hidden border-b border-white/5 px-4 pb-10 pt-12 sm:px-6 md:pb-14 md:pt-16">
         <div className="pointer-events-none absolute inset-0 site-glow-green opacity-80" />
         <div className="pointer-events-none absolute inset-0 site-glow-blue opacity-50" />

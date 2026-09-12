@@ -18,7 +18,13 @@ import { SectionHeading } from "../components/SectionHeading";
 import { SITE_ALLAVSOFT_PLANS } from "../lib/plans";
 import { getAuthenticatedPortalUser } from "../lib/portal";
 import { CARD_COLORS, COLOR_CYCLE, PLACEHOLDER } from "../lib/theme";
-import { buildPageMetadata } from "../lib/seo";
+import { JsonLd } from "../components/JsonLd";
+import {
+  allavsoftProductJsonLd,
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  faqJsonLd,
+} from "../lib/seo";
 
 export const metadata: Metadata = buildPageMetadata("allavsoft");
 
@@ -109,6 +115,14 @@ export default async function AllavsoftPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-5xl space-y-12 overflow-x-clip px-4 py-12 sm:space-y-16 sm:px-6 sm:py-16">
+      <JsonLd data={allavsoftProductJsonLd()} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Allavsoft", path: "/allavsoft" },
+        ])}
+      />
+      <JsonLd data={faqJsonLd(faqs)} />
       <div className="flex w-full min-w-0 flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Link

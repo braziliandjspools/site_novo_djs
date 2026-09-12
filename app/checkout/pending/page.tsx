@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Clock3, User } from "lucide-react";
 import { SectionHeading } from "../../components/SectionHeading";
-import { SITE_NAME } from "../../lib/branding";
+import { buildPageMetadata } from "../../lib/seo";
 
-export const metadata: Metadata = {
-  title: `Pagamento em processamento | ${SITE_NAME}`,
-  description: "Aguardando confirmação do Mercado Pago.",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = buildPageMetadata("checkout-pending");
 
 /** Rota legada — preferir /pagamento/pendente. */
 export default function CheckoutPendingPage() {
