@@ -130,7 +130,10 @@ export async function getPortalDownloaderStats(
       completed,
       cancelled,
       inQueue: pending + downloading + paused,
-      completedBytes: (completedBytesAgg._sum.downloadedBytes ?? BigInt(0)).toString(),
+      completedBytes:
+        completedBytesAgg._sum.downloadedBytes == null
+          ? "0"
+          : completedBytesAgg._sum.downloadedBytes.toString(),
     },
     recent: recentJobs.map((job) => ({
       id: job.id,
