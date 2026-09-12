@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Check,
   Copy,
@@ -9,6 +10,9 @@ import {
   Plus,
   RefreshCw,
   Megaphone,
+  Mail,
+  ShieldAlert,
+  X,
 } from "lucide-react";
 import { PortalCard } from "../PortalShell";
 import { formatDateBr } from "../portal-types";
@@ -38,6 +42,138 @@ type LicensesPayload = {
   error?: string;
 };
 
+function SupportNotifyModal({
+  open,
+  notifying,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  notifying: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const first = panelRef.current?.querySelector<HTMLElement>("button");
+    window.requestAnimationFrame(() => first?.focus());
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !notifying) onCloseRef.current();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, notifying]);
+
+  if (!open || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <button
+        type="button"
+        aria-label="Fechar"
+        disabled={notifying}
+        className="absolute inset-0 bg-black/75 backdrop-blur-[3px] disabled:cursor-wait"
+        onClick={() => {
+          if (!notifying) onClose();
+        }}
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative z-[91] w-full max-w-md overflow-hidden rounded-t-2xl border border-[#FFDF00]/20 bg-[#121212] shadow-[0_28px_80px_rgba(0,0,0,0.65)] sm:rounded-2xl"
+      >
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FFDF00]/70 to-transparent" />
+        <div className="absolute -top-24 left-1/2 h-40 w-56 -translate-x-1/2 rounded-full bg-[#FFDF00]/10 blur-3xl" />
+
+        <div className="relative px-5 pb-5 pt-6 sm:px-6 sm:pb-6 sm:pt-7">
+          <button
+            type="button"
+            disabled={notifying}
+            onClick={onClose}
+            className="absolute right-3 top-3 rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white disabled:opacity-40"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#FFDF00]/25 bg-[#FFDF00]/10 text-[#FFDF00] shadow-[0_0_24px_rgba(255,223,0,0.12)]">
+            <ShieldAlert className="h-7 w-7" />
+          </div>
+
+          <h2
+            id={titleId}
+            className="mt-5 text-center font-display text-xl tracking-wide text-white sm:text-2xl"
+          >
+            Avisar o admin?
+          </h2>
+          <p className="mt-2 text-center text-sm leading-relaxed text-zinc-400">
+            Enviaremos um alerta informando que nenhum dos seriais ativou no Allavsoft.
+          </p>
+
+          <div className="mt-5 rounded-xl border border-white/10 bg-black/40 px-4 py-3.5">
+            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              <Mail className="h-3.5 w-3.5 text-[#FFDF00]" />
+              Dados enviados
+            </p>
+            <ul className="mt-2.5 space-y-1.5 text-sm text-zinc-300">
+              <li className="flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-[#FFDF00]" />
+                Nome da conta
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-[#FFDF00]" />
+                E-mail
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-[#FFDF00]" />
+                WhatsApp
+              </li>
+            </ul>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              disabled={notifying}
+              onClick={onClose}
+              className="inline-flex items-center justify-center rounded-xl border border-zinc-700 px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-300 transition hover:border-zinc-500 hover:text-white disabled:opacity-40"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={notifying}
+              onClick={onConfirm}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFDF00] px-4 py-3 text-xs font-black uppercase tracking-wider text-black transition hover:bg-[#FFE566] disabled:cursor-wait disabled:opacity-70"
+            >
+              {notifying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Megaphone className="h-4 w-4" />
+              )}
+              {notifying ? "Enviando…" : "Enviar aviso"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export function AllavsoftLicensesPanel() {
   const [data, setData] = useState<LicensesPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +183,7 @@ export function AllavsoftLicensesPanel() {
   const [copiedNameId, setCopiedNameId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [notifying, setNotifying] = useState(false);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
@@ -187,14 +324,7 @@ export function AllavsoftLicensesPanel() {
     }
   }
 
-  async function handleNotifySupport() {
-    if (
-      !window.confirm(
-        "Enviar aviso ao admin informando que nenhum dos seriais ativou? Seu nome, e-mail e WhatsApp serão enviados.",
-      )
-    ) {
-      return;
-    }
+  async function confirmNotifySupport() {
     setNotifying(true);
     setError(null);
     setMessage(null);
@@ -219,9 +349,11 @@ export function AllavsoftLicensesPanel() {
         canNotifySupport: json.canNotifySupport,
         supportAlreadyNotified: json.supportAlreadyNotified,
       });
+      setSupportModalOpen(false);
       setMessage("Aviso enviado ao admin. Em breve entraremos em contato.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao avisar o admin.");
+      setSupportModalOpen(false);
     } finally {
       setNotifying(false);
     }
@@ -235,240 +367,251 @@ export function AllavsoftLicensesPanel() {
   const maxNameRegens = data?.maxLicenseNameRegens ?? 5;
 
   return (
-    <PortalCard title="Seriais Allavsoft">
-      <div className="mb-4 flex items-start gap-3">
-        <KeyRound className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#FFDF00]" />
-        <div className="space-y-2 text-sm text-zinc-400">
-          <p>
-            Cada serial é de <span className="text-zinc-200">uso único</span>: ao copiar, ele é
-            consumido e fica desativado nesta lista (sempre visível).
-          </p>
-          <p>
-            Você pode gerar até <span className="text-zinc-200">2 seriais a cada 30 dias</span>. O
-            nome <span className="text-zinc-200">User_XXXXXX</span> pode ser regenerado até{" "}
-            <span className="text-zinc-200">{maxNameRegens} vezes</span> por serial.
-          </p>
+    <>
+      <PortalCard title="Seriais Allavsoft">
+        <div className="mb-4 flex items-start gap-3">
+          <KeyRound className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#FFDF00]" />
+          <div className="space-y-2 text-sm text-zinc-400">
+            <p>
+              Cada serial é de <span className="text-zinc-200">uso único</span>: ao copiar, ele é
+              consumido e fica desativado nesta lista (sempre visível).
+            </p>
+            <p>
+              Você pode gerar até <span className="text-zinc-200">2 seriais a cada 30 dias</span>. O
+              nome <span className="text-zinc-200">User_XXXXXX</span> pode ser regenerado até{" "}
+              <span className="text-zinc-200">{maxNameRegens} vezes</span> por serial.
+            </p>
+          </div>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex items-center gap-2 py-6 text-sm text-zinc-500">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Carregando seriais…
-        </div>
-      ) : (
-        <>
-          {data && (
-            <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
-              <span>
-                Gerados na janela:{" "}
-                <span className="font-semibold text-zinc-300">
-                  {data.issuedInWindow}/{data.maxPerWindow}
+        {loading ? (
+          <div className="flex items-center gap-2 py-6 text-sm text-zinc-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Carregando seriais…
+          </div>
+        ) : (
+          <>
+            {data && (
+              <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+                <span>
+                  Gerados na janela:{" "}
+                  <span className="font-semibold text-zinc-300">
+                    {data.issuedInWindow}/{data.maxPerWindow}
+                  </span>
                 </span>
-              </span>
-              <span>
-                Restantes:{" "}
-                <span className="font-semibold text-zinc-300">{data.remaining}</span>
-              </span>
-              {data.remaining === 0 && data.nextSlotAt && (
-                <span>Próxima vaga em {formatDateBr(data.nextSlotAt)}</span>
-              )}
-            </div>
-          )}
+                <span>
+                  Restantes:{" "}
+                  <span className="font-semibold text-zinc-300">{data.remaining}</span>
+                </span>
+                {data.remaining === 0 && data.nextSlotAt && (
+                  <span>Próxima vaga em {formatDateBr(data.nextSlotAt)}</span>
+                )}
+              </div>
+            )}
 
-          {error && (
-            <p className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-              {error}
-            </p>
-          )}
-          {message && (
-            <p className="mb-3 rounded-lg border border-[#00ff9d]/25 bg-[#00ff9d]/10 px-3 py-2 text-sm text-[#00ff9d]">
-              {message}
-            </p>
-          )}
+            {error && (
+              <p className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p className="mb-3 rounded-lg border border-[#00ff9d]/25 bg-[#00ff9d]/10 px-3 py-2 text-sm text-[#00ff9d]">
+                {message}
+              </p>
+            )}
 
-          {data && data.licenses.length === 0 ? (
-            <p className="mb-4 text-sm text-zinc-500">
-              Nenhum serial ainda. Gere um novo para ativar no Allavsoft.
-            </p>
-          ) : (
-            <ul className="mb-4 space-y-3">
-              {data?.licenses.map((license) => {
-                const show = revealed[license.id];
-                const consumed = license.consumed;
-                return (
-                  <li
-                    key={license.id}
-                    className={`rounded-lg border px-4 py-3 ${
-                      consumed
-                        ? "border-zinc-800/80 bg-[#080808] opacity-70"
-                        : "border-zinc-800 bg-[#0a0a0a]"
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
-                          Nome da licença
-                        </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <p className="font-mono text-sm font-medium text-white">
-                            {license.licenseName}
+            {data && data.licenses.length === 0 ? (
+              <p className="mb-4 text-sm text-zinc-500">
+                Nenhum serial ainda. Gere um novo para ativar no Allavsoft.
+              </p>
+            ) : (
+              <ul className="mb-4 space-y-3">
+                {data?.licenses.map((license) => {
+                  const show = revealed[license.id];
+                  const consumed = license.consumed;
+                  return (
+                    <li
+                      key={license.id}
+                      className={`rounded-lg border px-4 py-3 ${
+                        consumed
+                          ? "border-zinc-800/80 bg-[#080808] opacity-70"
+                          : "border-zinc-800 bg-[#0a0a0a]"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+                            Nome da licença
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => void handleCopyName(license)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white"
-                          >
-                            {copiedNameId === license.id ? (
-                              <Check className="h-3 w-3" />
-                            ) : (
-                              <Copy className="h-3 w-3" />
-                            )}
-                            {copiedNameId === license.id ? "Copiado" : "Copiar"}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={
-                              renamingId === license.id ||
-                              license.licenseNameRegenRemaining <= 0
-                            }
-                            onClick={() => void handleRename(license)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                            title={`Regenerações restantes: ${license.licenseNameRegenRemaining}`}
-                          >
-                            {renamingId === license.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <RefreshCw className="h-3 w-3" />
-                            )}
-                            Novo nome ({license.licenseNameRegenRemaining}/{maxNameRegens})
-                          </button>
-                        </div>
-                      </div>
-                      <div className="text-right text-[11px] text-zinc-500">
-                        <p>Gerado em {formatDateBr(license.issuedAt)}</p>
-                        {consumed && license.copiedAt && (
-                          <p className="mt-0.5 text-zinc-600">
-                            Consumido em {formatDateBr(license.copiedAt)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
-                          Serial
-                        </p>
-                        {consumed && (
-                          <span className="rounded border border-zinc-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500">
-                            Consumido
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <input
-                          type="text"
-                          readOnly
-                          disabled={consumed}
-                          value={
-                            consumed || show ? license.serial : maskSerial(license.serial)
-                          }
-                          className="min-w-0 flex-1 truncate rounded-lg border border-zinc-800 bg-[#050505] px-3 py-2 font-mono text-sm text-[#FFDF00] disabled:cursor-not-allowed disabled:opacity-60"
-                        />
-                        <div className="flex flex-shrink-0 gap-2">
-                          {!consumed && (
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <p className="font-mono text-sm font-medium text-white">
+                              {license.licenseName}
+                            </p>
                             <button
                               type="button"
-                              onClick={() =>
-                                setRevealed((prev) => ({
-                                  ...prev,
-                                  [license.id]: !prev[license.id],
-                                }))
-                              }
-                              className="rounded-lg border border-zinc-700 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white"
+                              onClick={() => void handleCopyName(license)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white"
                             >
-                              {show ? "Ocultar" : "Revelar"}
+                              {copiedNameId === license.id ? (
+                                <Check className="h-3 w-3" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                              {copiedNameId === license.id ? "Copiado" : "Copiar"}
                             </button>
+                            <button
+                              type="button"
+                              disabled={
+                                renamingId === license.id ||
+                                license.licenseNameRegenRemaining <= 0
+                              }
+                              onClick={() => void handleRename(license)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                              title={`Regenerações restantes: ${license.licenseNameRegenRemaining}`}
+                            >
+                              {renamingId === license.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3 w-3" />
+                              )}
+                              Novo nome ({license.licenseNameRegenRemaining}/{maxNameRegens})
+                            </button>
+                          </div>
+                        </div>
+                        <div className="text-right text-[11px] text-zinc-500">
+                          <p>Gerado em {formatDateBr(license.issuedAt)}</p>
+                          {consumed && license.copiedAt && (
+                            <p className="mt-0.5 text-zinc-600">
+                              Consumido em {formatDateBr(license.copiedAt)}
+                            </p>
                           )}
-                          <button
-                            type="button"
-                            disabled={consumed || copyingSerialId === license.id}
-                            onClick={() => void handleCopySerial(license)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#FFDF00]/40 bg-[#FFDF00]/15 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#FFDF00] hover:bg-[#FFDF00]/25 disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            {copyingSerialId === license.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : copiedSerialId === license.id || consumed ? (
-                              <Check className="h-3.5 w-3.5" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                            {consumed
-                              ? "Consumido"
-                              : copiedSerialId === license.id
-                                ? "Copiado"
-                                : "Copiar"}
-                          </button>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              disabled={generating || !data || data.remaining <= 0}
-              onClick={() => void handleGenerate()}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#00e68a] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {generating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-              Gerar serial
-            </button>
+                      <div className="mt-3">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+                            Serial
+                          </p>
+                          {consumed && (
+                            <span className="rounded border border-zinc-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500">
+                              Consumido
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <input
+                            type="text"
+                            readOnly
+                            disabled={consumed}
+                            value={
+                              consumed || show ? license.serial : maskSerial(license.serial)
+                            }
+                            className="min-w-0 flex-1 truncate rounded-lg border border-zinc-800 bg-[#050505] px-3 py-2 font-mono text-sm text-[#FFDF00] disabled:cursor-not-allowed disabled:opacity-60"
+                          />
+                          <div className="flex flex-shrink-0 gap-2">
+                            {!consumed && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setRevealed((prev) => ({
+                                    ...prev,
+                                    [license.id]: !prev[license.id],
+                                  }))
+                                }
+                                className="rounded-lg border border-zinc-700 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white"
+                              >
+                                {show ? "Ocultar" : "Revelar"}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={consumed || copyingSerialId === license.id}
+                              onClick={() => void handleCopySerial(license)}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-[#FFDF00]/40 bg-[#FFDF00]/15 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#FFDF00] hover:bg-[#FFDF00]/25 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {copyingSerialId === license.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : copiedSerialId === license.id || consumed ? (
+                                <Check className="h-3.5 w-3.5" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                              {consumed
+                                ? "Consumido"
+                                : copiedSerialId === license.id
+                                  ? "Copiado"
+                                  : "Copiar"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
 
-            {data && (data.canNotifySupport || data.supportAlreadyNotified) && (
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                disabled={notifying || !data.canNotifySupport}
-                onClick={() => void handleNotifySupport()}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={generating || !data || data.remaining <= 0}
+                onClick={() => void handleGenerate()}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#00e68a] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {notifying ? (
+                {generating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Megaphone className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                 )}
-                {data.supportAlreadyNotified
-                  ? "Admin já avisado"
-                  : "Avisar admin (serial não ativou)"}
+                Gerar serial
               </button>
-            )}
-          </div>
 
-          {data && data.remaining <= 0 && (
-            <p className="mt-2 text-xs text-zinc-500">
-              Limite da janela de {data.windowDays} dias atingido.
-              {data.nextSlotAt
-                ? ` Nova geração a partir de ${formatDateBr(data.nextSlotAt)}.`
-                : null}
-            </p>
-          )}
-          {data?.canNotifySupport && (
-            <p className="mt-2 text-xs text-zinc-500">
-              Se nenhum dos seriais ativar no Allavsoft, avise o admin — enviaremos seu nome,
-              e-mail e WhatsApp.
-            </p>
-          )}
-        </>
-      )}
-    </PortalCard>
+              {data && (data.canNotifySupport || data.supportAlreadyNotified) && (
+                <button
+                  type="button"
+                  disabled={notifying || !data.canNotifySupport}
+                  onClick={() => setSupportModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {notifying ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Megaphone className="h-4 w-4" />
+                  )}
+                  {data.supportAlreadyNotified
+                    ? "Admin já avisado"
+                    : "Avisar admin (serial não ativou)"}
+                </button>
+              )}
+            </div>
+
+            {data && data.remaining <= 0 && (
+              <p className="mt-2 text-xs text-zinc-500">
+                Limite da janela de {data.windowDays} dias atingido.
+                {data.nextSlotAt
+                  ? ` Nova geração a partir de ${formatDateBr(data.nextSlotAt)}.`
+                  : null}
+              </p>
+            )}
+            {data?.canNotifySupport && (
+              <p className="mt-2 text-xs text-zinc-500">
+                Se nenhum dos seriais ativar no Allavsoft, avise o admin — enviaremos seu nome,
+                e-mail e WhatsApp.
+              </p>
+            )}
+          </>
+        )}
+      </PortalCard>
+
+      <SupportNotifyModal
+        open={supportModalOpen}
+        notifying={notifying}
+        onClose={() => {
+          if (!notifying) setSupportModalOpen(false);
+        }}
+        onConfirm={() => void confirmNotifySupport()}
+      />
+    </>
   );
 }
