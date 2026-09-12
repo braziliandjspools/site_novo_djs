@@ -116,7 +116,8 @@ function AllavsoftCheckoutInner({ plans, alreadyOwned = false }: AllavsoftPurcha
 
   if (!plan) return null;
 
-  <section
+  return (
+    <section
       id="allavsoft-plano"
       className="w-full min-w-0 overflow-hidden rounded-2xl border border-[#FFDF00]/25 bg-gradient-to-br from-[#FFDF00]/10 via-[#002776]/20 to-black/40"
     >
