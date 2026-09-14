@@ -18,7 +18,7 @@ export function TrackDownloadStatus({ fileId }: { fileId: string }) {
       : tone === "error"
         ? "bg-red-500/10 text-red-400"
         : tone === "active"
-          ? "bg-sky-500/10 text-sky-300"
+          ? "bg-[#1ed760]/10 text-[#1ed760]"
           : tone === "pending"
             ? "bg-zinc-800 text-zinc-400"
             : "bg-zinc-900 text-zinc-500";

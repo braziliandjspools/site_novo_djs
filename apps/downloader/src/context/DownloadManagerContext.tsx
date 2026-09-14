@@ -45,6 +45,7 @@ type DownloadManagerContextValue = {
   pauseJobs: (jobIds: number[]) => void;
   resumeJobs: (jobIds: number[]) => void;
   cancelJobs: (jobIds: number[]) => void;
+  cancelEntireQueueByUser: () => Promise<void>;
   retryJobs: (jobIds: number[]) => void;
   dismissJobs: (jobIds: number[]) => void;
   downloadNow: (jobId: number) => void;
@@ -125,6 +126,7 @@ export function DownloadManagerProvider({ children }: { children: React.ReactNod
       pauseJobs: (jobIds: number[]) => downloadManager.pauseJobs(jobIds),
       resumeJobs: (jobIds: number[]) => downloadManager.resumeJobs(jobIds),
       cancelJobs: (jobIds: number[]) => downloadManager.cancelJobs(jobIds),
+      cancelEntireQueueByUser: () => downloadManager.cancelEntireQueueByUser(),
       retryJobs: (jobIds: number[]) => downloadManager.retryJobs(jobIds),
       dismissJobs: (jobIds: number[]) => downloadManager.dismissJobs(jobIds),
       downloadNow: (jobId: number) => downloadManager.downloadNow(jobId),

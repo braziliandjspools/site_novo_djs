@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Disc3, Folder, Headphones, Library, Radio } from "lucide-react";
+import { Disc3, Folder, Headphones, LibraryBig, Music2 } from "lucide-react";
 
 export type LibraryCategoryGradient = {
   /** Classes Tailwind: from / via / to para bg-gradient-to-b */
@@ -27,10 +27,10 @@ const GRADIENTS = {
     ring: "group-hover/card:border-white/20 group-hover/card:ring-emerald-300/35",
   },
   blue: {
-    surface: "from-[#3b82f6] via-[#1e3a8a] to-[#050505]",
-    glow: "bg-sky-300/30",
-    edge: "from-sky-200/45 via-transparent to-transparent",
-    ring: "group-hover/card:border-white/20 group-hover/card:ring-sky-300/35",
+    surface: "from-[#1ed760] via-[#0a3d22] to-[#050505]",
+    glow: "bg-[#1ed760]/30",
+    edge: "from-[#1ed760]/45 via-transparent to-transparent",
+    ring: "group-hover/card:border-white/20 group-hover/card:ring-[#1ed760]/35",
   },
   amber: {
     surface: "from-[#f59e0b] via-[#9a3412] to-[#050505]",
@@ -99,7 +99,7 @@ const RULES: MetaRule[] = [
       eyebrow: "ACERVO",
       description: "Arquivo completo de packs, coleções e seleções anteriores.",
       cta: "Ver arquivo",
-      icon: Library,
+      icon: LibraryBig,
       gradient: GRADIENTS.amber,
     },
   },
@@ -107,7 +107,7 @@ const RULES: MetaRule[] = [
     test: (n) => /pool\s*services/.test(n),
     meta: {
       eyebrow: "REMIX SERVICES",
-      description: "Pools, remix services e coleções profissionais para DJs.",
+      description: "Pools e remix services profissionais para DJs.",
       cta: "Explorar pools",
       icon: Headphones,
       gradient: GRADIENTS.teal,
@@ -117,10 +117,10 @@ const RULES: MetaRule[] = [
     test: (n) => /dj\s*pools/.test(n),
     meta: {
       eyebrow: "ATUALIZAÇÕES",
-      description: "Novas atualizações organizadas por data e pool.",
+      description: "Atualizações organizadas por data e pool.",
       cta: "Ver atualizações",
       singularFolderLabel: "biblioteca",
-      icon: Radio,
+      icon: Music2,
       gradient: GRADIENTS.lime,
     },
   },

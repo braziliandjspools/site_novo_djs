@@ -11,6 +11,9 @@ export type PackPreview = {
   sampleTitles: string[];
   downloadUrl: string;
   root?: "vip" | "colecoes";
+  hasSubfolders?: boolean;
+  trackCountIsEstimate?: boolean;
+  subfolderCount?: number;
 };
 
 export type PackImportResult = {

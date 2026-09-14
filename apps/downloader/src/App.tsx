@@ -19,7 +19,7 @@ import { useWindowsIntegration } from "./hooks/useWindowsIntegration";
 import { DesktopRequiredNotice } from "./components/DesktopRequiredNotice";
 import { LanguageOnboardingPage } from "./pages/LanguageOnboardingPage";
 import { LocaleProvider, useLocale, type MessageKey } from "./i18n/LocaleContext";
-import { ToastProvider } from "./components/ui/Toast";
+import { ToastProvider, useToast } from "./components/ui/Toast";
 import type { DownloadJob } from "./lib/api/jobs";
 
 const PAGE_META: Record<AppRoute, { title: MessageKey; subtitle: MessageKey }> = {
@@ -82,6 +82,7 @@ function countJobs(jobs: DownloadJob[], activeJobIds: number[], deviceId: string
 function AuthenticatedApp() {
   const { user, device, logout } = useAuth();
   const { t } = useLocale();
+  const { showToast } = useToast();
   const { connectionState, jobs, activeJobIds, workerError } = useDownloadManager();
   const [route, setRoute] = useState<AppRoute>(() => loadActiveRoute("home"));
   const [folderConfigured, setFolderConfigured] = useState<boolean | null>(null);
@@ -91,6 +92,12 @@ function AuthenticatedApp() {
   );
 
   useWindowsIntegration(Boolean(user && device && folderConfigured));
+
+  useEffect(() => {
+    return downloadManager.onRemoteQueueCancel(() => {
+      showToast(t("jobsCancelledBySite"), "warning");
+    });
+  }, [showToast, t]);
 
   useEffect(() => {
     persistActiveRoute(route);

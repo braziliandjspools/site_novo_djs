@@ -12,6 +12,7 @@ import {
   childrenAreWeekFolders,
   displayFolderName,
   folderHref,
+  isMonthFolderName,
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import { matchStyleSlug } from "../atualizacoes/AtualizacoesSearch";
@@ -22,12 +23,14 @@ import {
   setMusicasCache,
 } from "../lib/musicas-fetch-cache";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { AtualizacoesBrowseNavSidebar } from "./AtualizacoesBrowseNavSidebar";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { WeekFolderGrid } from "./WeekFolderGrid";
+import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
@@ -43,7 +46,12 @@ import {
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
 import { poolPanelHeaderClass } from "./atualizacoes-pool-ui";
-import { MusicasListSkeleton, MusicasPageSkeleton, MusicasTracksSkeleton } from "./MusicasSkeletons";
+import {
+  MusicasBrowseFoldersSkeleton,
+  MusicasListSkeleton,
+  MusicasTracksSkeleton,
+} from "./MusicasSkeletons";
+import { UpdatesHeroSkeleton } from "./UpdatesHero";
 
 type ResolveResponse = {
   folderId: string;
@@ -114,19 +122,24 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const estiloSlug = searchParams.get("estilo");
   const faixaId = searchParams.get("faixa");
   const slugPath = slugSegments.join("/");
+  const packSlug = slugSegments[0] ?? "";
+  /** Compat: 1º segmento (pack ou mês legado). */
   const monthSlug = slugSegments[0] ?? "";
   const weekSlug = slugSegments[1];
+  const nestedWeekSlug = slugSegments[2];
 
   const initialCache = peekMusicasCache<ResolveResponse>(resolveUrl(slugPath));
   const [data, setData] = useState<ResolveResponse | null>(initialCache);
   const [loading, setLoading] = useState(!initialCache);
   const [error, setError] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
+  const [packMonths, setPackMonths] = useState<VipMusicFolder[]>([]);
   const [siblingWeeks, setSiblingWeeks] = useState<VipMusicFolder[]>([]);
   const [siblingFolders, setSiblingFolders] = useState<VipMusicFolder[]>([]);
   const [playBusy, setPlayBusy] = useState(false);
   const [sendingPack, setSendingPack] = useState(false);
   const [downloadingPack, setDownloadingPack] = useState(false);
+  const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -136,25 +149,51 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   }, []);
 
   useEffect(() => {
-    if (!monthSlug || !weekSlug) {
+    if (!packSlug) {
+      setPackMonths([]);
+      return;
+    }
+    let cancelled = false;
+    void fetchMusicasJson<ResolveResponse>(resolveUrl(packSlug))
+      .then((body) => {
+        if (cancelled) return;
+        if (body.level === "folders") {
+          setPackMonths(body.items.filter((item) => isMonthFolderName(item.name)));
+        } else {
+          setPackMonths([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPackMonths([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [packSlug]);
+
+  useEffect(() => {
+    const monthPath =
+      slugSegments.length >= 2 ? slugSegments.slice(0, 2).join("/") : slugSegments[0] ?? "";
+    if (!monthPath) {
       setSiblingWeeks([]);
       return;
     }
-    // Resolve da semana já traz os irmãos (outras semanas do mês).
-    if (data?.siblings?.length && data.slugSegments?.[0] === monthSlug) {
-      if (childrenAreWeekFolders(data.siblings)) {
-        setSiblingWeeks(data.siblings);
-        return;
-      }
+    // Já estamos no mês vendo semanas.
+    if (data?.level === "folders" && childrenAreWeekFolders(data.items)) {
+      setSiblingWeeks(data.items);
+      return;
+    }
+    // Irmãos da semana atual.
+    if (data?.siblings?.length && childrenAreWeekFolders(data.siblings)) {
+      setSiblingWeeks(data.siblings);
+      return;
     }
     let cancelled = false;
-    void fetchMusicasJson<ResolveResponse>(resolveUrl(monthSlug))
+    void fetchMusicasJson<ResolveResponse>(resolveUrl(monthPath))
       .then((body) => {
         if (cancelled) return;
         if (body.level === "folders" && childrenAreWeekFolders(body.items)) {
           setSiblingWeeks(body.items);
-        } else if (body.siblings && childrenAreWeekFolders(body.siblings)) {
-          setSiblingWeeks(body.siblings);
         } else {
           setSiblingWeeks([]);
         }
@@ -165,7 +204,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     return () => {
       cancelled = true;
     };
-  }, [monthSlug, weekSlug, data]);
+  }, [slugSegments, data]);
 
   /** Irmãos da pasta atual (para prev/next no rodapé ao abrir faixas ou subpastas). */
   useEffect(() => {
@@ -216,9 +255,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         });
         setMusicasCache(canonicalUrl, body);
         setData(body);
+        return body;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Pasta não encontrada.");
         if (!cached) setData(null);
+        return null;
       } finally {
         setLoading(false);
       }
@@ -239,9 +280,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   }, [slugPath, stop]);
 
   const showingWeeks = useMemo(() => {
-    if (!data || data.level !== "folders" || slugSegments.length !== 1) return false;
+    if (!data || data.level !== "folders") return false;
     return childrenAreWeekFolders(data.items);
-  }, [data, slugSegments.length]);
+  }, [data]);
+
+  const showingMonths = useMemo(() => {
+    if (!data || data.level !== "folders" || showingWeeks) return false;
+    return data.items.some((item) => isMonthFolderName(item.name)) &&
+      data.items.filter((item) => isMonthFolderName(item.name)).length >=
+        Math.max(1, Math.ceil(data.items.length * 0.4));
+  }, [data, showingWeeks]);
 
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
@@ -273,15 +321,21 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const monthTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
     : monthSlug.replace(/-/g, " ");
-  const weekTitle = data?.resolvedPath[1]
-    ? displayFolderName(data.resolvedPath[1].name)
-    : weekSlug?.replace(/-/g, " ");
+  const calendarMonthName =
+    data?.resolvedPath.find((part) => isMonthFolderName(part.name))?.name ??
+    (showingWeeks ? data?.folderName : undefined) ??
+    monthTitle;
+  const weekTitle = nestedWeekSlug
+    ? displayFolderName(data?.resolvedPath[2]?.name ?? nestedWeekSlug.replace(/-/g, " "))
+    : weekSlug
+      ? displayFolderName(data?.resolvedPath[1]?.name ?? weekSlug.replace(/-/g, " "))
+      : undefined;
   const currentTitle = data ? displayFolderName(data.folderName) : monthTitle;
 
   const childIds = data?.items.map((item) => item.id) ?? [];
   const highlightKey = showingWeeks
-    ? weeksReadKey(monthSlug)
-    : stylesReadKey(weekSlug ? `${monthSlug}/${weekSlug}` : monthSlug);
+    ? weeksReadKey(slugPath)
+    : stylesReadKey(slugPath);
   const newChildIds = useNewFolderHighlights(highlightKey, childIds);
 
   const relativeStyleBase = weekTitle ? `${monthTitle}/${weekTitle}` : monthTitle;
@@ -294,9 +348,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     ? "tracks"
     : showingWeeks
       ? "weeks"
-      : weekSlug
-        ? "week-styles"
-        : "styles";
+      : showingMonths
+        ? "months"
+        : weekSlug || nestedWeekSlug
+          ? "week-styles"
+          : "styles";
   const heroCount = showingTracks ? directTracks.length : (data?.items.length ?? 0);
 
   const packPlaying = Boolean(
@@ -397,30 +453,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     sync,
   ]);
 
-  const handlePackDownload = useCallback(async () => {
+  const runBrowserPackDownload = useCallback(async () => {
     if (downloadingPack || directTracks.length === 0) return;
-    if (!authenticated) {
-      openLogin();
-      return;
-    }
-    if (!downloadEnabled) {
-      showToast("Plano VIP necessário para baixar o pack.", "error");
-      return;
-    }
-
-    const trackLabel =
-      directTracks.length === 1 ? "1 música" : `${directTracks.length} músicas`;
-    const confirmed = window.confirm(
-      `As ${trackLabel} serão baixadas pelo navegador.\n\n` +
-        "Isso exige alto processamento da máquina e pode deixar o navegador lento.\n\n" +
-        "Prefira o BRS Downloader (botão Downloader) para baixar com mais estabilidade.\n\n" +
-        "Deseja continuar mesmo assim?",
-    );
-    if (!confirmed) {
-      showToast("Download cancelado — use o Downloader para melhor desempenho.");
-      return;
-    }
-
     setDownloadingPack(true);
     let ok = 0;
     let failed = 0;
@@ -446,9 +480,22 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     } finally {
       setDownloadingPack(false);
     }
+  }, [directTracks, downloadingPack, showToast]);
+
+  const handlePackDownload = useCallback(async () => {
+    if (downloadingPack || directTracks.length === 0) return;
+    if (!authenticated) {
+      openLogin();
+      return;
+    }
+    if (!downloadEnabled) {
+      showToast("Plano VIP necessário para baixar o pack.", "error");
+      return;
+    }
+    setBrowserConfirmOpen(true);
   }, [
     authenticated,
-    directTracks,
+    directTracks.length,
     downloadEnabled,
     downloadingPack,
     openLogin,
@@ -517,7 +564,18 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         )}
       </nav>
 
-      {showInitialSkeleton && (slugSegments.length >= 2 ? <PackHeroSkeleton /> : <MusicasPageSkeleton />)}
+      {showInitialSkeleton &&
+        (slugSegments.length >= 3 ? (
+          <>
+            <PackHeroSkeleton />
+            <MusicasTracksSkeleton rows={8} />
+          </>
+        ) : (
+          <>
+            <UpdatesHeroSkeleton />
+            <MusicasBrowseFoldersSkeleton rows={8} />
+          </>
+        ))}
 
       {data && showingTracks ? (
         <PackHero
@@ -549,32 +607,33 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           mode={heroMode}
           coverUrl={data.coverUrl}
           actions={
-            <AtualizacoesDriveSyncButton
-              onSynced={async () => {
-                await loadBrowse({ forceRefresh: true });
-              }}
-            />
-          }
-          coverAction={
-            slugSegments.length === 1 ? (
-              <SendPackToDownloaderButton
-                slug={monthSlug}
-                onCover
-                label="Enviar mês inteiro ao Downloader"
+            <>
+              {slugSegments.length === 1 ? (
+                <SendPackToDownloaderButton
+                  slug={monthSlug}
+                  label="Enviar mês ao Downloader"
+                  className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
+                />
+              ) : weekSlug && slugSegments.length === 2 ? (
+                <SendPackToDownloaderButton
+                  slug={`${monthSlug}/${weekSlug}`}
+                  label="Enviar semana ao Downloader"
+                  className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
+                />
+              ) : slugSegments.length >= 3 ? (
+                <SendPackToDownloaderButton
+                  slug={slugPath}
+                  label="Enviar pasta ao Downloader"
+                  className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
+                />
+              ) : null}
+              <AtualizacoesDriveSyncButton
+                className="w-full sm:w-auto"
+                onSynced={async () => {
+                  await loadBrowse({ forceRefresh: true });
+                }}
               />
-            ) : weekSlug && slugSegments.length === 2 ? (
-              <SendPackToDownloaderButton
-                slug={`${monthSlug}/${weekSlug}`}
-                onCover
-                label="Enviar semana ao Downloader"
-              />
-            ) : slugSegments.length >= 3 ? (
-              <SendPackToDownloaderButton
-                slug={slugPath}
-                onCover
-                label="Enviar pasta ao Downloader"
-              />
-            ) : null
+            </>
           }
         />
       ) : null}
@@ -594,79 +653,117 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && data && showingWeeks && (
-        <>
-          <WeekFolderGrid
-            monthSlug={monthSlug}
-            monthName={monthTitle}
-            weeks={data.items}
-            newWeekIds={newChildIds}
-          />
-          <AtualizacoesMonthFooterNav
-            monthSlug={monthSlug}
-            months={months}
-            weeks={showingWeeks ? data.items : siblingWeeks}
-            weekSlug={weekSlug}
-            homeHref="/musicas/atualizacoes"
-            homeLabel="Home"
-          />
-        </>
+        <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:items-start lg:gap-6">
+          <div className="order-2 lg:order-1 lg:sticky lg:top-20">
+            <AtualizacoesBrowseNavSidebar
+              slugSegments={slugSegments}
+              resolvedPath={data.resolvedPath}
+              rootPacks={months}
+              currentChildren={data.items}
+              siblings={siblingFolders}
+              packMonths={packMonths.length > 0 ? packMonths : data.items}
+              monthWeeks={data.items}
+              newChildIds={newChildIds}
+            />
+          </div>
+          <div className="order-1 min-w-0 lg:order-2">
+            <WeekFolderGrid
+              parentSegments={slugSegments}
+              monthName={calendarMonthName}
+              weeks={data.items}
+              newWeekIds={newChildIds}
+            />
+            <AtualizacoesMonthFooterNav
+              monthSlug={monthSlug}
+              months={months}
+              weeks={data.items}
+              weekSlug={weekSlug}
+              homeHref="/musicas/atualizacoes"
+              homeLabel="Home"
+            />
+          </div>
+        </div>
       )}
 
       {!error && data && showingStyles && (
-        <>
-          <StyleFolderLinks
-            folders={data.items}
-            slugSegments={slugSegments}
-            newFolderIds={newChildIds}
-          />
-          {directTracks.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
-              <div className={poolPanelHeaderClass}>
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                  Arquivos nesta pasta · {directTracks.length}
-                </p>
+        <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:items-start lg:gap-6">
+          <div className="order-2 lg:order-1 lg:sticky lg:top-20">
+            <AtualizacoesBrowseNavSidebar
+              slugSegments={slugSegments}
+              resolvedPath={data.resolvedPath}
+              rootPacks={months}
+              currentChildren={data.items}
+              siblings={siblingFolders}
+              packMonths={
+                packMonths.length > 0
+                  ? packMonths
+                  : showingMonths
+                    ? data.items
+                    : packMonths
+              }
+              monthWeeks={siblingWeeks}
+              newChildIds={newChildIds}
+            />
+          </div>
+          <div className="order-1 min-w-0 lg:order-2">
+            <StyleFolderLinks
+              folders={data.items}
+              slugSegments={slugSegments}
+              newFolderIds={newChildIds}
+            />
+            {directTracks.length > 0 && (
+              <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
+                <div className={poolPanelHeaderClass}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Arquivos nesta pasta · {directTracks.length}
+                  </p>
+                </div>
+                <VipMusicTrackList
+                  folderId={data.folderId}
+                  tracks={directTracks}
+                  canPlay={playbackEnabled}
+                  canDownload={downloadEnabled}
+                  relativePath={relativeStyleBase}
+                  coverUrl={data.coverUrl}
+                  layout="table"
+                  continueContext={
+                    monthSlug
+                      ? {
+                          monthSlug,
+                          monthName: monthTitle,
+                          weekSlug: nestedWeekSlug ?? weekSlug,
+                          styleName: displayFolderName(data.folderName),
+                        }
+                      : undefined
+                  }
+                />
               </div>
-              <VipMusicTrackList
-                folderId={data.folderId}
-                tracks={directTracks}
-                canPlay={playbackEnabled}
-                canDownload={downloadEnabled}
-                relativePath={relativeStyleBase}
-                coverUrl={data.coverUrl}
-                layout="table"
-                continueContext={
-                  monthSlug
-                    ? {
-                        monthSlug,
-                        monthName: monthTitle,
-                        weekSlug,
-                        styleName: displayFolderName(data.folderName),
-                      }
-                    : undefined
-                }
+            )}
+            {useSiblingFolderNav ? (
+              <AtualizacoesMonthFooterNav
+                monthSlug={monthSlug}
+                months={months}
+                siblings={siblingNavItems}
+                currentSiblingSlug={currentFolderSlug}
+                homeHref={homeParentHref}
+                homeLabel="Home"
               />
-            </div>
-          )}
-          {useSiblingFolderNav ? (
-            <AtualizacoesMonthFooterNav
-              monthSlug={monthSlug}
-              months={months}
-              siblings={siblingNavItems}
-              currentSiblingSlug={currentFolderSlug}
-              homeHref={homeParentHref}
-              homeLabel="Home"
-            />
-          ) : (
-            <AtualizacoesMonthFooterNav
-              monthSlug={monthSlug}
-              months={months}
-              weeks={siblingWeeks}
-              weekSlug={weekSlug}
-              homeHref={weekSlug ? folderHref([monthSlug]) : "/musicas/atualizacoes"}
-              homeLabel="Home"
-            />
-          )}
-        </>
+            ) : (
+              <AtualizacoesMonthFooterNav
+                monthSlug={monthSlug}
+                months={months}
+                weeks={siblingWeeks}
+                weekSlug={nestedWeekSlug ?? weekSlug}
+                homeHref={
+                  slugSegments.length > 1
+                    ? folderHref(slugSegments.slice(0, -1))
+                    : "/musicas/atualizacoes"
+                }
+                homeLabel="Home"
+              />
+            )}
+          </div>
+        </div>
       )}
 
       {!error && data && showingTracks && (
@@ -716,6 +813,23 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && !data && !loading && <MusicasListSkeleton rows={6} />}
+
+      <BrowserPackDownloadConfirm
+        open={browserConfirmOpen}
+        trackCount={directTracks.length}
+        onConfirm={() => {
+          setBrowserConfirmOpen(false);
+          void runBrowserPackDownload();
+        }}
+        onDismiss={() => {
+          setBrowserConfirmOpen(false);
+          showToast("Download cancelado — use o Downloader para melhor desempenho.");
+        }}
+        onPreferDownloader={() => {
+          setBrowserConfirmOpen(false);
+          showToast("Use o botão Downloader no topo para enviar com mais estabilidade.");
+        }}
+      />
     </div>
   );
 }

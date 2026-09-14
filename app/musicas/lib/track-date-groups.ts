@@ -3,7 +3,7 @@ import { getSaoPauloDateParts } from "../../lib/due-queue";
 
 export type TrackDateSection = {
   id: string;
-  /** Ex.: "Novas", "8 set", "Sem data" */
+  /** Ex.: "Adicionadas recentemente", "8 set", "Sem data" */
   title: string;
   /** Ex.: "Hoje · 8 faixas" */
   subtitle: string;
@@ -66,7 +66,8 @@ function countLabel(n: number) {
 
 /**
  * Agrupa faixas por dia de upload no Drive (`createdTime`/`modifiedTime` → `modifiedAt`).
- * Dias mais recentes primeiro; o dia mais novo leva o título "Novas" quando há vários dias.
+ * Dias mais recentes primeiro; o dia mais novo leva o título "Adicionadas recentemente"
+ * quando há vários dias.
  */
 export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSection[] {
   if (tracks.length === 0) return [];
@@ -109,7 +110,7 @@ export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSectio
     const isNew = multipleDays && index === 0;
     return {
       id: key,
-      title: isNew ? "Novas" : dayLabel,
+      title: isNew ? "Adicionadas recentemente" : dayLabel,
       subtitle: isNew
         ? `${dayLabel} · ${countLabel(dayTracks.length)}`
         : countLabel(dayTracks.length),
@@ -118,7 +119,7 @@ export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSectio
     };
   });
 
-  // Um único dia e nada sem data → uma seção com a data (sem “Novas”).
+  // Um único dia e nada sem data → uma seção com a data (sem “Adicionadas recentemente”).
   if (!multipleDays && sections[0]) {
     sections[0] = {
       ...sections[0],

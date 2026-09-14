@@ -15,9 +15,15 @@ type MusicasMonthLinksProps = {
   newFolderIds: Set<string>;
   /** Mantido por compatibilidade; a lista unificada é sempre o layout biblioteca. */
   variant?: "inline" | "hero";
+  /** Usa melhor o espaço à direita no layout com sidebar. */
+  fillColumn?: boolean;
 };
 
-export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksProps) {
+export function MusicasMonthLinks({
+  folders,
+  newFolderIds,
+  fillColumn = false,
+}: MusicasMonthLinksProps) {
   const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
   const byStructure =
     yearLike >= Math.ceil(folders.length * 0.5)
@@ -59,8 +65,9 @@ export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksPr
       slugSegments={[]}
       newFolderIds={newFolderIds}
       layout="grid"
+      fillColumn={fillColumn}
       sectionTitle="Seu acervo"
-      sectionDescription="Tudo organizado para você encontrar, ouvir e baixar mais rápido."
+      sectionDescription="Pastas do mês e packs prontos para ouvir ou baixar."
       emptyMessage="Nenhum mês encontrado."
     />
   );

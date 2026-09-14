@@ -38,6 +38,10 @@ import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
+  DOWNLOADER_BULK_CONFIRM_THRESHOLD,
+  DownloaderBulkConfirmDialog,
+} from "./DownloaderBulkConfirm";
+import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
@@ -69,6 +73,8 @@ type VipMusicTrackListProps = {
 
 const STREAM_DESKTOP_GRID =
   "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_48px_36px] md:items-center md:gap-x-3";
+const STREAM_DESKTOP_GRID_SELECT =
+  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_48px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -165,7 +171,7 @@ function TrackDownloaderButton({
     : isError
       ? "border-red-500/40 bg-red-500/10 text-red-400"
       : isBusyState
-        ? "border-sky-500/40 bg-sky-500/10 text-sky-300"
+        ? "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760]"
         : "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20";
 
   const tooltip = label ?? `Enviar ${title} ao Downloader`;
@@ -312,14 +318,14 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         id: "play",
         label: "Reproduzir agora",
         icon: Play,
-        disabled: !canPlay || selectionMode,
+        disabled: !canPlay,
         onClick: onToggle,
       },
       {
         id: "queue",
         label: "Adicionar à fila",
         icon: ListPlus,
-        disabled: !canPlay || selectionMode,
+        disabled: !canPlay,
         onClick: onQueueNext,
       },
     ];
@@ -378,7 +384,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     <button
       type="button"
       onClick={onToggle}
-      disabled={isBusy || selectionMode}
+      disabled={isBusy}
       aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
       className={coverButtonClass}
     >
@@ -439,8 +445,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     <div className="min-w-0 flex-1 overflow-hidden transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <button
         type="button"
-        onClick={selectionMode && canDownload ? onToggleSelected : canPlay ? onToggle : undefined}
-        disabled={!canPlay && !selectionMode}
+        onClick={canPlay ? onToggle : undefined}
+        disabled={!canPlay}
         className="min-w-0 w-full overflow-hidden text-left"
         aria-label={a11yName}
         title={a11yName}
@@ -460,7 +466,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   );
 
   const progressBlock =
-    isActive && canPlay && !selectionMode && showDuration ? (
+    isActive && canPlay && showDuration ? (
       <div className="mt-2 flex items-center gap-2">
         <span className="w-8 flex-shrink-0 font-mono text-[10px] tabular-nums text-white/40">
           {formatTime(currentTime)}
@@ -488,7 +494,26 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       </div>
     ) : null;
 
-  const showSideDuration = showDuration && !(isActive && canPlay && !selectionMode);
+  const showSideDuration = showDuration && !(isActive && canPlay);
+
+  const selectCheckbox =
+    selectionMode && canDownload ? (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggleSelected();
+        }}
+        aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
+        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border transition-colors md:h-5 md:w-5 ${
+          isSelected
+            ? "border-[#1ed760] bg-[#1ed760] text-black"
+            : "border-white/25 bg-black/20 text-transparent hover:border-white/45"
+        }`}
+      >
+        {isSelected ? <Check className="h-3.5 w-3.5 md:h-3 md:w-3" strokeWidth={3} /> : null}
+      </button>
+    ) : null;
 
   return (
     <article
@@ -499,22 +524,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
       }`}
     >
-      {/* Mobile — play | título/progresso | download/menu */}
-      <div className="flex items-center gap-3 px-3.5 py-3.5 md:hidden">
-        {selectionMode && canDownload ? (
-          <button
-            type="button"
-            onClick={onToggleSelected}
-            aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
-            className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border transition-colors ${
-              isSelected
-                ? "border-[#1ed760] bg-[#1ed760] text-black"
-                : "border-white/20 text-transparent hover:border-white/40"
-            }`}
-          >
-            {isSelected ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
-          </button>
-        ) : null}
+      {/* Mobile */}
+      <div className="flex items-center gap-2.5 px-3 py-3.5 md:hidden">
+        {selectCheckbox}
         {playButton}
         <div className="min-w-0 flex-1">
           {titleBlock}
@@ -525,46 +537,32 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             </p>
           ) : null}
         </div>
-        {!selectionMode ? (
-          <div className="flex flex-shrink-0 items-center gap-1">
-            {canDownload ? (
-              <TrackDownloaderButton
-                fileId={track.id}
-                title={display.title}
-                sending={isSendingToDownloader}
-                onSend={onSendToDownloader}
-                compact
-              />
-            ) : null}
-            <CollectionContextMenu
-              label={`Opções · ${display.title}`}
-              buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
-              actions={menuActions}
+        <div className="flex flex-shrink-0 items-center gap-1">
+          {canDownload ? (
+            <TrackDownloaderButton
+              fileId={track.id}
+              title={display.title}
+              sending={isSendingToDownloader}
+              onSend={onSendToDownloader}
+              compact
             />
-          </div>
-        ) : null}
+          ) : null}
+          <CollectionContextMenu
+            label={`Opções · ${display.title}`}
+            buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
+            actions={menuActions}
+          />
+        </div>
       </div>
 
       {/* Desktop */}
-      <div className={`${STREAM_DESKTOP_GRID} px-3.5 py-2.5`}>
-        <div className="flex items-center justify-center">
-          {selectionMode && canDownload ? (
-            <button
-              type="button"
-              onClick={onToggleSelected}
-              aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
-              className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${
-                isSelected
-                  ? "border-[#1ed760] bg-[#1ed760] text-black"
-                  : "border-white/20 text-transparent hover:border-white/40"
-              }`}
-            >
-              {isSelected ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
-            </button>
-          ) : (
-            playButton
-          )}
-        </div>
+      <div
+        className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} px-3.5 py-2.5`}
+      >
+        {selectionMode && canDownload ? (
+          <div className="flex items-center justify-center">{selectCheckbox}</div>
+        ) : null}
+        <div className="flex items-center justify-center">{playButton}</div>
 
         <div className="min-w-0 py-0.5">
           {titleBlock}
@@ -576,7 +574,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
-          {canDownload && !selectionMode ? (
+          {canDownload ? (
             <TrackDownloaderButton
               fileId={track.id}
               title={display.title}
@@ -588,13 +586,11 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
 
         <div className="flex items-center justify-end opacity-45 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
-          {!selectionMode ? (
-            <CollectionContextMenu
-              label={`Opções · ${display.title}`}
-              buttonClassName="!h-9 !w-9 rounded-xl text-white/50 hover:bg-white/[0.06] hover:text-white"
-              actions={menuActions}
-            />
-          ) : null}
+          <CollectionContextMenu
+            label={`Opções · ${display.title}`}
+            buttonClassName="!h-9 !w-9 rounded-xl text-white/50 hover:bg-white/[0.06] hover:text-white"
+            actions={menuActions}
+          />
         </div>
       </div>
     </article>
@@ -772,6 +768,7 @@ export function VipMusicTrackList({
   const [batchSending, setBatchSending] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkConfirmCount, setBulkConfirmCount] = useState<number | null>(null);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
@@ -811,7 +808,7 @@ export function VipMusicTrackList({
 
   const handleToggle = useCallback(
     async (id: string) => {
-      if (!canPlay || selectionMode) return;
+      if (!canPlay) return;
       setFocusedTrackId(id);
       const track = tracks.find((item) => item.id === id);
       if (track && continueContext) {
@@ -830,16 +827,16 @@ export function VipMusicTrackList({
       }
       await toggleTrack(folderId, id);
     },
-    [canPlay, continueContext, folderId, selectionMode, toggleTrack, tracks],
+    [canPlay, continueContext, folderId, toggleTrack, tracks],
   );
 
   const handleSeek = useCallback(
     async (ratio: number) => {
-      if (!canPlay || !activeId || !isThisFolder || selectionMode) return;
+      if (!canPlay || !activeId || !isThisFolder) return;
       if (playingId !== activeId) await handleToggle(activeId);
       await seek(ratio);
     },
-    [activeId, canPlay, handleToggle, isThisFolder, playingId, seek, selectionMode],
+    [activeId, canPlay, handleToggle, isThisFolder, playingId, seek],
   );
 
   const handleDownload = useCallback(
@@ -891,7 +888,7 @@ export function VipMusicTrackList({
     [batchSending, ensureDownloaderAccess, relativePath, sendingId, showToast, sync],
   );
 
-  const handleSendSelectedToDownloader = useCallback(async () => {
+  const runSendSelectedToDownloader = useCallback(async () => {
     if (batchSending || sendingId || selectedCount === 0) return;
     if (!ensureDownloaderAccess()) return;
     const selectedTracks = tracks.filter((track) => selectedIds.has(track.id));
@@ -928,6 +925,22 @@ export function VipMusicTrackList({
     tracks,
   ]);
 
+  const handleSendSelectedToDownloader = useCallback(() => {
+    if (batchSending || sendingId || selectedCount === 0) return;
+    if (!ensureDownloaderAccess()) return;
+    if (selectedCount > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
+      setBulkConfirmCount(selectedCount);
+      return;
+    }
+    void runSendSelectedToDownloader();
+  }, [
+    batchSending,
+    ensureDownloaderAccess,
+    runSendSelectedToDownloader,
+    selectedCount,
+    sendingId,
+  ]);
+
   const handleDownloadSelected = useCallback(async () => {
     const selectedTracks = tracks.filter((track) => selectedIds.has(track.id));
     for (const track of selectedTracks) {
@@ -962,12 +975,12 @@ export function VipMusicTrackList({
   }, [highlightTrackId]);
 
   useEffect(() => {
-    if (!autoPlayTrackId || !canPlay || selectionMode) return;
+    if (!autoPlayTrackId || !canPlay) return;
     if (!tracks.some((track) => track.id === autoPlayTrackId)) return;
     if (autoPlayedRef.current === autoPlayTrackId) return;
     autoPlayedRef.current = autoPlayTrackId;
     void handleToggle(autoPlayTrackId);
-  }, [autoPlayTrackId, canPlay, handleToggle, selectionMode, tracks]);
+  }, [autoPlayTrackId, canPlay, handleToggle, tracks]);
 
   useEffect(() => {
     setSelectedIds((current) => {
@@ -1129,7 +1142,7 @@ export function VipMusicTrackList({
                   >
                     {section.isNew ? (
                       <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
-                        Novo
+                        Recente
                       </span>
                     ) : null}
                     <h3
@@ -1196,12 +1209,12 @@ export function VipMusicTrackList({
           </p>
           <button
             type="button"
-            onClick={() => void handleSendSelectedToDownloader()}
+            onClick={() => handleSendSelectedToDownloader()}
             disabled={batchSending}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3.5 py-2 text-xs font-bold text-black disabled:opacity-50"
           >
             {batchSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
-            Enviar ao Downloader
+            Enviar ({selectedCount}) marcada{selectedCount === 1 ? "" : "s"} para o Downloader
           </button>
           <button
             type="button"
@@ -1221,6 +1234,16 @@ export function VipMusicTrackList({
           </button>
         </div>
       ) : null}
+
+      <DownloaderBulkConfirmDialog
+        open={bulkConfirmCount != null}
+        count={bulkConfirmCount ?? 0}
+        onConfirm={() => {
+          setBulkConfirmCount(null);
+          void runSendSelectedToDownloader();
+        }}
+        onDismiss={() => setBulkConfirmCount(null)}
+      />
     </div>
   );
 }

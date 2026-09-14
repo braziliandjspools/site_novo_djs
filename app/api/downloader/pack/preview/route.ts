@@ -47,6 +47,9 @@ export async function GET(request: Request) {
       pathLabels: result.folder.pathLabels,
       trackCount: result.trackCount,
       sampleTitles: result.sampleTitles,
+      hasSubfolders: result.hasSubfolders,
+      trackCountIsEstimate: result.trackCountIsEstimate,
+      subfolderCount: result.subfolderCount ?? 0,
       root: result.folder.root,
       downloadUrl,
     });

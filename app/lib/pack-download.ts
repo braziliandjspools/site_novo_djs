@@ -13,6 +13,7 @@ import { ensureAudioExtension, type PreviewTrack } from "./google-drive";
 import { createDownloadJobsBatch, type DownloadJobInput } from "./downloader";
 import { withForcedFolderTree } from "./force-folder-tree";
 import { parsePackDownloadInput } from "./pack-download-link";
+import { mapPool } from "./map-pool";
 
 export type PackRoot = "vip" | "colecoes";
 
@@ -113,28 +114,54 @@ async function collectTracksRecursive(
     .map(toJob)
     .filter((job): job is PackTrackJob => Boolean(job));
 
-  for (const item of catalog.items) {
+  const nestedBatches = await mapPool(catalog.items, 8, async (item) => {
     const childPath = relativePath
       ? `${relativePath}/${displayFolderName(item.name)}`
       : displayFolderName(item.name);
-    const nested = await collectTracksRecursive(item.id, item.name, childPath, depth + 1);
+    return collectTracksRecursive(item.id, item.name, childPath, depth + 1);
+  });
+  for (const nested of nestedBatches) {
     jobs.push(...nested);
   }
   return jobs;
 }
 
+/**
+ * Validação rápida: confirma que a pasta existe sem varrer milhares de MP3
+ * (mês inteiro pode passar de 30s e estourar o timeout do app desktop).
+ */
 export async function previewPackBySlug(slug: string, options?: { root?: PackRoot }) {
   const folder = await resolvePackFolderBySlug(slug, options);
   if (!folder) {
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
   }
 
-  const tracks = await collectTracksRecursive(folder.folderId, folder.folderName, folder.relativePath);
+  const catalog = await getVipMusicCatalog(folder.folderId, folder.folderName);
+  if (catalog.level === "tracks") {
+    const tracks = catalog.tracks.filter((track) => {
+      const rawName = track.fileName ?? track.title;
+      return !/^folder(\.|$)/i.test(rawName.trim());
+    });
+    return {
+      ok: true as const,
+      folder,
+      trackCount: tracks.length,
+      sampleTitles: tracks.slice(0, 8).map((track) => track.title),
+      hasSubfolders: false,
+      trackCountIsEstimate: false,
+    };
+  }
+
+  const subfolderCount = catalog.items.length;
   return {
     ok: true as const,
     folder,
-    trackCount: tracks.length,
-    sampleTitles: tracks.slice(0, 8).map((track) => track.title),
+    // Contagem real só no import — aqui só confirmamos a pasta.
+    trackCount: catalog.tracks.length,
+    sampleTitles: catalog.items.slice(0, 8).map((item) => displayFolderName(item.name)),
+    hasSubfolders: subfolderCount > 0,
+    trackCountIsEstimate: true,
+    subfolderCount,
   };
 }
 

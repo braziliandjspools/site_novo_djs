@@ -5,12 +5,16 @@ import { createPortal } from "react-dom";
 import {
   Bell,
   CreditCard,
+  Download,
   ExternalLink,
   Megaphone,
+  MonitorSmartphone,
   X,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import type { SiteNotificationDto } from "../../lib/site-notices";
+import { useOneSignalPush } from "../useOneSignalPush";
+import { usePwaInstall } from "../usePwaInstall";
 
 const LOCAL_DISMISS_KEY = "bp_site_notif_dismissed";
 const LOCAL_READ_KEY = "bp_site_notif_read";
@@ -67,6 +71,10 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [installBusy, setInstallBusy] = useState(false);
+  const { configured: pushConfigured, state: pushState, subscribe, unsubscribe } = useOneSignalPush();
+  const { canInstall, installed: pwaInstalled, install: installPwa } = usePwaInstall();
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ);
@@ -248,6 +256,79 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
           )}
         </div>
       </div>
+
+      {(pushConfigured || canInstall || pwaInstalled) && (
+        <div className="mt-3 space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
+          {pushConfigured && (
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                  <Bell className="h-3.5 w-3.5 text-[#1ed760]" />
+                  Push no navegador
+                </p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                  {pushState === "subscribed"
+                    ? "Avisos de packs e atualizações ativos."
+                    : pushState === "denied"
+                      ? "Permissão bloqueada nas configurações do navegador."
+                      : "Receba novidades VIP mesmo com o site fechado."}
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={pushBusy || pushState === "denied" || pushState === "loading"}
+                className="h-8 flex-shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[10px] font-bold uppercase tracking-wider text-white disabled:opacity-40 hover:bg-white/10"
+                onClick={() => {
+                  setPushBusy(true);
+                  void (pushState === "subscribed" ? unsubscribe() : subscribe()).finally(() =>
+                    setPushBusy(false),
+                  );
+                }}
+              >
+                {pushBusy || pushState === "loading"
+                  ? "…"
+                  : pushState === "subscribed"
+                    ? "Desativar"
+                    : "Ativar"}
+              </button>
+            </div>
+          )}
+
+          {(canInstall || pwaInstalled) && (
+            <div
+              className={`flex items-start justify-between gap-3 ${
+                pushConfigured ? "border-t border-white/[0.06] pt-2" : ""
+              }`}
+            >
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                  <MonitorSmartphone className="h-3.5 w-3.5 text-[#1ed760]" />
+                  App no PC
+                </p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                  {pwaInstalled
+                    ? "BRS VIP já está instalado neste computador."
+                    : "Instale como aplicativo para abrir em janela própria."}
+                </p>
+              </div>
+              {canInstall && (
+                <button
+                  type="button"
+                  disabled={installBusy}
+                  className="inline-flex h-8 flex-shrink-0 items-center gap-1 rounded-lg bg-[#1ed760] px-2.5 text-[10px] font-bold uppercase tracking-wider text-black disabled:opacity-50 hover:opacity-90"
+                  onClick={() => {
+                    setInstallBusy(true);
+                    void installPwa().finally(() => setInstallBusy(false));
+                  }}
+                >
+                  <Download className="h-3 w-3" />
+                  {installBusy ? "…" : "Instalar"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading && items.length === 0 ? (
         <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-3 text-sm text-zinc-400">Carregando…</p>

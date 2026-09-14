@@ -29,36 +29,59 @@ export function MusicasPageSkeleton() {
   );
 }
 
-export function MusicasFolderGridSkeleton({ cards = 8 }: { cards?: number }) {
-  const tones = [
-    "from-[#00c853]/80 via-[#0a7a4a]/80 to-[#050505]/90",
-    "from-[#3b82f6]/80 via-[#1e3a8a]/80 to-[#050505]/90",
-    "from-[#f59e0b]/80 via-[#9a3412]/80 to-[#050505]/90",
-    "from-[#14b8a6]/80 via-[#0f766e]/80 to-[#050505]/90",
-    "from-[#a3e635]/80 via-[#4d7c0f]/80 to-[#050505]/90",
-  ];
+export function MusicasFolderGridSkeleton({ cards = 5 }: { cards?: number }) {
   return (
-    <div className="mx-auto w-full max-w-[1280px]" aria-busy="true" aria-label="Carregando pastas">
-      <div className="mb-6 flex flex-col items-center gap-2 sm:mb-8">
-        <SkeletonPulse className="h-6 w-36" />
-        <SkeletonPulse className="h-3 w-64" />
+    <div className="mx-auto w-full max-w-none" aria-busy="true" aria-label="Carregando pastas">
+      <div className="mb-5 flex flex-col items-center gap-2 sm:mb-6">
+        <SkeletonPulse className="h-6 w-40" />
+        <SkeletonPulse className="h-0.5 w-16 rounded-full bg-[#1ed760]/30" />
+        <SkeletonPulse className="h-3 w-56 sm:w-64" />
       </div>
-      <div className="grid grid-cols-1 justify-items-center gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-1 justify-items-center gap-3.5 min-[360px]:grid-cols-2 min-[360px]:justify-items-stretch md:grid-cols-2 md:gap-4 lg:grid-cols-5">
         {Array.from({ length: cards }).map((_, index) => (
-          <div
+          <SkeletonPulse
             key={index}
-            className={`flex h-[300px] w-full max-w-[240px] flex-col justify-between overflow-hidden rounded-[22px] border border-white/[0.08] bg-gradient-to-b p-4 sm:h-[390px] sm:p-5 ${tones[index % tones.length]}`}
-          >
-            <SkeletonPulse className="h-3 w-16" />
-            <div className="space-y-2">
-              <SkeletonPulse className="h-5 w-[90%]" />
-              <SkeletonPulse className="h-3 w-full" />
-              <SkeletonPulse className="h-3 w-[70%]" />
-              <SkeletonPulse className="mt-3 h-3 w-24" />
-            </div>
-            <SkeletonPulse className="h-3 w-28" />
-          </div>
+            className="mx-auto h-[300px] w-full max-w-[280px] rounded-[18px] border border-[#1ed760]/25 bg-[#17191d] md:h-[380px] md:max-w-none"
+          />
         ))}
+      </div>
+    </div>
+  );
+}
+
+export function MusicasFolderButtonsSkeleton({ rows = 8 }: { rows?: number }) {
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-1 sm:px-2" aria-busy="true" aria-label="Carregando pastas">
+      <div className="flex w-full flex-col gap-2">
+        {Array.from({ length: rows }).map((_, index) => (
+          <SkeletonPulse
+            key={index}
+            className={`h-12 w-full rounded-lg border border-[#1ed760]/20 bg-[#17191d] ${
+              index % 3 === 0 ? "opacity-90" : "opacity-70"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function MusicasBrowseFoldersSkeleton({ rows = 8 }: { rows?: number }) {
+  return (
+    <div
+      className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:items-start lg:gap-6"
+      aria-busy="true"
+      aria-label="Carregando subpastas"
+    >
+      <div className="order-2 hidden rounded-2xl border border-[#1ed760]/20 bg-[#17191d] p-3.5 lg:order-1 lg:block lg:sticky lg:top-20">
+        <div className="space-y-3">
+          <SkeletonPulse className="h-16 w-full rounded-xl" />
+          <SkeletonPulse className="h-28 w-full rounded-xl" />
+          <SkeletonPulse className="h-24 w-full rounded-xl" />
+        </div>
+      </div>
+      <div className="order-1 min-w-0 lg:order-2">
+        <MusicasFolderButtonsSkeleton rows={rows} />
       </div>
     </div>
   );
@@ -117,9 +140,6 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
 
       {/* Desktop: capa | título | duração | ações */}
       <div className="hidden overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12141a] to-[#0f1012] md:block">
-        <div className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.015] px-3.5 py-2.5">
-          <SkeletonPulse className="h-7 w-36 rounded-full" />
-        </div>
         {Array.from({ length: rows }).map((_, index) => (
           <div
             key={index}
@@ -142,8 +162,8 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
 
 export function MusicasAuthShellSkeleton() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#121212]" aria-busy="true" aria-label="Carregando">
-      <div className="border-b border-white/5 bg-[#0a0a0a]">
+    <div className="flex min-h-screen flex-col bg-[#1e1e1e]" aria-busy="true" aria-label="Carregando">
+      <div className="border-b border-white/5 bg-[#161616]">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-3 sm:h-[4.25rem] sm:px-5 lg:px-8">
           <SkeletonPulse className="h-8 w-36" />
           <div className="ml-4 hidden gap-2 md:flex">

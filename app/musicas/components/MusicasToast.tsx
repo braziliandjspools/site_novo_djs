@@ -7,10 +7,11 @@ type ToastVariant = "success" | "error";
 type ToastState = {
   message: string;
   variant: ToastVariant;
+  durationMs: number;
 } | null;
 
 type MusicasToastContextValue = {
-  showToast: (message: string, variant?: ToastVariant) => void;
+  showToast: (message: string, variant?: ToastVariant, durationMs?: number) => void;
 };
 
 const MusicasToastContext = createContext<MusicasToastContextValue | null>(null);
@@ -18,13 +19,16 @@ const MusicasToastContext = createContext<MusicasToastContextValue | null>(null)
 export function MusicasToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<ToastState>(null);
 
-  const showToast = useCallback((message: string, variant: ToastVariant = "success") => {
-    setToast({ message, variant });
-  }, []);
+  const showToast = useCallback(
+    (message: string, variant: ToastVariant = "success", durationMs = 4000) => {
+      setToast({ message, variant, durationMs });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 4000);
+    const timer = window.setTimeout(() => setToast(null), toast.durationMs);
     return () => window.clearTimeout(timer);
   }, [toast]);
 
@@ -37,7 +41,7 @@ export function MusicasToastProvider({ children }: { children: React.ReactNode }
         <p
           role="status"
           aria-live="polite"
-          className={`fixed bottom-6 left-1/2 z-50 max-w-[min(92vw,26rem)] -translate-x-1/2 rounded-lg px-4 py-2.5 text-center text-xs font-semibold shadow-lg ${
+          className={`fixed bottom-6 left-1/2 z-50 max-w-[min(94vw,32rem)] -translate-x-1/2 rounded-lg px-4 py-2.5 text-center text-xs font-semibold leading-relaxed shadow-lg ${
             toast.variant === "success" ? "bg-[#1ed760] text-black" : "bg-red-500/95 text-white"
           }`}
         >

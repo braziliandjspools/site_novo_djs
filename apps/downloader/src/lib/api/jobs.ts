@@ -128,6 +128,13 @@ export async function createJob(
   });
 }
 
+export async function clearAllJobs(token: string) {
+  return apiFetch<{ ok: true; cleared: number }>("/api/downloader/jobs/clear", {
+    method: "POST",
+    token,
+  });
+}
+
 export async function heartbeatDevice(token: string, deviceId: string) {
   return apiFetch<{ ok: true; device: unknown }>("/api/downloader/devices/heartbeat", {
     method: "POST",

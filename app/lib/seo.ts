@@ -477,6 +477,11 @@ export function buildRootMetadata(): Metadata {
       shortcut: ["/images/logo.png"],
     },
     manifest: "/site.webmanifest",
+    appleWebApp: {
+      capable: true,
+      title: "BRS VIP",
+      statusBarStyle: "black-translucent",
+    },
     alternates: {
       canonical: "/",
       languages: {

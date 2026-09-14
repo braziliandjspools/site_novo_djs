@@ -18,7 +18,8 @@ import {
 import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 
 type WeekFolderGridProps = {
-  monthSlug: string;
+  /** Prefixo de URL até o mês (ex.: ["brs-packs-2024", "janeiro"]). */
+  parentSegments: string[];
   monthName: string;
   weeks: VipMusicCatalogItem[];
   newWeekIds?: Set<string>;
@@ -33,7 +34,12 @@ function useLiveNow(intervalMs = 1000) {
   return now;
 }
 
-export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: WeekFolderGridProps) {
+export function WeekFolderGrid({
+  parentSegments,
+  monthName,
+  weeks,
+  newWeekIds,
+}: WeekFolderGridProps) {
   const now = useLiveNow(1000);
   const monthDate = parseMonthFolderDate(monthName);
 
@@ -81,9 +87,10 @@ export function WeekFolderGrid({ monthSlug, monthName, weeks, newWeekIds }: Week
     <LibraryFolderList
       className="mb-8"
       folders={items}
-      slugSegments={[monthSlug]}
+      slugSegments={parentSegments}
       newFolderIds={newWeekIds}
-      layout="grid"
+      layout="buttons"
+      fillColumn
       emptyMessage="Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…"
       before={
         monthDate ? (

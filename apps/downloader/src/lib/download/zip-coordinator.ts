@@ -187,6 +187,17 @@ export class ZipCoordinator {
     }
   }
 
+  /** Cancela todas as compactações ativas/na fila. */
+  async cancelAllActiveTasks() {
+    this.queue = [];
+    const ids = [...this.tasks.values()]
+      .filter((task) => task.status === "queued" || task.status === "compressing")
+      .map((task) => task.id);
+    for (const id of ids) {
+      await this.cancelTask(id);
+    }
+  }
+
   dismissTask(taskId: string) {
     const task = this.tasks.get(taskId);
     if (!task) return;

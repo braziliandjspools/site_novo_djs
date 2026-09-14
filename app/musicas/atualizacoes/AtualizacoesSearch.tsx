@@ -8,7 +8,7 @@ import { hitHref, useAtualizacoesSearch } from "./AtualizacoesSearchContext";
 
 function HitIcon({ type }: { type: VipMusicSearchHit["type"] }) {
   if (type === "month") return <Calendar className="h-3.5 w-3.5 text-[#00ff9d]" />;
-  if (type === "week") return <Calendar className="h-3.5 w-3.5 text-sky-400" />;
+  if (type === "week") return <Calendar className="h-3.5 w-3.5 text-[#1ed760]" />;
   if (type === "style") return <FolderOpen className="h-3.5 w-3.5 text-amber-400" />;
   return <Music2 className="h-3.5 w-3.5 text-[#ff5500]" />;
 }

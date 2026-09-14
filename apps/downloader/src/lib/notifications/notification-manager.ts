@@ -115,6 +115,20 @@ export class NotificationManager {
     });
   }
 
+  /** Descarta jobs que saíram da fila sem FAILED (cancelados pelo site). */
+  forgetJobs(jobIds: number[]) {
+    for (const id of jobIds) {
+      this.previousStatuses.delete(id);
+      this.knownJobIds.delete(id);
+    }
+    if (this.failedBatch.timer) {
+      clearTimeout(this.failedBatch.timer);
+      this.failedBatch.timer = null;
+      this.failedBatch.count = 0;
+      this.failedBatch.lastTitle = "";
+    }
+  }
+
   private enqueueBatch(batch: PendingBatch, title: string, flush: () => void) {
     batch.count += 1;
     batch.lastTitle = title;

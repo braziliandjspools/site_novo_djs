@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { Loader2, MonitorDown } from "lucide-react";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import {
+  DOWNLOADER_BULK_CONFIRM_THRESHOLD,
+  DownloaderBulkConfirmDialog,
+  previewPackTrackCount,
+} from "./DownloaderBulkConfirm";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
@@ -31,21 +36,9 @@ export function SendPackToDownloaderButton({
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
   const [sending, setSending] = useState(false);
+  const [confirmCount, setConfirmCount] = useState<number | null>(null);
 
-  async function handleClick(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (sending) return;
-
-    if (!authenticated) {
-      openLogin();
-      return;
-    }
-    if (!hasVip) {
-      showToast("Plano VIP necessário para usar o Downloader.", "error");
-      return;
-    }
-
+  async function runSend() {
     setSending(true);
     try {
       const result = await sendPackSlugToDownloader(slug, {
@@ -78,8 +71,56 @@ export function SendPackToDownloaderButton({
     }
   }
 
-  if (onCover) {
+  async function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (sending) return;
+
+    if (!authenticated) {
+      openLogin();
+      return;
+    }
+    if (!hasVip) {
+      showToast("Plano VIP necessário para usar o Downloader.", "error");
+      return;
+    }
+
+    try {
+      const count = await previewPackTrackCount(slug, root);
+      if (count > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
+        setConfirmCount(count);
+        return;
+      }
+    } catch {
+      /* preview falhou — envia direto */
+    }
+
+    await runSend();
+  }
+
+  const dialog = (
+    <DownloaderBulkConfirmDialog
+      open={confirmCount != null}
+      count={confirmCount ?? 0}
+      onConfirm={() => {
+        setConfirmCount(null);
+        void runSend();
+      }}
+      onDismiss={() => setConfirmCount(null)}
+    />
+  );
+
+  function wrap(button: ReactNode) {
     return (
+      <>
+        {button}
+        {dialog}
+      </>
+    );
+  }
+
+  if (onCover) {
+    return wrap(
       <button
         type="button"
         onClick={(event) => void handleClick(event)}
@@ -90,12 +131,12 @@ export function SendPackToDownloaderButton({
       >
         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
         <span className="truncate">{sending ? "Enviando…" : "Downloader"}</span>
-      </button>
+      </button>,
     );
   }
 
   if (compact) {
-    return (
+    return wrap(
       <button
         type="button"
         onClick={(event) => void handleClick(event)}
@@ -105,11 +146,11 @@ export function SendPackToDownloaderButton({
         className={`flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#1ed760]/45 bg-[#1ed760]/20 text-[#1ed760] transition-colors hover:bg-[#1ed760]/35 hover:text-[#7dffb0] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
-      </button>
+      </button>,
     );
   }
 
-  return (
+  return wrap(
     <button
       type="button"
       onClick={(event) => void handleClick(event)}
@@ -118,6 +159,6 @@ export function SendPackToDownloaderButton({
     >
       {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
       <span>{sending ? "Enviando…" : label}</span>
-    </button>
+    </button>,
   );
 }

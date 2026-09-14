@@ -12,10 +12,12 @@ import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 export type LibraryCategoryCardProps = {
   title: string;
   eyebrow: string;
+  description?: string | null;
   folderCount?: number | null;
   trackCount?: number | null;
   href: string;
-  gradient: LibraryCategoryGradient;
+  /** Mantido por compatibilidade; o card usa tema verde + cinza escuro. */
+  gradient?: LibraryCategoryGradient;
   icon: LucideIcon;
   cta: string;
   /** Prefetch do resolve da pasta (slug completo). */
@@ -31,7 +33,7 @@ function folderUnit(count: number, singular: "subpasta" | "biblioteca") {
   return count === 1 ? "subpasta" : "subpastas";
 }
 
-function StatCell({
+function StatBlock({
   value,
   label,
   icon: StatIcon,
@@ -41,12 +43,16 @@ function StatCell({
   icon: LucideIcon;
 }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-2.5">
-      <StatIcon className="h-3.5 w-3.5 text-white/45" strokeWidth={2} aria-hidden />
-      <p className="text-[18px] font-bold tabular-nums leading-none tracking-tight text-white sm:text-[20px]">
-        {formatLibraryStatCount(value)}
-      </p>
-      <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/50">{label}</p>
+    <div className="mx-auto flex w-full max-w-[200px] flex-col items-center gap-2 rounded-xl border border-[#1ed760]/30 bg-[#121212] px-4 py-3.5 text-center">
+      <StatIcon className="h-4 w-4 flex-shrink-0 text-[#1ed760]/80" strokeWidth={2} aria-hidden />
+      <div className="min-w-0">
+        <p className="text-[28px] font-bold tabular-nums leading-none tracking-tight text-white sm:text-[30px]">
+          {formatLibraryStatCount(value)}
+        </p>
+        <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/55">
+          {label}
+        </p>
+      </div>
     </div>
   );
 }
@@ -54,10 +60,10 @@ function StatCell({
 export function LibraryCategoryCard({
   title,
   eyebrow,
+  description,
   folderCount,
   trackCount,
   href,
-  gradient,
   icon: Icon,
   cta,
   resolveSlug,
@@ -68,6 +74,19 @@ export function LibraryCategoryCard({
 }: LibraryCategoryCardProps) {
   const hasFolders = typeof folderCount === "number" && folderCount > 0;
   const hasTracks = typeof trackCount === "number" && trackCount > 0;
+  const primaryStat = hasFolders
+    ? {
+        value: folderCount as number,
+        label: folderUnit(folderCount as number, singularFolderLabel),
+        icon: FolderOpen,
+      }
+    : hasTracks
+      ? {
+          value: trackCount as number,
+          label: (trackCount as number) === 1 ? "faixa" : "faixas",
+          icon: Music2,
+        }
+      : null;
 
   function prefetch() {
     if (!resolveSlug) return;
@@ -77,69 +96,54 @@ export function LibraryCategoryCard({
   return (
     <Link
       href={href}
-      aria-label={`Abrir ${title}`}
+      aria-label={`${cta}: ${title}`}
       onMouseEnter={prefetch}
       onFocus={prefetch}
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-      className={`brs-folder-card group/card animate-fade-in-up relative mx-auto flex h-[300px] w-full max-w-[240px] flex-col overflow-hidden rounded-[22px] border border-white/[0.08] bg-gradient-to-b ${gradient.surface} opacity-0 shadow-[0_18px_40px_rgba(0,0,0,0.28)] outline-none transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-white/[0.14] hover:shadow-[0_24px_48px_rgba(0,0,0,0.34)] focus-visible:ring-2 focus-visible:ring-white/30 sm:h-[390px] ${gradient.ring} ${className}`}
+      className={`brs-folder-card group/card animate-fade-in-up relative mx-auto flex h-[300px] w-full max-w-[280px] flex-col overflow-hidden rounded-[18px] border border-[#1ed760]/30 bg-[#17191d] text-white opacity-0 shadow-[0_8px_20px_rgba(0,0,0,0.35)] outline-none transition-[transform,box-shadow,border-color,background-color] duration-200 ease-out hover:-translate-y-1 hover:border-[#1ed760]/55 hover:bg-[#121212] hover:shadow-[0_16px_32px_rgba(0,0,0,0.45)] focus-visible:ring-2 focus-visible:ring-[#1ed760]/40 md:h-[380px] md:max-w-none ${className}`}
     >
-      <div className={`pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b ${gradient.edge} opacity-60`} />
-      <div className={`pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full ${gradient.glow} blur-3xl`} />
-      <div className={`pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full ${gradient.glow} blur-3xl`} />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_28%,rgba(0,0,0,0.42)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(30,215,96,0.08),transparent_55%)]" />
 
       <Icon
-        className="pointer-events-none absolute bottom-5 right-4 h-[72px] w-[72px] text-white opacity-[0.08] sm:bottom-6 sm:right-5 sm:h-[84px] sm:w-[84px]"
+        className="pointer-events-none absolute bottom-[50px] right-[18px] h-[72px] w-[72px] text-white opacity-[0.08] sm:h-[88px] sm:w-[88px]"
         strokeWidth={1.25}
         aria-hidden
       />
 
-      <div className="relative z-10 flex h-full flex-col justify-between p-4 sm:p-5">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/65">
-              {eyebrow}
-            </p>
-            {badge ? (
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white/80">
-                {badge}
-              </span>
-            ) : null}
-          </div>
+      <div className="relative z-10 flex h-full flex-col items-center p-4 pt-11 text-center sm:p-5 sm:pt-12">
+        <div className="flex items-center justify-center gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/60">
+            {eyebrow}
+          </p>
+          {badge ? (
+            <span className="rounded-full border border-[#1ed760]/35 bg-[#121212] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#1ed760]">
+              {badge}
+            </span>
+          ) : null}
         </div>
 
-        <div className="min-w-0 text-center">
-          <h3 className="text-[17px] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:text-[19px]">
+        <div className="mt-4 min-w-0 w-full sm:mt-5">
+          <h3 className="text-[18px] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:text-[20px]">
             {title}
           </h3>
+          {description?.trim() ? (
+            <p className="mx-auto mt-2 line-clamp-3 max-w-[22ch] text-[13px] leading-[1.45] text-white/65">
+              {description.trim()}
+            </p>
+          ) : null}
 
-          {(hasFolders || hasTracks) && (
-            <div className="mt-5 overflow-hidden rounded-2xl border border-white/[0.1] bg-black/25 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-md sm:mt-6">
-              <div className="flex items-stretch divide-x divide-white/[0.08]">
-                {hasFolders ? (
-                  <StatCell
-                    value={folderCount}
-                    label={folderUnit(folderCount, singularFolderLabel)}
-                    icon={FolderOpen}
-                  />
-                ) : null}
-                {hasTracks ? (
-                  <StatCell
-                    value={trackCount}
-                    label={trackCount === 1 ? "faixa" : "faixas"}
-                    icon={Music2}
-                  />
-                ) : null}
-              </div>
+          {primaryStat ? (
+            <div className="mt-5 sm:mt-6">
+              <StatBlock value={primaryStat.value} label={primaryStat.label} icon={primaryStat.icon} />
             </div>
-          )}
+          ) : null}
         </div>
 
-        <div className="flex justify-center pt-4">
-          <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/90 transition-transform duration-200 group-hover/card:translate-x-0.5 sm:text-[13px]">
+        <div className="mt-auto flex w-full justify-center pt-[18px] pb-1">
+          <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-white transition-colors duration-200 group-hover/card:text-[#1ed760]">
             {cta}
             <ArrowRight
-              className="h-3.5 w-3.5 transition-transform duration-200 group-hover/card:translate-x-[3px]"
+              className="h-4 w-4 text-[#1ed760]/80 transition-transform duration-200 ease-out group-hover/card:translate-x-1"
               aria-hidden
             />
           </span>

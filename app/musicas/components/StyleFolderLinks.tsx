@@ -10,7 +10,7 @@ type StyleFolderLinksProps = {
   newFolderIds?: Set<string>;
 };
 
-/** Navegação de estilos/subpastas — grid de capas no acervo. */
+/** Navegação de estilos/subpastas — botões largos no acervo. */
 export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleFolderLinksProps) {
   const items = useMemo((): LibraryFolderItem[] => {
     return folders.map((folder) => ({
@@ -28,7 +28,8 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
       folders={items}
       slugSegments={slugSegments}
       newFolderIds={newFolderIds}
-      layout="grid"
+      layout="buttons"
+      fillColumn
       emptyMessage="Nenhuma pasta nesta pasta. Adicione subpastas no Google Drive."
     />
   );

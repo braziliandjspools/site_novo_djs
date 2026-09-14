@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { clearMusicasCache } from "../lib/musicas-fetch-cache";
+import type { SyncSnapshot } from "../lib/sync-delta";
 import { useMusicasToast } from "./MusicasToast";
 
 type AtualizacoesDriveSyncButtonProps = {
-  onSynced?: (result?: { syncedAt?: string; folderCount?: number }) => void | Promise<void>;
+  onSynced?: (result?: {
+    syncedAt?: string;
+    folderCount?: number;
+  }) => void | Promise<SyncSnapshot | void | undefined>;
   className?: string;
   compact?: boolean;
 };
@@ -43,11 +47,7 @@ export function AtualizacoesDriveSyncButton({
         syncedAt: data.syncedAt,
         folderCount: data.folderCount,
       });
-      showToast(
-        typeof data.folderCount === "number"
-          ? `Acervo atualizado · ${data.folderCount} pastas na raiz`
-          : "Acervo atualizado do Google Drive",
-      );
+      showToast("Acervo sincronizado");
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Não foi possível sincronizar.", "error");
     } finally {

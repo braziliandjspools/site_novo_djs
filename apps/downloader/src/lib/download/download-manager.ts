@@ -48,8 +48,11 @@ import type {
 } from "./types";
 import { DEFAULT_MAX_CONCURRENCY, PROGRESS_SYNC_MS, PROGRESS_UI_MS, QUEUE_STATUSES } from "./types";
 import type { DownloadJob } from "../api/jobs";
+import { clearAllJobs } from "../api/jobs";
 import type { AppPreferences } from "../native/app-preferences";
 import { ZipCoordinator } from "./zip-coordinator";
+import { QUEUE_LIST_LIMIT } from "./queue-transport";
+import { notificationManager } from "../notifications/notification-manager";
 
 function isQueueJob(job: DownloadJob) {
   return QUEUE_STATUSES.has(job.status) || job.status === "COMPLETED";
@@ -117,6 +120,9 @@ export class DownloadManager {
     cancelZip: (taskId) => cancelPackZip(taskId),
     onChange: () => this.notify(true),
   });
+  /** Jobs removidos no servidor (ex.: cancelar no site) — não marcar como FAILED. */
+  private remoteCancelledJobIds = new Set<number>();
+  private remoteCancelListeners = new Set<(count: number) => void>();
 
   subscribe(listener: DownloadManagerListener) {
     this.listeners.add(listener);
@@ -740,6 +746,64 @@ export class DownloadManager {
     void this.runBatchAction("cancel", ids).then(() => {
       void this.processQueue();
     });
+  }
+
+  /** Toast/aviso quando a fila some no servidor (cancelamento pelo site). */
+  onRemoteQueueCancel(listener: (count: number) => void) {
+    this.remoteCancelListeners.add(listener);
+    return () => {
+      this.remoteCancelListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Encerra qualquer fluxo ativo: downloads nativos, ZIP, fila local e jobs no servidor.
+   * Usado pelo botão Cancelar do header.
+   */
+  async cancelEntireQueueByUser(): Promise<void> {
+    const cancellable = Array.from(this.jobs.values()).filter((job) =>
+      ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"].includes(job.status),
+    );
+    const ids = cancellable.map((job) => job.id);
+
+    for (const job of cancellable) {
+      this.userPausedJobIds.delete(job.id);
+      this.schedulePausedJobIds.delete(job.id);
+      this.retryAttempts.delete(job.id);
+      if (this.activeJobIds.has(job.id)) {
+        void cancelNativeDownload({
+          jobId: job.id,
+          fileName: job.fileName,
+          relativePath: job.relativePath,
+          deletePart: true,
+        }).catch(() => undefined);
+      }
+      this.jobs.delete(job.id);
+      this.activeJobIds.delete(job.id);
+      this.removeFromQueueOrder(job.id);
+      this.progressTracker.clear(job.id);
+      this.lastProgressSync.delete(job.id);
+    }
+
+    await this.zipCoordinator.cancelAllActiveTasks();
+
+    this.persistLocalQueue();
+    this.notify(true);
+
+    const token = this.authToken?.trim();
+    if (token) {
+      try {
+        await clearAllJobs(token);
+      } catch {
+        if (ids.length > 0) {
+          await this.runBatchAction("cancel", ids);
+        }
+      }
+    } else if (ids.length > 0) {
+      await this.runBatchAction("cancel", ids);
+    }
+
+    this.notify(true);
   }
 
   retryJobs(jobIds: number[]) {
@@ -1474,8 +1538,26 @@ export class DownloadManager {
           return;
         }
 
-        if (message.includes("cancelado")) {
+        if (message.includes("cancelado") || this.remoteCancelledJobIds.has(job.id)) {
+          this.remoteCancelledJobIds.delete(job.id);
+          this.jobs.delete(job.id);
+          this.activeJobIds.delete(job.id);
+          this.removeFromQueueOrder(job.id);
+          this.progressTracker.clear(job.id);
           this.zipCoordinator.reevaluate(this.jobs.values());
+          this.persistLocalQueue();
+          this.notify(true);
+          return;
+        }
+
+        if (/não pode ser atualizado|nao pode ser atualizado|neste status/i.test(message)) {
+          this.remoteCancelledJobIds.delete(job.id);
+          this.jobs.delete(job.id);
+          this.activeJobIds.delete(job.id);
+          this.removeFromQueueOrder(job.id);
+          this.progressTracker.clear(job.id);
+          this.persistLocalQueue();
+          this.notify(true);
           return;
         }
 
@@ -1501,16 +1583,77 @@ export class DownloadManager {
         }
 
         try {
+          if (this.remoteCancelledJobIds.has(job.id) || !this.jobs.has(job.id)) {
+            this.remoteCancelledJobIds.delete(job.id);
+            this.jobs.delete(job.id);
+            return;
+          }
           const failed = await this.transport.updateJob(job.id, {
             status: "FAILED",
             error: message,
           });
           this.mergeServerJob(failed);
         } catch {
+          if (this.remoteCancelledJobIds.has(job.id) || !this.jobs.has(job.id)) {
+            this.remoteCancelledJobIds.delete(job.id);
+            this.jobs.delete(job.id);
+            return;
+          }
           this.jobs.set(job.id, { ...job, status: "FAILED", error: message });
         }
         this.error = message;
         return;
+      }
+    }
+  }
+
+  /**
+   * Jobs ativos locais que sumiram da fila do servidor foram cancelados no site
+   * (ou dismissidos). Encerra downloads nativos sem marcar FAILED.
+   */
+  private async reconcileRemoteCancellations(serverJobs: DownloadJob[]) {
+    // Lista truncada: não dá para saber se o job “sumiu” ou só não veio no page.
+    if (serverJobs.length >= QUEUE_LIST_LIMIT) return;
+
+    const serverIds = new Set(serverJobs.map((job) => job.id));
+    const orphaned = Array.from(this.jobs.values()).filter(
+      (job) => isActiveQueueJob(job) && !serverIds.has(job.id),
+    );
+    if (orphaned.length === 0) return;
+
+    for (const job of orphaned) {
+      this.remoteCancelledJobIds.add(job.id);
+      this.userPausedJobIds.delete(job.id);
+      this.schedulePausedJobIds.delete(job.id);
+      this.retryAttempts.delete(job.id);
+      if (this.activeJobIds.has(job.id)) {
+        void cancelNativeDownload({
+          jobId: job.id,
+          fileName: job.fileName,
+          relativePath: job.relativePath,
+          deletePart: true,
+        }).catch(() => undefined);
+      }
+      this.jobs.delete(job.id);
+      this.activeJobIds.delete(job.id);
+      this.removeFromQueueOrder(job.id);
+      this.progressTracker.clear(job.id);
+      this.lastProgressSync.delete(job.id);
+      this.knownJobIds.delete(job.id);
+    }
+
+    await this.zipCoordinator.cancelAllActiveTasks().catch(() => undefined);
+
+    notificationManager.forgetJobs(orphaned.map((job) => job.id));
+
+    this.persistLocalQueue();
+    this.notify(true);
+
+    for (const listener of this.remoteCancelListeners) {
+      try {
+        listener(orphaned.length);
+      } catch {
+        /* listener UI */
       }
     }
   }
@@ -1546,6 +1689,8 @@ export class DownloadManager {
           addedSizedJobs += 1;
         }
       }
+
+      await this.reconcileRemoteCancellations(serverJobs);
 
       await this.claimPendingJobs(serverJobs);
 

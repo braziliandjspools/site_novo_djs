@@ -38,7 +38,7 @@ export function ImportPackPanel() {
     try {
       const result = await previewPackLink(sessionToken, url);
       setPreview(result);
-      if (result.trackCount === 0) {
+      if (result.trackCount === 0 && !result.hasSubfolders) {
         setError(t("importNoTracks"));
       }
     } catch (err) {
@@ -125,11 +125,27 @@ export function ImportPackPanel() {
               {stripForcedFolderTreePrefix(preview.relativePath) || preview.relativePath}
             </p>
             <p className="mt-3 text-lg font-black tabular-nums text-[#1db954]">
-              {preview.trackCount}{" "}
-              <span className="text-sm font-semibold text-zinc-400">
-                {preview.trackCount === 1 ? t("importTrackSingular") : t("importTrackPlural")}
-              </span>
+              {preview.trackCountIsEstimate || preview.hasSubfolders ? (
+                <>
+                  {preview.subfolderCount && preview.subfolderCount > 0
+                    ? preview.subfolderCount
+                    : preview.sampleTitles.length}{" "}
+                  <span className="text-sm font-semibold text-zinc-400">
+                    {t("importSubfoldersFound")}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {preview.trackCount}{" "}
+                  <span className="text-sm font-semibold text-zinc-400">
+                    {preview.trackCount === 1 ? t("importTrackSingular") : t("importTrackPlural")}
+                  </span>
+                </>
+              )}
             </p>
+            {(preview.trackCountIsEstimate || preview.hasSubfolders) && (
+              <p className="mt-1 text-[11px] text-zinc-500">{t("importTracksCountedOnImport")}</p>
+            )}
             {preview.sampleTitles.length > 0 && (
               <ul className="mt-2 space-y-1 text-[11px] text-zinc-500">
                 {preview.sampleTitles.map((title) => (
@@ -137,7 +153,8 @@ export function ImportPackPanel() {
                     · {title}
                   </li>
                 ))}
-                {preview.trackCount > preview.sampleTitles.length && (
+                {!preview.trackCountIsEstimate &&
+                  preview.trackCount > preview.sampleTitles.length && (
                   <li className="text-zinc-600">
                     ·{" "}
                     {t("importAndMore", {
@@ -149,7 +166,7 @@ export function ImportPackPanel() {
             )}
             <Button
               className="mt-4 w-full"
-              disabled={importing || preview.trackCount === 0}
+              disabled={importing || (preview.trackCount === 0 && !preview.hasSubfolders)}
               onClick={() => void handleImport()}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}

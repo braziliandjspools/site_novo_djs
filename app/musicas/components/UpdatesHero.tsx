@@ -96,7 +96,7 @@ export function UpdatesHero({
   }
 
   return (
-    <section className="relative mb-8 overflow-hidden rounded-[28px] bg-[#0d0f0f] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06]">
+    <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#17191d] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <Image
           src={MUSICAS_HERO_BG_SRC}
@@ -104,16 +104,15 @@ export function UpdatesHero({
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center opacity-50"
+          className="object-cover object-center opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-purple-950/20" />
-        <div className="absolute -right-24 top-0 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 h-48 w-96 bg-purple-500/10 blur-3xl" />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/10" />
       </div>
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1ed760] via-[#1ed760]/40 to-transparent" />
 
-      <div className="relative z-10 flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:gap-7 sm:p-7 lg:p-8">
-        <div className="mx-auto w-full max-w-[200px] flex-shrink-0 sm:mx-0 sm:max-w-[220px]">
+      <div className="relative z-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:gap-7 sm:p-7 lg:p-8">
+        <div className="mx-auto w-full max-w-[160px] flex-shrink-0 sm:mx-0 sm:max-w-[200px] lg:max-w-[220px]">
           <div className="relative aspect-square overflow-hidden rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.55)] ring-1 ring-white/10">
             <Image
               src={MUSICAS_HERO_COVER_SRC}
@@ -126,16 +125,16 @@ export function UpdatesHero({
           </div>
         </div>
 
-        <div className="min-w-0 flex-1 text-left">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
+        <div className="min-w-0 flex-1 text-center sm:text-left">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
             Acervo VIP
           </p>
-          <h1 className="mt-1.5 font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+          <h1 className="mt-1.5 font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
             Atualizações
           </h1>
-          <div className="mt-3 max-w-xl space-y-1.5 text-sm leading-relaxed text-white/65 md:text-base">
-            <p className="font-medium text-white/85">Seu acervo sempre atualizado.</p>
-            <p>
+          <div className="mx-auto mt-3 max-w-xl space-y-1.5 text-sm leading-relaxed text-white/70 sm:mx-0 md:text-base">
+            <p className="font-medium text-white/90">Seu acervo sempre atualizado.</p>
+            <p className="hidden sm:block">
               Lançamentos VIP frescos quase todo dia — packs, coleções e faixas prontos para o set.
             </p>
             <p className="text-white/55">
@@ -143,15 +142,15 @@ export function UpdatesHero({
             </p>
           </div>
 
-          <div className="mt-5">
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-5 flex justify-center sm:justify-start">
+            <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
               {stats.map((stat) => (
                 <span
                   key={stat.label}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                     stat.accent
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                      : "border-white/10 bg-white/5 text-white/70"
+                      ? "border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760]"
+                      : "border-white/10 bg-black/35 text-white/75"
                   }`}
                 >
                   {stat.label.includes("pasta") ? (
@@ -171,18 +170,18 @@ export function UpdatesHero({
           </div>
 
           {updatedAt && formatRelativeUpdate(updatedAt) ? (
-            <p className="mt-3 text-xs text-white/40">
+            <p className="mt-3 text-center text-xs text-white/40 sm:text-left">
               Atualizado {formatRelativeUpdate(updatedAt)}
             </p>
           ) : statsLoading ? (
-            <div className="mt-3 h-3 w-40 animate-pulse rounded bg-white/10" />
+            <div className="mx-auto mt-3 h-3 w-40 animate-pulse rounded bg-white/10 sm:mx-0" />
           ) : null}
 
-          <div className="mt-6 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+          <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-start">
             <button
               type="button"
               onClick={explore}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-emerald-400 sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-[#1fdf67] sm:w-auto"
             >
               Explorar agora
             </button>
@@ -197,7 +196,7 @@ export function UpdatesHero({
 export function UpdatesHeroSkeleton() {
   return (
     <section
-      className="relative mb-8 overflow-hidden rounded-[28px] bg-[#0d0f0f] p-5 ring-1 ring-white/[0.06] sm:p-7 lg:p-8"
+      className="relative mb-8 overflow-hidden rounded-[28px] bg-[#17191d] p-5 ring-1 ring-white/[0.06] sm:p-7 lg:p-8"
       aria-busy="true"
       aria-label="Carregando acervo"
     >

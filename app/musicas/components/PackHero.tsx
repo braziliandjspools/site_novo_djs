@@ -65,7 +65,7 @@ export function PackHero({
   const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#0d0f0f] shadow-2xl shadow-black/40">
+    <section className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#17191d] shadow-2xl shadow-black/40">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <Image
           src={MUSICAS_HERO_BG_SRC}
@@ -73,11 +73,10 @@ export function PackHero({
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center opacity-55"
+          className="object-cover object-center opacity-85"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/45" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f0f] via-transparent to-black/25" />
-        <div className="absolute inset-0 bg-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/15" />
       </div>
       <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1ed760] via-[#1ed760]/40 to-transparent" />
 
@@ -132,7 +131,7 @@ export function PackHero({
                   key={stat.label}
                   className={`rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                     stat.accent
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                      ? "border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760]"
                       : "border-white/10 bg-white/5 text-white/70"
                   }`}
                 >
@@ -148,7 +147,7 @@ export function PackHero({
               onClick={onPlay}
               disabled={!canPlay || playBusy || !onPlay}
               aria-label={playing ? `Pausar ${title}` : `Ouvir agora ${title}`}
-              className={`${btnBase} w-full bg-emerald-500 text-black hover:bg-emerald-400 sm:col-span-2 lg:w-auto lg:min-w-[9.5rem]`}
+              className={`${btnBase} w-full bg-[#1ed760] text-black hover:bg-[#1fdf67] sm:col-span-2 lg:w-auto lg:min-w-[9.5rem]`}
             >
               {playBusy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -165,7 +164,7 @@ export function PackHero({
               onClick={onSendToDownloader}
               disabled={!canDownload || sendingToDownloader || !onSendToDownloader}
               aria-label={`Enviar ${title} ao Downloader`}
-              className={`${btnBase} w-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 lg:w-auto`}
+              className={`${btnBase} w-full border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20 lg:w-auto`}
             >
               {sendingToDownloader ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -221,7 +220,7 @@ function SkeletonPulse({ className = "" }: { className?: string }) {
 export function PackHeroSkeleton() {
   return (
     <section
-      className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#0d0f0f] p-5 sm:p-7 lg:p-8"
+      className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#17191d] p-5 sm:p-7 lg:p-8"
       aria-busy="true"
       aria-label="Carregando pack"
     >

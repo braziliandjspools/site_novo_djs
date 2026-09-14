@@ -13,7 +13,7 @@ import {
 import type { QueueTransport } from "./types";
 
 /** Produção ainda valida limit ≤ 500; lotes grandes (pasta inteira) precisam de mais que 200. */
-const QUEUE_LIST_LIMIT = 500;
+export const QUEUE_LIST_LIMIT = 500;
 
 export function createRestQueueTransport(token: string, deviceId: string): QueueTransport {
   return {

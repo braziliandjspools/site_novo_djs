@@ -1,8 +1,9 @@
-import { ExternalLink, Loader2, WifiOff } from "lucide-react";
+import { ExternalLink, Loader2, WifiOff, X } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
 import { Button } from "../components/ui/Button";
+import { useToast } from "../components/ui/Toast";
 import { openPlatform } from "../lib/open-site";
 import { EmptyQueueState } from "../components/downloads/EmptyQueueState";
 import { QueueJobList } from "../components/downloads/QueueJobList";
@@ -94,6 +95,7 @@ function useStressCatalogEnabled() {
 
 export function JobsSectionPage({ section }: JobsSectionPageProps) {
   const { t } = useLocale();
+  const { showToast } = useToast();
   const { device } = useAuth();
   const {
     jobs: managerJobs,
@@ -112,6 +114,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     pauseJobs,
     resumeJobs,
     cancelJobs,
+    cancelEntireQueueByUser,
     retryJobs,
     dismissJobs,
     downloadNow,
@@ -141,8 +144,30 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
   const [statusFilter, setStatusFilter] = useState<DownloadFinderFilter>("all");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [cancelAllBusy, setCancelAllBusy] = useState(false);
   const [orgFilters, setOrgFilters] = useState<OrgMetaFilters>({ ...EMPTY_ORG_FILTERS });
   const [groupBy, setGroupBy] = useState<OrgGroupBy>("none");
+
+  const hasActiveFlow =
+    activeJobIds.length > 0 ||
+    managerJobs.some((job) =>
+      ["PENDING", "RECEIVED", "DOWNLOADING", "PAUSED", "FAILED"].includes(job.status),
+    ) ||
+    zipTasks.some((task) => task.status === "queued" || task.status === "compressing");
+
+  async function handleCancelAll() {
+    if (cancelAllBusy || !hasActiveFlow) return;
+    setCancelAllBusy(true);
+    try {
+      await cancelEntireQueueByUser();
+      clearSelection();
+      showToast(t("jobsCancelledByUser"), "warning");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : t("jobsActionCancel"), "error");
+    } finally {
+      setCancelAllBusy(false);
+    }
+  }
 
   const copy = SECTION_COPY[section];
 
@@ -261,10 +286,23 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
             {stressEnabled ? " · stress 500" : ""}
           </p>
         </div>
-        <Button variant="primary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
-          <ExternalLink className="h-4 w-4" />
-          {t("commonOpenPlatform")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {hasActiveFlow ? (
+            <Button
+              variant="ghost"
+              className="!text-xs text-red-300 hover:bg-red-500/10 hover:text-red-200 sm:!text-sm"
+              disabled={cancelAllBusy}
+              onClick={() => void handleCancelAll()}
+            >
+              {cancelAllBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+              {t("jobsActionCancelAll")}
+            </Button>
+          ) : null}
+          <Button variant="primary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>
+            <ExternalLink className="h-4 w-4" />
+            {t("commonOpenPlatform")}
+          </Button>
+        </div>
       </div>
 
       {isDownloads && (

@@ -63,8 +63,8 @@ export function CollectionHero({
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/15" />
       </div>
 
       <div className="relative z-10 flex flex-col gap-5 px-4 py-8 sm:flex-row sm:items-end sm:gap-7 sm:px-7 sm:py-10">

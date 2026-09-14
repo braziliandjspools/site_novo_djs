@@ -141,11 +141,15 @@ export function AtualizacoesRootClient() {
         </div>
       )}
 
-      <div id="atualizacoes-pastas">
+      <div id="atualizacoes-pastas" className="mt-1 sm:mt-2">
         {loading && folders.length === 0 ? (
-          <MusicasFolderGridSkeleton cards={8} />
+          <MusicasFolderGridSkeleton cards={5} />
         ) : (
-          <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
+          <MusicasMonthLinks
+            folders={folders}
+            newFolderIds={newFolderIds}
+            variant="hero"
+          />
         )}
       </div>
     </div>

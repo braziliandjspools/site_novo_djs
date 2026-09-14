@@ -40,7 +40,7 @@ test("todas as faixas ficam separadas por dia (mais recente primeiro)", () => {
     track({ id: "new-b", title: "B Nova", modifiedAt: "2026-09-11T20:00:00.000Z" }),
   ]);
   assert.equal(sections.length, 3);
-  assert.equal(sections[0]?.title, "Novas");
+  assert.equal(sections[0]?.title, "Adicionadas recentemente");
   assert.equal(sections[0]?.isNew, true);
   assert.deepEqual(
     sections[0]?.tracks.map((item) => item.id),
@@ -65,7 +65,7 @@ test("faixas sem data ficam no fim", () => {
     track({ id: "x", title: "Sem data" }),
   ]);
   assert.equal(sections.length, 2);
-  assert.equal(sections[0]?.title, "Novas");
+  assert.equal(sections[0]?.title, "Adicionadas recentemente");
   assert.equal(sections[1]?.title, "Sem data");
   assert.equal(sections[1]?.tracks[0]?.id, "x");
 });

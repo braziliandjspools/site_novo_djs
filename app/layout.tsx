@@ -4,6 +4,8 @@ import "./globals.css";
 import { BackToTopButton } from "./components/BackToTopButton";
 import { MarketingChrome } from "./components/MarketingChrome";
 import { JsonLd } from "./components/JsonLd";
+import { OneSignalProvider } from "./components/OneSignalInit";
+import { PwaRegister } from "./components/PwaRegister";
 import { BRS_LOGO_SRC } from "./lib/branding";
 import {
   buildRootMetadata,
@@ -59,8 +61,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         className="flex min-h-full w-full max-w-[100vw] flex-col overflow-x-clip bg-[#121212] font-sans text-white"
         suppressHydrationWarning
       >
-        <MarketingChrome>{children}</MarketingChrome>
-        <BackToTopButton />
+        <OneSignalProvider>
+          <MarketingChrome>{children}</MarketingChrome>
+          <BackToTopButton />
+          <PwaRegister />
+        </OneSignalProvider>
       </body>
     </html>
   );

@@ -50,7 +50,7 @@ pub async fn desktop_api_fetch(request: DesktopApiRequest) -> Result<DesktopApiR
     // Não seguir redirect automaticamente: em cross-host o Authorization é removido.
     let client = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
-        .timeout(std::time::Duration::from_secs(20))
+        .timeout(std::time::Duration::from_secs(180))
         .connect_timeout(std::time::Duration::from_secs(8))
         .build()
         .map_err(|e| e.to_string())?;

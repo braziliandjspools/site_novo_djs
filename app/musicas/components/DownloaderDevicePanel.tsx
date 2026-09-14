@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, MonitorDown, Trash2 } from "lucide-react";
+import { Loader2, MonitorDown, X } from "lucide-react";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasToast } from "./MusicasToast";
 
@@ -25,7 +25,7 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
 
   function armClearConfirm() {
     setConfirmClear(true);
-    showToast("Clique de novo em Zerar fila para confirmar.", "error");
+    showToast("Clique de novo em Cancelar para confirmar.", "error");
     if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
     confirmTimerRef.current = setTimeout(() => setConfirmClear(false), 5000);
   }
@@ -48,15 +48,11 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
     try {
       const cleared = await clearQueue();
       showToast(
-        cleared === 0
-          ? "Fila já estava vazia."
-          : cleared === 1
-            ? "1 item removido da fila. Pode reenviar o que quiser."
-            : `${cleared} itens removidos da fila. Pode reenviar o que quiser.`,
-        "success",
+        cleared === 0 ? "Fila já estava vazia." : "Cancelado pelo usuário",
+        cleared === 0 ? "success" : "error",
       );
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Não foi possível zerar a fila.", "error");
+      showToast(err instanceof Error ? err.message : "Não foi possível cancelar a fila.", "error");
     } finally {
       setClearing(false);
     }
@@ -135,8 +131,8 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
               : "border-zinc-700 bg-black/40 text-zinc-300 hover:border-red-500/40 hover:text-red-300"
           }`}
         >
-          {clearing ? <Loader2 className="h-3.5 w-3.5 flex-shrink-0 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 flex-shrink-0" />}
-          <span className="truncate">{confirmClear ? "Confirmar zerar fila" : "Zerar fila"}</span>
+          {clearing ? <Loader2 className="h-3.5 w-3.5 flex-shrink-0 animate-spin" /> : <X className="h-3.5 w-3.5 flex-shrink-0" />}
+          <span className="truncate">{confirmClear ? "Confirmar cancelamento" : "Cancelar"}</span>
         </button>
       )}
     </div>
