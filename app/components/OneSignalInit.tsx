@@ -27,7 +27,7 @@ async function initOneSignal() {
     serviceWorkerPath: "push/onesignal/OneSignalSDKWorker.js",
     serviceWorkerParam: { scope: "/push/onesignal/" },
     ...(isLocalhostOrigin() ? { allowLocalhostAsSecureOrigin: true } : {}),
-    notifyButton: { enable: false },
+    // Subscription Bell nativo fica desligado por padrão; usamos o sino do site.
   });
 }
 

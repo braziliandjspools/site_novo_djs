@@ -271,7 +271,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/termos",
     title: `Termos de Serviço | ${SITE_NAME}`,
     description:
-      "Termos de uso do Brazilian Remix Service: acesso ao acervo VIP, planos, responsabilidades e regras da plataforma.",
+      "Termos de Serviço da Brazilian Remix Service: conta VIP, BRS Downloader, direitos autorais, LGPD, Cloudflare, Google Drive, OneSignal e IA.",
     ogImage: "termos",
     sitemap: true,
     changeFrequency: "yearly",

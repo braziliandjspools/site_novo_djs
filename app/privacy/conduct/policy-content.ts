@@ -1,16 +1,17 @@
 import type { LegalDocument } from "../legal-types";
 import { LEGAL_CONTACT_EMAIL } from "../legal-types";
+import { DOWNLOADER_NAME, SITE_NAME } from "../../lib/branding";
 
 export const codeOfConductDocument: LegalDocument = {
-  title: "Código de Conduta — Brazilian Remix Service",
-  updatedAt: "3 de setembro de 2026",
+  title: `Código de Conduta — ${SITE_NAME}`,
+  updatedAt: "14 de setembro de 2026",
   contactEmail: LEGAL_CONTACT_EMAIL,
-  contactSubject: "Código de Conduta — Brazilian Remix Service",
+  contactSubject: `Código de Conduta — ${SITE_NAME}`,
   ctaLabel: "Falar sobre conduta",
   intro: [
     {
       type: "p",
-      text: "Este Código de Conduta estabelece regras básicas para utilização dos serviços, plataformas, aplicativos, comunidades e canais administrados pela Brazilian Remix Service, incluindo o Brazilian Packs e o Brazilian Packs Downloader.",
+      text: `Este Código de Conduta estabelece regras básicas para utilização dos serviços, plataformas, aplicativos, comunidades e canais administrados pela ${SITE_NAME}, incluindo a plataforma VIP (/musicas), o Portal e o ${DOWNLOADER_NAME}.`,
     },
     {
       type: "p",
@@ -28,7 +29,7 @@ export const codeOfConductDocument: LegalDocument = {
         },
         {
           type: "p",
-          text: "Não é permitido utilizar o Brazilian Packs ou seus aplicativos para:",
+          text: "Não é permitido utilizar o Brazilian Remix Service ou seus aplicativos para:",
         },
         {
           type: "list",
@@ -48,49 +49,65 @@ export const codeOfConductDocument: LegalDocument = {
     },
     {
       id: "conta",
-      title: "2. Conta do usuário",
+      title: "2. Conta, e-mail e senha",
       blocks: [
         {
           type: "p",
-          text: "Cada usuário é responsável pelas atividades realizadas em sua conta.",
+          text: "Cada usuário é responsável pelas atividades realizadas em sua conta. O e-mail e a senha são pessoais e intransferíveis.",
         },
-        { type: "p", text: "Não é permitido:" },
+        {
+          type: "p",
+          text: "É proibido compartilhar seu e-mail e senha com terceiros. Esse tipo de atividade é detectada pelos nossos servidores (logins simultâneos incompatíveis, múltiplos dispositivos, padrões anômalos de download e sessão) e pode resultar em bloqueio imediato do acesso VIP, desconexão de aparelhos e encerramento da assinatura.",
+        },
+        { type: "p", text: "Também não é permitido:" },
         {
           type: "list",
           items: [
-            "compartilhar credenciais com pessoas não autorizadas;",
-            "vender ou alugar contas;",
-            "fornecer senha ou token de acesso a terceiros;",
+            "vender, alugar ou emprestar a conta;",
+            "publicar credenciais em grupos, chats ou redes;",
+            "fornecer senha, token ou cookie de sessão a terceiros;",
             "utilizar contas obtidas de maneira irregular;",
             "tentar acessar conteúdos destinados a outro usuário.",
           ],
         },
         {
           type: "p",
-          text: "Caso identifique acesso não autorizado, o usuário deve alterar suas credenciais e entrar em contato conosco.",
+          text: "Caso identifique acesso não autorizado, altere a senha imediatamente e entre em contato conosco — sem reenviar a senha por e-mail.",
         },
       ],
     },
     {
       id: "downloader",
-      title: "3. Brazilian Packs Downloader",
+      title: `3. ${DOWNLOADER_NAME}`,
       blocks: [
         {
           type: "p",
-          text: "O Brazilian Packs Downloader é disponibilizado exclusivamente para facilitar o acesso aos conteúdos oferecidos pela plataforma.",
+          text: `O ${DOWNLOADER_NAME} é o aplicativo oficial para Windows. Ele existe para baixar packs e faixas com fila, pastas preservadas e sincronização com a conta VIP — não para redistribuir o acervo nem dividir a assinatura.`,
         },
-        { type: "p", text: "Não é permitido:" },
+        {
+          type: "p",
+          text: "Não é permitido:",
+        },
         {
           type: "list",
           items: [
-            "modificar o aplicativo para contornar limitações;",
-            "extrair credenciais ou tokens;",
-            "tentar acessar downloads pertencentes a outro usuário;",
-            "alterar identificadores de dispositivos para burlar controles;",
+            "deixar o app logado em PC de terceiros ou em máquina compartilhada sem controle;",
+            "modificar o aplicativo para contornar limitações de dispositivo ou fila;",
+            "extrair credenciais, tokens ou heartbeats;",
+            "falsificar identificadores de dispositivo;",
             "automatizar requisições de forma abusiva;",
-            "redistribuir versões modificadas do aplicativo;",
-            "utilizar o Downloader para acessar conteúdos que não estejam disponíveis para sua conta.",
+            "redistribuir versões modificadas ou piratas do instalador;",
+            "utilizar o Downloader para acessar conteúdos que não estejam disponíveis para sua conta;",
+            "usar o Downloader como “servidor” para alimentar downloads de outras pessoas.",
           ],
+        },
+        {
+          type: "p",
+          text: "Conexões, dispositivos e volume de download são monitorados. Abuso ou compartilhamento via Downloader pode gerar o mesmo bloqueio previsto para compartilhamento de login.",
+        },
+        {
+          type: "p",
+          text: `O uso normal do ${DOWNLOADER_NAME} oficial, na conta do titular e dentro dos limites do plano, não é considerado comportamento abusivo.`,
         },
       ],
     },
@@ -182,7 +199,7 @@ export const codeOfConductDocument: LegalDocument = {
         },
         {
           type: "p",
-          text: "O uso normal do Brazilian Packs Downloader oficial não é considerado comportamento abusivo.",
+          text: `O uso normal do ${DOWNLOADER_NAME} oficial não é considerado comportamento abusivo.`,
         },
       ],
     },
@@ -192,7 +209,7 @@ export const codeOfConductDocument: LegalDocument = {
       blocks: [
         {
           type: "p",
-          text: "Nos canais de comunicação relacionados à Brazilian Remix Service, esperamos tratamento respeitoso entre usuários, equipe e colaboradores.",
+          text: `Nos canais de comunicação relacionados à ${SITE_NAME}, esperamos tratamento respeitoso entre usuários, equipe e colaboradores.`,
         },
         { type: "p", text: "Não serão tolerados:" },
         {
@@ -226,7 +243,8 @@ export const codeOfConductDocument: LegalDocument = {
             "falsificação de identidade;",
             "tentativa de contornar cobranças;",
             "abuso deliberado de benefícios;",
-            "manipulação dos sistemas da plataforma.",
+            "compartilhamento de login detectado pelos servidores;",
+            "manipulação dos sistemas da plataforma ou do BRS Downloader.",
           ],
         },
       ],
@@ -244,7 +262,7 @@ export const codeOfConductDocument: LegalDocument = {
           items: [
             "emitir advertência;",
             "limitar determinada funcionalidade;",
-            "desconectar dispositivos;",
+            "desconectar dispositivos do BRS Downloader;",
             "bloquear temporariamente uma conta;",
             "cancelar sessões;",
             "suspender ou encerrar acesso;",
@@ -300,7 +318,7 @@ export const codeOfConductDocument: LegalDocument = {
       id: "contato",
       title: "13. Contato",
       blocks: [
-        { type: "p", text: "Brazilian Remix Service" },
+        { type: "p", text: SITE_NAME },
         { type: "p", text: `E-mail: ${LEGAL_CONTACT_EMAIL}` },
       ],
     },
