@@ -10,7 +10,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Como o acervo está organizado?",
-    a: "Em Atualizações: mês → semana → estilos → faixas. Em Coleções: discografias e álbuns com capas. São centenas de pastas e dezenas de milhares de músicas no Drive VIP.",
+    a: "Em Atualizações: pasta raiz → mês → pastas (com subpastas) → faixas. Em Coleções: discografias e álbuns com capas. São centenas de pastas e dezenas de milhares de músicas no Drive VIP.",
   },
   {
     q: "Como encontro uma música específica?",
@@ -18,7 +18,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Posso baixar pela plataforma e pelo Downloader?",
-    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.10_estable) com o mesmo login da conta.",
+    a: "Sim. VIP baixa faixa a faixa no navegador ou envia para o BRS Downloader Windows (versão atual do site, ex.: 1.0.11_estable) com o mesmo login da conta.",
   },
   {
     q: "O player funciona no celular?",

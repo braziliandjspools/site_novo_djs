@@ -35,12 +35,14 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
+import { folderHref, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   DOWNLOADER_BULK_CONFIRM_THRESHOLD,
   DownloaderBulkConfirmDialog,
 } from "./DownloaderBulkConfirm";
+import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
+import { ArtistNameLink } from "./ArtistNameLink";
 import {
   flattenTrackSections,
   groupTracksByUploadDate,
@@ -72,9 +74,9 @@ type VipMusicTrackListProps = {
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_48px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px] md:items-center md:gap-x-3";
 const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_48px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -442,26 +444,20 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   );
 
   const titleBlock = (
-    <div className="min-w-0 flex-1 overflow-hidden transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
-      <button
-        type="button"
-        onClick={canPlay ? onToggle : undefined}
-        disabled={!canPlay}
-        className="min-w-0 w-full overflow-hidden text-left"
-        aria-label={a11yName}
-        title={a11yName}
-      >
-        <p
-          className={`truncate text-[14px] font-semibold leading-snug tracking-[-0.01em] transition-colors duration-200 ${
+    <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
+      <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
+        <span
+          className={`block truncate text-[14px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 ${
             isActive || isPlaying ? "text-[#1ed760]" : "text-white"
           }`}
         >
           {display.title}
-        </p>
-        <p className="mt-0.5 truncate text-[12px] leading-snug text-white/45 transition-colors duration-200 group-hover/row:text-white/65">
-          {display.artist}
-        </p>
-      </button>
+        </span>
+      </p>
+      <ArtistNameLink
+        artist={display.artist}
+        className="mt-0.5 block truncate text-[12px] leading-snug text-white/50"
+      />
     </div>
   );
 
@@ -555,7 +551,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
       </div>
 
-      {/* Desktop */}
+      {/* Desktop: capa · track/artist · duração · ações */}
       <div
         className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} px-3.5 py-2.5`}
       >
@@ -582,6 +578,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               onSend={onSendToDownloader}
               compact
             />
+          ) : !canPlay ? (
+            <Lock className="h-3.5 w-3.5 text-white/35" aria-hidden />
           ) : null}
         </div>
 
@@ -638,14 +636,14 @@ function DiscographyTrackRow({
       }`}
     >
       {canPlay ? (
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={isBusy}
-          className={`${DISCOGRAPHY_GRID} min-w-0 flex-1 px-2 py-2.5 text-left sm:px-3`}
-          aria-label={`${display.title} — ${display.artist}`}
-        >
-          <div className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+        <div className={`${DISCOGRAPHY_GRID} min-w-0 flex-1 px-2 py-2.5 sm:px-3`}>
+          <button
+            type="button"
+            onClick={onToggle}
+            disabled={isBusy}
+            className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+            aria-label={`Reproduzir ${display.title}`}
+          >
             <Image
               src={coverSrc}
               alt=""
@@ -676,25 +674,33 @@ function DiscographyTrackRow({
                 <Play className="ml-0.5 h-3.5 w-3.5 fill-white text-white drop-shadow" />
               )}
             </span>
-          </div>
-          <div className="min-w-0 overflow-hidden">
-            <p className={`truncate text-[14px] font-medium ${isPlaying || isActive ? "text-[#1ed760]" : "text-white"}`}>
-              {display.title}
+          </button>
+          <div className="min-w-0 overflow-hidden font-[family-name:var(--font-player)]">
+            <p
+              className="block w-full truncate text-left text-[14px] font-semibold tracking-[-0.02em] text-white"
+              title={`${display.title} — ${display.artist}`}
+            >
+              <span className={isPlaying || isActive ? "text-[#1ed760]" : "text-white"}>
+                {display.title}
+              </span>
             </p>
-            <p className="truncate text-[12px] text-white/45">{display.artist}</p>
+            <ArtistNameLink
+              artist={display.artist}
+              className="mt-0.5 block truncate text-[12px] text-white/45"
+            />
           </div>
           <span className="hidden text-center font-mono text-[11px] tabular-nums text-white/35 sm:block">
             {formatTime(displayDuration)}
           </span>
-        </button>
+        </div>
       ) : (
         <VipLockedPlayHint className="min-w-0 flex-1" side="top">
-          <button
-            type="button"
-            className={`${DISCOGRAPHY_GRID} w-full min-w-0 px-2 py-2.5 text-left sm:px-3`}
-            aria-label={`Play bloqueado — ${display.title}. Assine o VIP para ouvir.`}
-          >
-            <div className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+          <div className={`${DISCOGRAPHY_GRID} w-full min-w-0 px-2 py-2.5 text-left sm:px-3`}>
+            <button
+              type="button"
+              className="relative mx-auto h-10 w-10 overflow-hidden rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+              aria-label={`Play bloqueado — ${display.title}. Assine o VIP para ouvir.`}
+            >
               <Image
                 src={coverSrc}
                 alt=""
@@ -706,15 +712,18 @@ function DiscographyTrackRow({
               <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#1ed760] transition-colors group-hover/locked:bg-black/70">
                 <Lock className="h-3.5 w-3.5" />
               </span>
-            </div>
-            <div className="min-w-0 overflow-hidden">
-              <p className="truncate text-[14px] font-medium text-white">{display.title}</p>
-              <p className="truncate text-[12px] text-white/45">{display.artist}</p>
+            </button>
+            <div className="min-w-0 overflow-hidden font-[family-name:var(--font-player)]">
+              <p className="truncate text-[14px] font-semibold tracking-[-0.02em] text-white">{display.title}</p>
+              <ArtistNameLink
+                artist={display.artist}
+                className="mt-0.5 block truncate text-[12px] text-white/45"
+              />
             </div>
             <span className="hidden text-center font-mono text-[11px] tabular-nums text-white/35 sm:block">
               {formatTime(displayDuration)}
             </span>
-          </button>
+          </div>
         </VipLockedPlayHint>
       )}
       <div className="flex-shrink-0 pr-1 sm:pr-2">
@@ -766,9 +775,11 @@ export function VipMusicTrackList({
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [batchSending, setBatchSending] = useState(false);
+  const [batchDownloading, setBatchDownloading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [bulkConfirmCount, setBulkConfirmCount] = useState<number | null>(null);
+  const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
@@ -812,7 +823,7 @@ export function VipMusicTrackList({
       setFocusedTrackId(id);
       const track = tracks.find((item) => item.id === id);
       if (track && continueContext) {
-        const styleSlug = slugifyFolderName(continueContext.styleName);
+        const styleSlug = slugifyStyleName(continueContext.styleName);
         const segments = [continueContext.monthSlug];
         if (continueContext.weekSlug) segments.push(continueContext.weekSlug);
         segments.push(styleSlug);
@@ -926,7 +937,7 @@ export function VipMusicTrackList({
   ]);
 
   const handleSendSelectedToDownloader = useCallback(() => {
-    if (batchSending || sendingId || selectedCount === 0) return;
+    if (batchSending || batchDownloading || sendingId || selectedCount === 0) return;
     if (!ensureDownloaderAccess()) return;
     if (selectedCount > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
       setBulkConfirmCount(selectedCount);
@@ -934,6 +945,7 @@ export function VipMusicTrackList({
     }
     void runSendSelectedToDownloader();
   }, [
+    batchDownloading,
     batchSending,
     ensureDownloaderAccess,
     runSendSelectedToDownloader,
@@ -941,16 +953,57 @@ export function VipMusicTrackList({
     sendingId,
   ]);
 
-  const handleDownloadSelected = useCallback(async () => {
+  const runDownloadSelected = useCallback(async () => {
+    if (batchDownloading || batchSending || selectedCount === 0) return;
     const selectedTracks = tracks.filter((track) => selectedIds.has(track.id));
-    for (const track of selectedTracks) {
-      try {
-        await triggerDownload(track);
-      } catch {
-        showToast(`Falha ao baixar ${getTrackDisplayMetadata(track).title}`, "error");
+    if (selectedTracks.length === 0) return;
+    setBatchDownloading(true);
+    let ok = 0;
+    let failed = 0;
+    try {
+      showToast(
+        selectedTracks.length === 1
+          ? "Baixando 1 faixa no navegador…"
+          : `Baixando ${selectedTracks.length} faixas no navegador…`,
+      );
+      for (const track of selectedTracks) {
+        try {
+          await triggerDownload(track);
+          ok += 1;
+        } catch {
+          failed += 1;
+        }
       }
+      if (failed === 0) {
+        showToast(ok === 1 ? "Download concluído" : `${ok} downloads concluídos`);
+      } else {
+        showToast(`${ok} ok · ${failed} falharam`, "error");
+      }
+    } finally {
+      setBatchDownloading(false);
     }
-  }, [selectedIds, showToast, tracks]);
+  }, [
+    batchDownloading,
+    batchSending,
+    selectedCount,
+    selectedIds,
+    showToast,
+    tracks,
+  ]);
+
+  const handleDownloadSelected = useCallback(() => {
+    if (batchDownloading || batchSending || selectedCount === 0) return;
+    if (selectedCount > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
+      setBrowserConfirmOpen(true);
+      return;
+    }
+    void runDownloadSelected();
+  }, [
+    batchDownloading,
+    batchSending,
+    runDownloadSelected,
+    selectedCount,
+  ]);
 
   const toggleTrackSelected = useCallback((trackId: string) => {
     setSelectedIds((current) => {
@@ -1035,7 +1088,7 @@ export function VipMusicTrackList({
       className={
         embedded
           ? ""
-          : "overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12141a] to-[#0f1012] shadow-[0_18px_40px_rgba(0,0,0,0.28)]"
+          : "musicas-track-panel overflow-hidden rounded-2xl border border-white/10 bg-[#141816] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
       }
     >
       {error && isThisFolder && (
@@ -1043,9 +1096,39 @@ export function VipMusicTrackList({
       )}
 
       {canDownload && tracks.length > 1 && !useDiscography && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-white/[0.015] px-3.5 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5">
           {selectionMode ? (
             <>
+              <p className="mr-1 text-xs font-semibold tabular-nums text-white/70">
+                {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
+              </p>
+              <button
+                type="button"
+                onClick={() => handleSendSelectedToDownloader()}
+                disabled={batchSending || batchDownloading || selectedCount === 0}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+              >
+                {batchSending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <MonitorDown className="h-3 w-3" />
+                )}
+                Enviar selecionadas ao Downloader
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDownloadSelected()}
+                disabled={batchSending || batchDownloading || selectedCount === 0}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/85 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-40"
+              >
+                {batchDownloading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Download className="h-3 w-3" />
+                )}
+                Baixar selecionadas
+              </button>
+              <span className="mx-0.5 hidden h-4 w-px bg-white/10 sm:block" aria-hidden />
               <button
                 type="button"
                 onClick={selectAllTracks}
@@ -1082,6 +1165,19 @@ export function VipMusicTrackList({
         </div>
       )}
 
+      {useStreaming ? (
+        <div
+          className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} border-b border-white/[0.06] px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/40`}
+          aria-hidden
+        >
+          {selectionMode && canDownload ? <span /> : null}
+          <span />
+          <span>Track / Artist</span>
+          <span className="text-right">Time</span>
+          <span />
+          <span />
+        </div>
+      ) : null}
       {useDiscography ? (
         <div className="px-1 py-1">
           {tracks.map((track, index) => {
@@ -1204,25 +1300,34 @@ export function VipMusicTrackList({
 
       {selectionMode && selectedCount > 0 ? (
         <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#0f1012]/95 px-3.5 py-3 backdrop-blur-md">
-          <p className="text-xs font-semibold text-white">
+          <p className="text-xs font-semibold tabular-nums text-white">
             {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
           </p>
           <button
             type="button"
             onClick={() => handleSendSelectedToDownloader()}
-            disabled={batchSending}
+            disabled={batchSending || batchDownloading}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3.5 py-2 text-xs font-bold text-black disabled:opacity-50"
           >
-            {batchSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
-            Enviar ({selectedCount}) marcada{selectedCount === 1 ? "" : "s"} para o Downloader
+            {batchSending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <MonitorDown className="h-3.5 w-3.5" />
+            )}
+            Enviar selecionadas ao Downloader
           </button>
           <button
             type="button"
-            onClick={() => void handleDownloadSelected()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/5"
+            onClick={() => handleDownloadSelected()}
+            disabled={batchSending || batchDownloading}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/5 disabled:opacity-50"
           >
-            <Download className="h-3.5 w-3.5" />
-            Baixar
+            {batchDownloading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Download className="h-3.5 w-3.5" />
+            )}
+            Baixar selecionadas
           </button>
           <button
             type="button"
@@ -1243,6 +1348,20 @@ export function VipMusicTrackList({
           void runSendSelectedToDownloader();
         }}
         onDismiss={() => setBulkConfirmCount(null)}
+      />
+
+      <BrowserPackDownloadConfirm
+        open={browserConfirmOpen}
+        trackCount={selectedCount}
+        onConfirm={() => {
+          setBrowserConfirmOpen(false);
+          void runDownloadSelected();
+        }}
+        onDismiss={() => setBrowserConfirmOpen(false)}
+        onPreferDownloader={() => {
+          setBrowserConfirmOpen(false);
+          handleSendSelectedToDownloader();
+        }}
       />
     </div>
   );

@@ -83,9 +83,11 @@ export function DownloaderBulkConfirmDialog({
 export async function previewPackTrackCount(
   slug: string,
   root: "vip" | "colecoes" = "vip",
+  kind: "pack" | "artist" = "pack",
 ): Promise<number> {
   const params = new URLSearchParams({ slug: slug.replace(/^\/+|\/+$/g, "").trim() });
-  if (root === "colecoes") params.set("root", "colecoes");
+  if (kind === "artist") params.set("kind", "artist");
+  else if (root === "colecoes") params.set("root", "colecoes");
   const response = await fetch(`/api/downloader/pack/preview?${params.toString()}`, {
     credentials: "same-origin",
     cache: "no-store",

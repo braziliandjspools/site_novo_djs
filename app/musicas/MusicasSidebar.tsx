@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Home, Layers, LogIn, LogOut, Menu, RefreshCw, X } from "lucide-react";
+import { ChevronDown, Home, Layers, LogIn, LogOut, Menu, Mic2, RefreshCw, X } from "lucide-react";
 import { BrsLogo } from "../components/BrsLogo";
+import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
 import { checkoutUrl } from "../lib/site";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
@@ -24,6 +25,7 @@ type MusicasTopNavProps = {
 const PLATFORM_NAV = [
   { href: "/musicas/home", label: "Início", icon: Home },
   { href: "/musicas/atualizacoes", label: "Atualizações", icon: RefreshCw },
+  { href: "/musicas/artistas", label: "Artistas", icon: Mic2 },
   { href: "/musicas/colecoes", label: "Coleções", icon: Layers },
 ] as const;
 
@@ -62,14 +64,14 @@ export function MusicasTopNav({
   }, [pathname, onMobileOpenChange]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#070808]/90 backdrop-blur-2xl">
+    <header className={`${APP_TOP_CHROME} z-40`}>
+      <div className="br-stripe" />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#1ed760]/45 to-transparent"
         aria-hidden
       />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/[0.04]" aria-hidden />
 
-      <div className="relative mx-auto flex h-[4.25rem] max-w-[1600px] items-center gap-3 px-3 sm:h-[4.5rem] sm:gap-4 sm:px-5 lg:px-8">
+      <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-[1600px] sm:px-5 lg:px-8`}>
         <BrsLogo
           href="/musicas/home"
           className="h-8 w-auto max-w-[132px] object-contain object-left sm:h-9 sm:max-w-[168px]"
@@ -80,7 +82,7 @@ export function MusicasTopNav({
         <div className="mx-1 hidden h-7 w-px bg-white/10 md:block" aria-hidden />
 
         <nav className="hidden min-w-0 flex-1 items-center md:flex">
-          <div className="inline-flex items-center gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div className="inline-flex items-center gap-0.5 rounded-full border border-white/[0.07] bg-white/[0.02] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             {PLATFORM_NAV.map(({ href, label, icon: Icon }) => {
               const active = navActive(pathname, href);
               return (
@@ -150,7 +152,7 @@ export function MusicasTopNav({
           </div>
         </nav>
 
-        <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="app-no-drag ml-auto flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
           <MusicasHeaderDownloader />
           <SiteNotificationBell />
 

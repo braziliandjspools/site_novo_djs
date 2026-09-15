@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.10_estable";
-export const APP_CORE_VERSION = "1.0.10_estable";
+export const WEBUI_VERSION = "1.0.11_estable";
+export const APP_CORE_VERSION = "1.0.11_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.11_estable",
+    date: "2026-09-15",
+    items: [
+      "Importar link de artista (/musicas/artistas/…) e enfileirar faixas do perfil",
+      "Validação de link mais tolerante (localhost e URLs coladas do site)",
+      "Textos do painel de importação atualizados para pasta ou artista",
+    ],
+  },
   {
     version: "1.0.10_estable",
     date: "2026-09-11",

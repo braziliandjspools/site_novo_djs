@@ -4,7 +4,7 @@ import { Button } from "./ui/Button";
 import { Panel } from "./ui/Panel";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
-import { importPackLink, parsePackLinkInput, previewPackLink, stripForcedFolderTreePrefix, type PackPreview } from "../lib/api/pack-import";
+import { importPackLink, previewPackLink, stripForcedFolderTreePrefix, type PackPreview } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
 import { useLocale } from "../i18n/LocaleContext";
 
@@ -24,19 +24,21 @@ export function ImportPackPanel() {
       setError(t("importLoginRequired"));
       return;
     }
-    const parsed = parsePackLinkInput(url);
-    if (!parsed) {
+    const trimmed = url.trim();
+    if (!trimmed) {
       setError(t("importInvalidLink"));
       setPreview(null);
       return;
     }
+
+    // Sempre tenta a API (pasta ou artista). O servidor também parseia a URL.
 
     setValidating(true);
     setError(null);
     setSuccess(null);
     setPreview(null);
     try {
-      const result = await previewPackLink(sessionToken, url);
+      const result = await previewPackLink(sessionToken, trimmed);
       setPreview(result);
       if (result.trackCount === 0 && !result.hasSubfolders) {
         setError(t("importNoTracks"));
@@ -54,8 +56,9 @@ export function ImportPackPanel() {
     setError(null);
     setSuccess(null);
     try {
-      const result = await importPackLink(sessionToken, preview.slug, {
+      const result = await importPackLink(sessionToken, url.trim() || preview.slug, {
         root: preview.root === "colecoes" ? "colecoes" : "vip",
+        kind: preview.kind === "artist" ? "artist" : "pack",
       });
       setSuccess(
         result.count === 1
@@ -81,7 +84,10 @@ export function ImportPackPanel() {
             <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
             <input
               id="pack-link"
-              type="url"
+              type="text"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
               value={url}
               onChange={(event) => {
                 setUrl(event.target.value);
@@ -122,7 +128,9 @@ export function ImportPackPanel() {
           <div className="rounded-xl border border-white/[0.06] bg-[#141414] px-4 py-3">
             <p className="text-sm font-bold text-white">{preview.folderName}</p>
             <p className="mt-0.5 truncate text-xs text-zinc-500">
-              {stripForcedFolderTreePrefix(preview.relativePath) || preview.relativePath}
+              {preview.kind === "artist"
+                ? t("importArtistLabel")
+                : stripForcedFolderTreePrefix(preview.relativePath) || preview.relativePath}
             </p>
             <p className="mt-3 text-lg font-black tabular-nums text-[#1db954]">
               {preview.trackCountIsEstimate || preview.hasSubfolders ? (

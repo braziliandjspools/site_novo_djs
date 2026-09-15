@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { BrsLogo } from "../components/BrsLogo";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
+import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { MusicasUserMenu } from "../musicas/components/MusicasUserMenu";
 import { portalPath, type PortalView } from "./portal-routes";
 
@@ -95,11 +96,11 @@ export function PortalShell({
   return (
     <div className="flex min-h-screen w-full max-w-[100vw] overflow-x-clip bg-[#121212] text-zinc-100">
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[85vw] flex-col border-r border-zinc-800 bg-[#0a0a0a] transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[85vw] flex-col border-r border-white/10 bg-[#0a0a0a] transition-transform lg:static lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="border-b border-zinc-800 px-5 py-5">
+        <div className="border-b border-white/10 px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top,0px),env(titlebar-area-height,0px))]">
           <BrsLogo href="/" className="h-10 w-auto max-w-[220px] object-contain object-left" />
           <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Client Area</p>
         </div>
@@ -120,7 +121,7 @@ export function PortalShell({
           ))}
 
           {isServiceDetail && (
-            <div className="mt-3 border-t border-zinc-800 pt-3">
+            <div className="mt-3 border-t border-white/10 pt-3">
               <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">Serviço</p>
               {hasPools && (
                 <NavLink
@@ -150,7 +151,7 @@ export function PortalShell({
           )}
         </nav>
 
-        <div className="border-t border-zinc-800 p-3">
+        <div className="border-t border-white/10 p-3">
           <button
             type="button"
             onClick={() => void onLogout()}
@@ -172,26 +173,29 @@ export function PortalShell({
       )}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 border-b border-zinc-800 bg-[#181818]/95 px-3 py-3 backdrop-blur-md sm:px-6">
-          <div className="flex min-w-0 items-center justify-between gap-2">
+        <header className={`${APP_TOP_CHROME} z-20`}>
+          <div className="br-stripe" />
+          <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-none justify-between sm:px-6`}>
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
                 type="button"
-                className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 lg:hidden"
+                className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
                 onClick={() => setMobileOpen(true)}
               >
                 {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold uppercase tracking-wide text-white">
-                  Olá, <span className="text-[#00ff9d]">{firstName}</span>
+                <p className="truncate text-sm font-bold tracking-[-0.01em] text-white">
+                  Olá, <span className="text-[#1ed760]">{firstName}</span>
                 </p>
-                <p className="text-[11px] uppercase tracking-wider text-zinc-500">Área do cliente</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                  Área do cliente
+                </p>
               </div>
             </div>
-            <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+            <div className="app-no-drag flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
               <SiteNotificationBell />
-              <span className="hidden rounded border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#00ff9d] sm:inline">
+              <span className="hidden rounded-full border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1ed760] sm:inline">
                 Online
               </span>
               <MusicasUserMenu userName={userName} hasVip={vipActive} onLogout={() => void onLogout()} />
@@ -201,7 +205,7 @@ export function PortalShell({
 
         <main className="min-w-0 flex-1 overflow-x-clip bg-[#121212] p-3 sm:p-6 lg:p-8">{children}</main>
 
-        <footer className="border-t border-zinc-800 bg-[#0a0a0a] px-6 py-3 text-center text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">
+        <footer className="border-t border-white/10 bg-[#0a0a0a] px-6 py-3 text-center text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-600">
           Brazilian Remix Service · Client Area
         </footer>
       </div>

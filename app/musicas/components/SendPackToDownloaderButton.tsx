@@ -22,6 +22,8 @@ type SendPackToDownloaderButtonProps = {
   onCover?: boolean;
   /** Raiz do Drive: atualizações VIP ou coleções */
   root?: "vip" | "colecoes";
+  /** Pasta do acervo ou perfil de artista */
+  kind?: "pack" | "artist";
 };
 
 export function SendPackToDownloaderButton({
@@ -31,6 +33,7 @@ export function SendPackToDownloaderButton({
   compact = false,
   onCover = false,
   root = "vip",
+  kind = "pack",
 }: SendPackToDownloaderButtonProps) {
   const { authenticated, openLogin, hasVip } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -45,19 +48,23 @@ export function SendPackToDownloaderButton({
         target: sync?.selectedTarget,
         devices: sync?.devices,
         root,
+        kind,
       });
       showToast(
         result.count === 1
           ? "1 faixa adicionada ao BRS Downloader"
-          : `${result.count} faixas adicionadas ao BRS Downloader (estrutura de pastas preservada)`,
+          : kind === "artist"
+            ? `${result.count} faixas do artista adicionadas ao BRS Downloader`
+            : `${result.count} faixas adicionadas ao BRS Downloader (estrutura de pastas preservada)`,
       );
       try {
         const key = "brs-dl-sent-packs";
         const raw = sessionStorage.getItem(key);
         const list = raw ? (JSON.parse(raw) as string[]) : [];
         const next = Array.isArray(list) ? list : [];
-        if (!next.includes(slug)) {
-          next.push(slug);
+        const storageKey = kind === "artist" ? `artist:${slug}` : slug;
+        if (!next.includes(storageKey)) {
+          next.push(storageKey);
           sessionStorage.setItem(key, JSON.stringify(next));
         }
       } catch {
@@ -65,7 +72,14 @@ export function SendPackToDownloaderButton({
       }
       await sync?.refresh();
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");
+      showToast(
+        err instanceof Error
+          ? err.message
+          : kind === "artist"
+            ? "Não foi possível enviar o artista."
+            : "Não foi possível enviar a pasta.",
+        "error",
+      );
     } finally {
       setSending(false);
     }
@@ -86,7 +100,7 @@ export function SendPackToDownloaderButton({
     }
 
     try {
-      const count = await previewPackTrackCount(slug, root);
+      const count = await previewPackTrackCount(slug, root, kind);
       if (count > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
         setConfirmCount(count);
         return;

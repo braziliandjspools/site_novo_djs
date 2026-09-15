@@ -21,6 +21,7 @@ import {
   isMonthFolderName,
   isWeekFolderName,
   slugifyFolderName,
+  slugifyStyleName,
   sortFoldersByMonthDate,
   sortFoldersByWeek,
   sortVipChildFolders,
@@ -32,6 +33,7 @@ import {
   type RecentFolder,
 } from "../lib/music-library-storage";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 
 export type BrowseNavPathPart = {
   slug: string;
@@ -72,21 +74,21 @@ function SidebarSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section className="overflow-hidden rounded-xl border border-white/[0.07] bg-black/25">
+    <section className="overflow-hidden rounded-xl border border-white/10 bg-[#171b19]">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-[#1ed760]/25 bg-[#1ed760]/10 text-[#1ed760]">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-[#1ed760]/30 bg-[#1ed760]/12 text-[#1ed760]">
           <Icon className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
         </span>
         <h3 className="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
           {title}
         </h3>
         {typeof count === "number" ? (
-          <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white/40">
+          <span className="rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white/40">
             {count}
           </span>
         ) : null}
@@ -95,7 +97,7 @@ function SidebarSection({
           aria-hidden
         />
       </button>
-      {open ? <div className="space-y-1 border-t border-white/[0.05] px-2 py-2">{children}</div> : null}
+      {open ? <div className="space-y-1.5 border-t border-white/[0.05] px-2 py-2">{children}</div> : null}
     </section>
   );
 }
@@ -117,25 +119,37 @@ function NavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`group flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors ${
+      className={`group flex items-center gap-2.5 rounded-full border px-3.5 py-2.5 transition-all ${
         active
-          ? "border-[#1ed760]/40 bg-[rgba(30,215,96,0.12)] text-white"
-          : "border-transparent bg-white/[0.02] text-white/85 hover:border-[#1ed760]/30 hover:bg-[rgba(30,215,96,0.06)] hover:text-white"
+          ? "border-[#1ed760] bg-[#1ed760] text-black shadow-[0_8px_20px_rgba(30,215,96,0.25)]"
+          : "border-white/10 bg-[#1a1e1c] text-white hover:border-[#1ed760]/45 hover:bg-[#1ed760]/10"
       }`}
     >
       <span
         className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-          active ? "bg-[#1ed760]" : "bg-[#1ed760]/50 opacity-70 group-hover:opacity-100"
+          active ? "bg-black" : "bg-[#1ed760]"
         }`}
       />
-      <span className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-snug">{title}</span>
+      <span className="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-[0.08em]">
+        {title}
+      </span>
       {isNew ? (
-        <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-[0.1em] text-[#1ed760]">
+        <span
+          className={`flex-shrink-0 text-[9px] font-bold uppercase tracking-[0.1em] ${
+            active ? "text-black/70" : "text-[#1ed760]"
+          }`}
+        >
           Novo
         </span>
       ) : null}
       {meta ? (
-        <span className="flex-shrink-0 text-[10px] font-semibold tabular-nums text-white/35">{meta}</span>
+        <span
+          className={`flex-shrink-0 text-[10px] font-semibold tabular-nums ${
+            active ? "text-black/60" : "text-white/40"
+          }`}
+        >
+          {meta}
+        </span>
       ) : null}
     </Link>
   );
@@ -169,7 +183,7 @@ function uniqueById(folders: VipMusicFolder[]) {
 
 /**
  * Sidebar de navegação independente dos botões da coluna principal.
- * Atalhos seguem Pack → Mês → Semana → Pastas conforme a sincronização.
+ * Atalhos seguem Pack → Mês → Pastas (com subpastas) → Músicas.
  */
 export function AtualizacoesBrowseNavSidebar({
   slugSegments,
@@ -233,12 +247,16 @@ export function AtualizacoesBrowseNavSidebar({
   }, [monthWeeks, currentChildren, siblings]);
 
   const styleFolders = useMemo(() => {
-    const source =
-      !childrenAreWeekFolders(currentChildren) && !childrenAreMonthFolders(currentChildren)
+    const fromChildren =
+      currentChildren.length > 0 &&
+      !childrenAreWeekFolders(currentChildren) &&
+      !childrenAreMonthFolders(currentChildren)
         ? currentChildren
-        : siblings.filter(
-            (folder) => !isWeekFolderName(folder.name) && !isMonthFolderName(folder.name),
-          );
+        : [];
+    const fromSiblings = siblings.filter(
+      (folder) => !isWeekFolderName(folder.name) && !isMonthFolderName(folder.name),
+    );
+    const source = fromChildren.length > 0 ? fromChildren : fromSiblings;
     return sortVipChildFolders(
       uniqueById(
         source.filter(
@@ -255,27 +273,27 @@ export function AtualizacoesBrowseNavSidebar({
 
   if (loading && packs.length === 0 && months.length === 0 && weeks.length === 0) {
     return (
-      <aside className="rounded-2xl border border-[#1ed760]/20 bg-[#17191d] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
+      <aside className="flex h-full max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-[#1ed760]/20 bg-[#17191d] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
         <SidebarSkeleton />
       </aside>
     );
   }
 
   return (
-    <aside className="rounded-2xl border border-[#1ed760]/20 bg-[#17191d] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
-      <div className="mb-3.5 rounded-xl border border-white/[0.06] bg-gradient-to-br from-[#1ed760]/10 via-transparent to-transparent px-3.5 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1ed760]/90">
+    <aside className="musicas-side-nav flex h-full max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#121614] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
+      <div className="mb-3.5 flex-shrink-0 rounded-xl border border-[#1ed760]/25 bg-gradient-to-br from-[#1ed760]/15 via-transparent to-transparent px-3.5 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1ed760]">
           Navegação
         </p>
         <h2 className="mt-1 text-[15px] font-bold tracking-tight text-white">
           {displayFolderName(currentTitle)}
         </h2>
-        <p className="mt-1 text-[11px] leading-relaxed text-white/45">
-          Atalhos do Drive: Pack → Mês → Semana → Pastas. Atualizam após sincronizar.
+        <p className="mt-1 text-[11px] leading-relaxed text-white/50">
+          Pack → Mês → Estilo → Músicas. Atualizam após sincronizar.
         </p>
         <Link
           href="/musicas/atualizacoes"
-          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1ed760] transition-colors hover:bg-[#1ed760]/20"
+          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#2dff7a]"
         >
           <Home className="h-3.5 w-3.5" aria-hidden />
           Acervo (raiz)
@@ -283,7 +301,7 @@ export function AtualizacoesBrowseNavSidebar({
       </div>
 
       {resolvedPath.length > 0 ? (
-        <nav className="mb-3 flex flex-wrap gap-1.5 px-0.5" aria-label="Caminho atual">
+        <nav className="mb-3 flex flex-shrink-0 flex-wrap gap-1.5 px-0.5" aria-label="Caminho atual">
           {resolvedPath.map((part, index) => {
             const href = folderHref(resolvedPath.slice(0, index + 1).map((item) => item.slug));
             const last = index === resolvedPath.length - 1;
@@ -304,8 +322,8 @@ export function AtualizacoesBrowseNavSidebar({
         </nav>
       ) : null}
 
-      <div className="max-h-[min(70vh,42rem)] space-y-2.5 overflow-y-auto pr-0.5">
-        <SidebarSection title="Packs" icon={FolderTree} count={packs.length}>
+      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain pr-0.5">
+        <SidebarSection title="Packs" icon={FolderTree} count={packs.length} defaultOpen>
           {packs.length > 0 ? (
             packs.map((pack) => {
               const slug = slugifyFolderName(pack.name);
@@ -327,7 +345,7 @@ export function AtualizacoesBrowseNavSidebar({
         </SidebarSection>
 
         {packSlug ? (
-          <SidebarSection title="Meses" icon={CalendarDays} count={months.length}>
+          <SidebarSection title="Meses" icon={CalendarDays} count={months.length} defaultOpen>
             {months.length > 0 ? (
               months.map((month) => {
                 const slug = slugifyFolderName(month.name);
@@ -343,15 +361,15 @@ export function AtualizacoesBrowseNavSidebar({
               })
             ) : (
               <p className="px-2 py-2 text-[12px] text-white/35">
-                Meses aparecem ao abrir o pack (ex.: JANEIRO).
+                Meses aparecem ao abrir o pack (ex.: 04- ABRIL 2024).
               </p>
             )}
           </SidebarSection>
         ) : null}
 
-        {packSlug && (monthSlug || weeks.length > 0) ? (
+        {packSlug && weeks.length > 0 ? (
           <SidebarSection title="Semanas" icon={Layers3} count={weeks.length}>
-            {weeks.length > 0 && monthSlug ? (
+            {monthSlug ? (
               weeks.map((week) => {
                 const slug = slugifyFolderName(week.name);
                 return (
@@ -364,7 +382,7 @@ export function AtualizacoesBrowseNavSidebar({
                   />
                 );
               })
-            ) : weeks.length > 0 && !monthSlug ? (
+            ) : (
               weeks.map((week) => {
                 const slug = slugifyFolderName(week.name);
                 return (
@@ -377,25 +395,22 @@ export function AtualizacoesBrowseNavSidebar({
                   />
                 );
               })
-            ) : (
-              <p className="px-2 py-2 text-[12px] text-white/35">
-                Semanas (SEMANA 01…) entram após sincronizar o mês.
-              </p>
             )}
           </SidebarSection>
         ) : null}
 
-        {(weekSlug || styleFolders.length > 0) && packSlug ? (
-          <SidebarSection title="Pastas" icon={FolderOpen} count={styleFolders.length}>
+        {(monthSlug || styleFolders.length > 0) && packSlug ? (
+          <SidebarSection title="Estilos" icon={FolderOpen} count={styleFolders.length} defaultOpen>
             {styleFolders.length > 0 ? (
               styleFolders.map((folder) => {
-                const slug = slugifyFolderName(folder.name);
+                const slug = slugifyStyleName(folder.name);
                 const hrefSegments =
-                  weekSlug && monthSlug
+                  weekSlug && monthSlug && weeks.length > 0
                     ? [packSlug, monthSlug, weekSlug, slug]
                     : monthSlug
                       ? [packSlug, monthSlug, slug]
                       : [packSlug, slug];
+                const styleSlugPath = hrefSegments.join("/");
                 const catalog = folder as VipMusicCatalogItem;
                 const meta =
                   typeof catalog.trackCount === "number" && catalog.trackCount > 0
@@ -404,19 +419,31 @@ export function AtualizacoesBrowseNavSidebar({
                       ? String(catalog.folderCount)
                       : undefined;
                 return (
-                  <NavLink
-                    key={folder.id}
-                    href={folderHref(hrefSegments)}
-                    title={displayFolderName(folder.name)}
-                    active={slugSegments.join("/") === hrefSegments.join("/")}
-                    isNew={newChildIds?.has(folder.id)}
-                    meta={meta}
-                  />
+                  <div key={folder.id} className="flex items-center gap-1">
+                    <div className="min-w-0 flex-1">
+                      <NavLink
+                        href={folderHref(hrefSegments)}
+                        title={displayFolderName(folder.name)}
+                        active={
+                          slugSegments.join("/") === styleSlugPath ||
+                          slugSegments[slugSegments.length - 1] === slug
+                        }
+                        isNew={newChildIds?.has(folder.id)}
+                        meta={meta}
+                      />
+                    </div>
+                    <SendPackToDownloaderButton
+                      slug={styleSlugPath}
+                      label={`Enviar ${displayFolderName(folder.name)} ao Downloader`}
+                      compact
+                      className="!h-9 !w-9 !rounded-full"
+                    />
+                  </div>
                 );
               })
             ) : (
               <p className="px-2 py-2 text-[12px] text-white/35">
-                As 30–35 pastas da semana aparecem aqui após a sync.
+                Estilos do mês aparecem aqui após a sync.
               </p>
             )}
           </SidebarSection>

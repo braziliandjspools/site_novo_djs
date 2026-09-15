@@ -179,13 +179,13 @@ export const messagesPtBR = {
   zipRetryZip: "Compactar de novo",
 
   // import
-  importTitle: "Importar pack por link",
-  importPlaceholder: "Cole o link do pack do site",
+  importTitle: "Importar por link",
+  importPlaceholder: "Cole o link do pack ou do artista",
   importValidate: "Validar link",
   importImporting: "Importando…",
   importTracksFound: "{count} faixas encontradas",
   importStartDownload: "Baixar pack",
-  importInvalidLink: "Link inválido. Confira o endereço e tente de novo.",
+  importInvalidLink: "Link inválido. Use um link de pasta (/musicas/atualizacoes/…) ou de artista (/musicas/artistas/…).",
   importError: "Não foi possível importar este pack.",
 
   // history
@@ -450,8 +450,9 @@ export const messagesPtBR = {
 
   // import (extras)
   importPanelDesc:
-    "Cole o link do mês, semana ou estilo copiado no acervo VIP. O app valida e enfileira todas as faixas mantendo a estrutura de pastas.",
-  importFolderLink: "Link da pasta",
+    "Cole o link do mês, estilo ou artista copiado no acervo VIP. O app valida e enfileira as faixas (pastas mantêm a estrutura; artistas vão para Artistas/Nome).",
+  importFolderLink: "Link da pasta ou artista",
+  importArtistLabel: "Perfil de artista",
   importLoginRequired: "Faça login para validar o link.",
   importNoTracks: "Pasta encontrada, mas sem faixas para baixar.",
   importSubfoldersFound: "subpastas",

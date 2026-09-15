@@ -14,6 +14,7 @@ import { createDownloadJobsBatch, type DownloadJobInput } from "./downloader";
 import { withForcedFolderTree } from "./force-folder-tree";
 import { parsePackDownloadInput } from "./pack-download-link";
 import { mapPool } from "./map-pool";
+import { findTracksByArtistSlug } from "./vip-artist-tracks";
 
 export type PackRoot = "vip" | "colecoes";
 
@@ -195,6 +196,104 @@ export async function importPackJobsBySlug(
     ok: true as const,
     folder,
     trackCount: tracks.length,
+    count: jobs.length,
+    jobs,
+  };
+}
+
+/** Prévia de perfil de artista (`/musicas/artistas/[slug]`). */
+export async function previewArtistBySlug(slug: string) {
+  const profile = await findTracksByArtistSlug(slug);
+  if (!profile.slug) {
+    return { error: "Artista inválido." as const };
+  }
+  if (profile.trackCount === 0) {
+    return {
+      ok: true as const,
+      kind: "artist" as const,
+      folder: {
+        slug: profile.slug,
+        displayName: profile.name,
+        relativePath: `Artistas/${profile.name}`,
+        pathLabels: ["Artistas", profile.name],
+        root: "vip" as const,
+        folderId: `artist:${profile.slug}`,
+        folderName: profile.name,
+        slugSegments: [profile.slug],
+      },
+      trackCount: 0,
+      sampleTitles: [] as string[],
+      hasSubfolders: false,
+      trackCountIsEstimate: false,
+    };
+  }
+
+  return {
+    ok: true as const,
+    kind: "artist" as const,
+    folder: {
+      slug: profile.slug,
+      displayName: profile.name,
+      relativePath: `Artistas/${profile.name}`,
+      pathLabels: ["Artistas", profile.name],
+      root: "vip" as const,
+      folderId: `artist:${profile.slug}`,
+      folderName: profile.name,
+      slugSegments: [profile.slug],
+    },
+    trackCount: profile.trackCount,
+    sampleTitles: profile.tracks.slice(0, 8).map((track) => track.title),
+    hasSubfolders: false,
+    trackCountIsEstimate: false,
+  };
+}
+
+/** Enfileira faixas do artista no Downloader. */
+export async function importArtistJobsBySlug(
+  portalUserId: number,
+  slug: string,
+  options?: { targetDeviceId?: string | null },
+) {
+  const profile = await findTracksByArtistSlug(slug);
+  if (!profile.slug) {
+    return { error: "Artista inválido." as const };
+  }
+  if (profile.tracks.length === 0) {
+    return { error: "Nenhuma faixa encontrada para este artista." as const };
+  }
+
+  const artistFolder = `Artistas/${profile.name}`;
+  const targetDeviceId = options?.targetDeviceId?.trim() || null;
+  const inputs: DownloadJobInput[] = profile.tracks.map((track) => {
+    const rawName = track.fileName ?? track.title;
+    const fileName = ensureAudioExtension(rawName);
+    const relativePath = track.relativePath?.trim()
+      ? `${artistFolder}/${track.relativePath}`
+      : artistFolder;
+    return {
+      fileId: track.id,
+      fileName,
+      relativePath,
+      provider: "GOOGLE_DRIVE" as const,
+      ...(targetDeviceId ? { targetDeviceId } : {}),
+    };
+  });
+
+  const jobs = await createDownloadJobsBatch(portalUserId, inputs);
+  return {
+    ok: true as const,
+    kind: "artist" as const,
+    folder: {
+      slug: profile.slug,
+      displayName: profile.name,
+      relativePath: artistFolder,
+      pathLabels: ["Artistas", profile.name],
+      root: "vip" as const,
+      folderId: `artist:${profile.slug}`,
+      folderName: profile.name,
+      slugSegments: [profile.slug],
+    },
+    trackCount: profile.tracks.length,
     count: jobs.length,
     jobs,
   };

@@ -98,12 +98,14 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   function switchMode(next: AuthMode) {
     setMode(next);
     setError(null);
+    if (next === "login") setAcceptedTerms(false);
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -142,6 +144,10 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+    if (!acceptedTerms) {
+      setError("Você precisa aceitar os Termos de Serviço para criar a conta.");
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -150,7 +156,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ name, email, whatsapp, password }),
+        body: JSON.stringify({ name, email, whatsapp, password, acceptedTerms: true }),
       });
       const raw = await res.text();
       let data: { error?: string } = {};
@@ -343,6 +349,43 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                     showGenerate
                   />
 
+                  <label
+                    htmlFor="portal-accept-terms"
+                    className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-black/30 px-3.5 py-3 text-sm text-zinc-400 transition-colors hover:border-white/20"
+                  >
+                    <input
+                      id="portal-accept-terms"
+                      type="checkbox"
+                      checked={acceptedTerms}
+                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-black accent-[#1ed760]"
+                      required
+                    />
+                    <span>
+                      Li e aceito os{" "}
+                      <Link
+                        href="/termos"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-[#1ed760] hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Termos de Serviço
+                      </Link>{" "}
+                      e a{" "}
+                      <Link
+                        href="/privacidade"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-[#1ed760] hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Política de Privacidade
+                      </Link>
+                      .
+                    </span>
+                  </label>
+
                   {error && (
                     <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
                       {error}
@@ -351,7 +394,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
 
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !acceptedTerms}
                     className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:scale-[1.01] hover:bg-[#2dff7a] disabled:opacity-60 disabled:hover:scale-100"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}

@@ -432,7 +432,7 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
           aria-label="Notificações"
           className="fixed left-3 right-3 z-[121] max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-2xl border border-white/[0.08] bg-[#161616] p-3 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           style={{
-            top: "max(4.5rem, calc(env(safe-area-inset-top, 0px) + 3.75rem))",
+            top: "max(4.5rem, calc(env(safe-area-inset-top, 0px) + env(titlebar-area-height, 0px) + 3.75rem))",
             width: "auto",
             maxWidth: "calc(100vw - 1.5rem)",
           }}

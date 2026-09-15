@@ -75,8 +75,33 @@ export function AtualizacoesFeed({ canPlay }: AtualizacoesFeedProps) {
   const downloadEnabled = Boolean(feed?.canDownload ?? canPlay);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16.5rem]">
-      <div className="min-w-0">
+    <div className="grid gap-6 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start">
+      <aside className="order-1 space-y-4 md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-y-auto md:overscroll-contain">
+        <div className={poolPanelClass}>
+          <div className={poolPanelHeaderClass}>
+            <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Meses</h2>
+            <p className="text-[11px] text-zinc-500">{months.length}</p>
+          </div>
+          <ul className="max-h-[70vh] divide-y divide-white/[0.06] overflow-y-auto">
+            {months.map((folder) => {
+              const slug = slugifyFolderName(folder.name);
+              return (
+                <li key={folder.id}>
+                  <Link
+                    href={folderHref([slug])}
+                    className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-zinc-200 hover:bg-white/[0.04] hover:text-[#1ed760]"
+                  >
+                    <span className="min-w-0 truncate">{displayFolderName(folder.name)}</span>
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </aside>
+
+      <div className="order-2 min-w-0">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">Atualizações</p>
@@ -167,31 +192,6 @@ export function AtualizacoesFeed({ canPlay }: AtualizacoesFeedProps) {
           </p>
         )}
       </div>
-
-      <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <div className={poolPanelClass}>
-          <div className={poolPanelHeaderClass}>
-            <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white">Meses</h2>
-            <p className="text-[11px] text-zinc-500">{months.length}</p>
-          </div>
-          <ul className="max-h-[70vh] divide-y divide-white/[0.06] overflow-y-auto">
-            {months.map((folder) => {
-              const slug = slugifyFolderName(folder.name);
-              return (
-                <li key={folder.id}>
-                  <Link
-                    href={folderHref([slug])}
-                    className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-zinc-200 hover:bg-white/[0.04] hover:text-[#1ed760]"
-                  >
-                    <span className="min-w-0 truncate">{displayFolderName(folder.name)}</span>
-                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </aside>
     </div>
   );
 }

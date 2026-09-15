@@ -14,6 +14,7 @@ import {
   folderHref,
   isMonthFolderName,
   slugifyFolderName,
+  slugifyStyleName,
 } from "../../lib/vip-music-slugs";
 import { matchStyleSlug } from "../atualizacoes/AtualizacoesSearch";
 import {
@@ -28,8 +29,8 @@ import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
-import { StyleFolderLinks } from "./StyleFolderLinks";
 import { WeekFolderGrid } from "./WeekFolderGrid";
+import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
@@ -271,13 +272,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     void loadBrowse();
   }, [loadBrowse]);
 
-  // Ao trocar de pasta (ou sair da página), para o player.
+  // Mantém o player ao navegar pastas (como pools DJ). Só limpa ao sair da árvore.
   useEffect(() => {
-    stop();
     return () => {
       stop();
     };
-  }, [slugPath, stop]);
+  }, [stop]);
 
   const showingWeeks = useMemo(() => {
     if (!data || data.level !== "folders") return false;
@@ -300,7 +300,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     if (!data || !estiloSlug || !showingStyles) return;
     const match = data.items.find((item) => matchStyleSlug(item.name, estiloSlug));
     if (!match) return;
-    const nextSegments = [...slugSegments, slugifyFolderName(match.name)];
+    const nextSegments = [...slugSegments, slugifyStyleName(match.name)];
     const params = new URLSearchParams();
     if (faixaId) params.set("faixa", faixaId);
     const qs = params.toString();
@@ -350,9 +350,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       ? "weeks"
       : showingMonths
         ? "months"
-        : weekSlug || nestedWeekSlug
-          ? "week-styles"
-          : "styles";
+        : "styles";
   const heroCount = showingTracks ? directTracks.length : (data?.items.length ?? 0);
 
   const packPlaying = Boolean(
@@ -610,14 +608,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             <>
               {slugSegments.length === 1 ? (
                 <SendPackToDownloaderButton
-                  slug={monthSlug}
-                  label="Enviar mês ao Downloader"
+                  slug={packSlug}
+                  label="Enviar pack ao Downloader"
                   className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
                 />
-              ) : weekSlug && slugSegments.length === 2 ? (
+              ) : slugSegments.length === 2 ? (
                 <SendPackToDownloaderButton
-                  slug={`${monthSlug}/${weekSlug}`}
-                  label="Enviar semana ao Downloader"
+                  slug={slugPath}
+                  label="Enviar mês ao Downloader"
                   className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
                 />
               ) : slugSegments.length >= 3 ? (
@@ -653,8 +651,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && data && showingWeeks && (
-        <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:items-start lg:gap-6">
-          <div className="order-2 lg:order-1 lg:sticky lg:top-20">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start md:gap-5 lg:gap-6">
+          <div className="md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-hidden">
             <AtualizacoesBrowseNavSidebar
               slugSegments={slugSegments}
               resolvedPath={data.resolvedPath}
@@ -666,7 +664,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               newChildIds={newChildIds}
             />
           </div>
-          <div className="order-1 min-w-0 lg:order-2">
+          <div className="min-w-0">
             <WeekFolderGrid
               parentSegments={slugSegments}
               monthName={calendarMonthName}
@@ -686,8 +684,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && data && showingStyles && (
-        <div className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:items-start lg:gap-6">
-          <div className="order-2 lg:order-1 lg:sticky lg:top-20">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start md:gap-5 lg:gap-6">
+          <div className="md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-hidden">
             <AtualizacoesBrowseNavSidebar
               slugSegments={slugSegments}
               resolvedPath={data.resolvedPath}
@@ -705,12 +703,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               newChildIds={newChildIds}
             />
           </div>
-          <div className="order-1 min-w-0 lg:order-2">
-            <StyleFolderLinks
-              folders={data.items}
-              slugSegments={slugSegments}
-              newFolderIds={newChildIds}
-            />
+          <div className="min-w-0">
+            {data.items.length > 0 ? (
+              <StyleFolderLinks
+                folders={data.items}
+                slugSegments={slugSegments}
+                newFolderIds={newChildIds}
+              />
+            ) : null}
             {directTracks.length > 0 && (
               <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
                 <div className={poolPanelHeaderClass}>
@@ -767,7 +767,20 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && data && showingTracks && (
-        <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start md:gap-5 lg:gap-6">
+          <div className="md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-hidden">
+            <AtualizacoesBrowseNavSidebar
+              slugSegments={slugSegments}
+              resolvedPath={data.resolvedPath}
+              rootPacks={months}
+              currentChildren={[]}
+              siblings={siblingFolders}
+              packMonths={packMonths}
+              monthWeeks={siblingWeeks}
+              newChildIds={newChildIds}
+            />
+          </div>
+          <div className="min-w-0 overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
           <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
           {directTracks.length === 0 && loading ? (
             <MusicasTracksSkeleton />
@@ -809,6 +822,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               homeLabel="Home"
             />
           )}
+          </div>
         </div>
       )}
 

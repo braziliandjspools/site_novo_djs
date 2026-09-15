@@ -172,13 +172,14 @@ export const messagesEn = {
   zipRetryZip: "Compress again",
 
   // import
-  importTitle: "Import a pack from a link",
-  importPlaceholder: "Paste the pack link from the site",
+  importTitle: "Import from a link",
+  importPlaceholder: "Paste a pack or artist link from the site",
   importValidate: "Check link",
   importImporting: "Importing…",
   importTracksFound: "{count} tracks found",
   importStartDownload: "Download pack",
-  importInvalidLink: "Invalid link. Check the address and try again.",
+  importInvalidLink:
+    "Invalid link. Use a folder link (/musicas/atualizacoes/…) or an artist link (/musicas/artistas/…).",
   importError: "We couldn't import this pack.",
 
   // history
@@ -442,8 +443,9 @@ export const messagesEn = {
 
   // import (extras)
   importPanelDesc:
-    "Paste the month, week or genre link you copied from the VIP library. The app checks it and queues every track, keeping the folder structure.",
-  importFolderLink: "Folder link",
+    "Paste a month, genre or artist link copied from the VIP library. The app validates and queues the tracks (folders keep their structure; artists go under Artistas/Name).",
+  importFolderLink: "Folder or artist link",
+  importArtistLabel: "Artist profile",
   importLoginRequired: "Sign in to validate the link.",
   importNoTracks: "Folder found, but there are no tracks to download.",
   importSubfoldersFound: "subfolders",

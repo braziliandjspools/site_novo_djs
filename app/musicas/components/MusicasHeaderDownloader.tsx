@@ -79,8 +79,8 @@ export function MusicasHeaderDownloader() {
             "z-[9999] overflow-hidden rounded-xl border border-white/10 bg-[#121212] shadow-2xl shadow-black/60",
             // Mobile: ancora à direita do header/viewport (não ao botão), margem ~12px dos dois lados.
             // `fixed` fica relativo ao header (backdrop-filter) — full-width, então 100% ≈ tela (melhor que 100vw em WebViews).
-            "fixed left-auto right-3 top-16 w-[calc(100%-1.5rem)] max-w-[360px]",
-            "sm:top-[4.25rem]",
+            "fixed left-auto right-3 top-[calc(4.5rem+env(titlebar-area-height,0px))] w-[calc(100%-1.5rem)] max-w-[360px]",
+            "sm:top-[calc(5rem+env(titlebar-area-height,0px))]",
             // Desktop: ancora ao botão como antes.
             "md:absolute md:left-auto md:right-0 md:top-[calc(100%+0.5rem)] md:w-[min(92vw,22rem)] md:max-w-[22rem]",
           ].join(" ")}

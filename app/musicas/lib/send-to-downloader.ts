@@ -182,16 +182,20 @@ export async function sendFolderToDownloader(input: {
  */
 export async function sendPackSlugToDownloader(
   slug: string,
-  options: Omit<SendOptions, "relativePath"> & { root?: "vip" | "colecoes" } = {},
+  options: Omit<SendOptions, "relativePath"> & {
+    root?: "vip" | "colecoes";
+    kind?: "pack" | "artist";
+  } = {},
 ) {
   const normalized = slug.replace(/^\/+|\/+$/g, "").trim();
   if (!normalized) {
-    throw new Error("Slug da pasta inválido.");
+    throw new Error(options.kind === "artist" ? "Slug do artista inválido." : "Slug da pasta inválido.");
   }
 
   const targetDeviceIds = resolveTargetDeviceIds(options.target, options.devices ?? []);
   const targets = targetDeviceIds.length > 0 ? targetDeviceIds : [null];
   const root = options.root === "colecoes" ? "colecoes" : "vip";
+  const kind = options.kind === "artist" ? "artist" : "pack";
 
   let totalCount = 0;
   let folderName: string | undefined;
@@ -205,6 +209,7 @@ export async function sendPackSlugToDownloader(
       body: JSON.stringify({
         slug: normalized,
         root,
+        kind,
         ...(targetDeviceId ? { targetDeviceId } : {}),
       }),
     });
@@ -215,7 +220,12 @@ export async function sendPackSlugToDownloader(
       relativePath?: string;
     };
     if (!response.ok) {
-      throw new Error(data.error ?? "Não foi possível enviar a pasta para o Downloader.");
+      throw new Error(
+        data.error ??
+          (kind === "artist"
+            ? "Não foi possível enviar o artista para o Downloader."
+            : "Não foi possível enviar a pasta para o Downloader."),
+      );
     }
     totalCount += data.count ?? 0;
     folderName = data.folderName ?? folderName;

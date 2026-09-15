@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Download, MonitorDown, Pause, Play } from "lucide-react";
 import { PLACEHOLDER } from "../../lib/theme";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { ArtistNameLink } from "./ArtistNameLink";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 
@@ -14,7 +15,6 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-/** Mantido para reuso eventual; o layout atual não renderiza o player de rodapé. */
 export function VipMiniPlayerBar() {
   const { hasVip } = useMusicasSession();
   const player = useVipMusicPlayer();
@@ -24,7 +24,7 @@ export function VipMiniPlayerBar() {
   const track = player.currentTrack;
   const isPlaying = player.isPlaying;
   const display = getTrackDisplayMetadata(track);
-  const artistLine = [display.artist, track.album?.trim() || track.pack?.trim()].filter(Boolean).join(" · ");
+  const albumOrPack = track.album?.trim() || track.pack?.trim() || "";
   const coverSrc =
     track.coverUrl?.trim() || player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
 
@@ -54,8 +54,13 @@ export function VipMiniPlayerBar() {
           <p className="text-track-title truncate text-white" title={display.title}>
             {display.title}
           </p>
-          <p className="text-track-artist truncate" title={artistLine}>
-            {artistLine}
+          <p className="text-track-artist truncate" title={[display.artist, albumOrPack].filter(Boolean).join(" · ")}>
+            <ArtistNameLink
+              artist={display.artist}
+              className="text-track-artist"
+              splitCredits={false}
+            />
+            {albumOrPack ? <span className="text-white/35"> · {albumOrPack}</span> : null}
           </p>
           <div className="mt-1.5 flex items-center gap-2">
             <div

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Sora } from "next/font/google";
+import { DM_Sans, Plus_Jakarta_Sans, Sora } from "next/font/google";
 import "./globals.css";
 import { BackToTopButton } from "./components/BackToTopButton";
 import { MarketingChrome } from "./components/MarketingChrome";
@@ -33,6 +33,15 @@ const sora = Sora({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
+/** Player / faixas — Plus Jakarta Sans. */
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-player-face",
+  adjustFontFallback: false,
+  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
+});
+
 export const metadata: Metadata = buildRootMetadata();
 
 export const viewport: Viewport = {
@@ -48,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${dmSans.variable} ${sora.variable} dark h-full w-full max-w-[100vw] overflow-x-clip bg-[#121212] antialiased`}
+      className={`${dmSans.variable} ${sora.variable} ${plusJakarta.variable} dark h-full w-full max-w-[100vw] overflow-x-clip bg-[#121212] antialiased`}
     >
       <head>
         <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />

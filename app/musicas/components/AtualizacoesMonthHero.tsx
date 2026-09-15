@@ -48,13 +48,13 @@ export function AtualizacoesMonthHero({
         : mode === "tracks"
           ? "Pack"
           : mode === "week-styles"
-            ? "Semana"
-            : "Estilos";
+            ? "Mês"
+            : "Pastas";
   const description =
     mode === "weeks"
-      ? "Escolha a semana e continue até as pastas e faixas."
+      ? "Escolha a pasta do mês e continue até as subpastas e faixas."
       : mode === "months"
-        ? "Escolha o mês (JANEIRO, FEVEREIRO…) e avance para as semanas."
+        ? "Escolha o mês (ex.: 04- ABRIL 2024) e avance para as pastas."
         : mode === "tracks"
           ? "Ouça no navegador ou envie ao BRS Downloader."
           : mode === "week-styles"
@@ -120,7 +120,7 @@ export function AtualizacoesMonthHero({
             {eyebrow}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-start">
-            <h1 className="break-words font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+            <h1 className="break-words font-display text-3xl font-extrabold uppercase tracking-tight text-white sm:text-5xl">
               {title}
             </h1>
             {label && mode === "weeks" ? (
@@ -129,7 +129,7 @@ export function AtualizacoesMonthHero({
               </span>
             ) : null}
           </div>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/70 sm:mx-0 md:text-base">
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/65 sm:mx-0 md:text-base">
             {description}
           </p>
 

@@ -88,7 +88,7 @@ const POOL_DETECTORS: { label: string; pattern: RegExp }[] = [
 ];
 
 const MONTH_SEGMENT_RE =
-  /^(janeiro|fevereiro|marco|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+\d{4}$/i;
+  /^(?:0?[1-9]|1[0-2])\s*[-._]?\s*(janeiro|fevereiro|marco|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)(?:\s*[-._]?\s*\d{4})?$|^(janeiro|fevereiro|marco|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)(?:\s+\d{4})?$/i;
 const WEEK_SEGMENT_RE = /^semana\s*0*\d+$/i;
 const AUDIO_FILE_RE = /\.(mp3|wav|flac|aiff?|m4a|ogg|aac)$/i;
 

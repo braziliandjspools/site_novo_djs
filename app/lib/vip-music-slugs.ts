@@ -35,6 +35,11 @@ export function slugifyFolderName(name: string): string {
   return slug;
 }
 
+/** Slug de pasta de estilo (Funk, Sertanejo…) — mesmo algoritmo, uso explícito na URL/Downloader. */
+export function slugifyStyleName(name: string): string {
+  return slugifyFolderName(name);
+}
+
 export function folderHref(slugSegments: string[]): string {
   if (slugSegments.length === 0) return "/musicas/atualizacoes";
   return `/musicas/atualizacoes/${slugSegments.join("/")}`;
@@ -43,6 +48,17 @@ export function folderHref(slugSegments: string[]): string {
 export function collectionsHref(slugSegments: string[] = []): string {
   if (slugSegments.length === 0) return "/musicas/colecoes";
   return `/musicas/colecoes/${slugSegments.map(encodeURIComponent).join("/")}`;
+}
+
+/** Slug de artista (mesmo algoritmo das pastas). */
+export function slugifyArtistName(name: string): string {
+  return slugifyFolderName(name);
+}
+
+export function artistsHref(slug?: string | null): string {
+  const clean = slug?.trim();
+  if (!clean) return "/musicas/artistas";
+  return `/musicas/artistas/${encodeURIComponent(slugifyArtistName(clean))}`;
 }
 
 function parseWeekNumberFromSlug(slug: string): number | null {
@@ -55,12 +71,34 @@ function parseWeekNumberFromSlug(slug: string): number | null {
 function parseMonthFromSlug(slug: string): { month: number; year: number | null } | null {
   const parts = slug.toLowerCase().split("-").filter(Boolean);
   if (parts.length === 0) return null;
-  const month = MONTH_INDEX[parts[0]];
-  if (!month) return null;
-  if (parts.length >= 2 && /^\d{4}$/.test(parts[1])) {
-    return { month, year: Number(parts[1]) };
+
+  let index = 0;
+  let leadingMonthNum: number | null = null;
+  if (/^(0?[1-9]|1[0-2])$/.test(parts[0])) {
+    leadingMonthNum = Number(parts[0]);
+    index = 1;
   }
-  return { month, year: null };
+
+  for (let i = index; i < parts.length; i++) {
+    const month = MONTH_INDEX[parts[i]];
+    if (!month) continue;
+    const yearPart = parts[i + 1];
+    if (yearPart && /^\d{4}$/.test(yearPart)) {
+      return { month, year: Number(yearPart) };
+    }
+    return { month, year: null };
+  }
+
+  // Slug só numérico: "04" ou "04-2024".
+  if (leadingMonthNum != null) {
+    const yearPart = parts[1];
+    if (yearPart && /^\d{4}$/.test(yearPart)) {
+      return { month: leadingMonthNum, year: Number(yearPart) };
+    }
+    return { month: leadingMonthNum, year: null };
+  }
+
+  return null;
 }
 
 function folderHasExplicitYear(name: string): boolean {
@@ -69,7 +107,7 @@ function folderHasExplicitYear(name: string): boolean {
 
 /**
  * Resolve pasta pelo segmento de URL, tolerando diferenças comuns do Drive:
- * status no nome, SEMANA 2 vs semana-02, JANEIRO vs janeiro-2024.
+ * status no nome, SEMANA 2 vs semana-02, JANEIRO vs 04- ABRIL 2024 vs janeiro-2024.
  */
 export function findFolderBySlug(folders: VipMusicFolder[], slug: string): VipMusicFolder | null {
   const normalized = slug.toLowerCase().trim();
@@ -152,13 +190,32 @@ export function parseWeekNumber(name: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+const MONTH_NAME_PATTERN =
+  "janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro";
+
 export function parseMonthFolderDate(name: string): { year: number; month: number } | null {
   const label = displayFolderName(name)
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
     .trim();
+
+  // "04- ABRIL 2024", "04 - Abril 2024", "04.ABRIL.2024", "04 ABRIL"
+  const numbered = label.match(
+    new RegExp(
+      `^(0?[1-9]|1[0-2])\\s*[-._]?\\s*(${MONTH_NAME_PATTERN})(?:\\s*[-._]?\\s*(\\d{4}))?$`,
+      "i",
+    ),
+  );
+  if (numbered) {
+    const monthFromName = MONTH_INDEX[numbered[2].toLowerCase()];
+    if (!monthFromName) return null;
+    const year = numbered[3] ? Number(numbered[3]) : new Date().getFullYear();
+    if (!Number.isFinite(year)) return null;
+    return { year, month: monthFromName };
+  }
+
   const withYear = label.match(
-    /^(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+(\d{4})$/i,
+    new RegExp(`^(${MONTH_NAME_PATTERN})\\s+(\\d{4})$`, "i"),
   );
   if (withYear) {
     const monthKey = withYear[1].toLowerCase();
@@ -168,21 +225,19 @@ export function parseMonthFolderDate(name: string): { year: number; month: numbe
     return { year, month };
   }
 
-  const monthOnly = label.match(
-    /^(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)$/i,
-  );
+  const monthOnly = label.match(new RegExp(`^(${MONTH_NAME_PATTERN})$`, "i"));
   if (!monthOnly) return null;
   const month = MONTH_INDEX[monthOnly[1].toLowerCase()];
   if (!month) return null;
   return { year: new Date().getFullYear(), month };
 }
 
-/** Detecta pastas de mês: "JANEIRO", "Janeiro 2024", etc. */
+/** Detecta pastas de mês: "JANEIRO", "04- ABRIL 2024", "Janeiro 2024", etc. */
 export function isMonthFolderName(name: string): boolean {
   return parseMonthFolderDate(name) != null;
 }
 
-/** Maioria dos filhos parece mês → hierarquia Pack > Mês > Semana. */
+/** Maioria dos filhos parece mês → hierarquia Pack > Mês > Pastas. */
 export function childrenAreMonthFolders(folders: VipMusicFolder[]): boolean {
   if (folders.length === 0) return false;
   const months = folders.filter((folder) => isMonthFolderName(folder.name)).length;

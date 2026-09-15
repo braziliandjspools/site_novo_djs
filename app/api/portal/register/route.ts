@@ -8,7 +8,13 @@ import {
 import { registerPortalUser } from "../../../lib/portal-users";
 
 export async function POST(request: Request) {
-  let body: { name?: string; email?: string; whatsapp?: string; password?: string };
+  let body: {
+    name?: string;
+    email?: string;
+    whatsapp?: string;
+    password?: string;
+    acceptedTerms?: boolean;
+  };
 
   try {
     body = (await request.json()) as typeof body;
@@ -20,6 +26,13 @@ export async function POST(request: Request) {
   const email = body.email?.trim() ?? "";
   const whatsapp = body.whatsapp?.trim() ?? "";
   const password = body.password ?? "";
+
+  if (body.acceptedTerms !== true) {
+    return NextResponse.json(
+      { error: "É necessário aceitar os Termos de Serviço para criar a conta." },
+      { status: 400 },
+    );
+  }
 
   if (!name || !email || !whatsapp || !password) {
     return NextResponse.json(

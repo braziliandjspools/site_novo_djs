@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
+import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
 import { BrsLogo } from "./BrsLogo";
 import { MarketingAuthControls } from "./MarketingAuthControls";
@@ -38,9 +39,9 @@ export function Header() {
 
   return (
     <>
-      <div className="br-stripe" />
-      <header className="sticky top-0 z-50 w-full min-w-0 border-b border-white/10 bg-[#0e0e0e]/92 backdrop-blur-xl">
-        <div className="relative mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center gap-3 px-4 md:h-[72px] md:px-6">
+      <header className={APP_TOP_CHROME}>
+        <div className="br-stripe" />
+        <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-6xl md:px-6`}>
           <div className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 lg:static lg:translate-x-0">
             <BrsLogo
               href="/"
@@ -50,7 +51,7 @@ export function Header() {
           </div>
 
           <nav className="ml-auto hidden items-center lg:flex" aria-label="Principal">
-            <ul className="flex items-center gap-0.5 rounded-full border border-white/[0.07] bg-white/[0.02] px-1.5 py-1">
+            <ul className="flex items-center gap-0.5 rounded-full border border-white/[0.07] bg-white/[0.02] px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               {SITE_PRIMARY_NAV.map((link) => (
                 <li key={link.href}>
                   <a href={link.href} className={navLinkClass}>
@@ -113,7 +114,7 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="hidden items-center gap-2 lg:flex">
+          <div className="app-no-drag hidden items-center gap-2 lg:flex">
             <SiteNotificationBell compact />
             <MarketingAuthControls />
             <Link
@@ -124,7 +125,7 @@ export function Header() {
             </Link>
           </div>
 
-          <div className="ml-auto flex items-center gap-1.5 lg:hidden">
+          <div className="app-no-drag ml-auto flex items-center gap-1.5 lg:hidden">
             <MarketingAuthControls compact />
             <SiteNotificationBell compact />
             <button

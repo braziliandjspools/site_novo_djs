@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, ChevronRight, FolderOpen, Loader2, Music2, Search, X } from "lucide-react";
-import { slugifyFolderName } from "../../lib/vip-music-slugs";
+import { slugifyStyleName } from "../../lib/vip-music-slugs";
 import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 import { hitHref, useAtualizacoesSearch } from "./AtualizacoesSearchContext";
 
@@ -38,7 +38,7 @@ export function AtualizacoesSearch() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar mês, semana, estilo ou faixa..."
+          placeholder="Buscar mês, pasta ou faixa..."
           className="w-full rounded-full border-0 bg-[#242424] py-3 pl-10 pr-10 text-sm text-white outline-none transition-colors placeholder:text-zinc-500 focus:bg-[#2a2a2a] focus:ring-2 focus:ring-white/10"
         />
         {query && (
@@ -129,5 +129,5 @@ export function AtualizacoesSearchResults() {
 }
 
 export function matchStyleSlug(name: string, slug: string) {
-  return slugifyFolderName(name) === slug;
+  return slugifyStyleName(name) === slug;
 }

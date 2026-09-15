@@ -87,7 +87,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
       <DownloaderSyncProvider>
         <MusicasToastProvider>
           <VipMusicPlayerProvider canPlayFull={hasVip}>
-            <div className="flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#161816] text-zinc-100">
+            <div className="musicas-theme flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#101412] text-white">
               <MusicasTopNav
                 authenticated={authenticated}
                 userName={userName}

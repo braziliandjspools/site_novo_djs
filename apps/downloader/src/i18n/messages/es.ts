@@ -172,13 +172,14 @@ export const messagesEs = {
   zipRetryZip: "Comprimir de nuevo",
 
   // import
-  importTitle: "Importar un pack por enlace",
-  importPlaceholder: "Pega el enlace del pack del sitio",
+  importTitle: "Importar por enlace",
+  importPlaceholder: "Pega el enlace del pack o del artista",
   importValidate: "Validar enlace",
   importImporting: "Importando…",
   importTracksFound: "{count} canciones encontradas",
   importStartDownload: "Descargar pack",
-  importInvalidLink: "Enlace inválido. Revisa la dirección e inténtalo de nuevo.",
+  importInvalidLink:
+    "Enlace inválido. Usa un enlace de carpeta (/musicas/atualizacoes/…) o de artista (/musicas/artistas/…).",
   importError: "No pudimos importar este pack.",
 
   // history
@@ -444,8 +445,9 @@ export const messagesEs = {
 
   // import (extras)
   importPanelDesc:
-    "Pega el enlace del mes, la semana o el estilo copiado del catálogo VIP. La app lo valida y encola todas las canciones manteniendo la estructura de carpetas.",
-  importFolderLink: "Enlace de la carpeta",
+    "Pega el enlace del mes, estilo o artista copiado del catálogo VIP. La app valida y encola las canciones (las carpetas mantienen la estructura; los artistas van a Artistas/Nombre).",
+  importFolderLink: "Enlace de carpeta o artista",
+  importArtistLabel: "Perfil de artista",
   importLoginRequired: "Inicia sesión para validar el enlace.",
   importNoTracks: "Carpeta encontrada, pero sin canciones para descargar.",
   importSubfoldersFound: "subcarpetas",
