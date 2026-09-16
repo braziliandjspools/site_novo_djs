@@ -40,9 +40,6 @@ const floatingLayers: ParallaxLayer[] = [
   },
 ];
 
-/** DJs + 4 variantes no typewriter */
-const DJ_VARIANTS = ["DJs", "sets", "a pista", "clubs", "festas"] as const;
-
 const HERO_STATS = [
   {
     target: 315,
@@ -167,62 +164,6 @@ function StatCounter({
   );
 }
 
-function TypewriterAudience() {
-  const [index, setIndex] = useState(0);
-  const [text, setText] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    const boot = window.setTimeout(() => setStarted(true), 400);
-    return () => window.clearTimeout(boot);
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-
-    const current = DJ_VARIANTS[index];
-    const isFull = text === current;
-    const isEmpty = text.length === 0;
-
-    let delay = deleting ? 36 : 70;
-    if (!deleting && isFull) delay = 1800;
-    if (deleting && isEmpty) delay = 320;
-    if (!deleting && isEmpty) delay = 120;
-
-    const timer = window.setTimeout(() => {
-      if (!deleting && !isFull) {
-        setText(current.slice(0, text.length + 1));
-        return;
-      }
-      if (!deleting && isFull) {
-        setDeleting(true);
-        return;
-      }
-      if (deleting && !isEmpty) {
-        setText(current.slice(0, Math.max(0, text.length - 1)));
-        return;
-      }
-      setDeleting(false);
-      setIndex((prev) => (prev + 1) % DJ_VARIANTS.length);
-    }, delay);
-
-    return () => window.clearTimeout(timer);
-  }, [deleting, index, started, text]);
-
-  return (
-    <span className="inline-flex min-h-[1.05em] min-w-[6ch] items-baseline justify-center align-baseline sm:min-w-[7.5ch] md:justify-start">
-      <span className="bg-gradient-to-r from-[#1ed760] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
-        {text || "\u00A0"}
-      </span>
-      <span
-        className="ml-1 inline-block h-[0.82em] w-[0.11em] translate-y-[0.08em] animate-pulse bg-[#FFDF00]"
-        aria-hidden
-      />
-    </span>
-  );
-}
-
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLElement | null>(null);
@@ -308,12 +249,11 @@ export function Hero() {
               Pools · Curadoria · Remix Services
             </span>
             <h1 className="font-display break-words text-3xl font-semibold leading-[1.08] text-white sm:text-5xl md:text-7xl">
-              Packs, curadoria e conteúdo para <TypewriterAudience />
+              Repertório, packs e remixes para DJs
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base text-gray-300 sm:text-lg">
-              Encontre músicas, edits, remixes, acapellas e versões exclusivas selecionadas para facilitar sua
-              preparação. Tenha um repertório atualizado, organizado e pronto para deixar seus sets ainda mais
-              completos.
+              Packs, remix services, DJ pools, versões extended, intro edits e coleções organizadas
+              para diferentes pistas e estilos. Conteúdo atualizado para a rotina do DJ no Brasil.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
               <a

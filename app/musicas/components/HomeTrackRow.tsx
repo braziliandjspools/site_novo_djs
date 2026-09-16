@@ -72,6 +72,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
         {rank ? <span className={`w-5 text-center ${rank <= 3 ? "text-[#FFDF00]" : ""}`}>#{rank}</span> : null}
         <Link
           href={track.href}
+          prefetch={false}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-white transition-colors hover:bg-[#1ed760] hover:text-black"
           aria-label={`Abrir ${display.title}`}
         >
@@ -82,6 +83,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
       <div className="min-w-0 flex-1">
         <Link
           href={track.href}
+          prefetch={false}
           className="block text-sm font-semibold leading-snug text-white hover:underline"
           title={display.title}
         >

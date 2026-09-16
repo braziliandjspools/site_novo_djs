@@ -85,7 +85,12 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
   const requestIdRef = useRef(0);
   const urlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParamsRef = useRef(searchParams);
+  const routerReadyRef = useRef(false);
   searchParamsRef.current = searchParams;
+
+  useEffect(() => {
+    routerReadyRef.current = true;
+  }, []);
 
   // Só sincroniza do URL → estado quando a URL muda por navegação externa (não a cada tecla).
   useEffect(() => {
@@ -94,6 +99,7 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
 
   const syncUrl = useCallback(
     (nextQuery: string) => {
+      if (!routerReadyRef.current) return;
       const params = new URLSearchParams(searchParamsRef.current.toString());
       const trimmed = nextQuery.trim();
       if (trimmed.length >= 2) {
@@ -126,6 +132,7 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
     setResults([]);
     setError(null);
     setLoading(false);
+    if (!routerReadyRef.current) return;
     const params = new URLSearchParams(searchParamsRef.current.toString());
     params.delete("q");
     params.delete("estilo");
@@ -196,6 +203,7 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
       setResults([]);
       setError(null);
       setLoading(false);
+      if (!routerReadyRef.current) return;
       router.push(hitHref(hit), { scroll: true });
     },
     [router],

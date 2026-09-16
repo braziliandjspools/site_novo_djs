@@ -41,7 +41,7 @@ export type BrowseNavPathPart = {
   id?: string;
 };
 
-type AtualizacoesBrowseNavSidebarProps = {
+export type AtualizacoesBrowseNavSidebarProps = {
   slugSegments: string[];
   resolvedPath?: BrowseNavPathPart[];
   /** Packs da raiz (tree) — atalhos de 1º nível. */
@@ -118,6 +118,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      prefetch={false}
       aria-current={active ? "page" : undefined}
       className={`group flex items-center gap-2.5 rounded-full border px-3.5 py-2.5 transition-all ${
         active
@@ -283,7 +284,7 @@ export function AtualizacoesBrowseNavSidebar({
     <aside className="musicas-side-nav flex h-full max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#121614] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
       <div className="mb-3.5 flex-shrink-0 rounded-xl border border-[#1ed760]/25 bg-gradient-to-br from-[#1ed760]/15 via-transparent to-transparent px-3.5 py-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1ed760]">
-          Navegação
+          Biblioteca
         </p>
         <h2 className="mt-1 text-[15px] font-bold tracking-tight text-white">
           {displayFolderName(currentTitle)}
@@ -293,6 +294,7 @@ export function AtualizacoesBrowseNavSidebar({
         </p>
         <Link
           href="/musicas/atualizacoes"
+          prefetch={false}
           className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#2dff7a]"
         >
           <Home className="h-3.5 w-3.5" aria-hidden />
@@ -309,6 +311,7 @@ export function AtualizacoesBrowseNavSidebar({
               <Link
                 key={`${part.slug}-${index}`}
                 href={href}
+                prefetch={false}
                 className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] ${
                   last
                     ? "bg-[#1ed760]/15 text-[#1ed760]"

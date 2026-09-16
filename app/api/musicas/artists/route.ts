@@ -9,18 +9,20 @@ export async function GET() {
   const session = await getVipMusicSession();
   const access = vipMusicClientAccess(session);
 
-  const artists = listFeaturedKnownArtists().map((artist) => ({
-    slug: artist.slug,
-    name: artist.name,
-    imageUrl: artist.imageUrl ?? null,
-    shortBio: artist.shortBio ?? null,
-    bio: artist.bio ?? null,
-    genres: artist.genres ?? [],
-    origin: artist.origin ?? null,
-    spotifyUrl: artist.spotifyUrl ?? null,
-    href: artistsHref(artist.slug),
-    known: true,
-  }));
+  const artists = listFeaturedKnownArtists()
+    .map((artist) => ({
+      slug: artist.slug,
+      name: artist.name,
+      imageUrl: artist.imageUrl ?? null,
+      shortBio: artist.shortBio ?? null,
+      bio: artist.bio ?? null,
+      genres: artist.genres ?? [],
+      origin: artist.origin ?? null,
+      spotifyUrl: artist.spotifyUrl ?? null,
+      href: artistsHref(artist.slug),
+      known: true,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
-  return NextResponse.json({ artists, ...access });
+  return NextResponse.json({ artists, count: artists.length, ...access });
 }

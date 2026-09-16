@@ -8,22 +8,17 @@ import {
   sortFoldersByMonthDate,
   sortFoldersByYearCollection,
 } from "../../lib/vip-music-slugs";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
+import type { LibraryFolderItem } from "./LibraryFolderGrid";
+import { MusicLibraryFolderGrid } from "./MusicLibraryFolderGrid";
 
 type MusicasMonthLinksProps = {
   folders: Array<VipMusicFolder | VipMusicCatalogItem>;
   newFolderIds: Set<string>;
-  /** Mantido por compatibilidade; a lista unificada é sempre o layout biblioteca. */
   variant?: "inline" | "hero";
-  /** Usa melhor o espaço à direita no layout com sidebar. */
   fillColumn?: boolean;
 };
 
-export function MusicasMonthLinks({
-  folders,
-  newFolderIds,
-  fillColumn = false,
-}: MusicasMonthLinksProps) {
+export function MusicasMonthLinks({ folders, newFolderIds }: MusicasMonthLinksProps) {
   const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
   const byStructure =
     yearLike >= Math.ceil(folders.length * 0.5)
@@ -59,16 +54,46 @@ export function MusicasMonthLinks({
     });
   }, [sorted]);
 
+  const novos = useMemo(
+    () => items.filter((item) => newFolderIds.has(item.id)),
+    [items, newFolderIds],
+  );
+
   return (
-    <LibraryFolderList
-      folders={items}
-      slugSegments={[]}
-      newFolderIds={newFolderIds}
-      layout="grid"
-      fillColumn={fillColumn}
-      sectionTitle="Seu acervo"
-      sectionDescription="Pastas do mês e packs prontos para ouvir ou baixar."
-      emptyMessage="Nenhum mês encontrado."
-    />
+    <div className="space-y-8">
+      {novos.length > 0 ? (
+        <section>
+          <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
+            <h2 className="text-[17px] font-bold tracking-tight text-white sm:text-[19px]">
+              Novidades
+            </h2>
+            <span className="text-[12px] font-semibold text-white/40">{novos.length}</span>
+          </div>
+          <MusicLibraryFolderGrid
+            folders={novos}
+            slugSegments={[]}
+            newFolderIds={newFolderIds}
+            columns="dense"
+          />
+        </section>
+      ) : null}
+
+      <section id="atualizacoes-pastas">
+        <div className="mb-3 px-0.5">
+          <h2 className="text-[17px] font-bold tracking-tight text-white sm:text-[19px]">
+            Sua biblioteca
+          </h2>
+          <p className="mt-1 text-[13px] text-white/45">
+            Packs e meses — toque em um álbum para abrir.
+          </p>
+        </div>
+        <MusicLibraryFolderGrid
+          folders={items}
+          slugSegments={[]}
+          newFolderIds={newFolderIds}
+          emptyMessage="Nenhum mês encontrado."
+        />
+      </section>
+    </div>
   );
 }

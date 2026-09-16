@@ -16,10 +16,14 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold tracking-[-0.01em] text-[#FFDF00]">Plataforma</h4>
           <ul className="mt-3 space-y-2 text-xs">
+            <li><a href="/packs-para-djs" className="transition-colors hover:text-[#1DB954]">Packs para DJs</a></li>
+            <li><a href="/musicas/atualizacoes" className="transition-colors hover:text-[#1DB954]">Atualizações VIP</a></li>
+            <li><a href="/dj-pool-brasil" className="transition-colors hover:text-[#1DB954]">DJ Pools</a></li>
+            <li><a href="/remix-service-brasil" className="transition-colors hover:text-[#1DB954]">Remix Services</a></li>
+            <li><a href="/musicas/colecoes" className="transition-colors hover:text-[#1DB954]">Coleções</a></li>
             <li><a href="/plans" className="transition-colors hover:text-[#1DB954]">Planos</a></li>
             <li><a href="/allavsoft" className="transition-colors hover:text-[#1DB954]">Allavsoft</a></li>
             <li><a href="/musicproducer" className="transition-colors hover:text-[#1DB954]">Music Producer</a></li>
-            <li><a href="#acervo" className="transition-colors hover:text-[#1DB954]">Catálogo de Pools</a></li>
           </ul>
         </div>
         <div>

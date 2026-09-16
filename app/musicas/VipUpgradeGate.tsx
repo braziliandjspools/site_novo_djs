@@ -10,7 +10,7 @@ import { useMusicasSession } from "./components/MusicasSessionContext";
 const SPOTIFY_GREEN = "#1ed760";
 
 function loginHref(pathname: string, mode?: "login" | "register") {
-  const params = new URLSearchParams({ return: pathname || "/musicas/home" });
+  const params = new URLSearchParams({ return: pathname || "/musicas" });
   if (mode === "register") params.set("modo", "cadastro");
   return `/musicas/entrar?${params.toString()}`;
 }

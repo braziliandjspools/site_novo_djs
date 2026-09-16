@@ -15,10 +15,10 @@ import {
   getPackWeekDayRange,
   isCurrentPackWeek,
 } from "../../lib/week-calendar";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
+import type { LibraryFolderItem } from "./LibraryFolderGrid";
+import { MusicLibraryFolderGrid } from "./MusicLibraryFolderGrid";
 
 type WeekFolderGridProps = {
-  /** Prefixo de URL até o mês (ex.: ["brs-packs-2024", "janeiro"]). */
   parentSegments: string[];
   monthName: string;
   weeks: VipMusicCatalogItem[];
@@ -60,13 +60,10 @@ export function WeekFolderGrid({
         weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : displayFolderName(week.name);
 
       let badge: string | null = null;
-      let badgeTone: LibraryFolderItem["badgeTone"] = "green";
       if (weekStatus.status === "em-atualizacao") {
         badge = "Em atualização";
-        badgeTone = "amber";
       } else if (isCurrent) {
         badge = "Esta semana";
-        badgeTone = "green";
       }
 
       return {
@@ -78,23 +75,20 @@ export function WeekFolderGrid({
         coverUrl: week.coverUrl ?? null,
         detail: rangeLabel || null,
         badge,
-        badgeTone: badge ? badgeTone : undefined,
       };
     });
   }, [monthDate, now, weeks]);
 
   return (
-    <LibraryFolderList
+    <MusicLibraryFolderGrid
       className="mb-8"
       folders={items}
       slugSegments={parentSegments}
       newFolderIds={newWeekIds}
-      layout="buttons"
-      fillColumn
       emptyMessage="Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…"
       before={
         monthDate ? (
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 rounded-2xl bg-[#14181E] px-4 py-3">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#1a2332] to-[#14181E] px-4 py-3 ring-1 ring-white/5">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">
                 Calendário
@@ -106,7 +100,7 @@ export function WeekFolderGrid({
                 Semana 01 = dias 1–7 · Semana 02 = 8–14…
               </p>
             </div>
-            <p className="rounded-full bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760] ring-1 ring-[#1ed760]/25">
+            <p className="rounded-lg bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1ed760] ring-1 ring-[#1ed760]/25">
               {formatLiveClock(now)}
             </p>
           </div>

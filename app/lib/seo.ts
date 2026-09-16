@@ -47,7 +47,11 @@ export type SeoPageKey =
   | "musicas-home"
   | "musicas-atualizacoes"
   | "musicas-colecoes"
+  | "musicas-artistas"
   | "musicas-entrar"
+  | "packs-para-djs"
+  | "dj-pool-brasil"
+  | "remix-service-brasil"
   | "privacidade"
   | "termos"
   | "privacy-downloader"
@@ -75,36 +79,38 @@ export type SeoPageConfig = {
   sitemap?: boolean;
   changeFrequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: number;
+  /** lastmod estável (ISO date). Evita new Date() em toda request. */
+  lastModified?: string;
 };
+
+/** Data de conteúdo estável para páginas institucionais (YYYY-MM-DD). */
+export const SEO_STATIC_LASTMOD = "2026-09-16";
 
 const SHARED_KEYWORDS = [
   "Brazilian Remix Service",
-  "BRS",
-  "pools DJ Brasil",
-  "remix service DJ",
-  "edits DJ",
-  "packs DJ",
-  "acervo VIP DJ",
-  "Downloader DJ Windows",
+  "packs para DJs",
+  "remixes para DJs",
+  "DJ pool Brasil",
 ] as const;
 
 export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   home: {
     key: "home",
     path: "/",
-    title: `${SITE_NAME} | Pools, edits e remixes para DJs`,
+    title: "Brazilian Remix Service | Packs e Remixes para DJs",
     description:
-      "Acervo VIP para DJs no Brasil: pools, edits, extended e remixes curados, atualizações mensais, plataforma online e BRS Downloader. Assine a partir de R$ 38/mês via Mercado Pago.",
+      "Packs, remixes, remix services, DJ pools, versões extended, edits e coleções organizadas para DJs. Encontre repertório para diferentes pistas e estilos.",
     ogImage: "home",
     keywords: [
       ...SHARED_KEYWORDS,
-      "assinatura pools DJ",
-      "plataforma músicas DJ",
-      "Mercado Pago VIP",
+      "remix service Brasil",
+      "músicas para DJ",
+      "extended mix",
     ],
     sitemap: true,
     changeFrequency: "weekly",
     priority: 1,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   plans: {
     key: "plans",
@@ -113,17 +119,11 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     description:
       "Planos BRS Drive VIP: teste 3 dias por R$ 1, mensal R$ 38, trimestral e anual. Acervo completo, plataforma /musicas e Downloader Windows. Pagamento seguro no Mercado Pago.",
     ogImage: "plans",
-    keywords: [
-      ...SHARED_KEYWORDS,
-      "plano VIP DJ",
-      "assinatura pools preço",
-      "BRS Drive VIP",
-      "teste 3 dias",
-      "Mercado Pago",
-    ],
+    keywords: [...SHARED_KEYWORDS, "plano VIP DJ", "assinatura pools preço"],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.95,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   deemix: {
     key: "deemix",
@@ -132,10 +132,11 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     description:
       "Deemix no Brazilian Remix Service: baixe e organize músicas com praticidade para ampliar o repertório e preparar sets com mais velocidade.",
     ogImage: "deemix",
-    keywords: ["Deemix", "download música DJ", "Deemix Server", "ARL 320"],
+    keywords: ["Deemix", "download música DJ"],
     sitemap: DEEMIX_ENABLED,
     changeFrequency: "monthly",
     priority: 0.7,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   allavsoft: {
     key: "allavsoft",
@@ -144,17 +145,11 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     description:
       "Licença Allavsoft vitalícia por R$ 50. Baixe de Spotify, Deezer, YouTube e +1000 sites. Serial liberado no portal após pagamento no Mercado Pago.",
     ogImage: "allavsoft",
-    keywords: [
-      "Allavsoft",
-      "Allavsoft vitalício",
-      "download Spotify",
-      "download Deezer",
-      "download YouTube",
-      "licença Allavsoft Brasil",
-    ],
+    keywords: ["Allavsoft", "download Spotify", "download Deezer"],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.9,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   musicproducer: {
     key: "musicproducer",
@@ -163,16 +158,11 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     description:
       "Music Producer BRS: briefing, ideia, letra e entrega de faixas personalizadas para DJs e eventos. Acompanhe o pedido no portal do cliente.",
     ogImage: "musicproducer",
-    keywords: [
-      "produção musical sob demanda",
-      "music producer DJ",
-      "música personalizada",
-      "remix sob encomenda",
-      "briefing musical",
-    ],
+    keywords: ["produção musical sob demanda", "music producer DJ"],
     sitemap: true,
     changeFrequency: "monthly",
     priority: 0.85,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "gerador-maiusculas": {
     key: "gerador-maiusculas",
@@ -181,16 +171,11 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     description:
       "Ferramenta gratuita: converta texto para MAIÚSCULO, minúsculo, Title Case, alternado ou invertido. Ideal para tags, pastas e nomes de faixas.",
     ogImage: "home",
-    keywords: [
-      "gerador de maiúsculas",
-      "converter maiúsculo minúsculo",
-      "title case online",
-      "caixa alta",
-      "caixa baixa",
-    ],
+    keywords: ["gerador de maiúsculas", "converter maiúsculo minúsculo"],
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.45,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   portal: {
     key: "portal",
@@ -205,18 +190,21 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   musicas: {
     key: "musicas",
     path: "/musicas",
-    title: `Plataforma VIP de músicas | ${SITE_NAME}`,
+    title: `Biblioteca VIP para DJs | ${SITE_NAME}`,
     description:
-      "Área VIP para ouvir e baixar packs, atualizações e coleções do Brazilian Remix Service.",
+      "Central da biblioteca BRS: packs, atualizações, artistas, coleções e repertório organizado para DJs. Navegue o acervo e acesse as novidades VIP.",
     ogImage: "musicas",
-    noIndex: true,
-    sitemap: false,
+    keywords: [...SHARED_KEYWORDS, "biblioteca DJ", "acervo VIP DJ"],
+    sitemap: true,
+    changeFrequency: "daily",
+    priority: 0.9,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "musicas-home": {
     key: "musicas-home",
     path: "/musicas/home",
     title: `Início VIP | ${SITE_NAME}`,
-    description: "Painel inicial da plataforma VIP de músicas BRS.",
+    description: "Redireciona para a biblioteca VIP do Brazilian Remix Service.",
     ogImage: "musicas-home",
     noIndex: true,
     sitemap: false,
@@ -224,20 +212,46 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "musicas-atualizacoes": {
     key: "musicas-atualizacoes",
     path: "/musicas/atualizacoes",
-    title: `Atualizações VIP | ${SITE_NAME}`,
-    description: "Atualizações mensais do acervo VIP Brazilian Remix Service.",
+    title: "Atualizações para DJs, Remix Services e DJ Pools | BRS",
+    description:
+      "Atualizações para DJs com remix services, DJ pools, packs, extended mixes, intro edits, funk, sertanejo, eletrônico, flashback e muito mais. Explore o acervo BRS.",
     ogImage: "musicas-atualizacoes",
-    noIndex: true,
-    sitemap: false,
+    keywords: [
+      ...SHARED_KEYWORDS,
+      "atualizações VIP DJ",
+      "extended mix",
+      "intro edit",
+    ],
+    sitemap: true,
+    changeFrequency: "daily",
+    priority: 0.95,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "musicas-colecoes": {
     key: "musicas-colecoes",
     path: "/musicas/colecoes",
-    title: `Coleções VIP | ${SITE_NAME}`,
-    description: "Coleções e pastas especiais do acervo VIP BRS.",
+    title: "Coleções para DJs – Remixes, Extended e Clássicos | BRS",
+    description:
+      "Explore coleções organizadas para DJs com remixes, extended versions, clássicos, flashbacks e diferentes estilos para eventos e pistas.",
     ogImage: "musicas-colecoes",
-    noIndex: true,
-    sitemap: false,
+    keywords: [...SHARED_KEYWORDS, "coleções DJ", "flashback remix"],
+    sitemap: true,
+    changeFrequency: "weekly",
+    priority: 0.85,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  "musicas-artistas": {
+    key: "musicas-artistas",
+    path: "/musicas/artistas",
+    title: `Artistas do acervo VIP | ${SITE_NAME}`,
+    description:
+      "Perfis de artistas do acervo BRS: bios, gêneros e faixas remixadas para DJs. Explore nomes do funk, sertanejo, eletrônico, MPB e mais.",
+    ogImage: "musicas",
+    keywords: [...SHARED_KEYWORDS, "artistas remix DJ"],
+    sitemap: true,
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "musicas-entrar": {
     key: "musicas-entrar",
@@ -246,14 +260,53 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     description:
       "Login da plataforma VIP do Brazilian Remix Service. Acesse atualizações, coleções, player e fila do BRS Downloader com sua conta.",
     ogImage: "musicas-entrar",
+    noIndex: true,
+    sitemap: false,
+  },
+  "packs-para-djs": {
+    key: "packs-para-djs",
+    path: "/packs-para-djs",
+    title: "Packs para DJs – Remixes, Extended e Edits | BRS",
+    description:
+      "Explore packs para DJs com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, flashback e outros estilos organizados para diferentes pistas.",
+    ogImage: "home",
     keywords: [
-      "login VIP BRS",
-      "entrar plataforma músicas",
-      "login Brazilian Remix Service",
+      "packs para DJs",
+      "pack funk DJ",
+      "pack sertanejo DJ",
+      "extended mix",
+      "intro edit",
     ],
     sitemap: true,
-    changeFrequency: "yearly",
-    priority: 0.55,
+    changeFrequency: "weekly",
+    priority: 0.92,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  "dj-pool-brasil": {
+    key: "dj-pool-brasil",
+    path: "/dj-pool-brasil",
+    title: "DJ Pool Brasil – Pools, Remixes e Atualizações | BRS",
+    description:
+      "DJ pools para DJs no Brasil: atualizações, remixes, edits e packs organizados no acervo BRS. Conheça o fluxo de pools e acesse as novidades VIP.",
+    ogImage: "home",
+    keywords: ["DJ pool Brasil", "DJ pools", "remix service Brasil", "pools DJ"],
+    sitemap: true,
+    changeFrequency: "weekly",
+    priority: 0.9,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  "remix-service-brasil": {
+    key: "remix-service-brasil",
+    path: "/remix-service-brasil",
+    title: "Remix Service Brasil – Remixes e Edits para DJs | BRS",
+    description:
+      "Remix service para DJs: extended mixes, intro edits, clean/dirty, bootlegs e versões prontas para a pista. Veja como o acervo BRS organiza o repertório.",
+    ogImage: "home",
+    keywords: ["remix service Brasil", "remixes para DJs", "intro edit", "clean edit"],
+    sitemap: true,
+    changeFrequency: "weekly",
+    priority: 0.9,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   privacidade: {
     key: "privacidade",
@@ -265,6 +318,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.3,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   termos: {
     key: "termos",
@@ -276,6 +330,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.3,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "privacy-downloader": {
     key: "privacy-downloader",
@@ -287,6 +342,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.3,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "privacy-cookies": {
     key: "privacy-cookies",
@@ -298,6 +354,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.25,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   "privacy-conduct": {
     key: "privacy-conduct",
@@ -309,6 +366,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.25,
+    lastModified: SEO_STATIC_LASTMOD,
   },
   admin: {
     key: "admin",
@@ -456,9 +514,10 @@ export function buildRootMetadata(): Metadata {
     metadataBase: new URL(SITE_URL),
     title: {
       default: home.title,
-      template: `%s | ${SITE_SHORT}`,
+      template: `%s | ${SITE_NAME}`,
     },
-    description: home.description,
+    description:
+      "Plataforma para DJs com packs, remixes, remix services, DJ pools, versões extended, intro edits, coleções e atualizações para diferentes estilos e pistas.",
     applicationName: SITE_NAME,
     authors: [{ name: SITE_NAME, url: SITE_URL }],
     creator: SITE_NAME,
@@ -677,10 +736,136 @@ export function sitemapEntries() {
     .filter((page) => page.sitemap !== false && !page.noIndex)
     .map((page) => ({
       url: absoluteUrl(page.path),
-      lastModified: new Date(),
+      ...(page.lastModified
+        ? { lastModified: new Date(`${page.lastModified}T12:00:00.000Z`) }
+        : {}),
       changeFrequency: page.changeFrequency ?? "monthly",
       priority: page.priority ?? 0.5,
     }));
+}
+
+/**
+ * Sitemap completo: páginas estáticas SEO_PAGES + packs raiz indexados + artistas featured.
+ * Packs vêm do catálogo VIP (Drive com cache Next) — falha silenciosa se indisponível.
+ */
+export async function buildFullSitemap(): Promise<
+  Array<{
+    url: string;
+    lastModified?: Date;
+    changeFrequency?: SeoPageConfig["changeFrequency"];
+    priority?: number;
+  }>
+> {
+  const staticEntries = sitemapEntries();
+  const seen = new Set(staticEntries.map((entry) => entry.url));
+  const dynamic: typeof staticEntries = [];
+
+  try {
+    const { listVipMusicFolders } = await import("./vip-music-catalog");
+    const { displayFolderName, folderHref, slugifyFolderName } = await import("./vip-music-slugs");
+    const folders = await listVipMusicFolders();
+    for (const folder of folders.slice(0, 200)) {
+      const slug = slugifyFolderName(folder.name);
+      if (!slug) continue;
+      const path = folderHref([slug]);
+      const url = absoluteUrl(path);
+      if (seen.has(url)) continue;
+      seen.add(url);
+      const yearMatch = displayFolderName(folder.name).match(/\b(20\d{2})\b/);
+      dynamic.push({
+        url,
+        changeFrequency: "weekly",
+        priority: yearMatch && yearMatch[1] === "2026" ? 0.88 : 0.75,
+      });
+    }
+  } catch {
+    /* Drive/index indisponível no build — mantém estático */
+  }
+
+  try {
+    const { listFeaturedKnownArtists } = await import("./vip-known-artists");
+    const { artistsHref } = await import("./vip-music-slugs");
+    for (const artist of listFeaturedKnownArtists().slice(0, 150)) {
+      const path = artistsHref(artist.slug);
+      const url = absoluteUrl(path);
+      if (seen.has(url)) continue;
+      seen.add(url);
+      dynamic.push({
+        url,
+        changeFrequency: "monthly",
+        priority: 0.65,
+      });
+    }
+  } catch {
+    /* catálogo de artistas indisponível */
+  }
+
+  return [...staticEntries, ...dynamic];
+}
+
+/** Metadata dinâmica para pastas de /musicas/atualizacoes/[...slug]. */
+export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel: string) {
+  const path = `/musicas/atualizacoes/${segments.map(encodeURIComponent).join("/")}`;
+  const yearMatch = folderLabel.match(/\b(20\d{2})\b/);
+  const isPackRoot = segments.length === 1;
+  const title = isPackRoot
+    ? yearMatch
+      ? `Packs para DJs ${yearMatch[1]} – Remixes, Extended e Edits | BRS`
+      : `${folderLabel} – Packs e Remixes para DJs | BRS`
+    : `${folderLabel} – Atualizações para DJs | BRS`;
+  const description = isPackRoot
+    ? yearMatch
+      ? `Packs para DJs atualizados em ${yearMatch[1]} com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, open format e muito mais no acervo BRS.`
+      : `Explore ${folderLabel} no acervo BRS: packs, remixes, extended mixes, intro edits e pastas organizadas para DJs.`
+    : `Confira ${folderLabel} nas atualizações BRS: DJ pools, remix services, edits, remixes e versões para DJs.`;
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website" as const,
+      locale: SITE_LOCALE,
+      url: absoluteUrl(path),
+      siteName: SITE_NAME,
+      title,
+      description,
+      images: [
+        {
+          url: absoluteUrl(resolveOgImagePath("musicas-atualizacoes")),
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title,
+      description,
+      images: [absoluteUrl(resolveOgImagePath("musicas-atualizacoes"))],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
+
+export function collectionPageJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    inLanguage: SITE_LANGUAGE,
+  };
 }
 
 export function faqJsonLd(faqs: { q: string; a: string }[]) {
@@ -718,8 +903,7 @@ export const ROBOTS_DISALLOW = [
   "/api/",
   "/portal",
   "/musicas/home",
-  "/musicas/atualizacoes",
-  "/musicas/colecoes",
+  "/musicas/entrar",
   "/musicas/dl/",
   "/pagamento/",
   "/checkout/",

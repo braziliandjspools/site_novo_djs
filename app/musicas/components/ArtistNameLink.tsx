@@ -47,6 +47,7 @@ export function ArtistNameLink({
     return (
       <Link
         href={href}
+        prefetch={false}
         className={mergeClass(className, LINK_HOVER)}
         onClick={stopRow}
         title={`Ver perfil de ${known?.name ?? label}`}
@@ -63,6 +64,7 @@ export function ArtistNameLink({
     return (
       <Link
         href={href}
+        prefetch={false}
         className={mergeClass(className, LINK_HOVER)}
         onClick={stopRow}
         title={`Ver perfil de ${known?.name ?? label}`}
@@ -87,6 +89,7 @@ export function ArtistNameLink({
       <Link
         key={`${part}-${index}`}
         href={href}
+        prefetch={false}
         className={LINK_HOVER}
         onClick={stopRow}
         title={`Ver perfil de ${known?.name ?? part}`}

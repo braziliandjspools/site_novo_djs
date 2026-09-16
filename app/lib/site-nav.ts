@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { CreditCard, Home, Mic2, Type, UserCircle, Video, Wrench } from "lucide-react";
+import { CreditCard, Home, Layers, Mic2, Type, UserCircle, Video, Wrench } from "lucide-react";
 
 export type SiteNavLink = {
   href: string;
@@ -11,6 +11,7 @@ export type SiteNavLink = {
 /** Links principais do header (sem ferramentas). */
 export const SITE_PRIMARY_NAV: SiteNavLink[] = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/packs-para-djs", label: "Packs", icon: Layers },
   { href: "/plans", label: "Planos", icon: CreditCard },
   { href: "/allavsoft", label: "Allavsoft", icon: Video },
   { href: "/musicproducer", label: "Producer", icon: Mic2 },

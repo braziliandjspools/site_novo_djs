@@ -24,7 +24,6 @@ import {
   setMusicasCache,
 } from "../lib/musicas-fetch-cache";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
-import { AtualizacoesBrowseNavSidebar } from "./AtualizacoesBrowseNavSidebar";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
@@ -32,6 +31,7 @@ import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
+import { MusicLibraryBrowseShell } from "./MusicLibraryBrowseShell";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
@@ -52,7 +52,6 @@ import {
   MusicasListSkeleton,
   MusicasTracksSkeleton,
 } from "./MusicasSkeletons";
-import { UpdatesHeroSkeleton } from "./UpdatesHero";
 
 type ResolveResponse = {
   folderId: string;
@@ -569,10 +568,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             <MusicasTracksSkeleton rows={8} />
           </>
         ) : (
-          <>
-            <UpdatesHeroSkeleton />
-            <MusicasBrowseFoldersSkeleton rows={8} />
-          </>
+          <MusicasBrowseFoldersSkeleton rows={12} />
         ))}
 
       {data && showingTracks ? (
@@ -651,179 +647,166 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && data && showingWeeks && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start md:gap-5 lg:gap-6">
-          <div className="md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-hidden">
-            <AtualizacoesBrowseNavSidebar
-              slugSegments={slugSegments}
-              resolvedPath={data.resolvedPath}
-              rootPacks={months}
-              currentChildren={data.items}
-              siblings={siblingFolders}
-              packMonths={packMonths.length > 0 ? packMonths : data.items}
-              monthWeeks={data.items}
-              newChildIds={newChildIds}
-            />
-          </div>
-          <div className="min-w-0">
-            <WeekFolderGrid
-              parentSegments={slugSegments}
-              monthName={calendarMonthName}
-              weeks={data.items}
-              newWeekIds={newChildIds}
-            />
-            <AtualizacoesMonthFooterNav
-              monthSlug={monthSlug}
-              months={months}
-              weeks={data.items}
-              weekSlug={weekSlug}
-              homeHref="/musicas/atualizacoes"
-              homeLabel="Home"
-            />
-          </div>
-        </div>
+        <MusicLibraryBrowseShell
+          slugSegments={slugSegments}
+          resolvedPath={data.resolvedPath}
+          rootPacks={months}
+          currentChildren={data.items}
+          siblings={siblingFolders}
+          packMonths={packMonths.length > 0 ? packMonths : data.items}
+          monthWeeks={data.items}
+          newChildIds={newChildIds}
+        >
+          <WeekFolderGrid
+            parentSegments={slugSegments}
+            monthName={calendarMonthName}
+            weeks={data.items}
+            newWeekIds={newChildIds}
+          />
+          <AtualizacoesMonthFooterNav
+            monthSlug={monthSlug}
+            months={months}
+            weeks={data.items}
+            weekSlug={weekSlug}
+            homeHref="/musicas/atualizacoes"
+            homeLabel="Home"
+          />
+        </MusicLibraryBrowseShell>
       )}
 
       {!error && data && showingStyles && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start md:gap-5 lg:gap-6">
-          <div className="md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-hidden">
-            <AtualizacoesBrowseNavSidebar
+        <MusicLibraryBrowseShell
+          slugSegments={slugSegments}
+          resolvedPath={data.resolvedPath}
+          rootPacks={months}
+          currentChildren={data.items}
+          siblings={siblingFolders}
+          packMonths={
+            packMonths.length > 0
+              ? packMonths
+              : showingMonths
+                ? data.items
+                : packMonths
+          }
+          monthWeeks={siblingWeeks}
+          newChildIds={newChildIds}
+        >
+          {data.items.length > 0 ? (
+            <StyleFolderLinks
+              folders={data.items}
               slugSegments={slugSegments}
-              resolvedPath={data.resolvedPath}
-              rootPacks={months}
-              currentChildren={data.items}
-              siblings={siblingFolders}
-              packMonths={
-                packMonths.length > 0
-                  ? packMonths
-                  : showingMonths
-                    ? data.items
-                    : packMonths
-              }
-              monthWeeks={siblingWeeks}
-              newChildIds={newChildIds}
+              newFolderIds={newChildIds}
             />
-          </div>
-          <div className="min-w-0">
-            {data.items.length > 0 ? (
-              <StyleFolderLinks
-                folders={data.items}
-                slugSegments={slugSegments}
-                newFolderIds={newChildIds}
-              />
-            ) : null}
-            {directTracks.length > 0 && (
-              <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
-                <div className={poolPanelHeaderClass}>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                    Arquivos nesta pasta · {directTracks.length}
-                  </p>
-                </div>
-                <VipMusicTrackList
-                  folderId={data.folderId}
-                  tracks={directTracks}
-                  canPlay={playbackEnabled}
-                  canDownload={downloadEnabled}
-                  relativePath={relativeStyleBase}
-                  coverUrl={data.coverUrl}
-                  layout="table"
-                  continueContext={
-                    monthSlug
-                      ? {
-                          monthSlug,
-                          monthName: monthTitle,
-                          weekSlug: nestedWeekSlug ?? weekSlug,
-                          styleName: displayFolderName(data.folderName),
-                        }
-                      : undefined
-                  }
-                />
+          ) : null}
+          {directTracks.length > 0 && (
+            <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
+              <div className={poolPanelHeaderClass}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                  Arquivos nesta pasta · {directTracks.length}
+                </p>
               </div>
-            )}
-            {useSiblingFolderNav ? (
-              <AtualizacoesMonthFooterNav
-                monthSlug={monthSlug}
-                months={months}
-                siblings={siblingNavItems}
-                currentSiblingSlug={currentFolderSlug}
-                homeHref={homeParentHref}
-                homeLabel="Home"
-              />
-            ) : (
-              <AtualizacoesMonthFooterNav
-                monthSlug={monthSlug}
-                months={months}
-                weeks={siblingWeeks}
-                weekSlug={nestedWeekSlug ?? weekSlug}
-                homeHref={
-                  slugSegments.length > 1
-                    ? folderHref(slugSegments.slice(0, -1))
-                    : "/musicas/atualizacoes"
+              <VipMusicTrackList
+                folderId={data.folderId}
+                tracks={directTracks}
+                canPlay={playbackEnabled}
+                canDownload={downloadEnabled}
+                relativePath={relativeStyleBase}
+                coverUrl={data.coverUrl}
+                layout="table"
+                continueContext={
+                  monthSlug
+                    ? {
+                        monthSlug,
+                        monthName: monthTitle,
+                        weekSlug: nestedWeekSlug ?? weekSlug,
+                        styleName: displayFolderName(data.folderName),
+                      }
+                    : undefined
                 }
-                homeLabel="Home"
               />
-            )}
-          </div>
-        </div>
-      )}
-
-      {!error && data && showingTracks && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] md:items-start md:gap-5 lg:gap-6">
-          <div className="md:sticky md:top-24 md:max-h-[calc(100dvh-7.5rem)] md:self-start md:overflow-hidden">
-            <AtualizacoesBrowseNavSidebar
-              slugSegments={slugSegments}
-              resolvedPath={data.resolvedPath}
-              rootPacks={months}
-              currentChildren={[]}
-              siblings={siblingFolders}
-              packMonths={packMonths}
-              monthWeeks={siblingWeeks}
-              newChildIds={newChildIds}
-            />
-          </div>
-          <div className="min-w-0 overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
-          <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
-          {directTracks.length === 0 && loading ? (
-            <MusicasTracksSkeleton />
-          ) : directTracks.length === 0 ? (
-            <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
-              Nenhuma faixa nesta pasta.
-            </p>
-          ) : (
-            <VipMusicTrackList
-              folderId={data.folderId}
-              tracks={directTracks}
-              canPlay={playbackEnabled}
-              canDownload={downloadEnabled}
-              relativePath={tracksRelativePath}
-              coverUrl={data.coverUrl}
-              albumTitle={displayFolderName(data.folderName)}
-              highlightTrackId={faixaId ?? undefined}
-              autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
-              layout="table"
-              continueContext={
-                monthSlug
-                  ? {
-                      monthSlug,
-                      monthName: monthTitle,
-                      weekSlug,
-                      styleName: displayFolderName(data.folderName),
-                    }
-                  : undefined
-              }
-            />
+            </div>
           )}
-          {(useSiblingFolderNav || slugSegments.length >= 2) && (
+          {useSiblingFolderNav ? (
             <AtualizacoesMonthFooterNav
               monthSlug={monthSlug}
               months={months}
-              siblings={siblingNavItems.length > 1 ? siblingNavItems : undefined}
+              siblings={siblingNavItems}
               currentSiblingSlug={currentFolderSlug}
               homeHref={homeParentHref}
               homeLabel="Home"
             />
+          ) : (
+            <AtualizacoesMonthFooterNav
+              monthSlug={monthSlug}
+              months={months}
+              weeks={siblingWeeks}
+              weekSlug={nestedWeekSlug ?? weekSlug}
+              homeHref={
+                slugSegments.length > 1
+                  ? folderHref(slugSegments.slice(0, -1))
+                  : "/musicas/atualizacoes"
+              }
+              homeLabel="Home"
+            />
           )}
+        </MusicLibraryBrowseShell>
+      )}
+
+      {!error && data && showingTracks && (
+        <MusicLibraryBrowseShell
+          slugSegments={slugSegments}
+          resolvedPath={data.resolvedPath}
+          rootPacks={months}
+          currentChildren={[]}
+          siblings={siblingFolders}
+          packMonths={packMonths}
+          monthWeeks={siblingWeeks}
+          newChildIds={newChildIds}
+        >
+          <div className="min-w-0 overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
+            <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
+            {directTracks.length === 0 && loading ? (
+              <MusicasTracksSkeleton />
+            ) : directTracks.length === 0 ? (
+              <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
+                Nenhuma faixa nesta pasta.
+              </p>
+            ) : (
+              <VipMusicTrackList
+                folderId={data.folderId}
+                tracks={directTracks}
+                canPlay={playbackEnabled}
+                canDownload={downloadEnabled}
+                relativePath={tracksRelativePath}
+                coverUrl={data.coverUrl}
+                albumTitle={displayFolderName(data.folderName)}
+                highlightTrackId={faixaId ?? undefined}
+                autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
+                layout="table"
+                continueContext={
+                  monthSlug
+                    ? {
+                        monthSlug,
+                        monthName: monthTitle,
+                        weekSlug,
+                        styleName: displayFolderName(data.folderName),
+                      }
+                    : undefined
+                }
+              />
+            )}
+            {(useSiblingFolderNav || slugSegments.length >= 2) && (
+              <AtualizacoesMonthFooterNav
+                monthSlug={monthSlug}
+                months={months}
+                siblings={siblingNavItems.length > 1 ? siblingNavItems : undefined}
+                currentSiblingSlug={currentFolderSlug}
+                homeHref={homeParentHref}
+                homeLabel="Home"
+              />
+            )}
           </div>
-        </div>
+        </MusicLibraryBrowseShell>
       )}
 
       {!error && !data && !loading && <MusicasListSkeleton rows={6} />}

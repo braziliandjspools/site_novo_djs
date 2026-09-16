@@ -3,7 +3,7 @@
   "name": "Brazilian Remix Service",
   "short_name": "BRS VIP",
   "description": "Acervo VIP para DJs: pools, edits, remixes, plataforma online e BRS Downloader.",
-  "start_url": "/musicas/home",
+  "start_url": "/musicas",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "browser"],

@@ -24,7 +24,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   const didBootRef = useRef(false);
 
   const goToLogin = useCallback(() => {
-    const returnTo = pathname || "/musicas/home";
+    const returnTo = pathname || "/musicas";
     window.location.assign(`/musicas/entrar?return=${encodeURIComponent(returnTo)}`);
   }, [pathname]);
 
@@ -60,7 +60,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
 
   async function handleLogout() {
     await fetch("/api/portal/logout", { method: "POST" });
-    window.location.assign("/musicas/home");
+    window.location.assign("/musicas");
   }
 
   const sessionValue = useMemo(

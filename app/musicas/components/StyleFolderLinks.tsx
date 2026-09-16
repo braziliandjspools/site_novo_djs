@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
+import type { LibraryFolderItem } from "./LibraryFolderGrid";
+import { MusicLibraryFolderGrid } from "./MusicLibraryFolderGrid";
 
 type StyleFolderLinksProps = {
   folders: VipMusicCatalogItem[];
@@ -10,7 +11,7 @@ type StyleFolderLinksProps = {
   newFolderIds?: Set<string>;
 };
 
-/** Navegação de estilos/subpastas — botões largos no acervo. */
+/** Estilos/subpastas em tiles quadrados coloridos (estilo Amazon Music). */
 export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleFolderLinksProps) {
   const items = useMemo((): LibraryFolderItem[] => {
     return folders.map((folder) => ({
@@ -22,15 +23,39 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
     }));
   }, [folders]);
 
+  const novos = useMemo(
+    () => (newFolderIds ? items.filter((item) => newFolderIds.has(item.id)) : []),
+    [items, newFolderIds],
+  );
+  const demais = useMemo(
+    () => (newFolderIds ? items.filter((item) => !newFolderIds.has(item.id)) : items),
+    [items, newFolderIds],
+  );
+
   return (
-    <LibraryFolderList
-      className="mb-8"
-      folders={items}
-      slugSegments={slugSegments}
-      newFolderIds={newFolderIds}
-      layout="buttons"
-      fillColumn
-      emptyMessage="Nenhuma pasta nesta pasta. Adicione subpastas no Google Drive."
-    />
+    <div className="mb-8 space-y-7">
+      {novos.length > 0 ? (
+        <section>
+          <h2 className="mb-3 text-[17px] font-bold tracking-tight text-white">Adicionadas recentemente</h2>
+          <MusicLibraryFolderGrid
+            folders={novos}
+            slugSegments={slugSegments}
+            newFolderIds={newFolderIds}
+            columns="dense"
+          />
+        </section>
+      ) : null}
+      <section>
+        {novos.length > 0 ? (
+          <h2 className="mb-3 text-[17px] font-bold tracking-tight text-white">Todas as pastas</h2>
+        ) : null}
+        <MusicLibraryFolderGrid
+          folders={demais.length > 0 ? demais : items}
+          slugSegments={slugSegments}
+          newFolderIds={newFolderIds}
+          emptyMessage="Nenhuma pasta nesta pasta. Adicione subpastas no Google Drive."
+        />
+      </section>
+    </div>
   );
 }

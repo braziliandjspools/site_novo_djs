@@ -7,12 +7,12 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { PortalLogin } from "../../portal/PortalLogin";
 
 function getSafeReturnPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/musicas/home";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/musicas";
   if (value.startsWith("/musicas") || value === "/plans" || value.startsWith("/plans?")) {
     return value;
   }
   if (value.startsWith("/checkout/")) return value;
-  return "/musicas/home";
+  return "/musicas";
 }
 
 function MusicasEntrarContent() {
@@ -24,7 +24,7 @@ function MusicasEntrarContent() {
   return (
     <div className="relative min-h-screen bg-[#0a0a0a]">
       <Link
-        href="/musicas/home"
+        href="/musicas"
         className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-semibold text-zinc-300 backdrop-blur-md transition-colors hover:border-[#1ed760]/40 hover:text-[#1ed760] sm:left-6 sm:top-6"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -38,8 +38,7 @@ function MusicasEntrarContent() {
             checkoutPlan && returnTo.startsWith("/plans")
               ? `/plans?checkout=${encodeURIComponent(checkoutPlan)}`
               : returnTo;
-          // Hard reload obrigatório para o cookie VIP valer na sessão/layout/APIs.
-          window.location.replace(target);
+          window.location.assign(target);
         }}
       />
     </div>

@@ -23,14 +23,14 @@ type MusicasTopNavProps = {
 };
 
 const PLATFORM_NAV = [
-  { href: "/musicas/home", label: "Início", icon: Home },
+  { href: "/musicas", label: "Início", icon: Home },
   { href: "/musicas/atualizacoes", label: "Atualizações", icon: RefreshCw },
   { href: "/musicas/artistas", label: "Artistas", icon: Mic2 },
   { href: "/musicas/colecoes", label: "Coleções", icon: Layers },
 ] as const;
 
 function navActive(pathname: string, href: string) {
-  if (href === "/musicas/home") return pathname === href;
+  if (href === "/musicas") return pathname === "/musicas" || pathname === "/musicas/home";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -73,7 +73,7 @@ export function MusicasTopNav({
 
       <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-[1600px] sm:px-5 lg:px-8`}>
         <BrsLogo
-          href="/musicas/home"
+          href="/musicas"
           className="h-8 w-auto max-w-[132px] object-contain object-left sm:h-9 sm:max-w-[168px]"
           sizes="168px"
           priority
@@ -158,7 +158,7 @@ export function MusicasTopNav({
 
           {!authenticated && (
             <Link
-              href={`/musicas/entrar?return=${encodeURIComponent(pathname || "/musicas/home")}`}
+              href={`/musicas/entrar?return=${encodeURIComponent(pathname || "/musicas")}`}
               className="hidden cursor-pointer rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm font-bold text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white sm:inline-flex"
             >
               Entrar
@@ -270,7 +270,7 @@ export function MusicasTopNav({
               </button>
             ) : (
               <Link
-                href={`/musicas/entrar?return=${encodeURIComponent(pathname || "/musicas/home")}`}
+                href={`/musicas/entrar?return=${encodeURIComponent(pathname || "/musicas")}`}
                 onClick={() => onMobileOpenChange(false)}
                 className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-zinc-400 hover:bg-white/5 hover:text-white"
               >

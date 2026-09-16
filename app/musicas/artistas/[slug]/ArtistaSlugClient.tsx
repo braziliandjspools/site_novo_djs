@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, ExternalLink, MapPin, Mic2, Music2 } from "lucide-react";
 import type { PreviewTrack } from "../../../lib/google-drive";
-import { MusicasListSkeleton } from "../../components/MusicasSkeletons";
+import { MusicasTracksSkeleton } from "../../components/MusicasSkeletons";
 import { VipMusicTrackList } from "../../components/VipMusicTrackList";
 import { SendPackToDownloaderButton } from "../../components/SendPackToDownloaderButton";
 import { VipUpgradeBanner } from "../../VipUpgradeGate";
@@ -102,7 +102,23 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
       </nav>
 
       {loading ? (
-        <MusicasListSkeleton rows={10} />
+        <div className="space-y-6" aria-busy="true">
+          <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a2a24] via-[#121816] to-[#0c0e0d] px-4 py-8 ring-1 ring-white/10 sm:px-7 sm:py-10">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
+              <div className="mx-auto h-40 w-40 animate-pulse rounded-full bg-white/10 sm:mx-0 sm:h-48 sm:w-48" />
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="mx-auto h-3 w-28 animate-pulse rounded bg-white/10 sm:mx-0" />
+                <div className="mx-auto h-10 w-2/3 max-w-sm animate-pulse rounded bg-white/10 sm:mx-0" />
+                <div className="mx-auto h-4 w-full max-w-lg animate-pulse rounded bg-white/10 sm:mx-0" />
+                <div className="flex justify-center gap-2 sm:justify-start">
+                  <div className="h-7 w-20 animate-pulse rounded-full bg-white/10" />
+                  <div className="h-7 w-24 animate-pulse rounded-full bg-white/10" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <MusicasTracksSkeleton rows={8} />
+        </div>
       ) : error ? (
         <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-8 text-center text-sm text-red-300">
           {error}
