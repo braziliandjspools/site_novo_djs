@@ -2,8 +2,11 @@
 
 import { useMemo } from "react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
-import type { LibraryFolderItem } from "./LibraryFolderGrid";
-import { MusicLibraryFolderGrid } from "./MusicLibraryFolderGrid";
+import {
+  isMonthFolderName,
+  sortFoldersByMonthDate,
+} from "../../lib/vip-music-slugs";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 
 type StyleFolderLinksProps = {
   folders: VipMusicCatalogItem[];
@@ -11,51 +14,55 @@ type StyleFolderLinksProps = {
   newFolderIds?: Set<string>;
 };
 
-/** Estilos/subpastas em tiles quadrados coloridos (estilo Amazon Music). */
+/** Lista em linhas (modelo pools) — meses e estilos. */
 export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleFolderLinksProps) {
-  const items = useMemo((): LibraryFolderItem[] => {
-    return folders.map((folder) => ({
-      id: folder.id,
-      name: folder.name,
-      folderCount: folder.folderCount,
-      trackCount: folder.trackCount,
-      coverUrl: folder.coverUrl ?? null,
-    }));
-  }, [folders]);
+  const monthLike =
+    folders.filter((folder) => isMonthFolderName(folder.name)).length >=
+    Math.max(1, Math.ceil(folders.length * 0.4));
 
-  const novos = useMemo(
-    () => (newFolderIds ? items.filter((item) => newFolderIds.has(item.id)) : []),
-    [items, newFolderIds],
-  );
-  const demais = useMemo(
-    () => (newFolderIds ? items.filter((item) => !newFolderIds.has(item.id)) : items),
-    [items, newFolderIds],
-  );
+  const ordered = useMemo(() => {
+    if (monthLike) return sortFoldersByMonthDate(folders, true);
+    return folders;
+  }, [folders, monthLike]);
+
+  const items = useMemo((): LibraryFolderItem[] => {
+    const newestId = ordered[0]?.id ?? null;
+    return ordered.map((folder, index) => {
+      const isNewest = monthLike && folder.id === newestId;
+      const isNew = Boolean(newFolderIds?.has(folder.id));
+      let badge: string | null = null;
+      let badgeTone: LibraryFolderItem["badgeTone"];
+      if (isNewest) {
+        badge = "Mais recente";
+        badgeTone = "green";
+      } else if (isNew) {
+        badge = "Adicionada";
+        badgeTone = "green";
+      }
+
+      return {
+        id: folder.id,
+        name: folder.name,
+        folderCount: folder.folderCount,
+        trackCount: folder.trackCount,
+        coverUrl: folder.coverUrl ?? null,
+        badge,
+        badgeTone: badge ? badgeTone : undefined,
+        // Mantém ordem visual estável para o highlight do primeiro item
+        detail: index === 0 && isNewest ? "Atualização mais recente do pack" : null,
+      };
+    });
+  }, [ordered, monthLike, newFolderIds]);
 
   return (
-    <div className="mb-8 space-y-7">
-      {novos.length > 0 ? (
-        <section>
-          <h2 className="mb-3 text-[17px] font-bold tracking-tight text-white">Adicionadas recentemente</h2>
-          <MusicLibraryFolderGrid
-            folders={novos}
-            slugSegments={slugSegments}
-            newFolderIds={newFolderIds}
-            columns="dense"
-          />
-        </section>
-      ) : null}
-      <section>
-        {novos.length > 0 ? (
-          <h2 className="mb-3 text-[17px] font-bold tracking-tight text-white">Todas as pastas</h2>
-        ) : null}
-        <MusicLibraryFolderGrid
-          folders={demais.length > 0 ? demais : items}
-          slugSegments={slugSegments}
-          newFolderIds={newFolderIds}
-          emptyMessage="Nenhuma pasta nesta pasta. Adicione subpastas no Google Drive."
-        />
-      </section>
-    </div>
+    <LibraryFolderList
+      className="mb-8"
+      folders={items}
+      slugSegments={slugSegments}
+      newFolderIds={newFolderIds}
+      layout="buttons"
+      fillColumn
+      emptyMessage="Nenhuma pasta nesta pasta. Adicione subpastas no Google Drive."
+    />
   );
 }

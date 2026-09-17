@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import {
   assertCheckoutPayloadTrusted,
+  isPortalSubscriptionPlanId,
   type CanonicalPlan,
 } from "../../../../lib/billing/plan-catalog";
+import {
+  applyPlanChangeQuoteToPlan,
+} from "../../../../lib/billing/plan-change";
 import { formatDueDate } from "../../../../lib/due-queue";
 import { diagnoseMercadoPagoEnv } from "../../../../lib/mercadopago/env";
 import {
@@ -13,9 +17,12 @@ import { userHasActiveVipAccess } from "../../../../lib/mercadopago/webhook-poli
 import { getAuthenticatedPortalUser } from "../../../../lib/portal";
 import {
   buildPortalRenewalPlan,
+  hasUsedDriveTestPlan,
   isPortalRenewalServiceKey,
+  quotePortalPlanChange,
 } from "../../../../lib/portal-renewals";
 import { checkRateLimit } from "../../../../lib/rate-limit";
+import type { PlanChangeQuote } from "../../../../lib/billing/plan-change";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,8 +32,10 @@ const RATE_WINDOW_MS = 10 * 60 * 1000;
 
 type PreferenceBody = {
   planId?: unknown;
-  /** Renovação no portal: valor vem do billing do usuário no servidor. */
+  /** Renovação no portal: valor vem do catálogo (planId opcional 1/3/6). */
   renewalService?: unknown;
+  /** Plano alvo na renovação (brs-drive-1m | 3m | 6m). */
+  renewalPlanId?: unknown;
   amount?: unknown;
   amountBrl?: unknown;
   price?: unknown;
@@ -131,6 +140,7 @@ export async function POST(request: Request) {
 
   let plan: CanonicalPlan;
   let renewalMode = false;
+  let planChangeQuote: PlanChangeQuote | null = null;
 
   if (isRenewal) {
     if (!isPortalRenewalServiceKey(body.renewalService)) {
@@ -149,7 +159,11 @@ export async function POST(request: Request) {
         { status: 401 },
       );
     }
-    const built = buildPortalRenewalPlan(user, body.renewalService);
+    const renewalPlanId =
+      typeof body.renewalPlanId === "string" && isPortalSubscriptionPlanId(body.renewalPlanId)
+        ? body.renewalPlanId
+        : "brs-drive-1m";
+    const built = buildPortalRenewalPlan(user, body.renewalService, renewalPlanId);
     if (!built.ok) {
       return NextResponse.json({ error: built.error, code: built.code }, { status: 409 });
     }
@@ -185,25 +199,48 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      plan.serviceProduct === "poolsVip" &&
-      userHasActiveVipAccess({
-        servicePoolsVip: user.services.poolsVip,
-        nextDueAt: user.nextDueAt,
-        servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
-      })
-    ) {
-      const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
-      const expiresLabel = formatDueDate(due);
-      return NextResponse.json(
-        {
-          error: `Você já tem VIP ativo até ${expiresLabel}. Aguarde o vencimento para assinar um novo plano.`,
-          code: "vip_already_active",
-          expiresAt: due.toISOString(),
-          expiresLabel,
-        },
-        { status: 409 },
-      );
+    if (plan.isTestPlan) {
+      if (await hasUsedDriveTestPlan(user.id)) {
+        return NextResponse.json(
+          {
+            error:
+              "O Plano Teste só pode ser ativado uma vez por conta. Escolha o mensal, trimestral ou semestral para continuar.",
+            code: "test_plan_already_used",
+          },
+          { status: 409 },
+        );
+      }
+    }
+
+    const hasActiveVip = userHasActiveVipAccess({
+      servicePoolsVip: user.services.poolsVip,
+      nextDueAt: user.nextDueAt,
+      servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
+    });
+
+    if (plan.serviceProduct === "poolsVip" && hasActiveVip) {
+      // VIP ativo: permite trocar/estender só entre planos de assinatura (1/3/6 meses).
+      // Bloqueia novo teste e qualquer outro produto VIP fora dessa lista.
+      if (plan.isTestPlan || !isPortalSubscriptionPlanId(plan.id)) {
+        const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+        const expiresLabel = formatDueDate(due);
+        return NextResponse.json(
+          {
+            error: plan.isTestPlan
+              ? `Você já tem VIP ativo até ${expiresLabel}. O Plano Teste não está disponível.`
+              : `Você já tem VIP ativo até ${expiresLabel}. Use o portal para trocar entre mensal, trimestral ou semestral.`,
+            code: "vip_already_active",
+            expiresAt: due.toISOString(),
+            expiresLabel,
+          },
+          { status: 409 },
+        );
+      }
+
+      planChangeQuote = await quotePortalPlanChange(user, plan.id);
+      if (planChangeQuote) {
+        plan = applyPlanChangeQuoteToPlan(planChangeQuote);
+      }
     }
 
     if (plan.serviceProduct === "allavsoft" && user.services.allavsoft) {
@@ -269,12 +306,29 @@ export async function POST(request: Request) {
         email: user!.email,
         name: user!.name,
       },
+      checkoutKind: planChangeQuote ? "plan_change" : renewalMode ? "renewal" : "new",
+      creditBrl: planChangeQuote?.creditBrl,
+      catalogAmountBrl: planChangeQuote?.catalogAmountBrl,
+      previousDueAt: planChangeQuote?.previousDueAt,
     });
 
     return NextResponse.json({
       checkoutUrl: result.checkoutUrl,
       orderId: result.orderId,
       renewal: renewalMode,
+      planChange: Boolean(planChangeQuote),
+      ...(planChangeQuote
+        ? {
+            creditBrl: planChangeQuote.creditBrl,
+            creditLabel: planChangeQuote.creditLabel,
+            amountDueBrl: planChangeQuote.amountDueBrl,
+            amountDueLabel: planChangeQuote.amountDueLabel,
+            remainingDays: planChangeQuote.remainingDays,
+            projectedPeriodEnd: planChangeQuote.projectedPeriodEnd.toISOString(),
+            projectedPeriodEndLabel: planChangeQuote.projectedPeriodEndLabel,
+            previousDueLabel: planChangeQuote.previousDueLabel,
+          }
+        : {}),
     });
   } catch (err) {
     const message = sanitizeMercadoPagoErrorMessage(err);

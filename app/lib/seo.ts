@@ -117,7 +117,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/plans",
     title: `Planos VIP e preços | ${SITE_NAME}`,
     description:
-      "Planos BRS Drive VIP: teste 3 dias por R$ 1, mensal R$ 38, trimestral e anual. Acervo completo, plataforma /musicas e Downloader Windows. Pagamento seguro no Mercado Pago.",
+      "Planos BRS Drive VIP: teste 3 dias por R$ 3,50 (uma vez), mensal R$ 35,50, trimestral R$ 100 e semestral R$ 200. Acervo completo, plataforma /musicas e Downloader Windows. Pagamento seguro.",
     ogImage: "plans",
     keywords: [...SHARED_KEYWORDS, "plano VIP DJ", "assinatura pools preço"],
     sitemap: true,
@@ -143,7 +143,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/allavsoft",
     title: `Allavsoft vitalício R$ 50 | ${SITE_NAME}`,
     description:
-      "Licença Allavsoft vitalícia por R$ 50. Baixe de Spotify, Deezer, YouTube e +1000 sites. Serial liberado no portal após pagamento no Mercado Pago.",
+      "Licença Allavsoft vitalícia por R$ 50. Baixe de Spotify, Deezer, YouTube e +1000 sites. Serial liberado no portal após o pagamento.",
     ogImage: "allavsoft",
     keywords: ["Allavsoft", "download Spotify", "download Deezer"],
     sitemap: true,
@@ -641,8 +641,8 @@ export function serviceJsonLd() {
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "BRL",
-      lowPrice: "1.00",
-      highPrice: "384.00",
+      lowPrice: "3.50",
+      highPrice: "200.00",
       offerCount: 4,
       url: absoluteUrl("/plans"),
       availability: "https://schema.org/InStock",
@@ -686,8 +686,8 @@ export function plansProductJsonLd() {
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "BRL",
-      lowPrice: "1.00",
-      highPrice: "384.00",
+      lowPrice: "3.50",
+      highPrice: "200.00",
       offerCount: 4,
       availability: "https://schema.org/InStock",
       url: absoluteUrl("/plans"),

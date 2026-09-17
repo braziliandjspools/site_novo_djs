@@ -480,22 +480,6 @@ function UserAccountModal({
               </label>
             </div>
             <label className="block text-xs text-gray-400">
-              Cota do Downloader
-              <select
-                value={draft.downloaderQuotaTier}
-                onChange={(e) =>
-                  onChange({
-                    downloaderQuotaTier: e.target.value as "STARTER" | "PRO" | "MAX",
-                  })
-                }
-                className={`${formInputClass} mt-1`}
-              >
-                <option value="STARTER">Essencial — 1000/24h ou 1 pack (R$ 38)</option>
-                <option value="PRO">Pro — 2000/24h Downloader (R$ 42)</option>
-                <option value="MAX">Max — 4500/mês (R$ 46)</option>
-              </select>
-            </label>
-            <label className="block text-xs text-gray-400">
               Nova senha (opcional)
               <input
                 type="text"

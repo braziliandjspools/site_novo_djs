@@ -37,6 +37,10 @@ export {
 export async function createMercadoPagoCheckoutPreference(input: {
   plan: CanonicalPlan;
   payer: PreferencePayer;
+  checkoutKind?: "new" | "renewal" | "plan_change";
+  creditBrl?: string;
+  catalogAmountBrl?: string;
+  previousDueAt?: Date;
 }): Promise<PreferenceCheckoutResult> {
   const env = getMercadoPagoEnv();
 
@@ -52,6 +56,10 @@ export async function createMercadoPagoCheckoutPreference(input: {
     externalReference: order.externalReference,
     siteUrl: env.siteUrl,
     payer: input.payer,
+    checkoutKind: input.checkoutKind,
+    creditBrl: input.creditBrl,
+    catalogAmountBrl: input.catalogAmountBrl,
+    previousDueAt: input.previousDueAt,
   });
 
   const idempotencyKey = randomUUID();

@@ -26,7 +26,7 @@ export const SITE_FAQS: SiteFaq[] = [
   },
   {
     q: "Quanto custa a assinatura VIP?",
-    a: "O plano mensal BRS Drive VIP custa R$ 38,00. Há também teste de 3 dias por R$ 1,00, plano de 3 meses e plano anual. Todos via Mercado Pago, com renovação manual.",
+    a: "O plano mensal BRS Drive VIP custa R$ 35,50. Há também trimestral (R$ 100), semestral (R$ 200) e Plano Teste de 3 dias por R$ 3,50 (uma vez por conta). Pagamento seguro, com renovação ou troca de plano no portal.",
   },
   {
     q: "O que está incluso no plano VIP?",
@@ -46,7 +46,7 @@ export const SITE_FAQS: SiteFaq[] = [
   },
   {
     q: "Como funciona o pagamento?",
-    a: "O checkout é processado pelo Mercado Pago (Pix, cartão e demais meios disponíveis). A BRS libera o acesso após a confirmação oficial do pagamento via webhook — não pelo redirect da página.",
+    a: "O checkout é processado com segurança (Pix, cartão e demais meios disponíveis). A BRS libera o acesso após a confirmação oficial do pagamento — não pelo redirect da página.",
   },
   {
     q: "Como falo com o suporte?",

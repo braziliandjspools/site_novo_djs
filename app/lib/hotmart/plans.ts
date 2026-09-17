@@ -13,12 +13,12 @@ export type HotmartBilling = "monthly";
 
 export function getDriveMonthlyPriceLabel() {
   const plan = getCanonicalPlanById("brs-drive-1m");
-  return plan ? formatPlanAmountBrl(plan.amountBrl) : "R$ 38,00";
+  return plan ? formatPlanAmountBrl(plan.amountBrl) : "R$ 35,50";
 }
 
 export function getDriveMonthlyPriceNumber() {
   const plan = getCanonicalPlanById("brs-drive-1m");
-  return plan ? Number(plan.amountBrl) : 38;
+  return plan ? Number(plan.amountBrl) : 35.5;
 }
 
 export const HOTMART_DRIVE_MONTHLY_PLAN = {

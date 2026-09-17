@@ -15,8 +15,7 @@ import {
   getPackWeekDayRange,
   isCurrentPackWeek,
 } from "../../lib/week-calendar";
-import type { LibraryFolderItem } from "./LibraryFolderGrid";
-import { MusicLibraryFolderGrid } from "./MusicLibraryFolderGrid";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 
 type WeekFolderGridProps = {
   parentSegments: string[];
@@ -44,26 +43,39 @@ export function WeekFolderGrid({
   const monthDate = parseMonthFolderDate(monthName);
 
   const items = useMemo((): LibraryFolderItem[] => {
-    return weeks.map((week) => {
-      const weekNumber = parseWeekNumber(week.name);
+    const ranked = weeks
+      .map((week) => {
+        const weekNumber = parseWeekNumber(week.name) ?? 999;
+        const isCurrent =
+          weekNumber !== 999 && monthDate
+            ? isCurrentPackWeek(monthDate.year, monthDate.month, weekNumber, now)
+            : false;
+        return { week, weekNumber, isCurrent };
+      })
+      .sort((a, b) => {
+        if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
+        return a.weekNumber - b.weekNumber;
+      });
+
+    return ranked.map(({ week, weekNumber, isCurrent }) => {
       const days =
-        weekNumber != null && monthDate
+        weekNumber !== 999 && monthDate
           ? getPackWeekDayRange(monthDate.year, monthDate.month, weekNumber, now)
           : [];
       const rangeLabel = formatPackWeekRangeLabel(days);
-      const isCurrent =
-        weekNumber != null && monthDate
-          ? isCurrentPackWeek(monthDate.year, monthDate.month, weekNumber, now)
-          : false;
       const weekStatus = parseMonthStatus(week.name);
       const weekTitle =
-        weekNumber != null ? `Semana ${String(weekNumber).padStart(2, "0")}` : displayFolderName(week.name);
+        weekNumber !== 999
+          ? `Semana ${String(weekNumber).padStart(2, "0")}`
+          : displayFolderName(week.name);
 
       let badge: string | null = null;
       if (weekStatus.status === "em-atualizacao") {
         badge = "Em atualização";
       } else if (isCurrent) {
         badge = "Esta semana";
+      } else if (newWeekIds?.has(week.id)) {
+        badge = "Mais recente";
       }
 
       return {
@@ -75,16 +87,22 @@ export function WeekFolderGrid({
         coverUrl: week.coverUrl ?? null,
         detail: rangeLabel || null,
         badge,
+        badgeTone:
+          isCurrent || weekStatus.status === "em-atualizacao" || newWeekIds?.has(week.id)
+            ? "green"
+            : undefined,
       };
     });
-  }, [monthDate, now, weeks]);
+  }, [monthDate, now, weeks, newWeekIds]);
 
   return (
-    <MusicLibraryFolderGrid
+    <LibraryFolderList
       className="mb-8"
       folders={items}
       slugSegments={parentSegments}
       newFolderIds={newWeekIds}
+      layout="buttons"
+      fillColumn
       emptyMessage="Nenhuma semana neste mês. No Drive, use pastas como SEMANA 01, SEMANA 02…"
       before={
         monthDate ? (

@@ -107,14 +107,6 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    const { DownloaderQuotaExceededError } = await import("../../../../lib/downloader-quota");
-    if (error instanceof DownloaderQuotaExceededError) {
-      return withDownloaderCorsJson(
-        request,
-        { error: error.message, quota: error.quota },
-        { status: 429 },
-      );
-    }
     const message = error instanceof Error ? error.message : "Erro ao enfileirar faixas.";
     return withDownloaderCorsJson(request, { error: message }, { status: 500 });
   }

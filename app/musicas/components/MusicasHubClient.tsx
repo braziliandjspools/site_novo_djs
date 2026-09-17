@@ -12,8 +12,6 @@ import {
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import {
   displayFolderName,
-  folderHref,
-  slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import {
   getContinueListening,
@@ -22,10 +20,11 @@ import {
   type RecentFolder,
 } from "../lib/music-library-storage";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
+import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
 import { MusicLibraryShelf, MusicLibraryTile, libraryTileTone } from "./MusicLibraryTiles";
-import { MusicasFolderGridSkeleton, MusicasPageSkeleton } from "./MusicasSkeletons";
+import { MusicasListSkeleton, MusicasPageSkeleton } from "./MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 
@@ -57,19 +56,19 @@ export function MusicasHubClient() {
       .catch(() => setArtists([]));
   }, []);
 
-  const packTiles = useMemo(() => {
+  const packItems = useMemo((): LibraryFolderItem[] => {
     return folders.slice(0, 12).map((folder, index) => {
       const catalog = folder as VipMusicCatalogItem;
-      const slug = slugifyFolderName(folder.name);
+      const isNewest = index === 0;
+      const isNew = newFolderIds.has(folder.id);
       return {
         id: folder.id,
-        href: folderHref([slug]),
+        name: folder.name,
         title: displayFolderName(folder.name),
-        resolveSlug: slug,
-        trackCount: catalog.trackCount,
         folderCount: catalog.folderCount,
-        badge: newFolderIds.has(folder.id) ? "Novo" : null,
-        index,
+        trackCount: catalog.trackCount,
+        badge: isNewest ? "Mais recente" : isNew ? "Novo" : null,
+        badgeTone: isNewest || isNew ? "green" : undefined,
       };
     });
   }, [folders, newFolderIds]);
@@ -256,25 +255,31 @@ export function MusicasHubClient() {
         </MusicLibraryShelf>
       ) : null}
 
-      {loadingTree && packTiles.length === 0 ? (
-        <MusicasFolderGridSkeleton cards={8} />
-      ) : packTiles.length > 0 ? (
-        <MusicLibraryShelf title="Packs do acervo" actionHref="/musicas/atualizacoes" actionLabel="Ver tudo">
-          {packTiles.map((folder) => (
-            <MusicLibraryTile
-              key={folder.id}
-              href={folder.href}
-              title={folder.title}
-              badge={folder.badge}
-              index={folder.index}
-              tone={libraryTileTone(folder.index)}
-              resolveSlug={folder.resolveSlug}
-              trackCount={folder.trackCount}
-              folderCount={folder.folderCount}
-              size="shelf"
-            />
-          ))}
-        </MusicLibraryShelf>
+      {loadingTree && packItems.length === 0 ? (
+        <MusicasListSkeleton rows={8} />
+      ) : packItems.length > 0 ? (
+        <section>
+          <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
+            <h2 className="text-[17px] font-bold tracking-tight text-white sm:text-[19px]">
+              Packs do acervo
+            </h2>
+            <Link
+              href="/musicas/atualizacoes"
+              prefetch={false}
+              className="text-[12px] font-semibold text-[#1ed760] hover:underline"
+            >
+              Ver tudo
+            </Link>
+          </div>
+          <LibraryFolderList
+            folders={packItems}
+            slugSegments={[]}
+            newFolderIds={newFolderIds}
+            layout="buttons"
+            fillColumn
+            emptyMessage="Nenhum pack encontrado."
+          />
+        </section>
       ) : null}
     </div>
   );

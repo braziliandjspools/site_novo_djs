@@ -190,8 +190,7 @@ export async function importPackJobsBySlug(
     ...(targetDeviceId ? { targetDeviceId } : {}),
   }));
 
-  // Pack: cota especial (STARTER = 1 pack/janela, mesmo se >1000 faixas).
-  const jobs = await createDownloadJobsBatch(portalUserId, inputs, { quotaMode: "pack" });
+  const jobs = await createDownloadJobsBatch(portalUserId, inputs);
   return {
     ok: true as const,
     folder,
@@ -279,7 +278,7 @@ export async function importArtistJobsBySlug(
     };
   });
 
-  const jobs = await createDownloadJobsBatch(portalUserId, inputs, { quotaMode: "pack" });
+  const jobs = await createDownloadJobsBatch(portalUserId, inputs);
   return {
     ok: true as const,
     kind: "artist" as const,

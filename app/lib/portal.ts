@@ -182,11 +182,9 @@ export async function getPortalDataForUser(user: PortalUser) {
   const config = getLicenseConfig();
   const greeting = getGreeting(getGreetingHour(now));
   const hotmart = await getActiveHotmartSubscriptionForUser(user.id);
-  const { getDownloaderQuotaSnapshot } = await import("./downloader-quota");
-  const { DOWNLOADER_QUOTA_BY_TIER } = await import("./downloader-quota-config");
-  const quota = user.services.poolsVip
-    ? await getDownloaderQuotaSnapshot(user.id, now)
-    : null;
+  const { listPortalPlanChangeCards, hasUsedDriveTestPlan } = await import("./portal-renewals");
+  const planChangeCards = await listPortalPlanChangeCards(user);
+  const testPlanUsed = await hasUsedDriveTestPlan(user.id);
 
   const hotmartStatusLabel =
     hotmart?.status === "ACTIVE"
@@ -234,9 +232,6 @@ export async function getPortalDataForUser(user: PortalUser) {
       nextDueAt: user.nextDueAt.toISOString(),
       createdAt: user.createdAt.toISOString(),
       active: user.active,
-      downloaderQuotaTier: user.downloaderQuotaTier,
-      downloaderQuotaTierLabel: DOWNLOADER_QUOTA_BY_TIER[user.downloaderQuotaTier].label,
-      downloaderQuota: quota,
       subscription: hotmart
         ? {
             provider: HOTMART_PROVIDER,
@@ -255,6 +250,8 @@ export async function getPortalDataForUser(user: PortalUser) {
     },
     hasSubscriptionPlan: userHasSubscriptionPlan(user),
     renewables: serializePortalRenewables(user),
+    planChangeCards,
+    testPlanUsed,
     greeting,
     datetime: formatPortalDateTime(now),
     deemix: DEEMIX_ENABLED && userHasDeemix(user)

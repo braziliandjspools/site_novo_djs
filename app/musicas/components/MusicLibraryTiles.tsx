@@ -46,6 +46,8 @@ type MusicLibraryTileProps = {
   size?: "shelf" | "grid";
   /** Formato circular (artistas) */
   round?: boolean;
+  /** overlay = título na imagem; below = imagem/capa + título embaixo */
+  caption?: "overlay" | "below";
 };
 
 export function MusicLibraryTile({
@@ -63,6 +65,7 @@ export function MusicLibraryTile({
   className = "",
   size = "grid",
   round = false,
+  caption = "overlay",
 }: MusicLibraryTileProps) {
   const gradient = tone ?? libraryTileTone(index);
   const meta =
@@ -84,6 +87,82 @@ export function MusicLibraryTile({
       : "aspect-square w-full min-h-[140px]";
 
   const radius = round ? "rounded-full" : "rounded-xl";
+
+  if (caption === "below") {
+    return (
+      <article className={`group/tile min-w-0 ${className}`}>
+        <Link
+          href={href}
+          prefetch={false}
+          onMouseEnter={prefetchApi}
+          onFocus={prefetchApi}
+          aria-label={title}
+          className="block outline-none focus-visible:ring-2 focus-visible:ring-[#1ed760]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1012]"
+        >
+          <div
+            className={`relative overflow-hidden ${radius} shadow-[0_12px_28px_-16px_rgba(0,0,0,0.85)] ring-1 ring-white/10 transition duration-300 ease-out group-hover/tile:-translate-y-1 group-hover/tile:ring-white/25 ${sizeClass}`}
+          >
+            {cover ? (
+              <span className="absolute inset-0 block" aria-hidden>
+                <Image
+                  src={cover}
+                  alt=""
+                  width={size === "shelf" ? 168 : 400}
+                  height={size === "shelf" ? 168 : 400}
+                  sizes={size === "shelf" ? "168px" : "(max-width:768px) 45vw, 200px"}
+                  className="h-full w-full object-cover transition duration-500 group-hover/tile:scale-105"
+                  unoptimized={cover.startsWith("/api/")}
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
+              </span>
+            ) : (
+              <>
+                <span className={`absolute inset-0 bg-gradient-to-br ${gradient}`} aria-hidden />
+                <span
+                  className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/15 blur-2xl transition duration-500 group-hover/tile:bg-white/25"
+                  aria-hidden
+                />
+                <span
+                  className="pointer-events-none absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-black/25 blur-2xl"
+                  aria-hidden
+                />
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/25 text-white/95 ring-1 ring-white/20 backdrop-blur-sm sm:h-16 sm:w-16">
+                    <Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={2} aria-hidden />
+                  </span>
+                </span>
+              </>
+            )}
+
+            {badge ? (
+              <span className="absolute top-2.5 right-2.5 rounded-md bg-black/45 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white backdrop-blur-sm">
+                {badge}
+              </span>
+            ) : null}
+          </div>
+        </Link>
+
+        <div className="mt-2.5 min-w-0 px-0.5 text-center">
+          <Link
+            href={href}
+            prefetch={false}
+            onMouseEnter={prefetchApi}
+            onFocus={prefetchApi}
+            className="outline-none"
+          >
+            <h3 className="line-clamp-2 text-[13px] font-bold leading-snug tracking-tight text-white transition-colors hover:text-[#1ed760] sm:text-[14px]">
+              {title}
+            </h3>
+          </Link>
+          {meta ? (
+            <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-white/50">
+              {meta}
+            </p>
+          ) : null}
+        </div>
+      </article>
+    );
+  }
 
   return (
     <Link

@@ -9,11 +9,6 @@ import {
 } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
-import {
-  displayFolderName,
-  folderHref,
-  slugifyFolderName,
-} from "../../lib/vip-music-slugs";
 import { clearMusicasCache, fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import {
   getContinueListening,
@@ -26,11 +21,11 @@ import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
-import { MusicasFolderGridSkeleton } from "./MusicasSkeletons";
+import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { MusicasMonthLinks } from "./MusicasMonthLinks";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
-import { MusicLibraryShelf, MusicLibraryTile, libraryTileTone } from "./MusicLibraryTiles";
+import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 
@@ -136,25 +131,6 @@ export function AtualizacoesRootClient() {
     if (home?.stats.trackCount && home.stats.trackCount > 0) return home.stats.trackCount;
     return null;
   }, [folders, home]);
-
-  const novosFolders = useMemo(() => {
-    return folders
-      .filter((folder) => newFolderIds.has(folder.id))
-      .slice(0, 12)
-      .map((folder, index) => {
-        const catalog = folder as VipMusicCatalogItem;
-        const slug = slugifyFolderName(folder.name);
-        return {
-          id: folder.id,
-          href: folderHref([slug]),
-          title: displayFolderName(folder.name),
-          resolveSlug: slug,
-          trackCount: catalog.trackCount,
-          folderCount: catalog.folderCount,
-          index,
-        };
-      });
-  }, [folders, newFolderIds]);
 
   const latestTracks = home?.latestTracks?.slice(0, 12) ?? [];
   const topWeek = home?.topWeek?.slice(0, 12) ?? [];
@@ -307,25 +283,6 @@ export function AtualizacoesRootClient() {
           </MusicLibraryShelf>
         ) : null}
 
-        {novosFolders.length > 0 ? (
-          <MusicLibraryShelf title="Chegando agora" actionHref="#atualizacoes-pastas">
-            {novosFolders.map((folder) => (
-              <MusicLibraryTile
-                key={folder.id}
-                href={folder.href}
-                title={folder.title}
-                badge="Novo"
-                index={folder.index + 2}
-                tone={libraryTileTone(folder.index + 2)}
-                resolveSlug={folder.resolveSlug}
-                trackCount={folder.trackCount}
-                folderCount={folder.folderCount}
-                size="shelf"
-              />
-            ))}
-          </MusicLibraryShelf>
-        ) : null}
-
         <MusicLibraryTrackShelf
           title="Últimas adicionadas"
           tracks={latestTracks}
@@ -336,7 +293,7 @@ export function AtualizacoesRootClient() {
         <MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} />
 
         {loading && folders.length === 0 ? (
-          <MusicasFolderGridSkeleton cards={12} />
+          <MusicasListSkeleton rows={10} />
         ) : (
           <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
         )}

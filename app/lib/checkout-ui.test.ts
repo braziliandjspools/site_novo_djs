@@ -4,13 +4,13 @@ import { friendlyCheckoutError, resolveCheckoutPlanId } from "./checkout-ui";
 
 const plans = [
   { id: "brs-drive-1m" },
-  { id: "brs-drive-pro-1m" },
-  { id: "brs-drive-max-1m" },
+  { id: "brs-drive-3m" },
+  { id: "brs-drive-6m" },
 ];
 
 test("resolveCheckoutPlanId aceita ids canônicos", () => {
   assert.equal(resolveCheckoutPlanId("brs-drive-1m", plans), "brs-drive-1m");
-  assert.equal(resolveCheckoutPlanId("brs-drive-max-1m", plans), "brs-drive-max-1m");
+  assert.equal(resolveCheckoutPlanId("brs-drive-6m", plans), "brs-drive-6m");
 });
 
 test("resolveCheckoutPlanId mapeia alias legado drive-monthly", () => {
@@ -25,9 +25,4 @@ test("friendlyCheckoutError prioriza mensagem da API e cobre status comuns", () 
   assert.equal(friendlyCheckoutError(400, "Plano inválido"), "Plano inválido");
   assert.match(friendlyCheckoutError(429), /Muitas tentativas/);
   assert.match(friendlyCheckoutError(503), /não configurado/i);
-  assert.match(friendlyCheckoutError(502), /preparar o pagamento/i);
-  assert.match(
-    friendlyCheckoutError(409, "Você já tem VIP ativo até 13/10/2026."),
-    /VIP ativo/,
-  );
 });

@@ -8,6 +8,7 @@ import { formatDateBr, type PortalData } from "../portal-types";
 import { AllavsoftLicensesPanel } from "./AllavsoftLicensesPanel";
 import { AccountPaymentsPanel } from "./AccountPaymentsPanel";
 import { DownloaderStatsPanel } from "./DownloaderStatsPanel";
+import { PortalPlanChangePanel } from "./PortalPlanChangePanel";
 import {
   ALLAVSOFT_INSTALLER_VERSION,
   getAllavsoftDownloadUrl,
@@ -150,16 +151,6 @@ export function AccountView({ data }: { data: PortalData }) {
     ["WhatsApp", user.whatsapp],
     ["Plano", subscription?.planLabel ?? user.planLabel],
     ["Serviços", user.servicesLabel],
-    [
-      "Cota Downloader",
-      user.downloaderQuota
-        ? `${user.downloaderQuota.tierLabel}: ${user.downloaderQuota.tracksUsed}/${user.downloaderQuota.trackLimit} faixas (${user.downloaderQuota.periodLabel})${
-            user.downloaderQuota.exhausted
-              ? " · esgotada"
-              : ""
-          }`
-        : user.downloaderQuotaTierLabel ?? "—",
-    ],
     ["Status", subscription?.statusLabel ?? (user.active ? "Ativo" : "Inativo")],
     ["Pagamento", subscription?.providerLabel ?? "Manual / suporte"],
     ["Valor mensal", user.monthlyValueLabel],
@@ -184,6 +175,17 @@ export function AccountView({ data }: { data: PortalData }) {
           ))}
         </dl>
       </PortalCard>
+
+      {data.planChangeCards && data.planChangeCards.length > 0 ? (
+        <PortalPlanChangePanel
+          plans={data.planChangeCards}
+          hasVip={Boolean(user.services.poolsVip)}
+          currentValueLabel={user.serviceBilling.poolsVip.valueLabel}
+          currentDueLabel={formatDateBr(
+            subscription?.currentPeriodEnd ?? user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt,
+          )}
+        />
+      ) : null}
 
       <AccountPaymentsPanel />
 

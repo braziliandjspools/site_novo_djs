@@ -4,8 +4,6 @@
  * são sempre resolvidos daqui (nunca confiar no navegador).
  */
 
-import type { DownloaderQuotaTier } from "../downloader-quota-config";
-
 export const PLAN_CURRENCY = "BRL" as const;
 
 export type PlanRenewalType = "manual";
@@ -15,19 +13,29 @@ export type PlanServiceProduct = "poolsVip" | "deemix" | "allavsoft";
 export type CanonicalPlanId =
   | "brs-drive-3d"
   | "brs-drive-1m"
+  | "brs-drive-3m"
+  | "brs-drive-6m"
   | "brs-drive-pro-1m"
   | "brs-drive-max-1m"
-  | "brs-drive-3m"
   | "brs-drive-12m"
   | "brs-deemix-1m"
   | "brs-deemix-3m"
   | "brs-deemix-6m"
   | "brs-allavsoft-lifetime";
 
-/** Alias legado Hotmart → plano canônico Essencial. */
+/** Alias legado Hotmart → plano mensal. */
 export const LEGACY_PLAN_ID_ALIASES: Record<string, CanonicalPlanId> = {
   "drive-monthly": "brs-drive-1m",
 };
+
+/** Planos VIP de assinatura (upgrade/downgrade no portal). */
+export const PORTAL_SUBSCRIPTION_PLAN_IDS = [
+  "brs-drive-1m",
+  "brs-drive-3m",
+  "brs-drive-6m",
+] as const;
+
+export type PortalSubscriptionPlanId = (typeof PORTAL_SUBSCRIPTION_PLAN_IDS)[number];
 
 export type CanonicalPlan = {
   id: CanonicalPlanId;
@@ -36,27 +44,16 @@ export type CanonicalPlan = {
   /** Valor total cobrado, string decimal (nunca float). */
   amountBrl: string;
   currency: typeof PLAN_CURRENCY;
-  /**
-   * Duração em dias (fonte para liberação de acesso).
-   * Planos mensais usam 30/90/365; teste usa 3.
-   * Licença vitalícia usa 0 + `lifetime: true`.
-   */
   durationDays: number;
-  /** Compat UI/legado — 0 no plano de teste / vitalício. */
   durationMonths: number;
   durationLabel: string;
-  /** Licença sem vencimento (ex.: Allavsoft). */
   lifetime: boolean;
   active: boolean;
   renewalType: PlanRenewalType;
   badge: string | null;
   highlight: boolean;
-  /** Plano de teste production (valor baixo, duração curta). */
   isTestPlan: boolean;
-  /** Serviço liberado no portal ao aprovar o pagamento. */
   serviceProduct: PlanServiceProduct;
-  /** Cota do Downloader vinculada ao plano (só poolsVip). */
-  downloaderQuotaTier: DownloaderQuotaTier | null;
   features: string[];
   equivalentMonthlyLabel: string | null;
 };
@@ -64,20 +61,19 @@ export type CanonicalPlan = {
 /**
  * Valores oficiais (pagamentos únicos, renovação manual):
  * Drive VIP:
- * - Teste 3 dias: R$ 1,00
- * - Essencial: R$ 38,00 — 1000 faixas/24h ou 1 pack
- * - Pro: R$ 42,00 — 2000 faixas/24h no Downloader (site ilimitado)
- * - Max: R$ 46,00 — 4500 faixas/mês
- * Allavsoft:
- * - Licença vitalícia: R$ 50,00 (pagamento único)
+ * - Teste 3 dias: R$ 3,50 (uma vez por conta)
+ * - Mensal: R$ 35,50 (~30 dias)
+ * - Trimestral: R$ 100,00 (~90 dias)
+ * - Semestral: R$ 200,00 (~180 dias)
+ * Allavsoft: R$ 50,00 vitalícia
  */
 export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
   {
     id: "brs-drive-3d",
-    title: "BRS Drive — Teste 3 dias",
+    title: "BRS Drive — Plano Teste",
     description:
-      "Plano de teste em produção no Mercado Pago. Acesso VIP completo por 3 dias para validar checkout, webhook e liberação automática.",
-    amountBrl: "1.00",
+      "Acesso VIP completo por 3 dias. Disponível uma única vez por conta — depois, escolha mensal, trimestral ou semestral.",
+    amountBrl: "3.50",
     currency: PLAN_CURRENCY,
     durationDays: 3,
     durationMonths: 0,
@@ -89,21 +85,19 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: true,
     serviceProduct: "poolsVip",
-    downloaderQuotaTier: "STARTER",
     equivalentMonthlyLabel: null,
     features: [
       "Acesso VIP completo por 3 dias",
-      "Cota Essencial no Downloader (1000 faixas/24h ou 1 pack)",
-      "Mesmo fluxo de pagamento dos planos oficiais",
-      "Ideal para validar produção Mercado Pago",
+      "Plataforma /musicas + BRS Downloader",
+      "Só pode ser ativado uma vez por conta",
+      "Para continuar, escolha 1, 3 ou 6 meses",
     ],
   },
   {
     id: "brs-drive-1m",
-    title: "BRS Drive — Essencial",
-    description:
-      "Acesso VIP por 30 dias. Downloader com até 1000 faixas a cada 24h ou 1 pack (o que vier primeiro). Pack acima de 1000 baixa completo e esgota a cota do período.",
-    amountBrl: "38.00",
+    title: "BRS Drive — Mensal",
+    description: "Acesso VIP completo por 30 dias. Pagamento único com renovação manual.",
+    amountBrl: "35.50",
     currency: PLAN_CURRENCY,
     durationDays: 30,
     durationMonths: 1,
@@ -111,83 +105,78 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     lifetime: false,
     active: true,
     renewalType: "manual",
-    badge: "R$ 38",
+    badge: "Mensal",
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    downloaderQuotaTier: "STARTER",
-    equivalentMonthlyLabel: "R$ 38,00/mês",
+    equivalentMonthlyLabel: "R$ 35,50/mês",
     features: [
       "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
-      "Downloader: 1000 faixas/24h ou 1 pack",
-      "Pack grande (>1000) baixa completo e zera a cota",
-      "Renovação manual ao fim do período",
+      "BRS Downloader para Windows",
+      "Atualizações contínuas",
+      "Renovação ou troca de plano no portal",
+    ],
+  },
+  {
+    id: "brs-drive-3m",
+    title: "BRS Drive — Trimestral",
+    description: "Acesso VIP completo por 90 dias. Pagamento único com renovação manual.",
+    amountBrl: "100.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 90,
+    durationMonths: 3,
+    durationLabel: "3 meses",
+    lifetime: false,
+    active: true,
+    renewalType: "manual",
+    badge: "Trimestral",
+    highlight: true,
+    isTestPlan: false,
+    serviceProduct: "poolsVip",
+    equivalentMonthlyLabel: "R$ 33,33/mês equiv.",
+    features: [
+      "Acervo VIP completo (+315 GB)",
+      "Plataforma para DJs (/musicas)",
+      "BRS Downloader para Windows",
+      "90 dias de acesso",
+      "Renovação ou troca de plano no portal",
+    ],
+  },
+  {
+    id: "brs-drive-6m",
+    title: "BRS Drive — Semestral",
+    description: "Acesso VIP completo por 180 dias. Pagamento único com renovação manual.",
+    amountBrl: "200.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 180,
+    durationMonths: 6,
+    durationLabel: "6 meses",
+    lifetime: false,
+    active: true,
+    renewalType: "manual",
+    badge: "Semestral",
+    highlight: false,
+    isTestPlan: false,
+    serviceProduct: "poolsVip",
+    equivalentMonthlyLabel: "R$ 33,33/mês equiv.",
+    features: [
+      "Acervo VIP completo (+315 GB)",
+      "Plataforma para DJs (/musicas)",
+      "BRS Downloader para Windows",
+      "180 dias de acesso",
+      "Renovação ou troca de plano no portal",
     ],
   },
   {
     id: "brs-drive-pro-1m",
-    title: "BRS Drive — Pro",
-    description:
-      "Acesso VIP por 30 dias. Downloader com 2000 faixas a cada 24h; navegação e play no site sem limite de faixas.",
+    title: "BRS Drive — Pro (legado)",
+    description: "Plano legado — não listado no checkout.",
     amountBrl: "42.00",
     currency: PLAN_CURRENCY,
     durationDays: 30,
     durationMonths: 1,
     durationLabel: "1 mês",
-    lifetime: false,
-    active: true,
-    renewalType: "manual",
-    badge: "Popular",
-    highlight: true,
-    isTestPlan: false,
-    serviceProduct: "poolsVip",
-    downloaderQuotaTier: "PRO",
-    equivalentMonthlyLabel: "R$ 42,00/mês",
-    features: [
-      "Acervo VIP completo (+315 GB)",
-      "Plataforma para DJs sem limite de faixas",
-      "Downloader: 2000 faixas a cada 24h",
-      "Site (navegador) sem cota",
-      "Renovação manual ao fim do período",
-    ],
-  },
-  {
-    id: "brs-drive-max-1m",
-    title: "BRS Drive — Max",
-    description:
-      "Acesso VIP por 30 dias com a maior cota do Downloader: 4500 faixas por mês. Ideal para quem baixa muito volume.",
-    amountBrl: "46.00",
-    currency: PLAN_CURRENCY,
-    durationDays: 30,
-    durationMonths: 1,
-    durationLabel: "1 mês",
-    lifetime: false,
-    active: true,
-    renewalType: "manual",
-    badge: "Max",
-    highlight: false,
-    isTestPlan: false,
-    serviceProduct: "poolsVip",
-    downloaderQuotaTier: "MAX",
-    equivalentMonthlyLabel: "R$ 46,00/mês",
-    features: [
-      "Acervo VIP completo (+315 GB)",
-      "Plataforma para DJs sem limite de faixas",
-      "Downloader: 4500 faixas por mês",
-      "Maior volume para o app desktop",
-      "Renovação manual ao fim do período",
-    ],
-  },
-  {
-    id: "brs-drive-3m",
-    title: "BRS Drive — 3 meses (legado)",
-    description: "Plano trimestral legado — não listado no checkout.",
-    amountBrl: "102.60",
-    currency: PLAN_CURRENCY,
-    durationDays: 90,
-    durationMonths: 3,
-    durationLabel: "3 meses",
     lifetime: false,
     active: false,
     renewalType: "manual",
@@ -195,8 +184,26 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    downloaderQuotaTier: "PRO",
-    equivalentMonthlyLabel: "R$ 34,20/mês",
+    equivalentMonthlyLabel: null,
+    features: ["Plano legado"],
+  },
+  {
+    id: "brs-drive-max-1m",
+    title: "BRS Drive — Max (legado)",
+    description: "Plano legado — não listado no checkout.",
+    amountBrl: "46.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 30,
+    durationMonths: 1,
+    durationLabel: "1 mês",
+    lifetime: false,
+    active: false,
+    renewalType: "manual",
+    badge: null,
+    highlight: false,
+    isTestPlan: false,
+    serviceProduct: "poolsVip",
+    equivalentMonthlyLabel: null,
     features: ["Plano legado"],
   },
   {
@@ -215,14 +222,13 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    downloaderQuotaTier: "PRO",
-    equivalentMonthlyLabel: "R$ 32,00/mês",
+    equivalentMonthlyLabel: null,
     features: ["Plano legado"],
   },
   {
     id: "brs-deemix-1m",
     title: "Deemix — 1 mês",
-    description: "Acesso Deemix com ARL 320 kbps por 30 dias. Pagamento único via Mercado Pago.",
+    description: "Acesso Deemix com ARL 320 kbps por 30 dias.",
     amountBrl: "30.00",
     currency: PLAN_CURRENCY,
     durationDays: 30,
@@ -232,22 +238,16 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     active: false,
     renewalType: "manual",
     badge: "ARL 320",
-    highlight: true,
+    highlight: false,
     isTestPlan: false,
     serviceProduct: "deemix",
-    downloaderQuotaTier: null,
     equivalentMonthlyLabel: "R$ 30,00/mês",
-    features: [
-      "ARL Premium 320 kbps",
-      "Credenciais no portal do cliente",
-      "Download de faixas, álbuns e playlists",
-      "Renovação manual ao fim do período",
-    ],
+    features: ["Plano legado"],
   },
   {
     id: "brs-deemix-3m",
     title: "Deemix — 90 dias",
-    description: "90 dias de Deemix (ARL 320) com 10% de desconto. Pagamento único via Mercado Pago.",
+    description: "90 dias de Deemix (ARL 320).",
     amountBrl: "81.00",
     currency: PLAN_CURRENCY,
     durationDays: 90,
@@ -256,24 +256,17 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     lifetime: false,
     active: false,
     renewalType: "manual",
-    badge: "10% off",
+    badge: null,
     highlight: false,
     isTestPlan: false,
     serviceProduct: "deemix",
-    downloaderQuotaTier: null,
-    equivalentMonthlyLabel: "R$ 27,00/mês",
-    features: [
-      "ARL Premium 320 kbps",
-      "90 dias de acesso",
-      "Economia de 10% vs. mensal",
-      "Credenciais no portal do cliente",
-      "Renovação manual ao fim do período",
-    ],
+    equivalentMonthlyLabel: null,
+    features: ["Plano legado"],
   },
   {
     id: "brs-deemix-6m",
     title: "Deemix — 180 dias",
-    description: "180 dias de Deemix (ARL 320) com 10% de desconto. Pagamento único via Mercado Pago.",
+    description: "180 dias de Deemix (ARL 320).",
     amountBrl: "162.00",
     currency: PLAN_CURRENCY,
     durationDays: 180,
@@ -282,25 +275,18 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     lifetime: false,
     active: false,
     renewalType: "manual",
-    badge: "10% off",
+    badge: null,
     highlight: false,
     isTestPlan: false,
     serviceProduct: "deemix",
-    downloaderQuotaTier: null,
-    equivalentMonthlyLabel: "R$ 27,00/mês",
-    features: [
-      "ARL Premium 320 kbps",
-      "180 dias de acesso",
-      "Economia de 10% vs. mensal",
-      "Credenciais no portal do cliente",
-      "Renovação manual ao fim do período",
-    ],
+    equivalentMonthlyLabel: null,
+    features: ["Plano legado"],
   },
   {
     id: "brs-allavsoft-lifetime",
     title: "Allavsoft — Licença vitalícia",
     description:
-      "Licença vitalícia do Allavsoft. Baixe de Deezer, Spotify, YouTube e +1000 sites. Pagamento único de R$ 50,00 via Mercado Pago. Serial no portal após o webhook.",
+      "Licença vitalícia do Allavsoft. Baixe de Deezer, Spotify, YouTube e +1000 sites. Pagamento único de R$ 50,00.",
     amountBrl: "50.00",
     currency: PLAN_CURRENCY,
     durationDays: 0,
@@ -313,14 +299,13 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: true,
     isTestPlan: false,
     serviceProduct: "allavsoft",
-    downloaderQuotaTier: null,
     equivalentMonthlyLabel: null,
     features: [
       "Licença vitalícia (pagamento único)",
       "Deezer, Spotify, YouTube e +1000 sites",
       "Download e conversão de vídeos e áudios",
       "Serial no portal do cliente após o pagamento",
-      "Liberação automática via webhook Mercado Pago",
+      "Liberação automática após confirmação do pagamento",
     ],
   },
 ] as const;
@@ -367,7 +352,16 @@ export function listCanonicalPlansByProduct(product: PlanServiceProduct): Canoni
   return listActiveCanonicalPlans().filter((plan) => plan.serviceProduct === product);
 }
 
-/** Inclui planos inativos (histórico / webhooks / estornos). */
+export function listPortalSubscriptionPlans(): CanonicalPlan[] {
+  return PORTAL_SUBSCRIPTION_PLAN_IDS.map((id) => getCanonicalPlanById(id)).filter(
+    (plan): plan is CanonicalPlan => Boolean(plan),
+  );
+}
+
+export function isPortalSubscriptionPlanId(planId: string): planId is PortalSubscriptionPlanId {
+  return (PORTAL_SUBSCRIPTION_PLAN_IDS as readonly string[]).includes(planId);
+}
+
 export function isDeemixPlanId(planId: string): boolean {
   return getCanonicalPlanById(planId, { includeInactive: true })?.serviceProduct === "deemix";
 }

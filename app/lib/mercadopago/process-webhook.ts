@@ -6,6 +6,12 @@ import {
 } from "mercadopago";
 import { Prisma, type MercadoPagoOrderStatus } from "@prisma/client";
 import { getCanonicalPlanById, isAllavsoftPlanId, isDeemixPlanId, isPoolsVipPlanId } from "../billing/plan-catalog";
+import {
+  buildPlanChangeQuote,
+  isProratedPlanChangeOrder,
+  resolveVipPeriodContext,
+  type PlanChangeQuote,
+} from "../billing/plan-change";
 import { toDateInputValue } from "../due-queue";
 import { prisma } from "../prisma";
 import {
@@ -306,7 +312,7 @@ async function applyApprovedAccessInTx(
         active: true,
       },
     });
-    return { applied: true as const, order: updatedOrder, periodEnd: user.nextDueAt };
+    return { applied: true as const, order: updatedOrder, periodEnd: user.nextDueAt, planChange: null };
   }
 
   const currentServiceDue = isDeemix ? user.serviceDeemixDueAt : user.servicePoolsVipDueAt;
@@ -319,13 +325,81 @@ async function applyApprovedAccessInTx(
         now: input.approvedAt,
       });
 
+  let planChangeQuote: PlanChangeQuote | null = null;
+  let isPlanChange = false;
+
+  if (!isDeemix && hasActiveService) {
+    const prevOrder = await tx.mercadoPagoOrder.findFirst({
+      where: {
+        portalUserId: user.id,
+        status: "APPROVED",
+        planId: { startsWith: "brs-drive" },
+        NOT: { id: order.id },
+      },
+      orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
+      select: { planId: true, amount: true },
+    });
+
+    const periodContext = resolveVipPeriodContext({
+      billingValue: Number(user.servicePoolsVipValue),
+      lastApproved: prevOrder
+        ? { planId: prevOrder.planId, amount: Number(prevOrder.amount) }
+        : null,
+    });
+
+    planChangeQuote = buildPlanChangeQuote({
+      user: {
+        services: {
+          poolsVip: user.servicePoolsVip,
+          deemix: user.serviceDeemix,
+          allavsoft: user.serviceAllavsoft,
+        },
+        serviceBilling: {
+          poolsVip: {
+            value: Number(user.servicePoolsVipValue),
+            dueAt: user.servicePoolsVipDueAt,
+          },
+          deemix: {
+            value: Number(user.serviceDeemixValue),
+            dueAt: user.serviceDeemixDueAt,
+          },
+          allavsoft: {
+            value: Number(user.serviceAllavsoftValue),
+            dueAt: user.serviceAllavsoftDueAt,
+          },
+        },
+        nextDueAt: user.nextDueAt,
+      },
+      targetPlanId: plan.id,
+      periodContext,
+      now: input.approvedAt,
+    });
+
+    isPlanChange = isProratedPlanChangeOrder({
+      plan,
+      orderAmountBrl: paidAmountBrl,
+      hasActiveVip: hasActiveService,
+    });
+  }
+
+  const durationDays =
+    plan.durationDays + (isPlanChange && planChangeQuote ? planChangeQuote.bonusDays : 0);
+
   const periodEnd = computeVipAccessPeriodEnd({
     now: input.approvedAt,
-    durationDays: plan.durationDays,
-    durationMonths: plan.durationMonths,
-    hasActiveAccess: hasActiveService,
+    durationDays: durationDays > 0 ? durationDays : undefined,
+    durationMonths: durationDays > 0 ? undefined : plan.durationMonths,
+    // Troca com crédito: restante virou desconto — novo ciclo começa agora.
+    hasActiveAccess: isPlanChange ? false : hasActiveService,
     currentExpiresAt: currentServiceDue ?? user.nextDueAt,
   });
+
+  const catalogAmountBrl = plan.amountBrl;
+  const poolsBillingValue = isDeemix
+    ? Number(user.servicePoolsVipValue)
+    : isPlanChange
+      ? Number(catalogAmountBrl)
+      : Number(paidAmountBrl);
 
   const nextPoolsVip = isDeemix ? user.servicePoolsVip : true;
   const nextDeemix = isDeemix ? true : user.serviceDeemix;
@@ -336,7 +410,7 @@ async function applyApprovedAccessInTx(
   };
   const billing = {
     poolsVip: {
-      value: isDeemix ? Number(user.servicePoolsVipValue) : Number(paidAmountBrl),
+      value: poolsBillingValue,
       dueAt: isDeemix ? user.servicePoolsVipDueAt : periodEnd,
     },
     deemix: {
@@ -361,11 +435,10 @@ async function applyApprovedAccessInTx(
             serviceDeemixDueAt: periodEnd,
           }
         : {
-            servicePoolsVipValue: new Prisma.Decimal(paidAmountBrl),
+            servicePoolsVipValue: new Prisma.Decimal(
+              isPlanChange ? catalogAmountBrl : paidAmountBrl,
+            ),
             servicePoolsVipDueAt: periodEnd,
-            ...(plan.downloaderQuotaTier
-              ? { downloaderQuotaTier: plan.downloaderQuotaTier }
-              : {}),
           }),
       monthlyValue: new Prisma.Decimal(computeAggregateMonthlyValue(nextServices, billing)),
       nextDueAt: computeAggregateNextDueAt(nextServices, billing, periodEnd),
@@ -373,7 +446,21 @@ async function applyApprovedAccessInTx(
     },
   });
 
-  return { applied: true as const, order: updatedOrder, periodEnd };
+  return {
+    applied: true as const,
+    order: updatedOrder,
+    periodEnd,
+    planChange: isPlanChange
+      ? {
+          previousDueAt: currentServiceDue ?? user.nextDueAt,
+          creditBrl: planChangeQuote?.creditBrl ?? null,
+          amountPaidBrl: paidAmountBrl,
+          catalogAmountBrl,
+          remainingDays: planChangeQuote?.remainingDays ?? null,
+          bonusDays: planChangeQuote?.bonusDays ?? 0,
+        }
+      : null,
+  };
 }
 
 async function applyNonApprovedStatusInTx(
@@ -722,6 +809,16 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
             name: fresh.portalUser.name,
             planId: fresh.planId,
             periodEnd: txResult.periodEnd,
+            planChange: txResult.planChange
+              ? {
+                  previousDueAt: txResult.planChange.previousDueAt,
+                  creditBrl: txResult.planChange.creditBrl,
+                  amountPaidBrl: txResult.planChange.amountPaidBrl,
+                  catalogAmountBrl: txResult.planChange.catalogAmountBrl,
+                  remainingDays: txResult.planChange.remainingDays,
+                  bonusDays: txResult.planChange.bonusDays,
+                }
+              : null,
           });
           if (mail.sent) {
             await prisma.mercadoPagoOrder.update({

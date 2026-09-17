@@ -6,7 +6,7 @@ export type MusicasFaq = {
 export const MUSICAS_FAQS: MusicasFaq[] = [
   {
     q: "Preciso ser assinante VIP para usar a plataforma?",
-    a: "Você pode navegar pastas e listas sem assinar. Ouvir, baixar e usar o BRS Downloader exigem o plano VIP ativo (R$ 38,00/mês).",
+    a: "Você pode navegar pastas e listas sem assinar. Ouvir, baixar e usar o BRS Downloader exigem o plano VIP ativo (a partir do Plano Teste ou assinaturas de 1, 3 e 6 meses).",
   },
   {
     q: "Como o acervo está organizado?",

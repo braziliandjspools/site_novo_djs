@@ -11,53 +11,57 @@ function baseUser(overrides: Partial<PortalUser> = {}): PortalUser {
     name: "DJ",
     email: "dj@example.com",
     whatsapp: "11999999999",
-    passwordHash: "x",
     plan: "VIP",
-    services: { poolsVip: true, deemix: true, allavsoft: false },
+    services: { poolsVip: true, deemix: false, allavsoft: false },
     serviceBilling: {
-      poolsVip: { value: 45, dueAt: soon },
-      deemix: { value: 30, dueAt: soon },
+      poolsVip: { value: 35.5, dueAt: soon },
+      deemix: { value: 0, dueAt: null },
       allavsoft: { value: 0, dueAt: null },
     },
-    monthlyValue: 75,
+    monthlyValue: 35.5,
     nextDueAt: soon,
     active: true,
     musicProducerDeliveriesEnabled: false,
+    downloaderQuotaTier: "STARTER",
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  } as PortalUser;
+  };
 }
 
-test("lista renováveis dentro de 5 dias com valores do billing", () => {
+test("lista renováveis dentro de 5 dias", () => {
   const items = listPortalRenewableServices(baseUser());
   assert.equal(items.length, 1);
-  assert.ok(items.some((i) => i.key === "poolsVip" && i.value === 45));
-  assert.ok(!items.some((i) => (i as { key: string }).key === "deemix"));
+  assert.equal(items[0]?.key, "poolsVip");
 });
 
-test("buildPortalRenewalPlan usa valor do usuário e plano 1 mês", () => {
+test("buildPortalRenewalPlan usa plano 1 mês do catálogo por padrão", () => {
   const built = buildPortalRenewalPlan(baseUser(), "poolsVip");
   assert.equal(built.ok, true);
   if (!built.ok) return;
   assert.equal(built.plan.id, "brs-drive-1m");
-  assert.equal(built.plan.amountBrl, "45.00");
-  assert.match(built.plan.title, /Renovação Pools VIP/);
+  assert.equal(built.plan.amountBrl, "35.50");
+});
+
+test("buildPortalRenewalPlan aceita trimestral", () => {
+  const built = buildPortalRenewalPlan(baseUser(), "poolsVip", "brs-drive-3m");
+  assert.equal(built.ok, true);
+  if (!built.ok) return;
+  assert.equal(built.plan.id, "brs-drive-3m");
+  assert.equal(built.plan.amountBrl, "100.00");
 });
 
 test("fora da janela não renova", () => {
   const far = new Date();
   far.setDate(far.getDate() + 20);
   const user = baseUser({
-    services: { poolsVip: true, deemix: false, allavsoft: false },
     serviceBilling: {
-      poolsVip: { value: 38, dueAt: far },
+      poolsVip: { value: 35.5, dueAt: far },
       deemix: { value: 0, dueAt: null },
       allavsoft: { value: 0, dueAt: null },
     },
     nextDueAt: far,
   });
   assert.equal(listPortalRenewableServices(user).length, 0);
-  const built = buildPortalRenewalPlan(user, "poolsVip");
-  assert.equal(built.ok, false);
+  assert.equal(buildPortalRenewalPlan(user, "poolsVip").ok, false);
 });

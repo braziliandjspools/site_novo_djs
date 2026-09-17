@@ -1,7 +1,19 @@
 import type { CanonicalPlan } from "./billing/plan-catalog";
-import { getCanonicalPlanById } from "./billing/plan-catalog";
+import {
+  getCanonicalPlanById,
+  isPortalSubscriptionPlanId,
+  listPortalSubscriptionPlans,
+  type PortalSubscriptionPlanId,
+} from "./billing/plan-catalog";
+import {
+  buildPlanChangeQuote,
+  resolveVipPeriodContext,
+  type PlanChangeQuote,
+} from "./billing/plan-change";
 import { daysUntilDue, formatDueDate, getDueUrgency, getSaoPauloDateParts } from "./due-queue";
+import { prisma } from "./prisma";
 import { formatMonthlyValue, type PortalUser } from "./portal-users";
+import { userHasActiveVipAccess } from "./mercadopago/webhook-policy";
 
 export const PORTAL_RENEWAL_WINDOW_DAYS = 5;
 
@@ -14,7 +26,6 @@ export type PortalRenewableService = {
   valueLabel: string;
   dueAt: string;
   dueLabel: string;
-  /** Chave de calendário SP (YYYY-MM-DD) para empilhar vencimentos no mesmo dia. */
   dueDayKey: string;
   daysUntilDue: number;
   urgency: "soon" | "overdue";
@@ -25,11 +36,56 @@ function dueDayKey(date: Date | string) {
   return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
 }
 
-function formatAmountBrl(value: number) {
-  if (!Number.isFinite(value) || value <= 0) {
-    throw new Error("Valor de renovação inválido.");
-  }
-  return value.toFixed(2);
+/** Já usou o Plano Teste (pedido aprovado com planId de teste). */
+export async function hasUsedDriveTestPlan(portalUserId: number): Promise<boolean> {
+  const count = await prisma.mercadoPagoOrder.count({
+    where: {
+      portalUserId,
+      status: "APPROVED",
+      planId: "brs-drive-3d",
+    },
+  });
+  return count > 0;
+}
+
+/** Último pedido VIP aprovado (para crédito na troca de plano). */
+export async function getLastApprovedVipOrder(portalUserId: number) {
+  return prisma.mercadoPagoOrder.findFirst({
+    where: {
+      portalUserId,
+      status: "APPROVED",
+      planId: { startsWith: "brs-drive" },
+    },
+    orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
+    select: { planId: true, amount: true, approvedAt: true },
+  });
+}
+
+export async function getVipPeriodContextForUser(user: PortalUser) {
+  const last = await getLastApprovedVipOrder(user.id);
+  return resolveVipPeriodContext({
+    billingValue: user.serviceBilling.poolsVip.value,
+    lastApproved: last
+      ? { planId: last.planId, amount: Number(last.amount) }
+      : null,
+  });
+}
+
+/** Cotação de troca com crédito residual (VIP ativo). */
+export async function quotePortalPlanChange(
+  user: PortalUser,
+  targetPlanId: string,
+  now = new Date(),
+): Promise<PlanChangeQuote | null> {
+  const hasActive = userHasActiveVipAccess({
+    servicePoolsVip: user.services.poolsVip,
+    nextDueAt: user.nextDueAt,
+    servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
+    now,
+  });
+  if (!hasActive) return null;
+  const periodContext = await getVipPeriodContextForUser(user);
+  return buildPlanChangeQuote({ user, targetPlanId, periodContext, now });
 }
 
 /** Serviços renováveis na janela de 5 dias (ou já vencidos), com valor > 0. */
@@ -65,12 +121,13 @@ export function isPortalRenewalServiceKey(value: unknown): value is PortalRenewa
 }
 
 /**
- * Plano de checkout para renovação: duração 1 mês do catálogo,
- * valor e título vindos do billing do usuário (servidor).
+ * Renovação na janela: usa o plano escolhido (1/3/6) do catálogo.
+ * Se não informar planId, mantém o mensal como padrão.
  */
 export function buildPortalRenewalPlan(
   user: Pick<PortalUser, "services" | "serviceBilling" | "nextDueAt">,
   service: PortalRenewalServiceKey,
+  targetPlanId: PortalSubscriptionPlanId = "brs-drive-1m",
 ): { ok: true; plan: CanonicalPlan; renewable: PortalRenewableService } | { ok: false; error: string; code: string } {
   const renewable = listPortalRenewableServices(user).find((item) => item.key === service);
   if (!renewable) {
@@ -81,23 +138,19 @@ export function buildPortalRenewalPlan(
     };
   }
 
-  const base = getCanonicalPlanById("brs-drive-1m");
+  if (!isPortalSubscriptionPlanId(targetPlanId)) {
+    return { ok: false, error: "Plano de renovação inválido.", code: "invalid_renewal_plan" };
+  }
+
+  const base = getCanonicalPlanById(targetPlanId);
   if (!base) {
     return { ok: false, error: "Plano de renovação indisponível.", code: "renewal_plan_missing" };
   }
 
-  let amountBrl: string;
-  try {
-    amountBrl = formatAmountBrl(renewable.value);
-  } catch {
-    return { ok: false, error: "Valor do serviço inválido para cobrança.", code: "invalid_renewal_amount" };
-  }
-
   const plan: CanonicalPlan = {
     ...base,
-    amountBrl,
-    title: `Renovação ${renewable.label} — 1 mês`,
-    description: `Renovação manual do ${renewable.label} com vencimento em ${renewable.dueLabel}. Pagamento único via Mercado Pago.`,
+    title: `Renovação ${renewable.label} — ${base.durationLabel}`,
+    description: `Renovação manual do ${renewable.label} (${base.durationLabel}) com vencimento em ${renewable.dueLabel}. Pagamento único.`,
     badge: renewable.urgency === "overdue" ? "Vencido" : "Renovação",
     highlight: true,
     isTestPlan: false,
@@ -106,7 +159,56 @@ export function buildPortalRenewalPlan(
   return { ok: true, plan, renewable };
 }
 
-/** Serialização segura para o client do portal. */
+export type PortalPlanChangeCard = {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  durationMonths: number;
+  description: string;
+  badge: string | null;
+  highlight: boolean;
+  catalogPrice?: string;
+  creditLabel?: string | null;
+  remainingDays?: number | null;
+  amountDueLabel?: string | null;
+  projectedDueLabel?: string | null;
+};
+
+/** Cards públicos para troca de plano no portal (com crédito se VIP ativo). */
+export async function listPortalPlanChangeCards(user?: PortalUser): Promise<PortalPlanChangeCard[]> {
+  const periodContext = user ? await getVipPeriodContextForUser(user) : null;
+  const now = new Date();
+
+  return listPortalSubscriptionPlans().map((plan) => {
+    const quote =
+      user && periodContext
+        ? buildPlanChangeQuote({
+            user,
+            targetPlanId: plan.id,
+            periodContext,
+            now,
+          })
+        : null;
+
+    return {
+      id: plan.id,
+      name: plan.title,
+      price: quote?.amountDueLabel ?? formatMonthlyValue(Number(plan.amountBrl)),
+      catalogPrice: formatMonthlyValue(Number(plan.amountBrl)),
+      period: plan.durationLabel,
+      durationMonths: plan.durationMonths,
+      description: plan.description,
+      badge: plan.badge,
+      highlight: plan.highlight,
+      creditLabel: quote && Number(quote.creditBrl) > 0 ? quote.creditLabel : null,
+      remainingDays: quote?.remainingDays ?? null,
+      amountDueLabel: quote?.amountDueLabel ?? null,
+      projectedDueLabel: quote?.projectedPeriodEndLabel ?? null,
+    };
+  });
+}
+
 export function serializePortalRenewables(
   user: Pick<PortalUser, "services" | "serviceBilling" | "nextDueAt">,
 ) {

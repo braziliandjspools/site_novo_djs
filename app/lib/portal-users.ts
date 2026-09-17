@@ -490,7 +490,35 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
     data,
   });
 
-  return mapUser(user);
+  const mapped = mapUser(user);
+
+  // Financeiro do portal: registra ativação/cancelamento manual do VIP.
+  try {
+    const wasVip = currentMapped.services.poolsVip;
+    const isVip = mapped.services.poolsVip;
+    if (!wasVip && isVip) {
+      const { recordAdminVipBillingEvent } = await import("./portal-payments");
+      await recordAdminVipBillingEvent({
+        portalUserId: id,
+        kind: "activated",
+        amountBrl: mapped.serviceBilling.poolsVip.value,
+        planId: "brs-drive-1m",
+        dueAt: mapped.serviceBilling.poolsVip.dueAt,
+      });
+    } else if (wasVip && !isVip) {
+      const { recordAdminVipBillingEvent } = await import("./portal-payments");
+      await recordAdminVipBillingEvent({
+        portalUserId: id,
+        kind: "cancelled",
+        amountBrl: currentMapped.serviceBilling.poolsVip.value,
+        planId: "brs-drive-1m",
+      });
+    }
+  } catch (err) {
+    console.error("[portal-users] falha ao registrar evento admin no financeiro:", err);
+  }
+
+  return mapped;
 }
 
 export async function deletePortalUser(id: number) {

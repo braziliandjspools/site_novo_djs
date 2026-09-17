@@ -1,7 +1,7 @@
 import "server-only";
 import { SITE_NAME, SITE_PRODUCTION_URL } from "../branding";
 import { formatDueDate } from "../due-queue";
-import { getCanonicalPlanById } from "../billing/plan-catalog";
+import { formatPlanAmountBrl, getCanonicalPlanById } from "../billing/plan-catalog";
 import {
   escapeEmailHtml,
   getResendClient,
@@ -14,6 +14,14 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
   name: string;
   planId: string;
   periodEnd: Date;
+  planChange?: {
+    previousDueAt: Date;
+    creditBrl: string | null;
+    amountPaidBrl: string;
+    catalogAmountBrl: string;
+    remainingDays: number | null;
+    bonusDays: number;
+  } | null;
 }) {
   const resend = getResendClient();
   if (!resend) {
@@ -33,12 +41,28 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
   const logoUrl = `${SITE_PRODUCTION_URL}/images/brs-logo.jpg`;
   const isDeemix = plan?.serviceProduct === "deemix";
   const isAllavsoft = plan?.serviceProduct === "allavsoft";
+  const isPlanChange = Boolean(input.planChange) && !isDeemix && !isAllavsoft;
+
+  const creditLabel = input.planChange?.creditBrl
+    ? formatPlanAmountBrl(input.planChange.creditBrl)
+    : null;
+  const paidLabel = input.planChange
+    ? formatPlanAmountBrl(input.planChange.amountPaidBrl)
+    : null;
+  const catalogLabel = input.planChange
+    ? formatPlanAmountBrl(input.planChange.catalogAmountBrl)
+    : null;
+  const previousDueLabel = input.planChange
+    ? formatDueDate(input.planChange.previousDueAt)
+    : null;
 
   const subject = isAllavsoft
     ? `Licença Allavsoft liberada — ${SITE_NAME}`
     : isDeemix
       ? `Acesso Deemix liberado — ${SITE_NAME}`
-      : `Acesso VIP liberado — ${SITE_NAME}`;
+      : isPlanChange
+        ? `Troca de plano confirmada — ${SITE_NAME}`
+        : `Acesso VIP liberado — ${SITE_NAME}`;
 
   const text = isAllavsoft
     ? [
@@ -69,31 +93,105 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
           "",
           `${SITE_NAME}.`,
         ].join("\n")
-      : [
-          `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
-          "",
-          "Seu pagamento foi confirmado e o acesso VIP já está liberado.",
-          "",
-          `Plano: ${planLabel}`,
-          `Duração: ${durationLabel}`,
-          `Válido até: ${formatDueDate(input.periodEnd)}`,
-          "",
-          `Acesse sua conta: ${accountUrl}`,
-          "",
-          `${SITE_NAME}.`,
-        ].join("\n");
+      : isPlanChange
+        ? [
+            `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
+            "",
+            "Sua troca de plano foi confirmada e o acesso VIP já está atualizado.",
+            "",
+            `Novo plano: ${planLabel}`,
+            `Duração: ${durationLabel}`,
+            previousDueLabel ? `Vencimento anterior: ${previousDueLabel}` : "",
+            input.planChange?.remainingDays != null
+              ? `Dias restantes creditados: ${input.planChange.remainingDays}`
+              : "",
+            creditLabel ? `Crédito aplicado: ${creditLabel}` : "",
+            catalogLabel ? `Preço do plano: ${catalogLabel}` : "",
+            paidLabel ? `Valor pago: ${paidLabel}` : "",
+            input.planChange && input.planChange.bonusDays > 0
+              ? `Dias extras pelo crédito: ${input.planChange.bonusDays}`
+              : "",
+            `Novo vencimento: ${formatDueDate(input.periodEnd)}`,
+            "",
+            `Acesse sua conta: ${accountUrl}`,
+            "",
+            `${SITE_NAME}.`,
+          ]
+            .filter(Boolean)
+            .join("\n")
+        : [
+            `Olá, ${input.name.trim().split(/\s+/)[0] || "DJ"}.`,
+            "",
+            "Seu pagamento foi confirmado e o acesso VIP já está liberado.",
+            "",
+            `Plano: ${planLabel}`,
+            `Duração: ${durationLabel}`,
+            `Válido até: ${formatDueDate(input.periodEnd)}`,
+            "",
+            `Acesse sua conta: ${accountUrl}`,
+            "",
+            `${SITE_NAME}.`,
+          ].join("\n");
 
   const headline = isAllavsoft
     ? "Sua licença vitalícia do Allavsoft foi liberada. O serial será exibido no portal do cliente."
     : isDeemix
       ? "Seu acesso Deemix (ARL 320 kbps) foi liberado. As credenciais estão no portal."
-      : `Seu acesso VIP à <strong style="color:#fff;">${escapeEmailHtml(SITE_NAME)}</strong> foi liberado. Plataforma, packs e Downloader já estão disponíveis na sua conta.`;
+      : isPlanChange
+        ? `Sua troca de plano foi confirmada. O novo vencimento da <strong style="color:#fff;">${escapeEmailHtml(SITE_NAME)}</strong> já está atualizado na sua conta.`
+        : `Seu acesso VIP à <strong style="color:#fff;">${escapeEmailHtml(SITE_NAME)}</strong> foi liberado. Plataforma, packs e Downloader já estão disponíveis na sua conta.`;
 
   const eyebrow = isAllavsoft
     ? "Allavsoft liberado"
     : isDeemix
       ? "Deemix liberado"
-      : "Pagamento confirmado";
+      : isPlanChange
+        ? "Troca de plano"
+        : "Pagamento confirmado";
+
+  const detailsBlock = isPlanChange
+    ? `<p style="margin:0 0 10px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;">Detalhes da troca</p>
+                    <p style="margin:0 0 6px;font-size:16px;color:#ffffff;font-weight:700;">${escapeEmailHtml(planLabel)}</p>
+                    <p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Duração: ${escapeEmailHtml(durationLabel)}</p>
+                    ${
+                      previousDueLabel
+                        ? `<p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Vencimento anterior: ${escapeEmailHtml(previousDueLabel)}</p>`
+                        : ""
+                    }
+                    ${
+                      input.planChange?.remainingDays != null
+                        ? `<p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Dias restantes creditados: ${input.planChange.remainingDays}</p>`
+                        : ""
+                    }
+                    ${
+                      creditLabel
+                        ? `<p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Crédito aplicado: ${escapeEmailHtml(creditLabel)}</p>`
+                        : ""
+                    }
+                    ${
+                      catalogLabel
+                        ? `<p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Preço do plano: ${escapeEmailHtml(catalogLabel)}</p>`
+                        : ""
+                    }
+                    ${
+                      paidLabel
+                        ? `<p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Valor pago: ${escapeEmailHtml(paidLabel)}</p>`
+                        : ""
+                    }
+                    ${
+                      input.planChange && input.planChange.bonusDays > 0
+                        ? `<p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Dias extras pelo crédito: ${input.planChange.bonusDays}</p>`
+                        : ""
+                    }
+                    <p style="margin:0;font-size:14px;color:#1ed760;">Novo vencimento: ${periodEndLabel}</p>`
+    : `<p style="margin:0 0 10px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;">Detalhes do plano</p>
+                    <p style="margin:0 0 6px;font-size:16px;color:#ffffff;font-weight:700;">${escapeEmailHtml(planLabel)}</p>
+                    <p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Duração: ${escapeEmailHtml(durationLabel)}</p>
+                    <p style="margin:0;font-size:14px;color:#1ed760;">${
+                      isAllavsoft
+                        ? "Licença vitalícia — serial no portal do cliente"
+                        : `Válido até ${periodEndLabel}`
+                    }</p>`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -126,14 +224,7 @@ export async function sendMercadoPagoAccessGrantedEmail(input: {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#101010;border:1px solid rgba(0,151,57,0.35);border-radius:12px;">
                 <tr>
                   <td style="padding:16px 18px;">
-                    <p style="margin:0 0 10px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;">Detalhes do plano</p>
-                    <p style="margin:0 0 6px;font-size:16px;color:#ffffff;font-weight:700;">${escapeEmailHtml(planLabel)}</p>
-                    <p style="margin:0 0 6px;font-size:14px;color:#bdbdbd;">Duração: ${escapeEmailHtml(durationLabel)}</p>
-                    <p style="margin:0;font-size:14px;color:#1ed760;">${
-                      isAllavsoft
-                        ? "Licença vitalícia — serial no portal do cliente"
-                        : `Válido até ${periodEndLabel}`
-                    }</p>
+                    ${detailsBlock}
                   </td>
                 </tr>
               </table>

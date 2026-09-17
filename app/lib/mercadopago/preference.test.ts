@@ -22,7 +22,7 @@ test("preference body usa BRL, quantity 1, back_urls e auto_return", () => {
   assert.equal(body.items.length, 1);
   assert.equal(body.items[0]?.quantity, 1);
   assert.equal(body.items[0]?.currency_id, "BRL");
-  assert.equal(body.items[0]?.unit_price, 38);
+  assert.equal(body.items[0]?.unit_price, 35.5);
   assert.equal(body.external_reference, "brs_mp_order-1");
   assert.equal(body.auto_return, "approved");
   assert.equal(body.notification_url, MERCADO_PAGO_NOTIFICATION_URL);

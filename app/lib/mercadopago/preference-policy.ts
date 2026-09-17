@@ -34,6 +34,10 @@ export function buildMercadoPagoPreferenceBody(input: {
   externalReference: string;
   siteUrl: string;
   payer: PreferencePayer;
+  checkoutKind?: "new" | "renewal" | "plan_change";
+  creditBrl?: string;
+  catalogAmountBrl?: string;
+  previousDueAt?: Date;
 }): MercadoPagoPreferenceBody {
   const base = input.siteUrl.replace(/\/$/, "");
   if (!base.startsWith("https://")) {
@@ -74,6 +78,12 @@ export function buildMercadoPagoPreferenceBody(input: {
       brs_duration_days: String(input.plan.durationDays),
       brs_duration_months: String(input.plan.durationMonths),
       brs_service_product: input.plan.serviceProduct,
+      ...(input.checkoutKind ? { brs_checkout_kind: input.checkoutKind } : {}),
+      ...(input.creditBrl ? { brs_credit_brl: input.creditBrl } : {}),
+      ...(input.catalogAmountBrl ? { brs_catalog_amount_brl: input.catalogAmountBrl } : {}),
+      ...(input.previousDueAt
+        ? { brs_previous_due_at: input.previousDueAt.toISOString() }
+        : {}),
     },
   };
 }

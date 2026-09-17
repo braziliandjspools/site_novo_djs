@@ -45,24 +45,6 @@ export type PortalData = {
     nextDueAt: string;
     createdAt: string;
     active: boolean;
-    downloaderQuotaTier?: "STARTER" | "PRO" | "MAX";
-    downloaderQuotaTierLabel?: string;
-    downloaderQuota?: {
-      tier: string;
-      tierLabel: string;
-      trackLimit: number;
-      tracksUsed: number;
-      tracksRemaining: number;
-      packsUsed: number;
-      packLimit: number | null;
-      packsRemaining: number | null;
-      windowStartedAt: string;
-      windowEndsAt: string;
-      resetsInSeconds: number;
-      exhausted: boolean;
-      browserUnlimited: boolean;
-      periodLabel: string;
-    } | null;
     subscription?: {
       provider: string;
       providerLabel: string;
@@ -105,6 +87,24 @@ export type PortalData = {
   hasSubscriptionPlan: boolean;
   /** Serviços na janela de renovação (≤5 dias ou vencidos). */
   renewables: PortalRenewableService[];
+  /** Planos 1/3/6 meses para upgrade/downgrade no portal. */
+  planChangeCards?: Array<{
+    id: string;
+    name: string;
+    price: string;
+    period: string;
+    durationMonths: number;
+    description: string;
+    badge: string | null;
+    highlight: boolean;
+    catalogPrice?: string;
+    creditLabel?: string | null;
+    remainingDays?: number | null;
+    amountDueLabel?: string | null;
+    projectedDueLabel?: string | null;
+  }>;
+  /** Plano teste (3 dias) já foi usado nesta conta. */
+  testPlanUsed?: boolean;
 };
 
 export function formatDateBr(iso: string) {

@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CreditCard, Loader2, RefreshCw, Wallet } from "lucide-react";
+import { CreditCard, Loader2, RefreshCw, RotateCcw, Trash2, Wallet } from "lucide-react";
 import { PortalCard } from "../PortalShell";
 import { formatDateBr } from "../portal-types";
+import { useSiteToast } from "../../components/SiteToast";
 
 type PaymentRow = {
   id: string;
   providerLabel: string;
+  planId: string;
   planLabel: string;
   amountLabel: string;
   statusUi: "pago" | "pendente" | "cancelado" | "reembolsado";
@@ -15,6 +17,8 @@ type PaymentRow = {
   paymentId: string | null;
   createdAt: string;
   approvedAt: string | null;
+  canDismiss?: boolean;
+  canRetry?: boolean;
 };
 
 type PaymentsPayload = {
@@ -43,9 +47,11 @@ function statusClass(statusUi: PaymentRow["statusUi"]) {
 }
 
 export function AccountPaymentsPanel() {
+  const { showToast } = useSiteToast();
   const [data, setData] = useState<PaymentsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [actingId, setActingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -89,6 +95,58 @@ export function AccountPaymentsPanel() {
     }
   }
 
+  async function dismissPending(payment: PaymentRow) {
+    if (!payment.canDismiss) return;
+    setActingId(payment.id);
+    try {
+      const res = await fetch(`/api/portal/payments/${payment.id}`, { method: "DELETE" });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        showToast(json.error ?? "Não foi possível remover o pendente.", "error");
+        return;
+      }
+      showToast("Pendente removido do histórico.", "success");
+      await refresh();
+    } catch {
+      showToast("Erro ao remover pendente.", "error");
+    } finally {
+      setActingId(null);
+    }
+  }
+
+  async function retryPayment(payment: PaymentRow) {
+    if (!payment.canRetry || !payment.planId) return;
+    setActingId(payment.id);
+    try {
+      // Remove o pendente antigo e abre novo checkout do mesmo plano.
+      await fetch(`/api/portal/payments/${payment.id}`, { method: "DELETE" });
+      const res = await fetch("/api/payments/mercadopago/preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ planId: payment.planId }),
+      });
+      const json = (await res.json()) as {
+        checkoutUrl?: string;
+        error?: string;
+        loginUrl?: string;
+      };
+      if (res.status === 401 && json.loginUrl) {
+        window.location.assign(json.loginUrl);
+        return;
+      }
+      if (!res.ok || !json.checkoutUrl) {
+        showToast(json.error ?? "Não foi possível reabrir o pagamento.", "error");
+        await refresh();
+        return;
+      }
+      window.location.assign(json.checkoutUrl);
+    } catch {
+      showToast("Erro ao tentar pagar novamente.", "error");
+      setActingId(null);
+    }
+  }
+
   return (
     <PortalCard
       title="Financeiro"
@@ -111,7 +169,8 @@ export function AccountPaymentsPanel() {
       <div className="mb-4 flex items-start gap-3">
         <Wallet className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#00ff9d]" />
         <p className="text-sm text-zinc-400">
-          Histórico de pagamentos da sua conta (Mercado Pago via webhook): data, valor e status.
+          Histórico de pagamentos online e ajustes manuais do admin: data, valor e status. Pedidos
+          pendentes podem ser removidos ou reabertos para pagamento.
         </p>
       </div>
 
@@ -189,6 +248,36 @@ export function AccountPaymentsPanel() {
                         : `Criado em ${formatDateBr(payment.createdAt)}`}
                     </p>
                   </div>
+                  {payment.statusUi === "pendente" && (payment.canDismiss || payment.canRetry) ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {payment.canRetry ? (
+                        <button
+                          type="button"
+                          disabled={actingId === payment.id}
+                          onClick={() => void retryPayment(payment)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#00ff9d] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a] disabled:opacity-60"
+                        >
+                          {actingId === payment.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RotateCcw className="h-3 w-3" />
+                          )}
+                          Tentar pagar
+                        </button>
+                      ) : null}
+                      {payment.canDismiss ? (
+                        <button
+                          type="button"
+                          disabled={actingId === payment.id}
+                          onClick={() => void dismissPending(payment)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-500 hover:text-white disabled:opacity-60"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Remover pendente
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>

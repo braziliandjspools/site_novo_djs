@@ -75,7 +75,7 @@ export function PortalRenewalPay({ renewables }: PortalRenewalPayProps) {
         return;
       }
       if (!res.ok || !data.checkoutUrl) {
-        setError(data.error || "Não foi possível abrir o Mercado Pago.");
+        setError(data.error || "Não foi possível abrir o checkout.");
         setLoadingKey(null);
         return;
       }
@@ -148,7 +148,7 @@ export function PortalRenewalPay({ renewables }: PortalRenewalPayProps) {
             <p className="mb-4 text-sm text-zinc-400">
               {stacked
                 ? "Mais de um serviço vence nesta data. Escolha o que pagar agora, deixe para depois ou cancele este aviso."
-                : "Seu plano está na janela de renovação. Pague pelo Mercado Pago com o valor do seu serviço."}
+                : "Seu plano está na janela de renovação. Pague com o valor do seu serviço."}
             </p>
 
             <ul className="space-y-3">
