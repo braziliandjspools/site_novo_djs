@@ -1,4 +1,5 @@
 import { getAudioSourceUrl } from "./google-drive";
+import { GOOGLE_DRIVE_API_KEY } from "./site";
 
 const DRIVE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -19,13 +20,41 @@ function clampRangeToPreview(range: string | null, maxBytes: number): string {
   return `bytes=${start}-${Math.max(start, end)}`;
 }
 
+function isUsableAudioResponse(upstream: Response): boolean {
+  if ((!upstream.ok && upstream.status !== 206) || !upstream.body) return false;
+  const contentType = upstream.headers.get("Content-Type") ?? "";
+  if (
+    contentType.includes("text/html") ||
+    contentType.includes("application/json") ||
+    contentType.includes("text/plain")
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function userContentUrl(fileId: string): string {
+  return `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`;
+}
+
+async function fetchOnce(
+  url: string,
+  headers: HeadersInit,
+): Promise<Response> {
+  return fetch(url, {
+    redirect: "follow",
+    headers,
+    cache: "no-store",
+  });
+}
+
 export async function fetchDriveAudioUpstream(
   fileId: string,
   request?: Request,
   options?: { previewMaxBytes?: number },
 ) {
   const previewMaxBytes = options?.previewMaxBytes;
-  const headers: HeadersInit = { "User-Agent": DRIVE_USER_AGENT };
+  const headers: Record<string, string> = { "User-Agent": DRIVE_USER_AGENT };
 
   if (previewMaxBytes && previewMaxBytes > 0) {
     headers.Range = clampRangeToPreview(request?.headers.get("Range") ?? null, previewMaxBytes);
@@ -34,28 +63,42 @@ export async function fetchDriveAudioUpstream(
     if (range) headers.Range = range;
   }
 
-  const upstream = await fetch(getAudioSourceUrl(fileId), {
-    redirect: "follow",
-    headers,
-  });
+  const primaryUrl = getAudioSourceUrl(fileId);
+  let upstream = await fetchOnce(primaryUrl, headers);
 
-  if (!upstream.ok || !upstream.body) {
-    return { error: "Stream indisponível", status: upstream.status } as const;
+  // Range às vezes falha no Drive/API — tenta de novo sem Range.
+  if (!isUsableAudioResponse(upstream) && headers.Range) {
+    const { Range: _omit, ...withoutRange } = headers;
+    upstream = await fetchOnce(primaryUrl, withoutRange);
   }
 
-  const contentType = upstream.headers.get("Content-Type") ?? "";
+  // Fallback: API key restrita/quota → usercontent público.
   if (
-    contentType.includes("text/html") ||
-    contentType.includes("application/json") ||
-    contentType.includes("text/plain")
+    !isUsableAudioResponse(upstream) &&
+    GOOGLE_DRIVE_API_KEY &&
+    primaryUrl.includes("googleapis.com")
   ) {
-    return { error: "Arquivo indisponível no Drive", status: 502 } as const;
+    const { Range: _omit, ...withoutRange } = headers;
+    const fallbackHeaders = headers.Range ? headers : withoutRange;
+    upstream = await fetchOnce(userContentUrl(fileId), fallbackHeaders);
+    if (!isUsableAudioResponse(upstream) && fallbackHeaders.Range) {
+      upstream = await fetchOnce(userContentUrl(fileId), withoutRange);
+    }
+  }
+
+  if (!isUsableAudioResponse(upstream)) {
+    const status =
+      upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502;
+    return {
+      error: "Arquivo indisponível no Drive",
+      status: status === 401 || status === 403 ? status : 502,
+    } as const;
   }
 
   return {
     body: upstream.body,
     status: upstream.status,
-    contentType: contentType || "application/octet-stream",
+    contentType: upstream.headers.get("Content-Type") || "application/octet-stream",
     contentLength: upstream.headers.get("Content-Length"),
     contentRange: upstream.headers.get("Content-Range"),
     acceptRanges: upstream.headers.get("Accept-Ranges"),
@@ -75,10 +118,7 @@ export function driveAudioResponseHeaders(
   headers.set("Content-Type", upstream.contentType);
   headers.set("Cache-Control", "private, no-store, no-cache");
   headers.set("X-Content-Type-Options", "nosniff");
-  headers.set(
-    "Content-Disposition",
-    options?.inline ? "inline" : "inline",
-  );
+  headers.set("Content-Disposition", "inline");
   if (upstream.contentLength) headers.set("Content-Length", upstream.contentLength);
   if (upstream.contentRange) headers.set("Content-Range", upstream.contentRange);
   if (upstream.acceptRanges) headers.set("Accept-Ranges", upstream.acceptRanges);

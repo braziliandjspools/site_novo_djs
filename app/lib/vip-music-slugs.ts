@@ -178,6 +178,39 @@ export function displayFolderName(name: string): string {
     .toLocaleUpperCase("pt-BR");
 }
 
+/**
+ * Pastas de atualização no Drive: `17-09-2026`, `17.09.2026`, `17/09/2026`.
+ * Não confunde com meses tipo `04- ABRIL 2024`.
+ */
+export function parseUpdateDateFolder(
+  name: string,
+): { day: number; month: number; year: number; key: string; label: string } | null {
+  const label = displayFolderName(name).trim();
+  const match = label.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{4})$/);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return null;
+  if (year < 2000 || year > 2100) return null;
+  if (month < 1 || month > 12) return null;
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (day < 1 || day > lastDay) return null;
+  const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const display = `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}`;
+  return { day, month, year, key, label: display };
+}
+
+export function isUpdateDateFolderName(name: string): boolean {
+  return parseUpdateDateFolder(name) != null;
+}
+
+export function formatUpdateDateLabel(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  if (!y || !m || !d) return key;
+  return `${String(d).padStart(2, "0")}.${String(m).padStart(2, "0")}.${y}`;
+}
+
 /** Detecta pastas "SEMANA 01", "Semana 1", etc. */
 export function isWeekFolderName(name: string): boolean {
   return /\bsemana\s*0*\d+/i.test(displayFolderName(name));

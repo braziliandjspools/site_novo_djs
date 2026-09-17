@@ -3,6 +3,8 @@ import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../../../
 import { resolveVipMusicStreamAccess } from "../../../../lib/vip-music-access";
 
 export const dynamic = "force-dynamic";
+/** Streams longos no Dokploy/Node (faixas VIP). */
+export const maxDuration = 300;
 
 type RouteContext = {
   params: Promise<{ fileId: string }>;
@@ -29,7 +31,8 @@ export async function GET(request: Request, context: RouteContext) {
       status: upstream.status,
       headers: driveAudioResponseHeaders(upstream, { inline: true }),
     });
-  } catch {
+  } catch (error) {
+    console.error("[musicas/stream]", fileId, error);
     return NextResponse.json({ error: "Falha no stream" }, { status: 502 });
   }
 }

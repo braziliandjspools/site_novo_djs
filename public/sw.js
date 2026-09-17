@@ -1,6 +1,6 @@
-/* BRS PWA — service worker mínimo para instalação no desktop (Chrome/Edge). */
-const CACHE = "brs-pwa-v1";
-const PRECACHE = ["/", "/site.webmanifest", "/images/logo.png"];
+/* BRS PWA — SW mínimo (instalação). Não intercepta navegação/API/áudio. */
+const CACHE = "brs-pwa-v3";
+const PRECACHE = ["/site.webmanifest", "/images/logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -23,26 +23,12 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  if (request.method !== "GET") return;
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-  // Não intercepta APIs / streaming — só assets e navegação leve.
-  if (url.pathname.startsWith("/api/")) return;
-
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      const network = fetch(request)
-        .then((response) => {
-          if (response && response.ok && request.destination === "document") {
-            const copy = response.clone();
-            void caches.open(CACHE).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    }),
-  );
+// Handlers no topo do script (requisito do Chrome para 'message').
+self.addEventListener("message", (event) => {
+  if (event?.data?.type === "SKIP_WAITING") {
+    void self.skipWaiting();
+  }
 });
+
+// Sem fetch handler: deixa a rede nativa cuidar de HTML, /api/musicas/stream e áudio.
+// Interceptar fetch quebrava páginas (Response undefined) e mascarava erros de stream.

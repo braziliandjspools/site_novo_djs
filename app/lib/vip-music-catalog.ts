@@ -8,6 +8,7 @@ import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 import {
   childrenAreWeekFolders,
   displayFolderName,
+  parseUpdateDateFolder,
   slugifyFolderName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
@@ -68,7 +69,11 @@ export function isVipMusicCatalogConfigured() {
   return Boolean(getVipMusicRootFolderId());
 }
 
-function toPreviewTrack(file: DriveChild, packName: string): PreviewTrack {
+function toPreviewTrack(
+  file: DriveChild,
+  packName: string,
+  updateDate?: string | null,
+): PreviewTrack {
   return {
     id: file.id,
     pack: packName,
@@ -76,10 +81,14 @@ function toPreviewTrack(file: DriveChild, packName: string): PreviewTrack {
     ...parseTrackMeta(file.name),
     modifiedAt: file.createdTime ?? file.modifiedTime ?? null,
     sizeBytes: parseDriveSizeBytes(file.size),
+    updateDate: updateDate ?? null,
   };
 }
 
 function sortTracksByUploadThenTitle(a: PreviewTrack, b: PreviewTrack) {
+  const ad = a.updateDate ?? "";
+  const bd = b.updateDate ?? "";
+  if (ad !== bd) return bd.localeCompare(ad);
   const am = a.modifiedAt ?? "";
   const bm = b.modifiedAt ?? "";
   if (am !== bm) return bm.localeCompare(am);
@@ -123,6 +132,7 @@ async function collectTracksDeep(
   packName: string,
   depth = 0,
   seen = new Set<string>(),
+  updateDate: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH) return [];
   if (seen.has(folderId)) return [];
@@ -132,12 +142,15 @@ async function collectTracksDeep(
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
 
-  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName));
+  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, updateDate));
 
   if (subfolders.length > 0) {
-    const nestedLists = await mapPool(subfolders, TRACK_WALK_CONCURRENCY, (folder) =>
-      collectTracksDeep(folder.id, folder.name, depth + 1, seen),
-    );
+    const nestedLists = await mapPool(subfolders, TRACK_WALK_CONCURRENCY, (folder) => {
+      const parsed = parseUpdateDateFolder(folder.name);
+      const nextPack = parsed ? packName : folder.name;
+      const nextDate = parsed?.key ?? updateDate;
+      return collectTracksDeep(folder.id, nextPack, depth + 1, seen, nextDate);
+    });
     for (const nested of nestedLists) {
       tracks.push(...nested);
     }
@@ -191,11 +204,51 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
 
   // Há subpastas: navega por pastas; se também houver áudio no mesmo nível, inclui as faixas.
   if (subfolders.length > 0) {
+    const dateFolders = subfolders.filter((folder) => parseUpdateDateFolder(folder.name));
+    const otherFolders = subfolders.filter((folder) => !parseUpdateDateFolder(folder.name));
+
+    // Pastas `17-09-2026`: achata MP3s na tabela com data fixa (não entram na navegação).
+    let datedTracks: PreviewTrack[] = [];
+    if (dateFolders.length > 0) {
+      const nested = await mapPool(dateFolders, TRACK_WALK_CONCURRENCY, async (folder) => {
+        const parsed = parseUpdateDateFolder(folder.name);
+        if (!parsed) return [] as PreviewTrack[];
+        try {
+          const nestedChildren = await listDriveFolderChildren(folder.id);
+          return nestedChildren
+            .filter((item) => isDriveAudioFile(item))
+            .map((file) => toPreviewTrack(file, folderName, parsed.key));
+        } catch {
+          return [] as PreviewTrack[];
+        }
+      });
+      datedTracks = nested.flat();
+    }
+
     const directTracks = audioFiles
       .map((file) => toPreviewTrack(file, folderName))
       .sort(sortTracksByUploadThenTitle);
 
-    const sorted = sortVipChildFolders(subfolders.map((folder) => ({ id: folder.id, name: folder.name })));
+    const tracks = [...datedTracks, ...directTracks].sort(sortTracksByUploadThenTitle);
+
+    // Só pastas de data (ou nenhuma outra pasta) → trata como nível de faixas.
+    if (otherFolders.length === 0 && tracks.length > 0) {
+      return {
+        configured: true,
+        rootFolderId: rootId,
+        rootFolderName: folderId === rootId ? folderName : "2026",
+        folderId,
+        folderName,
+        level: "tracks",
+        items: [],
+        tracks,
+        coverUrl,
+      };
+    }
+
+    const sorted = sortVipChildFolders(
+      otherFolders.map((folder) => ({ id: folder.id, name: folder.name })),
+    );
     // Contagens + capa para todos os níveis (meses → semanas → estilos → subpastas).
     const stats = await mapPool(sorted, 8, (folder) => getFolderNavStats(folder.id));
 
@@ -215,7 +268,7 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       folderName,
       level: "folders",
       items,
-      tracks: directTracks,
+      tracks,
       coverUrl,
     };
   }

@@ -1209,31 +1209,44 @@ export function VipMusicTrackList({
 
       {useStreaming ? (
         <div>
-          {(trackSections ?? [{ id: "all", title: "", subtitle: "", isNew: false, tracks }]).map(
-            (section) => (
+          {(trackSections ?? [
+            { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
+          ]).map((section) => (
               <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
                 {trackSections && section.title ? (
-                  <header
-                    className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
-                      section.isNew
-                        ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
-                        : "border-white/[0.05] bg-white/[0.02]"
-                    }`}
-                  >
-                    {section.isNew ? (
-                      <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
-                        Recente
-                      </span>
-                    ) : null}
-                    <h3
-                      className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                        section.isNew ? "text-[#1ed760]" : "text-white/60"
+                  section.kind === "folder" ? (
+                    <header className="flex items-center gap-3 px-3.5 py-3" aria-label={section.title}>
+                      <span className="h-px min-w-4 flex-1 bg-white/20" aria-hidden />
+                      <h3 className="shrink-0 text-[12px] font-bold tabular-nums tracking-[0.18em] text-white/75">
+                        {section.title}
+                      </h3>
+                      <span className="h-px min-w-4 flex-1 bg-white/20" aria-hidden />
+                    </header>
+                  ) : (
+                    <header
+                      className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
+                        section.isNew
+                          ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
+                          : "border-white/[0.05] bg-white/[0.02]"
                       }`}
                     >
-                      {section.title}
-                    </h3>
-                    <span className="text-[11px] text-white/35">{section.subtitle}</span>
-                  </header>
+                      {section.isNew ? (
+                        <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
+                          Recente
+                        </span>
+                      ) : null}
+                      <h3
+                        className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                          section.isNew ? "text-[#1ed760]" : "text-white/60"
+                        }`}
+                      >
+                        {section.title}
+                      </h3>
+                      {section.subtitle ? (
+                        <span className="text-[11px] text-white/35">{section.subtitle}</span>
+                      ) : null}
+                    </header>
+                  )
                 ) : null}
                 {section.tracks.map((track, index) => {
                   const isActive = activeId === track.id;
@@ -1277,8 +1290,7 @@ export function VipMusicTrackList({
                   );
                 })}
               </section>
-            ),
-          )}
+            ))}
         </div>
       ) : null}
 

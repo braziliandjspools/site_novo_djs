@@ -1,14 +1,17 @@
 import type { PreviewTrack } from "../../lib/google-drive";
 import { getSaoPauloDateParts } from "../../lib/due-queue";
+import { formatUpdateDateLabel } from "../../lib/vip-music-slugs";
 
 export type TrackDateSection = {
   id: string;
-  /** Ex.: "Adicionadas recentemente", "8 set", "Sem data" */
+  /** Ex.: "17.09.2026", "Adicionadas recentemente", "8 set" */
   title: string;
-  /** Ex.: "Hoje · 8 faixas" */
+  /** Ex.: "8 faixas" — vazio quando o título já é a data fixa da pasta */
   subtitle: string;
   /** Destaque visual da seção mais recente. */
   isNew: boolean;
+  /** `folder` = data fixa da pasta Drive; `upload` = created/modified do arquivo. */
+  kind: "folder" | "upload";
   tracks: PreviewTrack[];
 };
 
@@ -65,12 +68,67 @@ function countLabel(n: number) {
 }
 
 /**
+ * Agrupa por pastas de atualização no Drive (`17-09-2026` → título fixo `17.09.2026`).
+ * Datas mais recentes primeiro.
+ */
+export function groupTracksByFolderDate(tracks: PreviewTrack[]): TrackDateSection[] {
+  if (tracks.length === 0) return [];
+
+  const byDay = new Map<string, PreviewTrack[]>();
+  const undated: PreviewTrack[] = [];
+
+  for (const track of tracks) {
+    const key = track.updateDate?.trim() || "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+      undated.push(track);
+      continue;
+    }
+    const list = byDay.get(key);
+    if (list) list.push(track);
+    else byDay.set(key, [track]);
+  }
+
+  const dayKeys = [...byDay.keys()].sort((a, b) => b.localeCompare(a));
+  const sections: TrackDateSection[] = dayKeys.map((key) => {
+    const dayTracks = [...(byDay.get(key) ?? [])].sort(sortByTitle);
+    return {
+      id: `folder-${key}`,
+      title: formatUpdateDateLabel(key),
+      subtitle: "",
+      isNew: false,
+      kind: "folder",
+      tracks: dayTracks,
+    };
+  });
+
+  if (undated.length > 0) {
+    sections.push({
+      id: "undated",
+      title: "Outras faixas",
+      subtitle: countLabel(undated.length),
+      isNew: false,
+      kind: "upload",
+      tracks: [...undated].sort(sortByTitle),
+    });
+  }
+
+  return sections;
+}
+
+/**
  * Agrupa faixas por dia de upload no Drive (`createdTime`/`modifiedTime` → `modifiedAt`).
  * Dias mais recentes primeiro; o dia mais novo leva o título "Adicionadas recentemente"
  * quando há vários dias.
+ *
+ * Se alguma faixa tiver `updateDate` (pasta `DD-MM-YYYY` no Drive), usa o agrupamento
+ * fixo por pasta e ignora o agrupamento por upload.
  */
 export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSection[] {
   if (tracks.length === 0) return [];
+
+  if (tracks.some((track) => Boolean(track.updateDate?.trim()))) {
+    return groupTracksByFolderDate(tracks);
+  }
 
   const dated: PreviewTrack[] = [];
   const undated: PreviewTrack[] = [];
@@ -86,6 +144,7 @@ export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSectio
         title: "Faixas",
         subtitle: countLabel(tracks.length),
         isNew: false,
+        kind: "upload",
         tracks: [...tracks].sort(sortByTitle),
       },
     ];
@@ -115,6 +174,7 @@ export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSectio
         ? `${dayLabel} · ${countLabel(dayTracks.length)}`
         : countLabel(dayTracks.length),
       isNew,
+      kind: "upload" as const,
       tracks: dayTracks,
     };
   });
@@ -135,6 +195,7 @@ export function groupTracksByUploadDate(tracks: PreviewTrack[]): TrackDateSectio
       title: "Sem data",
       subtitle: countLabel(undated.length),
       isNew: false,
+      kind: "upload",
       tracks: [...undated].sort(sortByTitle),
     });
   }

@@ -24,6 +24,11 @@ export type PreviewTrack = {
   fileName?: string;
   /** ISO do `createdTime`/`modifiedTime` do Drive (upload), quando disponível. */
   modifiedAt?: string | null;
+  /**
+   * Data da pasta de atualização no Drive (`17-09-2026` → `2026-09-17`).
+   * Quando presente, a tabela agrupa por essa data fixa (DD.MM.YYYY).
+   */
+  updateDate?: string | null;
   /** Tamanho do arquivo em bytes (Drive API `size`). */
   sizeBytes?: number | null;
   /** Key Camelot (ex.: 11A, 12B) extraída do nome. */
