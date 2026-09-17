@@ -28,8 +28,7 @@ import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
-  DOWNLOADER_BULK_CONFIRM_THRESHOLD,
-  DownloaderBulkConfirmDialog,
+  isDownloaderSendCancelled,
   previewPackTrackCount,
 } from "./DownloaderBulkConfirm";
 import { LibraryCategoryCard } from "./LibraryCategoryCard";
@@ -143,16 +142,24 @@ const FolderDownloaderButton = memo(function FolderDownloaderButton({
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
   const [sending, setSending] = useState(false);
-  const [confirmCount, setConfirmCount] = useState<number | null>(null);
   const isDone = sent;
 
   const runSend = useCallback(async () => {
     setSending(true);
     try {
+      let previewCount = typeof knownTrackCount === "number" && knownTrackCount > 0 ? knownTrackCount : 1;
+      try {
+        if (!(typeof knownTrackCount === "number" && knownTrackCount > 0)) {
+          previewCount = await previewPackTrackCount(slug, "vip");
+        }
+      } catch {
+        /* ignore */
+      }
       const result = await sendPackSlugToDownloader(slug, {
         target: sync?.selectedTarget,
         devices: sync?.devices,
         root: "vip",
+        previewCount,
       });
       markPackSent(slug);
       onMarkedSent(slug);
@@ -163,11 +170,12 @@ const FolderDownloaderButton = memo(function FolderDownloaderButton({
       );
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");
     } finally {
       setSending(false);
     }
-  }, [onMarkedSent, showToast, slug, sync]);
+  }, [knownTrackCount, onMarkedSent, showToast, slug, sync]);
 
   async function handleClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -183,58 +191,34 @@ const FolderDownloaderButton = memo(function FolderDownloaderButton({
       return;
     }
 
-    try {
-      const count =
-        typeof knownTrackCount === "number" && knownTrackCount > 0
-          ? knownTrackCount
-          : await previewPackTrackCount(slug, "vip");
-      if (count > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
-        setConfirmCount(count);
-        return;
-      }
-    } catch {
-      /* preview falhou — segue envio normal */
-    }
-
     await runSend();
   }
 
   const onDark = tone === "onDark";
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={(event) => void handleClick(event)}
-        disabled={sending || isDone}
-        title={isDone ? `${label} · já enviada` : label}
-        aria-label={isDone ? `${label} · já enviada` : label}
-        className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-80 ${
-          isDone
-            ? "border-[#1ed760]/50 bg-[#1ed760]/20 text-[#1ed760]"
-            : onDark
-              ? "border-white/15 bg-white/[0.06] text-white/80 hover:bg-white/[0.1] hover:text-white"
-              : "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20"
-        }`}
-      >
-        {sending ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : isDone ? (
-          <Check className="h-3.5 w-3.5" strokeWidth={3} />
-        ) : (
-          <MonitorDown className="h-3.5 w-3.5" />
-        )}
-      </button>
-      <DownloaderBulkConfirmDialog
-        open={confirmCount != null}
-        count={confirmCount ?? 0}
-        onConfirm={() => {
-          setConfirmCount(null);
-          void runSend();
-        }}
-        onDismiss={() => setConfirmCount(null)}
-      />
-    </>
+    <button
+      type="button"
+      onClick={(event) => void handleClick(event)}
+      disabled={sending || isDone}
+      title={isDone ? `${label} · já enviada` : label}
+      aria-label={isDone ? `${label} · já enviada` : label}
+      className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-80 ${
+        isDone
+          ? "border-[#1ed760]/50 bg-[#1ed760]/20 text-[#1ed760]"
+          : onDark
+            ? "border-white/15 bg-white/[0.06] text-white/80 hover:bg-white/[0.1] hover:text-white"
+            : "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20"
+      }`}
+    >
+      {sending ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : isDone ? (
+        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+      ) : (
+        <MonitorDown className="h-3.5 w-3.5" />
+      )}
+    </button>
   );
 });
 
@@ -250,7 +234,6 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
   const { authenticated, openLogin, hasVip } = useMusicasSession();
   const sync = useDownloaderSync();
   const [sending, setSending] = useState(false);
-  const [confirmCount, setConfirmCount] = useState<number | null>(null);
 
   const folderSlug = slugifyFolderName(folder.name);
   const nextSegments = useMemo(() => [...slugSegments, folderSlug], [slugSegments, folderSlug]);
@@ -275,10 +258,17 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
   const runSendToDownloader = useCallback(async () => {
     setSending(true);
     try {
+      let previewCount = trackCount > 0 ? trackCount : 1;
+      try {
+        if (trackCount <= 0) previewCount = await previewPackTrackCount(resolveSlug, "vip");
+      } catch {
+        /* ignore */
+      }
       const result = await sendPackSlugToDownloader(resolveSlug, {
         target: sync?.selectedTarget,
         devices: sync?.devices,
         root: "vip",
+        previewCount,
       });
       markPackSent(resolveSlug);
       onMarkedSent(resolveSlug);
@@ -289,11 +279,12 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
       );
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");
     } finally {
       setSending(false);
     }
-  }, [onMarkedSent, resolveSlug, showToast, sync]);
+  }, [onMarkedSent, resolveSlug, showToast, sync, trackCount]);
 
   const sendToDownloader = useCallback(async () => {
     if (sending || sent) return;
@@ -306,28 +297,15 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
       return;
     }
 
-    try {
-      const count =
-        trackCount > 0 ? trackCount : await previewPackTrackCount(resolveSlug, "vip");
-      if (count > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
-        setConfirmCount(count);
-        return;
-      }
-    } catch {
-      /* segue */
-    }
-
     await runSendToDownloader();
   }, [
     authenticated,
     hasVip,
     openLogin,
-    resolveSlug,
     runSendToDownloader,
     sending,
     sent,
     showToast,
-    trackCount,
   ]);
 
   const copyLink = useCallback(() => {
@@ -520,15 +498,6 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
           />
         </div>
       </div>
-      <DownloaderBulkConfirmDialog
-        open={confirmCount != null}
-        count={confirmCount ?? 0}
-        onConfirm={() => {
-          setConfirmCount(null);
-          void runSendToDownloader();
-        }}
-        onDismiss={() => setConfirmCount(null)}
-      />
     </article>
   );
 });

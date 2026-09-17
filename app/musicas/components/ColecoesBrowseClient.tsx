@@ -17,6 +17,7 @@ import { withForcedFolderTree } from "../../lib/force-folder-tree";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { pushRecentFolder } from "../lib/music-library-storage";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { CollectionAlbumGrid } from "./CollectionAlbumGrid";
@@ -287,6 +288,7 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
       );
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : "Erro ao enviar ao Downloader.", "error");
     }
   }

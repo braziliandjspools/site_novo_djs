@@ -31,6 +31,7 @@ type AdminUser = {
   nextDueAt: string;
   active: boolean;
   musicProducerDeliveriesEnabled?: boolean;
+  downloaderQuotaTier?: "STARTER" | "PRO" | "MAX";
   createdAt: string;
   updatedAt: string;
 };
@@ -63,6 +64,7 @@ type DraftRow = {
   nextDueAt: string;
   active: boolean;
   musicProducerDeliveriesEnabled: boolean;
+  downloaderQuotaTier: "STARTER" | "PRO" | "MAX";
   /** Nova senha opcional — se preenchida no save, envia e-mail via Resend. */
   password: string;
 };
@@ -122,6 +124,7 @@ const emptyDraft = (): DraftRow => ({
   nextDueAt: "",
   active: true,
   musicProducerDeliveriesEnabled: false,
+  downloaderQuotaTier: "STARTER",
   password: "",
 });
 
@@ -477,6 +480,22 @@ function UserAccountModal({
               </label>
             </div>
             <label className="block text-xs text-gray-400">
+              Cota do Downloader
+              <select
+                value={draft.downloaderQuotaTier}
+                onChange={(e) =>
+                  onChange({
+                    downloaderQuotaTier: e.target.value as "STARTER" | "PRO" | "MAX",
+                  })
+                }
+                className={`${formInputClass} mt-1`}
+              >
+                <option value="STARTER">Essencial — 1000/24h ou 1 pack (R$ 38)</option>
+                <option value="PRO">Pro — 2000/24h Downloader (R$ 42)</option>
+                <option value="MAX">Max — 4500/mês (R$ 46)</option>
+              </select>
+            </label>
+            <label className="block text-xs text-gray-400">
               Nova senha (opcional)
               <input
                 type="text"
@@ -578,6 +597,10 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           nextDueAt: toDateInputValue(user.nextDueAt),
           active: user.active,
           musicProducerDeliveriesEnabled: Boolean(user.musicProducerDeliveriesEnabled),
+          downloaderQuotaTier:
+            user.downloaderQuotaTier === "PRO" || user.downloaderQuotaTier === "MAX"
+              ? user.downloaderQuotaTier
+              : "STARTER",
           password: "",
         };
       }
@@ -692,6 +715,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           serviceBilling,
           active: draft.active,
           musicProducerDeliveriesEnabled: draft.musicProducerDeliveriesEnabled,
+          downloaderQuotaTier: draft.downloaderQuotaTier,
           ...(newPassword ? { password: newPassword } : {}),
         }),
       });

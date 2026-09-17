@@ -182,6 +182,11 @@ export async function getPortalDataForUser(user: PortalUser) {
   const config = getLicenseConfig();
   const greeting = getGreeting(getGreetingHour(now));
   const hotmart = await getActiveHotmartSubscriptionForUser(user.id);
+  const { getDownloaderQuotaSnapshot } = await import("./downloader-quota");
+  const { DOWNLOADER_QUOTA_BY_TIER } = await import("./downloader-quota-config");
+  const quota = user.services.poolsVip
+    ? await getDownloaderQuotaSnapshot(user.id, now)
+    : null;
 
   const hotmartStatusLabel =
     hotmart?.status === "ACTIVE"
@@ -229,6 +234,9 @@ export async function getPortalDataForUser(user: PortalUser) {
       nextDueAt: user.nextDueAt.toISOString(),
       createdAt: user.createdAt.toISOString(),
       active: user.active,
+      downloaderQuotaTier: user.downloaderQuotaTier,
+      downloaderQuotaTierLabel: DOWNLOADER_QUOTA_BY_TIER[user.downloaderQuotaTier].label,
+      downloaderQuota: quota,
       subscription: hotmart
         ? {
             provider: HOTMART_PROVIDER,

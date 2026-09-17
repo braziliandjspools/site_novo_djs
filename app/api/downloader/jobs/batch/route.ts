@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireDownloaderAccess } from "../../../../lib/downloader-access";
 import { createDownloadJobsBatch, parseBatchCreateJobsBody } from "../../../../lib/downloader";
+import { DownloaderQuotaExceededError } from "../../../../lib/downloader-quota";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  const jobs = await createDownloadJobsBatch(access.user.id, parsed.value!);
-  return NextResponse.json({ ok: true, jobs, count: jobs.length }, { status: 201 });
+  try {
+    const jobs = await createDownloadJobsBatch(access.user.id, parsed.value!);
+    return NextResponse.json({ ok: true, jobs, count: jobs.length }, { status: 201 });
+  } catch (error) {
+    if (error instanceof DownloaderQuotaExceededError) {
+      return NextResponse.json({ error: error.message, quota: error.quota }, { status: 429 });
+    }
+    const message = error instanceof Error ? error.message : "Erro ao criar jobs.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

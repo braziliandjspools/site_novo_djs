@@ -6,6 +6,7 @@ import { Download, Loader2, MonitorDown, Play } from "lucide-react";
 import type { HomeTrackItem } from "../../lib/vip-music-home";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { sendTrackToDownloader } from "../lib/send-to-downloader";
+import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
@@ -55,7 +56,8 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
     try {
       await sendTrackToDownloader(track, { relativePath: track.relativePath });
       showToast("Enviado para o Downloader.", "success");
-    } catch {
+    } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast("Falha ao enviar.", "error");
     } finally {
       setSending(false);

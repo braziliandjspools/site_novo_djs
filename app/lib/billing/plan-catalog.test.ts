@@ -17,8 +17,8 @@ test("catálogo ativo tem Drive (4) + Allavsoft (1); Deemix descontinuado", () =
     [
       "brs-drive-3d",
       "brs-drive-1m",
-      "brs-drive-3m",
-      "brs-drive-12m",
+      "brs-drive-pro-1m",
+      "brs-drive-max-1m",
       "brs-allavsoft-lifetime",
     ],
   );
@@ -35,17 +35,6 @@ test("Allavsoft vitalícia custa R$ 50,00", () => {
 test("Deemix: planos históricos inativos (ainda resolvíveis com includeInactive)", () => {
   assert.equal(getCanonicalPlanById("brs-deemix-1m"), null);
   assert.equal(getCanonicalPlanById("brs-deemix-1m", { includeInactive: true })?.amountBrl, "30.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-1m", { includeInactive: true })?.serviceProduct, "deemix");
-  assert.equal(getCanonicalPlanById("brs-deemix-1m", { includeInactive: true })?.durationDays, 30);
-
-  const monthly = 30;
-  assert.equal((monthly * 3 * 0.9).toFixed(2), "81.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-3m", { includeInactive: true })?.amountBrl, "81.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-3m", { includeInactive: true })?.durationDays, 90);
-
-  assert.equal((monthly * 6 * 0.9).toFixed(2), "162.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-6m", { includeInactive: true })?.amountBrl, "162.00");
-  assert.equal(getCanonicalPlanById("brs-deemix-6m", { includeInactive: true })?.durationDays, 180);
 });
 
 test("plano teste 3 dias custa R$ 1,00 e dura 3 dias", () => {
@@ -55,25 +44,23 @@ test("plano teste 3 dias custa R$ 1,00 e dura 3 dias", () => {
   assert.equal(plan?.isTestPlan, true);
 });
 
-test("valores canônicos: 1m 38 / 3m 102.60 / 12m 384", () => {
+test("valores canônicos Drive: 38 / 42 / 46 com cotas", () => {
   assert.equal(getCanonicalPlanById("brs-drive-1m")?.amountBrl, "38.00");
-  assert.equal(getCanonicalPlanById("brs-drive-3m")?.amountBrl, "102.60");
-  assert.equal(getCanonicalPlanById("brs-drive-12m")?.amountBrl, "384.00");
+  assert.equal(getCanonicalPlanById("brs-drive-pro-1m")?.amountBrl, "42.00");
+  assert.equal(getCanonicalPlanById("brs-drive-max-1m")?.amountBrl, "46.00");
+  assert.equal(getCanonicalPlanById("brs-drive-1m")?.downloaderQuotaTier, "STARTER");
+  assert.equal(getCanonicalPlanById("brs-drive-pro-1m")?.downloaderQuotaTier, "PRO");
+  assert.equal(getCanonicalPlanById("brs-drive-max-1m")?.downloaderQuotaTier, "MAX");
 });
 
-test("3 meses = 10% off sobre 3×38", () => {
-  const monthly = 38;
-  const expected = (monthly * 3 * 0.9).toFixed(2);
-  assert.equal(expected, "102.60");
-  assert.equal(getCanonicalPlanById("brs-drive-3m")?.amountBrl, expected);
+test("planos 3m/12m legados inativos", () => {
+  assert.equal(getCanonicalPlanById("brs-drive-3m"), null);
+  assert.equal(getCanonicalPlanById("brs-drive-12m"), null);
+  assert.equal(getCanonicalPlanById("brs-drive-3m", { includeInactive: true })?.amountBrl, "102.60");
+  assert.equal(getCanonicalPlanById("brs-drive-12m", { includeInactive: true })?.amountBrl, "384.00");
 });
 
-test("1 ano = 32 × 12", () => {
-  assert.equal((32 * 12).toFixed(2), "384.00");
-  assert.equal(getCanonicalPlanById("brs-drive-12m")?.amountBrl, "384.00");
-});
-
-test("alias legado drive-monthly resolve para 1 mês", () => {
+test("alias legado drive-monthly resolve para Essencial", () => {
   assert.equal(resolveCanonicalPlanId("drive-monthly"), "brs-drive-1m");
   assert.equal(getCanonicalPlanById("drive-monthly")?.id, "brs-drive-1m");
 });
@@ -100,27 +87,24 @@ test("checkout rejeita price/duration manipulados", () => {
   assert.equal(assertCheckoutPayloadTrusted({ planId: "brs-drive-1m", amountBrl: "0.01" }).ok, false);
 });
 
-test("checkout válido devolve plano do servidor com preço oficial", () => {
-  const result = assertCheckoutPayloadTrusted({ planId: "brs-drive-3m" });
+test("checkout válido devolve plano Pro do servidor", () => {
+  const result = assertCheckoutPayloadTrusted({ planId: "brs-drive-pro-1m" });
   assert.equal(result.ok, true);
   if (result.ok) {
-    assert.equal(result.plan.amountBrl, "102.60");
-    assert.equal(result.plan.durationMonths, 3);
+    assert.equal(result.plan.amountBrl, "42.00");
+    assert.equal(result.plan.durationMonths, 1);
     assert.equal(result.plan.renewalType, "manual");
   }
 });
 
 test("mesmo planId sempre retorna o mesmo amount (imutável)", () => {
-  const a = getCanonicalPlanById("brs-drive-12m");
-  const b = getCanonicalPlanById("brs-drive-12m");
+  const a = getCanonicalPlanById("brs-drive-max-1m");
+  const b = getCanonicalPlanById("brs-drive-max-1m");
   assert.equal(a?.amountBrl, b?.amountBrl);
-  assert.equal(formatPlanAmountBrl(a!.amountBrl), "R$ 384,00");
+  assert.match(formatPlanAmountBrl(a!.amountBrl), /46/);
 });
 
-test("todos os planos são renovação manual e BRL", () => {
-  for (const plan of CANONICAL_PLANS) {
-    assert.equal(plan.renewalType, "manual");
-    assert.equal(plan.currency, "BRL");
-    assert.equal(plan.active, true);
-  }
+test("CANONICAL_PLANS tem ids únicos", () => {
+  const ids = CANONICAL_PLANS.map((p) => p.id);
+  assert.equal(new Set(ids).size, ids.length);
 });

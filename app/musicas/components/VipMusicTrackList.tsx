@@ -38,8 +38,8 @@ import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
-  DOWNLOADER_BULK_CONFIRM_THRESHOLD,
-  DownloaderBulkConfirmDialog,
+  BROWSER_BULK_CONFIRM_THRESHOLD,
+  isDownloaderSendCancelled,
 } from "./DownloaderBulkConfirm";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
@@ -447,7 +447,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
         <span
-          className={`block truncate text-[14px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 ${
+          className={`block truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
             isActive || isPlaying ? "text-[#1ed760]" : "text-white"
           }`}
         >
@@ -677,7 +677,7 @@ function DiscographyTrackRow({
           </button>
           <div className="min-w-0 overflow-hidden font-[family-name:var(--font-player)]">
             <p
-              className="block w-full truncate text-left text-[14px] font-semibold tracking-[-0.02em] text-white"
+              className="block w-full truncate text-left text-[12px] font-semibold tracking-[-0.02em] text-white sm:text-[13px]"
               title={`${display.title} — ${display.artist}`}
             >
               <span className={isPlaying || isActive ? "text-[#1ed760]" : "text-white"}>
@@ -714,7 +714,7 @@ function DiscographyTrackRow({
               </span>
             </button>
             <div className="min-w-0 overflow-hidden font-[family-name:var(--font-player)]">
-              <p className="truncate text-[14px] font-semibold tracking-[-0.02em] text-white">{display.title}</p>
+              <p className="truncate text-[12px] font-semibold tracking-[-0.02em] text-white sm:text-[13px]">{display.title}</p>
               <ArtistNameLink
                 artist={display.artist}
                 className="mt-0.5 block truncate text-[12px] text-white/45"
@@ -778,7 +778,6 @@ export function VipMusicTrackList({
   const [batchDownloading, setBatchDownloading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
-  const [bulkConfirmCount, setBulkConfirmCount] = useState<number | null>(null);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
   const autoPlayedRef = useRef<string | null>(null);
@@ -891,6 +890,7 @@ export function VipMusicTrackList({
         showToast("Adicionado ao BRS Downloader");
         await sync?.refresh();
       } catch (err) {
+        if (isDownloaderSendCancelled(err)) return;
         showToast(err instanceof Error ? err.message : "Não foi possível enviar para o Downloader.", "error");
       } finally {
         setSendingId(null);
@@ -920,6 +920,7 @@ export function VipMusicTrackList({
       setSelectedIds(new Set());
       setSelectionMode(false);
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : "Não foi possível enviar para o Downloader.", "error");
     } finally {
       setBatchSending(false);
@@ -939,10 +940,6 @@ export function VipMusicTrackList({
   const handleSendSelectedToDownloader = useCallback(() => {
     if (batchSending || batchDownloading || sendingId || selectedCount === 0) return;
     if (!ensureDownloaderAccess()) return;
-    if (selectedCount > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
-      setBulkConfirmCount(selectedCount);
-      return;
-    }
     void runSendSelectedToDownloader();
   }, [
     batchDownloading,
@@ -993,7 +990,7 @@ export function VipMusicTrackList({
 
   const handleDownloadSelected = useCallback(() => {
     if (batchDownloading || batchSending || selectedCount === 0) return;
-    if (selectedCount > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
+    if (selectedCount > BROWSER_BULK_CONFIRM_THRESHOLD) {
       setBrowserConfirmOpen(true);
       return;
     }
@@ -1165,19 +1162,6 @@ export function VipMusicTrackList({
         </div>
       )}
 
-      {useStreaming ? (
-        <div
-          className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} border-b border-white/[0.06] px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/40`}
-          aria-hidden
-        >
-          {selectionMode && canDownload ? <span /> : null}
-          <span />
-          <span>Track / Artist</span>
-          <span className="text-right">Time</span>
-          <span />
-          <span />
-        </div>
-      ) : null}
       {useDiscography ? (
         <div className="px-1 py-1">
           {tracks.map((track, index) => {
@@ -1339,16 +1323,6 @@ export function VipMusicTrackList({
           </button>
         </div>
       ) : null}
-
-      <DownloaderBulkConfirmDialog
-        open={bulkConfirmCount != null}
-        count={bulkConfirmCount ?? 0}
-        onConfirm={() => {
-          setBulkConfirmCount(null);
-          void runSendSelectedToDownloader();
-        }}
-        onDismiss={() => setBulkConfirmCount(null)}
-      />
 
       <BrowserPackDownloadConfirm
         open={browserConfirmOpen}

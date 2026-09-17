@@ -40,6 +40,7 @@ export type PortalDownloaderStats = {
     createdAt: string;
     error: string | null;
   }>;
+  quota: import("./downloader-quota-config").DownloaderQuotaSnapshot | null;
 };
 
 export async function getPortalDownloaderStats(
@@ -113,6 +114,8 @@ export async function getPortalDownloaderStats(
   });
 
   const online = items.filter((d) => d.isOnline).length;
+  const { getDownloaderQuotaSnapshot } = await import("./downloader-quota");
+  const quota = await getDownloaderQuotaSnapshot(portalUserId);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -144,5 +147,6 @@ export async function getPortalDownloaderStats(
       createdAt: job.createdAt.toISOString(),
       error: job.error,
     })),
+    quota,
   };
 }

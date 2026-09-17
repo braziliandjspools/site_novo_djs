@@ -4,8 +4,7 @@ import { useState, type MouseEvent, type ReactNode } from "react";
 import { Loader2, MonitorDown } from "lucide-react";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import {
-  DOWNLOADER_BULK_CONFIRM_THRESHOLD,
-  DownloaderBulkConfirmDialog,
+  isDownloaderSendCancelled,
   previewPackTrackCount,
 } from "./DownloaderBulkConfirm";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -14,15 +13,11 @@ import { useMusicasToast } from "./MusicasToast";
 
 type SendPackToDownloaderButtonProps = {
   slug: string;
-  /** Ex.: "Enviar mês ao Downloader" */
   label?: string;
   className?: string;
   compact?: boolean;
-  /** Botão sobreposto na capa do hero (embaixo, centralizado). */
   onCover?: boolean;
-  /** Raiz do Drive: atualizações VIP ou coleções */
   root?: "vip" | "colecoes";
-  /** Pasta do acervo ou perfil de artista */
   kind?: "pack" | "artist";
 };
 
@@ -39,16 +34,36 @@ export function SendPackToDownloaderButton({
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
   const [sending, setSending] = useState(false);
-  const [confirmCount, setConfirmCount] = useState<number | null>(null);
 
-  async function runSend() {
+  async function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (sending) return;
+
+    if (!authenticated) {
+      openLogin();
+      return;
+    }
+    if (!hasVip) {
+      showToast("Plano VIP necessário para usar o Downloader.", "error");
+      return;
+    }
+
     setSending(true);
     try {
+      let previewCount = 1;
+      try {
+        previewCount = await previewPackTrackCount(slug, root, kind);
+      } catch {
+        /* preview opcional */
+      }
+
       const result = await sendPackSlugToDownloader(slug, {
         target: sync?.selectedTarget,
         devices: sync?.devices,
         root,
         kind,
+        previewCount,
       });
       showToast(
         result.count === 1
@@ -72,6 +87,7 @@ export function SendPackToDownloaderButton({
       }
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(
         err instanceof Error
           ? err.message
@@ -85,52 +101,8 @@ export function SendPackToDownloaderButton({
     }
   }
 
-  async function handleClick(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (sending) return;
-
-    if (!authenticated) {
-      openLogin();
-      return;
-    }
-    if (!hasVip) {
-      showToast("Plano VIP necessário para usar o Downloader.", "error");
-      return;
-    }
-
-    try {
-      const count = await previewPackTrackCount(slug, root, kind);
-      if (count > DOWNLOADER_BULK_CONFIRM_THRESHOLD) {
-        setConfirmCount(count);
-        return;
-      }
-    } catch {
-      /* preview falhou — envia direto */
-    }
-
-    await runSend();
-  }
-
-  const dialog = (
-    <DownloaderBulkConfirmDialog
-      open={confirmCount != null}
-      count={confirmCount ?? 0}
-      onConfirm={() => {
-        setConfirmCount(null);
-        void runSend();
-      }}
-      onDismiss={() => setConfirmCount(null)}
-    />
-  );
-
   function wrap(button: ReactNode) {
-    return (
-      <>
-        {button}
-        {dialog}
-      </>
-    );
+    return <>{button}</>;
   }
 
   if (onCover) {

@@ -13,6 +13,7 @@ import {
 import { PLACEHOLDER } from "../../lib/theme";
 import { collectionsHref } from "../../lib/vip-music-slugs";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -84,6 +85,7 @@ export function CollectionAlbumGrid({
       );
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : `Erro ao enviar ${label}.`, "error");
     }
   }

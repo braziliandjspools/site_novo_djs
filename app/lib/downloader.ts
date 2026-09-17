@@ -484,6 +484,8 @@ export async function heartbeatDownloadDevice(
 }
 
 export async function createDownloadJob(portalUserId: number, input: DownloadJobInput) {
+  const { consumeDownloaderTrackQuota } = await import("./downloader-quota");
+  await consumeDownloaderTrackQuota(portalUserId, 1);
   const job = await prisma.downloadJob.create({
     data: buildJobCreateData(portalUserId, input),
     include: { downloadDevice: true },
@@ -491,7 +493,24 @@ export async function createDownloadJob(portalUserId: number, input: DownloadJob
   return serializeDownloadJob(job);
 }
 
-export async function createDownloadJobsBatch(portalUserId: number, inputs: DownloadJobInput[]) {
+export async function createDownloadJobsBatch(
+  portalUserId: number,
+  inputs: DownloadJobInput[],
+  options?: { skipQuota?: boolean; quotaMode?: "tracks" | "pack" },
+) {
+  if (inputs.length === 0) return [];
+
+  if (!options?.skipQuota) {
+    const { consumeDownloaderTrackQuota, consumeDownloaderPackQuota } = await import(
+      "./downloader-quota"
+    );
+    if (options?.quotaMode === "pack") {
+      await consumeDownloaderPackQuota(portalUserId, inputs.length);
+    } else {
+      await consumeDownloaderTrackQuota(portalUserId, inputs.length);
+    }
+  }
+
   const data = inputs.map((input) => buildJobCreateData(portalUserId, input));
   const jobs = [];
 

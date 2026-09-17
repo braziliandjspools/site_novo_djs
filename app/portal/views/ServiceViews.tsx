@@ -150,6 +150,16 @@ export function AccountView({ data }: { data: PortalData }) {
     ["WhatsApp", user.whatsapp],
     ["Plano", subscription?.planLabel ?? user.planLabel],
     ["Serviços", user.servicesLabel],
+    [
+      "Cota Downloader",
+      user.downloaderQuota
+        ? `${user.downloaderQuota.tierLabel}: ${user.downloaderQuota.tracksUsed}/${user.downloaderQuota.trackLimit} faixas (${user.downloaderQuota.periodLabel})${
+            user.downloaderQuota.exhausted
+              ? " · esgotada"
+              : ""
+          }`
+        : user.downloaderQuotaTierLabel ?? "—",
+    ],
     ["Status", subscription?.statusLabel ?? (user.active ? "Ativo" : "Inativo")],
     ["Pagamento", subscription?.providerLabel ?? "Manual / suporte"],
     ["Valor mensal", user.monthlyValueLabel],

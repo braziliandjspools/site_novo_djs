@@ -126,6 +126,13 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "A senha deve ter pelo menos 8 caracteres." }, { status: 400 });
   }
 
+  if (body.downloaderQuotaTier !== undefined) {
+    const tier = body.downloaderQuotaTier;
+    if (tier !== "STARTER" && tier !== "PRO" && tier !== "MAX") {
+      return NextResponse.json({ error: "downloaderQuotaTier inválido." }, { status: 400 });
+    }
+  }
+
   if (
     body.musicProducerDeliveriesEnabled !== undefined &&
     typeof body.musicProducerDeliveriesEnabled !== "boolean"

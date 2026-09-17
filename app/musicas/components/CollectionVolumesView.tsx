@@ -7,6 +7,7 @@ import { Copy, ExternalLink, ListMusic, MonitorDown, Share2 } from "lucide-react
 import { PLACEHOLDER } from "../../lib/theme";
 import { collectionsHref } from "../../lib/vip-music-slugs";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -69,6 +70,7 @@ export function CollectionVolumesView({ volumes, canDownload }: CollectionVolume
       );
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : `Erro ao enviar ${name}.`, "error");
     }
   }

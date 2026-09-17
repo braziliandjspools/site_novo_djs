@@ -16,6 +16,13 @@ enum PortalPlan {
   ALLAVSOFT
 }
 
+/** Cota do BRS Downloader: Essencial / Pro / Max. */
+enum DownloaderQuotaTier {
+  STARTER
+  PRO
+  MAX
+}
+
 model PortalUser {
   id                             Int        @id @default(autoincrement())
   name                           String
@@ -39,6 +46,8 @@ model PortalUser {
   monthlyValue                   Decimal    @default(0) @map("monthly_value") @db.Decimal(10, 2)
   /** Próximo vencimento agregado (menor due de VIP/Deemix ativos). */
   nextDueAt                      DateTime   @map("next_due_at")
+  /** Tier de cota do Downloader (STARTER/PRO/MAX). */
+  downloaderQuotaTier            DownloaderQuotaTier @default(STARTER) @map("downloader_quota_tier")
   active                         Boolean    @default(true)
   musicProducerDeliveriesEnabled Boolean    @default(false) @map("music_producer_deliveries_enabled")
   createdAt                      DateTime   @default(now()) @map("created_at")
@@ -55,6 +64,7 @@ model PortalUser {
   generatedSongs             GeneratedSong[]
   musicGenerationUsages      MusicGenerationUsage[]
   allavsoftLicenseAssignments AllavsoftLicenseAssignment[]
+  downloaderQuotaState       DownloaderQuotaState?
 
   @@index([nextDueAt])
   @@index([servicePoolsVipDueAt])
@@ -279,6 +289,18 @@ model DownloadDevice {
   @@index([portalUserId])
   @@index([lastSeenAt])
   @@map("download_devices")
+}
+
+/** Janela atual de cota do Downloader (1 linha por usuário). */
+model DownloaderQuotaState {
+  portalUserId    Int      @id @map("portal_user_id")
+  portalUser      PortalUser @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  windowStartedAt DateTime @map("window_started_at")
+  tracksUsed      Int      @default(0) @map("tracks_used")
+  packsUsed       Int      @default(0) @map("packs_used")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("downloader_quota_states")
 }
 
 model DownloadJob {

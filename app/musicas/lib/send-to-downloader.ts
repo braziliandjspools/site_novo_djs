@@ -1,5 +1,6 @@
 import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
 import type { DownloaderDeviceSummary, SendTarget } from "./downloader-sync";
+import { assertDownloaderConfirm } from "../components/DownloaderBulkConfirm";
 
 export type DownloaderJobPayload = {
   fileId: string;
@@ -38,13 +39,11 @@ export function resolveTargetDeviceIds(
 ): string[] {
   const online = devices.filter((device) => device.isOnline);
 
-  // Um único PC online: não fixa targetDeviceId — qualquer sessão desse app pode puxar a fila.
   if (!target || target === "all") {
     if (online.length <= 1) return [];
     return online.map((device) => device.deviceId);
   }
 
-  // Seleção explícita do único PC online também fica sem target fixo (evita fila órfã se o deviceId mudar).
   if (online.length === 1 && online[0]?.deviceId === target) {
     return [];
   }
@@ -82,12 +81,24 @@ type SendOptions = {
   relativePath?: string;
   target?: SendTarget | null;
   devices?: DownloaderDeviceSummary[];
+  skipConfirm?: boolean;
+  confirmLabel?: string;
 };
 
 async function parseDownloaderResponse(response: Response) {
-  const data = (await response.json().catch(() => ({}))) as { error?: string; count?: number };
+  const data = (await response.json().catch(() => ({}))) as {
+    error?: string;
+    count?: number;
+    quota?: unknown;
+  };
   if (!response.ok) {
-    throw new Error(data.error ?? "Não foi possível enviar para o Downloader.");
+    const err = new Error(data.error ?? "Não foi possível enviar para o Downloader.") as Error & {
+      quota?: unknown;
+      status?: number;
+    };
+    err.quota = data.quota;
+    err.status = response.status;
+    throw err;
   }
   return data;
 }
@@ -109,6 +120,13 @@ async function postJobBatch(jobs: DownloaderJobPayload[]) {
 }
 
 export async function sendTrackToDownloader(track: PreviewTrack, options: SendOptions = {}) {
+  if (!options.skipConfirm) {
+    await assertDownloaderConfirm({
+      count: 1,
+      label: options.confirmLabel ?? track.title,
+    });
+  }
+
   const targetDeviceIds = resolveTargetDeviceIds(options.target, options.devices ?? []);
   const jobs = buildJobsForSend([track], options.relativePath, targetDeviceIds);
 
@@ -157,6 +175,13 @@ export async function sendTracksToDownloaderBatch(tracks: PreviewTrack[], option
     throw new Error("Nenhuma faixa selecionada.");
   }
 
+  if (!options.skipConfirm) {
+    await assertDownloaderConfirm({
+      count: tracks.length,
+      label: options.confirmLabel,
+    });
+  }
+
   const targetDeviceIds = resolveTargetDeviceIds(options.target, options.devices ?? []);
   const jobs = buildJobsForSend(tracks, options.relativePath, targetDeviceIds);
   return postJobBatch(jobs);
@@ -168,6 +193,7 @@ export async function sendFolderToDownloader(input: {
   relativePath?: string;
   target?: SendTarget | null;
   devices?: DownloaderDeviceSummary[];
+  skipConfirm?: boolean;
 }) {
   const tracks = await fetchAllFolderTracks(input.folderId, input.folderName);
   if (tracks.length === 0) {
@@ -176,20 +202,24 @@ export async function sendFolderToDownloader(input: {
   return sendTracksToDownloaderBatch(tracks, input);
 }
 
-/**
- * Envia pasta recursiva (mês/semana/estilo) preservando relativePath
- * via /api/downloader/pack/import — adequado para mês inteiro.
- */
 export async function sendPackSlugToDownloader(
   slug: string,
   options: Omit<SendOptions, "relativePath"> & {
     root?: "vip" | "colecoes";
     kind?: "pack" | "artist";
+    previewCount?: number;
   } = {},
 ) {
   const normalized = slug.replace(/^\/+|\/+$/g, "").trim();
   if (!normalized) {
     throw new Error(options.kind === "artist" ? "Slug do artista inválido." : "Slug da pasta inválido.");
+  }
+
+  if (!options.skipConfirm) {
+    await assertDownloaderConfirm({
+      count: Math.max(1, options.previewCount ?? 1),
+      label: options.confirmLabel ?? (options.kind === "artist" ? "este artista" : "este pack"),
+    });
   }
 
   const targetDeviceIds = resolveTargetDeviceIds(options.target, options.devices ?? []);
@@ -218,14 +248,18 @@ export async function sendPackSlugToDownloader(
       count?: number;
       folderName?: string;
       relativePath?: string;
+      quota?: unknown;
     };
     if (!response.ok) {
-      throw new Error(
+      const err = new Error(
         data.error ??
           (kind === "artist"
             ? "Não foi possível enviar o artista para o Downloader."
             : "Não foi possível enviar a pasta para o Downloader."),
-      );
+      ) as Error & { quota?: unknown; status?: number };
+      err.quota = data.quota;
+      err.status = response.status;
+      throw err;
     }
     totalCount += data.count ?? 0;
     folderName = data.folderName ?? folderName;

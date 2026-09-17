@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { friendlyCheckoutError, resolveCheckoutPlanId } from "./checkout-ui";
 
-const plans = [{ id: "brs-drive-1m" }, { id: "brs-drive-3m" }, { id: "brs-drive-12m" }];
+const plans = [
+  { id: "brs-drive-1m" },
+  { id: "brs-drive-pro-1m" },
+  { id: "brs-drive-max-1m" },
+];
 
 test("resolveCheckoutPlanId aceita ids canônicos", () => {
   assert.equal(resolveCheckoutPlanId("brs-drive-1m", plans), "brs-drive-1m");
-  assert.equal(resolveCheckoutPlanId("brs-drive-12m", plans), "brs-drive-12m");
+  assert.equal(resolveCheckoutPlanId("brs-drive-max-1m", plans), "brs-drive-max-1m");
 });
 
 test("resolveCheckoutPlanId mapeia alias legado drive-monthly", () => {

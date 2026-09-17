@@ -45,6 +45,24 @@ export type PortalData = {
     nextDueAt: string;
     createdAt: string;
     active: boolean;
+    downloaderQuotaTier?: "STARTER" | "PRO" | "MAX";
+    downloaderQuotaTierLabel?: string;
+    downloaderQuota?: {
+      tier: string;
+      tierLabel: string;
+      trackLimit: number;
+      tracksUsed: number;
+      tracksRemaining: number;
+      packsUsed: number;
+      packLimit: number | null;
+      packsRemaining: number | null;
+      windowStartedAt: string;
+      windowEndsAt: string;
+      resetsInSeconds: number;
+      exhausted: boolean;
+      browserUnlimited: boolean;
+      periodLabel: string;
+    } | null;
     subscription?: {
       provider: string;
       providerLabel: string;

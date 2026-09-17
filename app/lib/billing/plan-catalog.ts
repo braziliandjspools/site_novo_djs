@@ -4,6 +4,8 @@
  * são sempre resolvidos daqui (nunca confiar no navegador).
  */
 
+import type { DownloaderQuotaTier } from "../downloader-quota-config";
+
 export const PLAN_CURRENCY = "BRL" as const;
 
 export type PlanRenewalType = "manual";
@@ -13,6 +15,8 @@ export type PlanServiceProduct = "poolsVip" | "deemix" | "allavsoft";
 export type CanonicalPlanId =
   | "brs-drive-3d"
   | "brs-drive-1m"
+  | "brs-drive-pro-1m"
+  | "brs-drive-max-1m"
   | "brs-drive-3m"
   | "brs-drive-12m"
   | "brs-deemix-1m"
@@ -20,7 +24,7 @@ export type CanonicalPlanId =
   | "brs-deemix-6m"
   | "brs-allavsoft-lifetime";
 
-/** Alias legado Hotmart → plano canônico de 1 mês. */
+/** Alias legado Hotmart → plano canônico Essencial. */
 export const LEGACY_PLAN_ID_ALIASES: Record<string, CanonicalPlanId> = {
   "drive-monthly": "brs-drive-1m",
 };
@@ -51,6 +55,8 @@ export type CanonicalPlan = {
   isTestPlan: boolean;
   /** Serviço liberado no portal ao aprovar o pagamento. */
   serviceProduct: PlanServiceProduct;
+  /** Cota do Downloader vinculada ao plano (só poolsVip). */
+  downloaderQuotaTier: DownloaderQuotaTier | null;
   features: string[];
   equivalentMonthlyLabel: string | null;
 };
@@ -59,13 +65,9 @@ export type CanonicalPlan = {
  * Valores oficiais (pagamentos únicos, renovação manual):
  * Drive VIP:
  * - Teste 3 dias: R$ 1,00
- * - 1 mês: R$ 38,00 (~30 dias)
- * - 3 meses: 10% off → R$ 102,60 (~90 dias)
- * - 1 ano: R$ 32,00/mês → R$ 384,00 (~365 dias)
- * Deemix (ARL 320 kbps):
- * - 1 mês: R$ 30,00 (~30 dias)
- * - 90 dias: 10% off → R$ 81,00
- * - 180 dias: 10% off → R$ 162,00
+ * - Essencial: R$ 38,00 — 1000 faixas/24h ou 1 pack
+ * - Pro: R$ 42,00 — 2000 faixas/24h no Downloader (site ilimitado)
+ * - Max: R$ 46,00 — 4500 faixas/mês
  * Allavsoft:
  * - Licença vitalícia: R$ 50,00 (pagamento único)
  */
@@ -87,19 +89,48 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: true,
     serviceProduct: "poolsVip",
+    downloaderQuotaTier: "STARTER",
     equivalentMonthlyLabel: null,
     features: [
       "Acesso VIP completo por 3 dias",
+      "Cota Essencial no Downloader (1000 faixas/24h ou 1 pack)",
       "Mesmo fluxo de pagamento dos planos oficiais",
-      "Libera plataforma + Downloader",
       "Ideal para validar produção Mercado Pago",
     ],
   },
   {
     id: "brs-drive-1m",
-    title: "BRS Drive — 1 mês",
-    description: "Acesso VIP completo por 30 dias. Pagamento único com renovação manual.",
+    title: "BRS Drive — Essencial",
+    description:
+      "Acesso VIP por 30 dias. Downloader com até 1000 faixas a cada 24h ou 1 pack (o que vier primeiro). Pack acima de 1000 baixa completo e esgota a cota do período.",
     amountBrl: "38.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 30,
+    durationMonths: 1,
+    durationLabel: "1 mês",
+    lifetime: false,
+    active: true,
+    renewalType: "manual",
+    badge: "R$ 38",
+    highlight: false,
+    isTestPlan: false,
+    serviceProduct: "poolsVip",
+    downloaderQuotaTier: "STARTER",
+    equivalentMonthlyLabel: "R$ 38,00/mês",
+    features: [
+      "Acervo VIP completo (+315 GB)",
+      "Plataforma para DJs (/musicas)",
+      "Downloader: 1000 faixas/24h ou 1 pack",
+      "Pack grande (>1000) baixa completo e zera a cota",
+      "Renovação manual ao fim do período",
+    ],
+  },
+  {
+    id: "brs-drive-pro-1m",
+    title: "BRS Drive — Pro",
+    description:
+      "Acesso VIP por 30 dias. Downloader com 2000 faixas a cada 24h; navegação e play no site sem limite de faixas.",
+    amountBrl: "42.00",
     currency: PLAN_CURRENCY,
     durationDays: 30,
     durationMonths: 1,
@@ -111,64 +142,82 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: true,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    equivalentMonthlyLabel: "R$ 38,00/mês",
+    downloaderQuotaTier: "PRO",
+    equivalentMonthlyLabel: "R$ 42,00/mês",
     features: [
       "Acervo VIP completo (+315 GB)",
-      "Plataforma para DJs (/musicas)",
-      "Downloader para Windows",
-      "Atualizações mensais",
+      "Plataforma para DJs sem limite de faixas",
+      "Downloader: 2000 faixas a cada 24h",
+      "Site (navegador) sem cota",
+      "Renovação manual ao fim do período",
+    ],
+  },
+  {
+    id: "brs-drive-max-1m",
+    title: "BRS Drive — Max",
+    description:
+      "Acesso VIP por 30 dias com a maior cota do Downloader: 4500 faixas por mês. Ideal para quem baixa muito volume.",
+    amountBrl: "46.00",
+    currency: PLAN_CURRENCY,
+    durationDays: 30,
+    durationMonths: 1,
+    durationLabel: "1 mês",
+    lifetime: false,
+    active: true,
+    renewalType: "manual",
+    badge: "Max",
+    highlight: false,
+    isTestPlan: false,
+    serviceProduct: "poolsVip",
+    downloaderQuotaTier: "MAX",
+    equivalentMonthlyLabel: "R$ 46,00/mês",
+    features: [
+      "Acervo VIP completo (+315 GB)",
+      "Plataforma para DJs sem limite de faixas",
+      "Downloader: 4500 faixas por mês",
+      "Maior volume para o app desktop",
       "Renovação manual ao fim do período",
     ],
   },
   {
     id: "brs-drive-3m",
-    title: "BRS Drive — 3 meses",
-    description: "Trimestral com 10% de desconto em cada mês. Pagamento único com renovação manual.",
+    title: "BRS Drive — 3 meses (legado)",
+    description: "Plano trimestral legado — não listado no checkout.",
     amountBrl: "102.60",
     currency: PLAN_CURRENCY,
     durationDays: 90,
     durationMonths: 3,
     durationLabel: "3 meses",
     lifetime: false,
-    active: true,
+    active: false,
     renewalType: "manual",
-    badge: "10% off",
+    badge: null,
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
+    downloaderQuotaTier: "PRO",
     equivalentMonthlyLabel: "R$ 34,20/mês",
-    features: [
-      "Acervo VIP completo (+315 GB)",
-      "Plataforma para DJs (/musicas)",
-      "Downloader para Windows",
-      "Economia de 10% vs. mensal",
-      "Renovação manual ao fim do período",
-    ],
+    features: ["Plano legado"],
   },
   {
     id: "brs-drive-12m",
-    title: "BRS Drive — 1 ano",
-    description: "Anual equivalente a R$ 32,00 por mês. Pagamento único com renovação manual.",
+    title: "BRS Drive — 1 ano (legado)",
+    description: "Plano anual legado — não listado no checkout.",
     amountBrl: "384.00",
     currency: PLAN_CURRENCY,
     durationDays: 365,
     durationMonths: 12,
     durationLabel: "12 meses",
     lifetime: false,
-    active: true,
+    active: false,
     renewalType: "manual",
-    badge: "Melhor valor",
+    badge: null,
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
+    downloaderQuotaTier: "PRO",
     equivalentMonthlyLabel: "R$ 32,00/mês",
-    features: [
-      "Acervo VIP completo (+315 GB)",
-      "Plataforma para DJs (/musicas)",
-      "Downloader para Windows",
-      "Menor custo mensal equivalente",
-      "Renovação manual ao fim do período",
-    ],
+    features: ["Plano legado"],
   },
   {
     id: "brs-deemix-1m",
@@ -186,6 +235,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: true,
     isTestPlan: false,
     serviceProduct: "deemix",
+    downloaderQuotaTier: null,
     equivalentMonthlyLabel: "R$ 30,00/mês",
     features: [
       "ARL Premium 320 kbps",
@@ -210,6 +260,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: false,
     serviceProduct: "deemix",
+    downloaderQuotaTier: null,
     equivalentMonthlyLabel: "R$ 27,00/mês",
     features: [
       "ARL Premium 320 kbps",
@@ -235,6 +286,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: false,
     serviceProduct: "deemix",
+    downloaderQuotaTier: null,
     equivalentMonthlyLabel: "R$ 27,00/mês",
     features: [
       "ARL Premium 320 kbps",
@@ -261,6 +313,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: true,
     isTestPlan: false,
     serviceProduct: "allavsoft",
+    downloaderQuotaTier: null,
     equivalentMonthlyLabel: null,
     features: [
       "Licença vitalícia (pagamento único)",

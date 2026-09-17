@@ -9,6 +9,7 @@ import { MusicasTopNav } from "./MusicasSidebar";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
 import { MusicasAuthShellSkeleton } from "./components/MusicasSkeletons";
+import { DownloaderConfirmProvider } from "./components/DownloaderBulkConfirm";
 
 type MusicasAuthLayoutProps = {
   children: React.ReactNode;
@@ -85,28 +86,30 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   return (
     <MusicasSessionProvider value={sessionValue}>
       <DownloaderSyncProvider>
-        <MusicasToastProvider>
-          <VipMusicPlayerProvider canPlayFull={hasVip}>
-            <div className="musicas-theme flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#101412] text-white">
-              <MusicasTopNav
-                authenticated={authenticated}
-                userName={userName}
-                hasVip={hasVip}
-                onLogout={() => void handleLogout()}
-                onLogin={goToLogin}
-                mobileOpen={mobileOpen}
-                onMobileOpenChange={setMobileOpen}
-              />
+        <DownloaderConfirmProvider>
+          <MusicasToastProvider>
+            <VipMusicPlayerProvider canPlayFull={hasVip}>
+              <div className="musicas-theme flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#101412] text-white">
+                <MusicasTopNav
+                  authenticated={authenticated}
+                  userName={userName}
+                  hasVip={hasVip}
+                  onLogout={() => void handleLogout()}
+                  onLogin={goToLogin}
+                  mobileOpen={mobileOpen}
+                  onMobileOpenChange={setMobileOpen}
+                />
 
-              <main className="min-w-0 flex-1 overflow-x-clip">
-                <div className="mx-auto w-full max-w-[1600px] px-3 pb-12 pt-4 sm:px-5 sm:pt-6 lg:px-8">
-                  {!authenticated && !hasVip && <MusicasGuestBanner />}
-                  {children}
-                </div>
-              </main>
-            </div>
-          </VipMusicPlayerProvider>
-        </MusicasToastProvider>
+                <main className="min-w-0 flex-1 overflow-x-clip">
+                  <div className="mx-auto w-full max-w-[1600px] px-3 pb-12 pt-4 sm:px-5 sm:pt-6 lg:px-8">
+                    {!authenticated && !hasVip && <MusicasGuestBanner />}
+                    {children}
+                  </div>
+                </main>
+              </div>
+            </VipMusicPlayerProvider>
+          </MusicasToastProvider>
+        </DownloaderConfirmProvider>
       </DownloaderSyncProvider>
     </MusicasSessionProvider>
   );

@@ -363,6 +363,9 @@ async function applyApprovedAccessInTx(
         : {
             servicePoolsVipValue: new Prisma.Decimal(paidAmountBrl),
             servicePoolsVipDueAt: periodEnd,
+            ...(plan.downloaderQuotaTier
+              ? { downloaderQuotaTier: plan.downloaderQuotaTier }
+              : {}),
           }),
       monthlyValue: new Prisma.Decimal(computeAggregateMonthlyValue(nextServices, billing)),
       nextDueAt: computeAggregateNextDueAt(nextServices, billing, periodEnd),

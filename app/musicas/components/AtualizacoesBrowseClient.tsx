@@ -24,6 +24,7 @@ import {
   setMusicasCache,
 } from "../lib/musicas-fetch-cache";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
@@ -435,6 +436,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       );
       await sync?.refresh();
     } catch (err) {
+      if (isDownloaderSendCancelled(err)) return;
       showToast(err instanceof Error ? err.message : "Não foi possível enviar a pasta.", "error");
     } finally {
       setSendingPack(false);

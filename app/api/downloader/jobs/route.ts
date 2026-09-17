@@ -53,6 +53,19 @@ export async function POST(request: Request) {
     return withDownloaderCorsJson(request, { error: parsed.error }, { status: 400 });
   }
 
-  const job = await createDownloadJob(access.user.id, parsed.value!);
-  return withDownloaderCorsJson(request, { ok: true, job }, { status: 201 });
+  try {
+    const job = await createDownloadJob(access.user.id, parsed.value!);
+    return withDownloaderCorsJson(request, { ok: true, job }, { status: 201 });
+  } catch (error) {
+    const { DownloaderQuotaExceededError } = await import("../../../lib/downloader-quota");
+    if (error instanceof DownloaderQuotaExceededError) {
+      return withDownloaderCorsJson(
+        request,
+        { error: error.message, quota: error.quota },
+        { status: 429 },
+      );
+    }
+    const message = error instanceof Error ? error.message : "Erro ao criar job.";
+    return withDownloaderCorsJson(request, { error: message }, { status: 500 });
+  }
 }

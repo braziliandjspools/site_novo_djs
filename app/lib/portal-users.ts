@@ -47,6 +47,7 @@ export type PortalUser = {
   nextDueAt: Date;
   active: boolean;
   musicProducerDeliveriesEnabled: boolean;
+  downloaderQuotaTier: "STARTER" | "PRO" | "MAX";
   createdAt: Date;
   updatedAt: Date;
 };
@@ -86,6 +87,8 @@ export type UpdatePortalUserInput = {
   active?: boolean;
   musicProducerDeliveriesEnabled?: boolean;
   password?: string;
+  /** Tier de cota do Downloader. */
+  downloaderQuotaTier?: "STARTER" | "PRO" | "MAX";
   /** @deprecated use services */
   plan?: PortalPlan;
 };
@@ -116,6 +119,7 @@ function mapServiceBilling(user: PrismaPortalUser): ServiceBilling {
 }
 
 function mapUser(user: PrismaPortalUser): PortalUser {
+  const tier = (user as PrismaPortalUser & { downloaderQuotaTier?: string }).downloaderQuotaTier;
   return {
     id: user.id,
     name: user.name,
@@ -128,6 +132,8 @@ function mapUser(user: PrismaPortalUser): PortalUser {
     nextDueAt: user.nextDueAt,
     active: user.active,
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
+    downloaderQuotaTier:
+      tier === "PRO" || tier === "MAX" || tier === "STARTER" ? tier : "STARTER",
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -474,6 +480,9 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
   if (input.musicProducerDeliveriesEnabled !== undefined) {
     data.musicProducerDeliveriesEnabled = input.musicProducerDeliveriesEnabled;
   }
+  if (input.downloaderQuotaTier !== undefined) {
+    data.downloaderQuotaTier = input.downloaderQuotaTier;
+  }
   if (input.password) data.passwordHash = await bcrypt.hash(input.password, 12);
 
   const user = await prisma.portalUser.update({
@@ -524,6 +533,7 @@ export function serializePortalUser(user: PortalUser) {
     nextDueAt: user.nextDueAt.toISOString(),
     active: user.active,
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
+    downloaderQuotaTier: user.downloaderQuotaTier,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };

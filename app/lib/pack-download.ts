@@ -190,8 +190,8 @@ export async function importPackJobsBySlug(
     ...(targetDeviceId ? { targetDeviceId } : {}),
   }));
 
-  // createDownloadJobsBatch já parte em chunks no Prisma; evita limite HTTP de 500.
-  const jobs = await createDownloadJobsBatch(portalUserId, inputs);
+  // Pack: cota especial (STARTER = 1 pack/janela, mesmo se >1000 faixas).
+  const jobs = await createDownloadJobsBatch(portalUserId, inputs, { quotaMode: "pack" });
   return {
     ok: true as const,
     folder,
@@ -279,7 +279,7 @@ export async function importArtistJobsBySlug(
     };
   });
 
-  const jobs = await createDownloadJobsBatch(portalUserId, inputs);
+  const jobs = await createDownloadJobsBatch(portalUserId, inputs, { quotaMode: "pack" });
   return {
     ok: true as const,
     kind: "artist" as const,

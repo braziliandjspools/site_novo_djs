@@ -53,6 +53,18 @@ type DownloaderStatsPayload = {
     completedBytes: string;
   };
   recent: RecentJob[];
+  quota?: {
+    tierLabel: string;
+    trackLimit: number;
+    tracksUsed: number;
+    tracksRemaining: number;
+    packsUsed: number;
+    packLimit: number | null;
+    exhausted: boolean;
+    resetsInSeconds: number;
+    periodLabel: string;
+    windowEndsAt: string;
+  } | null;
   error?: string;
 };
 
@@ -202,6 +214,22 @@ export function DownloaderStatsPanel() {
           )}
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {data.quota ? (
+              <StatTile
+                label={`Cota ${data.quota.tierLabel}`}
+                value={
+                  data.quota.exhausted
+                    ? "Esgotada"
+                    : `${data.quota.tracksRemaining}/${data.quota.trackLimit}`
+                }
+                hint={
+                  data.quota.exhausted
+                    ? `Libera em ${Math.ceil(data.quota.resetsInSeconds / 3600)}h`
+                    : `${data.quota.tracksUsed} usadas · janela ${data.quota.periodLabel}`
+                }
+                accent={!data.quota.exhausted}
+              />
+            ) : null}
             <StatTile
               label="PCs online"
               value={data.devices.online}
