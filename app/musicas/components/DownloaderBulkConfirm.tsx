@@ -88,8 +88,9 @@ export function DownloaderConfirmProvider({ children }: { children: ReactNode })
 
   useEffect(() => {
     if (!request) return;
+    const active = request;
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") request.resolve(false);
+      if (event.key === "Escape") active.resolve(false);
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

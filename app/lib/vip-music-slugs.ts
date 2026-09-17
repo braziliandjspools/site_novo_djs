@@ -260,10 +260,10 @@ export function parseYearCollectionFolder(name: string): { year: number; kind: s
   return { year, kind: match[1].trim().toUpperCase() };
 }
 
-export function sortFoldersByYearCollection(
-  folders: VipMusicFolder[],
+export function sortFoldersByYearCollection<T extends VipMusicFolder>(
+  folders: T[],
   newestFirst = true,
-): VipMusicFolder[] {
+): T[] {
   const dir = newestFirst ? -1 : 1;
   return [...folders].sort((a, b) => {
     const da = parseYearCollectionFolder(a.name);
@@ -285,7 +285,7 @@ export function childrenAreWeekFolders(folders: VipMusicFolder[]): boolean {
   return weeks >= Math.max(1, Math.ceil(folders.length * 0.5));
 }
 
-export function sortFoldersByWeek(folders: VipMusicFolder[]): VipMusicFolder[] {
+export function sortFoldersByWeek<T extends VipMusicFolder>(folders: T[]): T[] {
   return [...folders].sort((a, b) => {
     const wa = parseWeekNumber(a.name);
     const wb = parseWeekNumber(b.name);
@@ -297,7 +297,10 @@ export function sortFoldersByWeek(folders: VipMusicFolder[]): VipMusicFolder[] {
 }
 
 /** Meses mais recentes primeiro (JULHO 2024 antes de JUNHO 2024). */
-export function sortFoldersByMonthDate(folders: VipMusicFolder[], newestFirst = true): VipMusicFolder[] {
+export function sortFoldersByMonthDate<T extends VipMusicFolder>(
+  folders: T[],
+  newestFirst = true,
+): T[] {
   const dir = newestFirst ? -1 : 1;
   return [...folders].sort((a, b) => {
     const da = parseMonthFolderDate(a.name);
@@ -312,7 +315,7 @@ export function sortFoldersByMonthDate(folders: VipMusicFolder[], newestFirst = 
   });
 }
 
-export function sortVipChildFolders(folders: VipMusicFolder[]): VipMusicFolder[] {
+export function sortVipChildFolders<T extends VipMusicFolder>(folders: T[]): T[] {
   if (childrenAreWeekFolders(folders)) return sortFoldersByWeek(folders);
   const monthLike = folders.filter((folder) => parseMonthFolderDate(folder.name)).length;
   if (monthLike >= Math.ceil(folders.length * 0.5)) {
