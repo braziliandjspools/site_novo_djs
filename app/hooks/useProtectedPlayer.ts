@@ -155,11 +155,11 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
     }
   }, [getContext, useMediaElement]);
 
-  const failLoad = useCallback((id: string) => {
+  const failLoad = useCallback((id: string, message?: string) => {
     setState((prev) => ({
       ...prev,
       loadingId: prev.loadingId === id ? null : prev.loadingId,
-      error: "Não foi possível carregar a faixa.",
+      error: message?.trim() || "Não foi possível carregar a faixa.",
     }));
   }, []);
 
@@ -177,6 +177,35 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
       revokeObjectUrl();
       // Pausar sem zerar o src: limpar src demove a notificação Media Session no Android.
       audio.pause();
+
+      // Probe rápido: se a API devolver JSON (cota/502), mostra a mensagem real.
+      if (!id.startsWith("/")) {
+        try {
+          const probe = await fetch(src, {
+            method: "GET",
+            headers: { Range: "bytes=0-1" },
+            cache: "no-store",
+          });
+          const contentType = probe.headers.get("content-type") ?? "";
+          if (!probe.ok || contentType.includes("application/json")) {
+            let message = "Não foi possível carregar a faixa.";
+            try {
+              const payload = (await probe.json()) as { error?: string };
+              if (payload.error?.trim()) message = payload.error.trim();
+            } catch {
+              if (probe.status === 429) {
+                message =
+                  "Cota de download do Google Drive excedida. Tente novamente mais tarde.";
+              }
+            }
+            failLoad(id, message);
+            return false;
+          }
+        } catch {
+          /* segue para o <audio> — rede pode ter falhado só no probe */
+        }
+      }
+
       audio.src = src;
       audio.currentTime = 0;
 

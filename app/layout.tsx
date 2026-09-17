@@ -60,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${dmSans.variable} ${sora.variable} ${plusJakarta.variable} dark h-full w-full max-w-[100vw] overflow-x-clip bg-[#121212] antialiased`}
     >
       <head>
-        <link rel="preload" href={BRS_LOGO_SRC} as="image" type="image/jpeg" />
+        <link rel="icon" href={BRS_LOGO_SRC} type="image/jpeg" />
         <JsonLd data={organizationJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
         <JsonLd data={serviceJsonLd()} />

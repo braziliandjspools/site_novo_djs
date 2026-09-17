@@ -1079,87 +1079,129 @@ export function VipMusicTrackList({
 
   const useStreaming = layout === "table" || layout === "default";
   const useDiscography = layout === "discography";
+  const separateByFolderDate = Boolean(
+    trackSections?.some((section) => section.kind === "folder"),
+  );
+  const panelClass =
+    "musicas-track-panel overflow-hidden rounded-2xl border border-white/10 bg-[#141816] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
-  return (
-    <div
-      className={
-        embedded
-          ? ""
-          : "musicas-track-panel overflow-hidden rounded-2xl border border-white/10 bg-[#141816] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
-      }
-    >
-      {error && isThisFolder && (
-        <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
-      )}
+  function renderStreamingRows(sectionTracks: PreviewTrack[]) {
+    return sectionTracks.map((track, index) => {
+      const isActive = activeId === track.id;
+      const isPlaying = isThisFolder && playingId === track.id;
+      const displayDuration =
+        isActive && isThisFolder && duration > 0 ? duration : durationById[track.id] ?? 0;
+      return (
+        <StreamingTrackRow
+          key={track.id}
+          track={track}
+          index={index}
+          canPlay={canPlay}
+          canDownload={canDownload}
+          selectionMode={selectionMode}
+          isSelected={selectedIds.has(track.id)}
+          isActive={isActive}
+          isPlaying={isPlaying}
+          isLoading={isThisFolder && loadingId === track.id}
+          isBusy={isGlobalBusy && loadingId !== track.id}
+          isHighlighted={highlightTrackId === track.id}
+          albumCoverUrl={coverUrl}
+          progress={isActive && isThisFolder ? progress : 0}
+          currentTime={isActive && isThisFolder ? currentTime : 0}
+          displayDuration={displayDuration}
+          onToggle={() => void handleToggle(track.id)}
+          onSeek={(ratio) => void handleSeek(ratio)}
+          onDownload={() => void handleDownload(track)}
+          isDownloading={downloadingId === track.id}
+          onSendToDownloader={() => void handleSendToDownloader(track)}
+          isSendingToDownloader={sendingId === track.id}
+          onToggleSelected={() => toggleTrackSelected(track.id)}
+          onQueueNext={() => {
+            queueTrackNext(folderId, track.id);
+            showToast("Adicionada à fila");
+          }}
+          onShare={() => void shareTrack(track)}
+          onCopyLink={() => copyTrackLink(track)}
+        />
+      );
+    });
+  }
 
-      {canDownload && tracks.length > 1 && !useDiscography && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5">
-          {selectionMode ? (
-            <>
-              <p className="mr-1 text-xs font-semibold tabular-nums text-white/70">
-                {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
-              </p>
-              <button
-                type="button"
-                onClick={() => handleSendSelectedToDownloader()}
-                disabled={batchSending || batchDownloading || selectedCount === 0}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
-                {batchSending ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <MonitorDown className="h-3 w-3" />
-                )}
-                Enviar selecionadas ao Downloader
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDownloadSelected()}
-                disabled={batchSending || batchDownloading || selectedCount === 0}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/85 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-40"
-              >
-                {batchDownloading ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Download className="h-3 w-3" />
-                )}
-                Baixar selecionadas
-              </button>
-              <span className="mx-0.5 hidden h-4 w-px bg-white/10 sm:block" aria-hidden />
-              <button
-                type="button"
-                onClick={selectAllTracks}
-                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
-              >
-                Todas
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedIds(new Set())}
-                disabled={selectedCount === 0}
-                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-white/20 hover:text-white disabled:opacity-40"
-              >
-                Limpar
-              </button>
-              <button
-                type="button"
-                onClick={exitSelectionMode}
-                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-white/20 hover:text-white"
-              >
-                Cancelar
-              </button>
-            </>
-          ) : (
+  const selectionToolbar =
+    canDownload && tracks.length > 1 && !useDiscography ? (
+      <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5">
+        {selectionMode ? (
+          <>
+            <p className="mr-1 text-xs font-semibold tabular-nums text-white/70">
+              {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
+            </p>
             <button
               type="button"
-              onClick={() => setSelectionMode(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+              onClick={() => handleSendSelectedToDownloader()}
+              disabled={batchSending || batchDownloading || selectedCount === 0}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
             >
-              <Check className="h-3 w-3" />
-              Selecionar faixas
+              {batchSending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <MonitorDown className="h-3 w-3" />
+              )}
+              Enviar selecionadas ao Downloader
             </button>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={() => handleDownloadSelected()}
+              disabled={batchSending || batchDownloading || selectedCount === 0}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/85 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-40"
+            >
+              {batchDownloading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Download className="h-3 w-3" />
+              )}
+              Baixar selecionadas
+            </button>
+            <span className="mx-0.5 hidden h-4 w-px bg-white/10 sm:block" aria-hidden />
+            <button
+              type="button"
+              onClick={selectAllTracks}
+              className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              disabled={selectedCount === 0}
+              className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-white/20 hover:text-white disabled:opacity-40"
+            >
+              Limpar
+            </button>
+            <button
+              type="button"
+              onClick={exitSelectionMode}
+              className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-white/20 hover:text-white"
+            >
+              Cancelar
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setSelectionMode(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+          >
+            <Check className="h-3 w-3" />
+            Selecionar faixas
+          </button>
+        )}
+      </div>
+    ) : null;
+
+  return (
+    <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
+      {error && isThisFolder && (
+        <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
 
       {useDiscography ? (
@@ -1207,90 +1249,62 @@ export function VipMusicTrackList({
         </div>
       ) : null}
 
-      {useStreaming ? (
+      {useStreaming && separateByFolderDate && trackSections ? (
+        <>
+          {selectionToolbar ? (
+            <div className={`${panelClass} !shadow-none`}>{selectionToolbar}</div>
+          ) : null}
+          {trackSections.map((section) => (
+            <div key={section.id} className={panelClass}>
+              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#141414] px-3.5 py-3 sm:px-4">
+                <h3 className="text-[13px] font-bold tabular-nums tracking-[0.14em] text-white">
+                  {section.title}
+                </h3>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
+                </p>
+              </header>
+              <div>{renderStreamingRows(section.tracks)}</div>
+            </div>
+          ))}
+        </>
+      ) : null}
+
+      {useStreaming && !separateByFolderDate ? (
         <div>
+          {selectionToolbar}
           {(trackSections ?? [
             { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
           ]).map((section) => (
-              <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
-                {trackSections && section.title ? (
-                  section.kind === "folder" ? (
-                    <header className="flex items-center gap-3 px-3.5 py-3" aria-label={section.title}>
-                      <span className="h-px min-w-4 flex-1 bg-white/20" aria-hidden />
-                      <h3 className="shrink-0 text-[12px] font-bold tabular-nums tracking-[0.18em] text-white/75">
-                        {section.title}
-                      </h3>
-                      <span className="h-px min-w-4 flex-1 bg-white/20" aria-hidden />
-                    </header>
-                  ) : (
-                    <header
-                      className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
-                        section.isNew
-                          ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
-                          : "border-white/[0.05] bg-white/[0.02]"
-                      }`}
-                    >
-                      {section.isNew ? (
-                        <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
-                          Recente
-                        </span>
-                      ) : null}
-                      <h3
-                        className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                          section.isNew ? "text-[#1ed760]" : "text-white/60"
-                        }`}
-                      >
-                        {section.title}
-                      </h3>
-                      {section.subtitle ? (
-                        <span className="text-[11px] text-white/35">{section.subtitle}</span>
-                      ) : null}
-                    </header>
-                  )
-                ) : null}
-                {section.tracks.map((track, index) => {
-                  const isActive = activeId === track.id;
-                  const isPlaying = isThisFolder && playingId === track.id;
-                  const displayDuration =
-                    isActive && isThisFolder && duration > 0
-                      ? duration
-                      : durationById[track.id] ?? 0;
-                  return (
-                    <StreamingTrackRow
-                      key={track.id}
-                      track={track}
-                      index={index}
-                      canPlay={canPlay}
-                      canDownload={canDownload}
-                      selectionMode={selectionMode}
-                      isSelected={selectedIds.has(track.id)}
-                      isActive={isActive}
-                      isPlaying={isPlaying}
-                      isLoading={isThisFolder && loadingId === track.id}
-                      isBusy={isGlobalBusy && loadingId !== track.id}
-                      isHighlighted={highlightTrackId === track.id}
-                      albumCoverUrl={coverUrl}
-                      progress={isActive && isThisFolder ? progress : 0}
-                      currentTime={isActive && isThisFolder ? currentTime : 0}
-                      displayDuration={displayDuration}
-                      onToggle={() => void handleToggle(track.id)}
-                      onSeek={(ratio) => void handleSeek(ratio)}
-                      onDownload={() => void handleDownload(track)}
-                      isDownloading={downloadingId === track.id}
-                      onSendToDownloader={() => void handleSendToDownloader(track)}
-                      isSendingToDownloader={sendingId === track.id}
-                      onToggleSelected={() => toggleTrackSelected(track.id)}
-                      onQueueNext={() => {
-                        queueTrackNext(folderId, track.id);
-                        showToast("Adicionada à fila");
-                      }}
-                      onShare={() => void shareTrack(track)}
-                      onCopyLink={() => copyTrackLink(track)}
-                    />
-                  );
-                })}
-              </section>
-            ))}
+            <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
+              {trackSections && section.title ? (
+                <header
+                  className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
+                    section.isNew
+                      ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
+                      : "border-white/[0.05] bg-white/[0.02]"
+                  }`}
+                >
+                  {section.isNew ? (
+                    <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
+                      Recente
+                    </span>
+                  ) : null}
+                  <h3
+                    className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                      section.isNew ? "text-[#1ed760]" : "text-white/60"
+                    }`}
+                  >
+                    {section.title}
+                  </h3>
+                  {section.subtitle ? (
+                    <span className="text-[11px] text-white/35">{section.subtitle}</span>
+                  ) : null}
+                </header>
+              ) : null}
+              {renderStreamingRows(section.tracks)}
+            </section>
+          ))}
         </div>
       ) : null}
 

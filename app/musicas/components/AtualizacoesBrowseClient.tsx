@@ -47,7 +47,6 @@ import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
-import { poolPanelHeaderClass } from "./atualizacoes-pool-ui";
 import {
   MusicasBrowseFoldersSkeleton,
   MusicasListSkeleton,
@@ -701,12 +700,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             />
           ) : null}
           {directTracks.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-md border border-zinc-700/70 bg-black">
-              <div className={poolPanelHeaderClass}>
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-                  Arquivos nesta pasta · {directTracks.length}
-                </p>
-              </div>
+            <div className="mt-4 space-y-4">
               <VipMusicTrackList
                 folderId={data.folderId}
                 tracks={directTracks}
@@ -765,14 +759,19 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           monthWeeks={siblingWeeks}
           newChildIds={newChildIds}
         >
-          <div className="min-w-0 overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
-            <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
+          <div className="min-w-0 space-y-4">
             {directTracks.length === 0 && loading ? (
-              <MusicasTracksSkeleton />
+              <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
+                <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
+                <MusicasTracksSkeleton />
+              </div>
             ) : directTracks.length === 0 ? (
-              <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
-                Nenhuma faixa nesta pasta.
-              </p>
+              <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
+                <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
+                <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
+                  Nenhuma faixa nesta pasta.
+                </p>
+              </div>
             ) : (
               <VipMusicTrackList
                 folderId={data.folderId}

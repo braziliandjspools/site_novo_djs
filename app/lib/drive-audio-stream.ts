@@ -1,8 +1,28 @@
 import { getAudioSourceUrl } from "./google-drive";
+import {
+  getGoogleDriveAccessToken,
+  googleDriveMediaUrl,
+  hasGoogleDriveOAuth,
+} from "./google-drive-auth";
 import { GOOGLE_DRIVE_API_KEY } from "./site";
 
 const DRIVE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+export type DriveAudioUpstreamError = {
+  error: string;
+  status: number;
+  code?: "quota" | "unavailable" | "forbidden";
+};
+
+export type DriveAudioUpstreamOk = {
+  body: ReadableStream<Uint8Array>;
+  status: number;
+  contentType: string;
+  contentLength: string | null;
+  contentRange: string | null;
+  acceptRanges: string | null;
+};
 
 function clampRangeToPreview(range: string | null, maxBytes: number): string {
   const match = range?.match(/^bytes=(\d+)-(\d*)$/i);
@@ -20,9 +40,8 @@ function clampRangeToPreview(range: string | null, maxBytes: number): string {
   return `bytes=${start}-${Math.max(start, end)}`;
 }
 
-function isUsableAudioResponse(upstream: Response): boolean {
-  if ((!upstream.ok && upstream.status !== 206) || !upstream.body) return false;
-  const contentType = upstream.headers.get("Content-Type") ?? "";
+function isAudioContentType(contentType: string): boolean {
+  if (!contentType) return true;
   if (
     contentType.includes("text/html") ||
     contentType.includes("application/json") ||
@@ -33,14 +52,31 @@ function isUsableAudioResponse(upstream: Response): boolean {
   return true;
 }
 
+function isUsableAudioResponse(upstream: Response): boolean {
+  if ((!upstream.ok && upstream.status !== 206) || !upstream.body) return false;
+  return isAudioContentType(upstream.headers.get("Content-Type") ?? "");
+}
+
+async function detectQuotaError(upstream: Response): Promise<boolean> {
+  const contentType = upstream.headers.get("Content-Type") ?? "";
+  if (upstream.status !== 403 && upstream.status !== 429 && !contentType.includes("json") && !contentType.includes("html")) {
+    return false;
+  }
+  try {
+    const text = await upstream.clone().text();
+    return /downloadQuotaExceeded|Quota exceeded|Too many users have viewed or downloaded/i.test(
+      text,
+    );
+  } catch {
+    return false;
+  }
+}
+
 function userContentUrl(fileId: string): string {
   return `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`;
 }
 
-async function fetchOnce(
-  url: string,
-  headers: HeadersInit,
-): Promise<Response> {
+async function fetchOnce(url: string, headers: Record<string, string>): Promise<Response> {
   return fetch(url, {
     redirect: "follow",
     headers,
@@ -48,61 +84,110 @@ async function fetchOnce(
   });
 }
 
-export async function fetchDriveAudioUpstream(
-  fileId: string,
-  request?: Request,
-  options?: { previewMaxBytes?: number },
-) {
-  const previewMaxBytes = options?.previewMaxBytes;
+function buildRangeHeaders(
+  request: Request | undefined,
+  previewMaxBytes?: number,
+): Record<string, string> {
   const headers: Record<string, string> = { "User-Agent": DRIVE_USER_AGENT };
-
   if (previewMaxBytes && previewMaxBytes > 0) {
     headers.Range = clampRangeToPreview(request?.headers.get("Range") ?? null, previewMaxBytes);
   } else {
     const range = request?.headers.get("Range");
     if (range) headers.Range = range;
   }
+  return headers;
+}
 
-  const primaryUrl = getAudioSourceUrl(fileId);
-  let upstream = await fetchOnce(primaryUrl, headers);
-
-  // Range às vezes falha no Drive/API — tenta de novo sem Range.
-  if (!isUsableAudioResponse(upstream) && headers.Range) {
+async function tryFetchAudio(
+  url: string,
+  headers: Record<string, string>,
+): Promise<{ response: Response; quota: boolean }> {
+  let response = await fetchOnce(url, headers);
+  if (!isUsableAudioResponse(response) && headers.Range) {
     const { Range: _omit, ...withoutRange } = headers;
-    upstream = await fetchOnce(primaryUrl, withoutRange);
+    response = await fetchOnce(url, withoutRange);
   }
+  const quota = !isUsableAudioResponse(response) ? await detectQuotaError(response) : false;
+  return { response, quota };
+}
 
-  // Fallback: API key restrita/quota → usercontent público.
-  if (
-    !isUsableAudioResponse(upstream) &&
-    GOOGLE_DRIVE_API_KEY &&
-    primaryUrl.includes("googleapis.com")
-  ) {
-    const { Range: _omit, ...withoutRange } = headers;
-    const fallbackHeaders = headers.Range ? headers : withoutRange;
-    upstream = await fetchOnce(userContentUrl(fileId), fallbackHeaders);
-    if (!isUsableAudioResponse(upstream) && fallbackHeaders.Range) {
-      upstream = await fetchOnce(userContentUrl(fileId), withoutRange);
+export async function fetchDriveAudioUpstream(
+  fileId: string,
+  request?: Request,
+  options?: { previewMaxBytes?: number },
+): Promise<DriveAudioUpstreamOk | DriveAudioUpstreamError> {
+  const baseHeaders = buildRangeHeaders(request, options?.previewMaxBytes);
+  let sawQuota = false;
+
+  // 1) OAuth do dono (bypass da cota pública de download)
+  if (hasGoogleDriveOAuth()) {
+    const token = await getGoogleDriveAccessToken();
+    if (token) {
+      const { response, quota } = await tryFetchAudio(googleDriveMediaUrl(fileId), {
+        ...baseHeaders,
+        Authorization: `Bearer ${token}`,
+      });
+      sawQuota = sawQuota || quota;
+      if (isUsableAudioResponse(response)) {
+        return {
+          body: response.body!,
+          status: response.status,
+          contentType: response.headers.get("Content-Type") || "application/octet-stream",
+          contentLength: response.headers.get("Content-Length"),
+          contentRange: response.headers.get("Content-Range"),
+          acceptRanges: response.headers.get("Accept-Ranges"),
+        };
+      }
     }
   }
 
-  if (!isUsableAudioResponse(upstream)) {
-    const status =
-      upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502;
+  // 2) API key (mesma cota pública — falha quando o arquivo estourou downloads)
+  if (GOOGLE_DRIVE_API_KEY) {
+    const { response, quota } = await tryFetchAudio(getAudioSourceUrl(fileId), baseHeaders);
+    sawQuota = sawQuota || quota;
+    if (isUsableAudioResponse(response)) {
+      return {
+        body: response.body!,
+        status: response.status,
+        contentType: response.headers.get("Content-Type") || "application/octet-stream",
+        contentLength: response.headers.get("Content-Length"),
+        contentRange: response.headers.get("Content-Range"),
+        acceptRanges: response.headers.get("Accept-Ranges"),
+      };
+    }
+  }
+
+  // 3) Link público usercontent (também sofre a mesma cota)
+  {
+    const { response, quota } = await tryFetchAudio(userContentUrl(fileId), baseHeaders);
+    sawQuota = sawQuota || quota;
+    if (isUsableAudioResponse(response)) {
+      return {
+        body: response.body!,
+        status: response.status,
+        contentType: response.headers.get("Content-Type") || "application/octet-stream",
+        contentLength: response.headers.get("Content-Length"),
+        contentRange: response.headers.get("Content-Range"),
+        acceptRanges: response.headers.get("Accept-Ranges"),
+      };
+    }
+  }
+
+  if (sawQuota) {
     return {
-      error: "Arquivo indisponível no Drive",
-      status: status === 401 || status === 403 ? status : 502,
-    } as const;
+      error: hasGoogleDriveOAuth()
+        ? "Cota do Google Drive ainda excedida. Tente de novo mais tarde."
+        : "Cota de download do Google Drive excedida neste arquivo. Configure OAuth do dono (GOOGLE_DRIVE_OAUTH_*) ou aguarde até 24h.",
+      status: 429,
+      code: "quota",
+    };
   }
 
   return {
-    body: upstream.body,
-    status: upstream.status,
-    contentType: upstream.headers.get("Content-Type") || "application/octet-stream",
-    contentLength: upstream.headers.get("Content-Length"),
-    contentRange: upstream.headers.get("Content-Range"),
-    acceptRanges: upstream.headers.get("Accept-Ranges"),
-  } as const;
+    error: "Arquivo indisponível no Drive",
+    status: 502,
+    code: "unavailable",
+  };
 }
 
 export function driveAudioResponseHeaders(
