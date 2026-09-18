@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
+import { resolveFolderCoverUrl } from "../../lib/local-folder-covers";
 import {
   parseMonthStatus,
   parseYearCollectionFolder,
@@ -64,7 +65,10 @@ export function MusicasMonthLinks({
         name: folder.name,
         folderCount: catalog.folderCount,
         trackCount: catalog.trackCount,
-        coverUrl: catalog.coverUrl ?? null,
+        coverUrl: resolveFolderCoverUrl({
+          folderName: folder.name,
+          driveCoverUrl: catalog.coverUrl,
+        }),
         badge,
         badgeTone: badge ? badgeTone : undefined,
       };
@@ -77,6 +81,7 @@ export function MusicasMonthLinks({
       slugSegments={[]}
       newFolderIds={newFolderIds}
       caption="below"
+      centerItems
       sectionTitle="Seu acervo"
       sectionDescription="Pastas do mês e packs prontos para ouvir ou baixar."
       emptyMessage="Nenhum mês encontrado."

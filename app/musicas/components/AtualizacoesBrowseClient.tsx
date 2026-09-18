@@ -33,7 +33,6 @@ import { WeekFolderGrid } from "./WeekFolderGrid";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { MusicLibraryBrowseShell } from "./MusicLibraryBrowseShell";
-import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -602,33 +601,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           mode={heroMode}
           coverUrl={data.coverUrl}
           actions={
-            <>
-              {slugSegments.length === 1 ? (
-                <SendPackToDownloaderButton
-                  slug={packSlug}
-                  label="Enviar pack ao Downloader"
-                  className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
-                />
-              ) : slugSegments.length === 2 ? (
-                <SendPackToDownloaderButton
-                  slug={slugPath}
-                  label="Enviar mês ao Downloader"
-                  className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
-                />
-              ) : slugSegments.length >= 3 ? (
-                <SendPackToDownloaderButton
-                  slug={slugPath}
-                  label="Enviar pasta ao Downloader"
-                  className="h-11 w-full border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-sm hover:bg-[#1ed760]/20 sm:w-auto"
-                />
-              ) : null}
-              <AtualizacoesDriveSyncButton
-                className="w-full sm:w-auto"
-                onSynced={async () => {
-                  await loadBrowse({ forceRefresh: true });
-                }}
-              />
-            </>
+            <AtualizacoesDriveSyncButton
+              className="w-full sm:w-auto"
+              onSynced={async () => {
+                await loadBrowse({ forceRefresh: true });
+              }}
+            />
           }
         />
       ) : null}

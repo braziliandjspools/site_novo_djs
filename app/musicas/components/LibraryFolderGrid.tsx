@@ -26,6 +26,7 @@ import { buildPackDownloadUrl } from "../../lib/pack-download-link";
 import { displayFolderName, folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
+import { canSendFolderToDownloader } from "../lib/can-send-to-downloader";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   isDownloaderSendCancelled,
@@ -243,6 +244,7 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
   const folderCount = folder.folderCount ?? 0;
   const trackCount = folder.trackCount ?? 0;
   const hasSubfolders = folderCount > 0;
+  const canSend = canSendFolderToDownloader(folder);
   const metaParts = formatMeta(folderCount, trackCount, folder.detail);
   const badge = folder.badge?.trim() || (isNew ? "Novo" : null);
   const badgeTone = folder.badgeTone ?? "green";
@@ -339,20 +341,34 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
   }, [nextSegments, showToast]);
 
   const menuActions = useMemo((): CollectionMenuAction[] => {
-    return [
+    const actions: CollectionMenuAction[] = [
       { id: "open", label: "Abrir pasta", icon: Folder, onClick: openFolder },
-      {
+    ];
+    if (canSend) {
+      actions.push({
         id: "downloader",
         label: sent ? "Já enviada ao Downloader" : "Enviar ao Downloader",
         icon: MonitorDown,
         disabled: sending || sent,
         onClick: () => void sendToDownloader(),
-      },
+      });
+    }
+    actions.push(
       { id: "copy", label: "Copiar link", icon: Copy, onClick: copyLink },
       { id: "share", label: "Compartilhar", icon: Share2, onClick: () => void shareFolder() },
       { id: "download", label: "Baixar pasta", icon: Download, onClick: downloadFolderLink },
-    ];
-  }, [copyLink, downloadFolderLink, openFolder, sendToDownloader, sending, sent, shareFolder]);
+    );
+    return actions;
+  }, [
+    canSend,
+    copyLink,
+    downloadFolderLink,
+    openFolder,
+    sendToDownloader,
+    sending,
+    sent,
+    shareFolder,
+  ]);
 
   const FolderIcon = hasSubfolders ? FolderTree : Folder;
 
@@ -415,13 +431,15 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
           >
             Abrir
           </Link>
-          <FolderDownloaderButton
-            slug={resolveSlug}
-            label={`Enviar ${label} ao Downloader`}
-            sent={sent}
-            onMarkedSent={onMarkedSent}
-            knownTrackCount={trackCount}
-          />
+          {canSend ? (
+            <FolderDownloaderButton
+              slug={resolveSlug}
+              label={`Enviar ${label} ao Downloader`}
+              sent={sent}
+              onMarkedSent={onMarkedSent}
+              knownTrackCount={trackCount}
+            />
+          ) : null}
           <CollectionContextMenu
             label={`Opções · ${label}`}
             buttonClassName="!h-8 !w-8 text-white/50 hover:text-white"
@@ -477,13 +495,15 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
-          <FolderDownloaderButton
-            slug={resolveSlug}
-            label={`Enviar ${label} ao Downloader`}
-            sent={sent}
-            onMarkedSent={onMarkedSent}
-            knownTrackCount={trackCount}
-          />
+          {canSend ? (
+            <FolderDownloaderButton
+              slug={resolveSlug}
+              label={`Enviar ${label} ao Downloader`}
+              sent={sent}
+              onMarkedSent={onMarkedSent}
+              knownTrackCount={trackCount}
+            />
+          ) : null}
         </div>
 
         <div
@@ -572,7 +592,15 @@ export function LibraryFolderList({
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 justify-items-center gap-3.5 min-[360px]:grid-cols-2 min-[360px]:justify-items-stretch md:grid-cols-2 md:gap-4 lg:grid-cols-5">
+          <div
+            className={`grid grid-cols-1 justify-items-center gap-3.5 min-[360px]:grid-cols-2 min-[360px]:justify-items-center md:gap-4 ${
+              folders.length <= 2
+                ? "md:grid-cols-2 lg:mx-auto lg:max-w-3xl lg:grid-cols-2"
+                : folders.length <= 4
+                  ? "md:grid-cols-2 lg:mx-auto lg:max-w-5xl lg:grid-cols-4"
+                  : "md:grid-cols-2 lg:grid-cols-5"
+            }`}
+          >
             {folders.map((folder, index) => {
               const folderSlug = slugifyFolderName(folder.name);
               const nextSegments = [...slugSegments, folderSlug];
@@ -585,14 +613,16 @@ export function LibraryFolderList({
               return (
                 <article key={folder.id} className="group/cardwrap relative w-full max-w-[280px] md:max-w-none">
                   <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 opacity-100 transition-opacity duration-200 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/cardwrap:opacity-100 [@media(hover:hover)]:group-focus-within/cardwrap:opacity-100">
-                    <FolderDownloaderButton
-                      slug={resolveSlug}
-                      label={`Enviar ${titleLabel} ao Downloader`}
-                      sent={sentSlugs.has(resolveSlug)}
-                      onMarkedSent={onMarkedSent}
-                      knownTrackCount={folder.trackCount}
-                      tone="onDark"
-                    />
+                    {canSendFolderToDownloader(folder) ? (
+                      <FolderDownloaderButton
+                        slug={resolveSlug}
+                        label={`Enviar ${titleLabel} ao Downloader`}
+                        sent={sentSlugs.has(resolveSlug)}
+                        onMarkedSent={onMarkedSent}
+                        knownTrackCount={folder.trackCount}
+                        tone="onDark"
+                      />
+                    ) : null}
                     <CollectionContextMenu
                       label={`Opções · ${titleLabel}`}
                       buttonClassName="!h-8 !w-8 rounded-lg border border-[#1ed760]/35 bg-[#121212] text-white/75 hover:border-[#1ed760]/55 hover:bg-[#0f1012] hover:text-white"
@@ -635,6 +665,7 @@ export function LibraryFolderList({
                     singularFolderLabel={meta.singularFolderLabel}
                     badge={badge}
                     index={index}
+                    coverUrl={folder.coverUrl}
                   />
                 </article>
               );
@@ -737,14 +768,16 @@ export function LibraryFolderList({
 
           {!muted ? (
             <div className="flex flex-shrink-0 items-center gap-1">
-              <FolderDownloaderButton
-                slug={resolveSlug}
-                label={`Enviar ${titleLabel} ao Downloader`}
-                sent={sentSlugs.has(resolveSlug)}
-                onMarkedSent={onMarkedSent}
-                knownTrackCount={folder.trackCount}
-                tone="onDark"
-              />
+              {canSendFolderToDownloader(folder) ? (
+                <FolderDownloaderButton
+                  slug={resolveSlug}
+                  label={`Enviar ${titleLabel} ao Downloader`}
+                  sent={sentSlugs.has(resolveSlug)}
+                  onMarkedSent={onMarkedSent}
+                  knownTrackCount={folder.trackCount}
+                  tone="onDark"
+                />
+              ) : null}
               <CollectionContextMenu
                 label={`Opções · ${titleLabel}`}
                 buttonClassName="!h-8 !w-8 rounded-lg border border-white/12 bg-white/[0.04] text-white/65 hover:bg-white/[0.08] hover:text-white sm:!h-9 sm:!w-9"

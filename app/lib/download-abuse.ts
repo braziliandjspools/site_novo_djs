@@ -16,6 +16,9 @@ import {
 export { evaluateAbuseCounters } from "./download-abuse-config";
 export type { AbuseCounters } from "./download-abuse-config";
 
+/** Bloqueio por abuso desativado — site e Downloader liberam downloads normalmente. */
+const DOWNLOAD_ABUSE_ENFORCEMENT = false;
+
 export type DownloadAbuseStatus = {
   banned: boolean;
   banReason: string | null;
@@ -93,18 +96,31 @@ function mapStatus(input: {
 }
 
 export async function getDownloadAbuseStatus(portalUserId: number): Promise<DownloadAbuseStatus> {
-  const [user, onTestPlan] = await Promise.all([
-    prisma.portalUser.findUnique({
-      where: { id: portalUserId },
-      select: {
-        downloadBannedAt: true,
-        downloadBanReason: true,
-        downloadAbuseAlertAt: true,
-        downloadAbuseAlertReason: true,
-      },
-    }),
-    isOnDriveTestPlan(portalUserId),
-  ]);
+  const onTestPlan = await isOnDriveTestPlan(portalUserId);
+
+  if (!DOWNLOAD_ABUSE_ENFORCEMENT) {
+    return {
+      banned: false,
+      banReason: null,
+      bannedAt: null,
+      alerted: false,
+      alertReason: null,
+      alertedAt: null,
+      onTestPlan,
+      code: null,
+      message: null,
+    };
+  }
+
+  const user = await prisma.portalUser.findUnique({
+    where: { id: portalUserId },
+    select: {
+      downloadBannedAt: true,
+      downloadBanReason: true,
+      downloadAbuseAlertAt: true,
+      downloadAbuseAlertReason: true,
+    },
+  });
 
   return mapStatus({
     bannedAt: user?.downloadBannedAt ?? null,
@@ -117,6 +133,9 @@ export async function getDownloadAbuseStatus(portalUserId: number): Promise<Down
 
 export async function assertDownloadsAllowed(portalUserId: number): Promise<DownloadAbuseGate> {
   const status = await getDownloadAbuseStatus(portalUserId);
+  if (!DOWNLOAD_ABUSE_ENFORCEMENT) {
+    return { ok: true, status };
+  }
   if (status.banned) {
     return {
       ok: false,
@@ -275,6 +294,10 @@ export async function recordAndPoliceDownloadAccess(input: {
   kind: DownloadHitKind;
   now?: Date;
 }): Promise<DownloadAbuseStatus> {
+  if (!DOWNLOAD_ABUSE_ENFORCEMENT) {
+    return getDownloadAbuseStatus(input.portalUserId);
+  }
+
   const now = input.now ?? new Date();
   const gate = await assertDownloadsAllowed(input.portalUserId);
   if (!gate.ok) return gate.abuse;
@@ -330,6 +353,10 @@ export async function policeJobBatch(input: {
   fileIds: string[];
   now?: Date;
 }): Promise<DownloadAbuseStatus> {
+  if (!DOWNLOAD_ABUSE_ENFORCEMENT) {
+    return getDownloadAbuseStatus(input.portalUserId);
+  }
+
   const now = input.now ?? new Date();
   const gate = await assertDownloadsAllowed(input.portalUserId);
   if (!gate.ok) {

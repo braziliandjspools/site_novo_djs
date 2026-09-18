@@ -33,6 +33,7 @@ import {
   type RecentFolder,
 } from "../lib/music-library-storage";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { canSendFolderToDownloader } from "../lib/can-send-to-downloader";
 import { SendPackToDownloaderButton } from "./SendPackToDownloaderButton";
 
 export type BrowseNavPathPart = {
@@ -435,12 +436,14 @@ export function AtualizacoesBrowseNavSidebar({
                         meta={meta}
                       />
                     </div>
-                    <SendPackToDownloaderButton
-                      slug={styleSlugPath}
-                      label={`Enviar ${displayFolderName(folder.name)} ao Downloader`}
-                      compact
-                      className="!h-9 !w-9 !rounded-full"
-                    />
+                    {canSendFolderToDownloader(catalog) ? (
+                      <SendPackToDownloaderButton
+                        slug={styleSlugPath}
+                        label={`Enviar ${displayFolderName(folder.name)} ao Downloader`}
+                        compact
+                        className="!h-9 !w-9 !rounded-full"
+                      />
+                    ) : null}
                   </div>
                 );
               })

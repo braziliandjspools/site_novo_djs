@@ -101,6 +101,11 @@ export function CollectionAlbumGrid({
           ? `${item.trackCount} ${item.trackCount === 1 ? "faixa" : "faixas"}`
           : `${albumsOrFolders} ${albumsOrFolders === 1 ? "álbum" : "álbuns"}`;
 
+        const canSend =
+          Boolean(item.isAlbum) &&
+          item.trackCount > 0 &&
+          (item.folderCount ?? 0) === 0;
+
         const actions: CollectionMenuAction[] = [
           {
             id: "open",
@@ -108,12 +113,16 @@ export function CollectionAlbumGrid({
             icon: ExternalLink,
             onClick: () => router.push(href),
           },
-          {
-            id: "downloader",
-            label: item.isAlbum ? "Enviar álbum ao Downloader" : "Enviar coleção ao Downloader",
-            icon: MonitorDown,
-            onClick: () => void sendToDownloader(packSlug, item.displayName),
-          },
+          ...(canSend
+            ? [
+                {
+                  id: "downloader",
+                  label: "Enviar álbum ao Downloader",
+                  icon: MonitorDown,
+                  onClick: () => void sendToDownloader(packSlug, item.displayName),
+                } satisfies CollectionMenuAction,
+              ]
+            : []),
           {
             id: "copy",
             label: "Copiar link",

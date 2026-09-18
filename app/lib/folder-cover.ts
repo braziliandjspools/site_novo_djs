@@ -1,4 +1,5 @@
 import { listDriveFolderChildren } from "./google-drive";
+import { displayFolderName, slugifyFolderName } from "./vip-music-slugs";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const AUDIO_EXTENSIONS = /\.(mp3|wav|flac|m4a|aac|ogg)$/i;
@@ -18,13 +19,28 @@ function baseNameWithoutExt(name: string) {
   return trimmed.slice(0, idx).trim();
 }
 
-/** Arquivo de capa: nome "folder" (com ou sem extensão de imagem). */
-export function isFolderCoverFile(file: { name: string; mimeType: string }) {
+function isImageFile(file: { name: string; mimeType: string }) {
   if (file.mimeType === FOLDER_MIME) return false;
-  const base = baseNameWithoutExt(file.name);
-  if (!/^folder$/i.test(base)) return false;
   if (file.mimeType.startsWith("image/")) return true;
   return IMAGE_EXTENSIONS.test(file.name);
+}
+
+/** Arquivo de capa: nome "folder" (com ou sem extensão de imagem). */
+export function isFolderCoverFile(file: { name: string; mimeType: string }) {
+  if (!isImageFile(file)) return false;
+  const base = baseNameWithoutExt(file.name);
+  return /^folder$/i.test(base);
+}
+
+/** Imagem com o mesmo nome (slug) da pasta pai — capa da raiz. */
+export function isNamedFolderCoverFile(
+  file: { name: string; mimeType: string },
+  folderName: string,
+) {
+  if (!isImageFile(file)) return false;
+  const fileSlug = slugifyFolderName(baseNameWithoutExt(file.name));
+  const folderSlug = slugifyFolderName(displayFolderName(folderName));
+  return Boolean(fileSlug && folderSlug && fileSlug === folderSlug);
 }
 
 export function isDriveAudioFile(file: { name: string; mimeType: string }) {
@@ -37,17 +53,35 @@ export function folderCoverUrl(fileId: string) {
   return `/api/musicas/cover/${encodeURIComponent(fileId)}`;
 }
 
-/** Procura `folder.jpg` / `folder.png` / etc. na raiz da pasta. */
-export async function findFolderCover(folderId: string): Promise<FolderCoverRef | null> {
+/**
+ * Procura capa na pasta:
+ * 1) imagem com o mesmo nome da pasta
+ * 2) `folder.jpg` / `folder.png` / etc.
+ */
+export function pickCoverFromChildren(
+  children: Array<{ id: string; name: string; mimeType: string }>,
+  folderName?: string,
+): FolderCoverRef | null {
+  const named =
+    folderName?.trim()
+      ? children.find((file) => isNamedFolderCoverFile(file, folderName))
+      : undefined;
+  const cover = named ?? children.find((file) => isFolderCoverFile(file));
+  if (!cover) return null;
+  return {
+    fileId: cover.id,
+    fileName: cover.name,
+    coverUrl: folderCoverUrl(cover.id),
+  };
+}
+
+export async function findFolderCover(
+  folderId: string,
+  folderName?: string,
+): Promise<FolderCoverRef | null> {
   try {
     const children = await listDriveFolderChildren(folderId);
-    const cover = children.find((file) => isFolderCoverFile(file));
-    if (!cover) return null;
-    return {
-      fileId: cover.id,
-      fileName: cover.name,
-      coverUrl: folderCoverUrl(cover.id),
-    };
+    return pickCoverFromChildren(children, folderName);
   } catch {
     return null;
   }

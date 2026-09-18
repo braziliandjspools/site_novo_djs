@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../../../lib/drive-audio-stream";
-import {
-  abuseJsonBody,
-  resolveVipMusicStreamAccess,
-} from "../../../../lib/vip-music-access";
-import { recordAndPoliceDownloadAccess } from "../../../../lib/download-abuse";
+import { resolveVipMusicStreamAccess } from "../../../../lib/vip-music-access";
 
 export const dynamic = "force-dynamic";
 /** Streams longos no Dokploy/Node (faixas VIP). */
@@ -17,9 +13,6 @@ type RouteContext = {
 export async function GET(request: Request, context: RouteContext) {
   const access = await resolveVipMusicStreamAccess();
   if (!access.ok) {
-    if ("abuse" in access && access.abuse) {
-      return NextResponse.json(abuseJsonBody(access.abuse, access.error), { status: 403 });
-    }
     return NextResponse.json({ error: access.error ?? "Stream indisponível" }, { status: 403 });
   }
 
@@ -29,31 +22,14 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   try {
-    const abuseStatus = await recordAndPoliceDownloadAccess({
-      portalUserId: access.user.id,
-      fileId,
-      kind: "stream",
-    });
-    if (abuseStatus.banned) {
-      return NextResponse.json(
-        abuseJsonBody(abuseStatus, abuseStatus.message ?? "Downloads bloqueados."),
-        { status: 403 },
-      );
-    }
-
     const upstream = await fetchDriveAudioUpstream(fileId, request);
     if ("error" in upstream) {
       return NextResponse.json({ error: upstream.error }, { status: upstream.status });
     }
 
-    const headers = driveAudioResponseHeaders(upstream, { inline: true });
-    if (abuseStatus.alerted && abuseStatus.message) {
-      headers.set("X-BP-Abuse-Warning", "1");
-    }
-
     return new NextResponse(upstream.body, {
       status: upstream.status,
-      headers,
+      headers: driveAudioResponseHeaders(upstream, { inline: true }),
     });
   } catch (error) {
     console.error("[musicas/stream]", fileId, error);

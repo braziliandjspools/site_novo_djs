@@ -7,11 +7,9 @@ import { UpdateAvailableModal } from "../UpdateAvailableModal";
 import type { ConnectionState } from "../../lib/download/types";
 import type { DeviceInfo, PlanBillingInfo } from "../../context/AuthContext";
 import { useAppNotifications } from "../../hooks/useAppNotifications";
-import { useDownloadAbuseGuard } from "../../hooks/useDownloadAbuseGuard";
 import { openPlatform } from "../../lib/open-site";
 import { supportWhatsAppUrl } from "../../lib/site";
 import { useLocale } from "../../i18n/LocaleContext";
-import { AbuseBanner } from "./AbuseBanner";
 
 type AppShellProps = {
   activeRoute: AppRoute;
@@ -47,7 +45,6 @@ export function AppShell({
   children,
 }: AppShellProps) {
   useAppNotifications(billing);
-  const abuse = useDownloadAbuseGuard();
   const { t } = useLocale();
 
   return (
@@ -97,8 +94,6 @@ export function AppShell({
             />
           </div>
         </header>
-
-        {abuse && (abuse.banned || abuse.alerted) ? <AbuseBanner abuse={abuse} /> : null}
 
         <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
           <div className="animate-fade-up">{children}</div>

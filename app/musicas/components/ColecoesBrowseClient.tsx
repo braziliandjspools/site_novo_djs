@@ -298,12 +298,16 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
   }
 
   const menuActions: CollectionMenuAction[] = [
-    {
-      id: "downloader",
-      label: isAlbumPage ? "Enviar álbum ao Downloader" : "Baixar coleção inteira",
-      icon: MonitorDown,
-      onClick: () => void sendWholePack(),
-    },
+    ...(isAlbumPage
+      ? [
+          {
+            id: "downloader",
+            label: "Enviar álbum ao Downloader",
+            icon: MonitorDown,
+            onClick: () => void sendWholePack(),
+          } satisfies CollectionMenuAction,
+        ]
+      : []),
     {
       id: "copy",
       label: "Copiar link",
@@ -418,26 +422,28 @@ export function ColecoesBrowseClient({ slugSegments }: ColecoesBrowseClientProps
               <span className="hidden sm:inline">{pagePlaying ? "Pausar" : "Ouvir"}</span>
             </button>
 
-            {canDownload ? (
-              <SendPackToDownloaderButton
-                slug={packSlug}
-                root="colecoes"
-                label={isAlbumPage ? "Enviar ao Downloader" : "Enviar coleção"}
-                className="!h-11 !px-4"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  if (!authenticated) openLogin();
-                  else showToast("Plano VIP necessário para usar o Downloader.", "error");
-                }}
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-zinc-600 px-4 text-sm font-semibold text-zinc-300"
-              >
-                <MonitorDown className="h-4 w-4" />
-                <span className="hidden sm:inline">Downloader</span>
-              </button>
-            )}
+            {isAlbumPage ? (
+              canDownload ? (
+                <SendPackToDownloaderButton
+                  slug={packSlug}
+                  root="colecoes"
+                  label="Enviar ao Downloader"
+                  className="!h-11 !px-4"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!authenticated) openLogin();
+                    else showToast("Plano VIP necessário para usar o Downloader.", "error");
+                  }}
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-zinc-600 px-4 text-sm font-semibold text-zinc-300"
+                >
+                  <MonitorDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Downloader</span>
+                </button>
+              )
+            ) : null}
 
             <CollectionContextMenu label="Mais opções" actions={menuActions} />
           </>

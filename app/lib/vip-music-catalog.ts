@@ -12,7 +12,8 @@ import {
   slugifyFolderName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
-import { folderCoverUrl, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
+import { isDriveAudioFile, pickCoverFromChildren } from "./folder-cover";
+import { resolveFolderCoverUrl } from "./local-folder-covers";
 import { mapPool } from "./map-pool";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
@@ -114,11 +115,14 @@ export async function listVipMusicFoldersWithNav(
 ): Promise<VipMusicCatalogItem[]> {
   const folders = await listVipMusicFolders(parentFolderId);
   if (folders.length === 0) return [];
-  const stats = await mapPool(folders, 8, (folder) => getFolderNavStats(folder.id));
+  const stats = await mapPool(folders, 8, (folder) => getFolderNavStats(folder.id, folder.name));
   return folders.map((folder, index) => ({
     ...folder,
     type: "folder" as const,
-    coverUrl: stats[index]?.coverUrl ?? null,
+    coverUrl: resolveFolderCoverUrl({
+      folderName: folder.name,
+      driveCoverUrl: stats[index]?.coverUrl ?? null,
+    }),
     folderCount: stats[index]?.folderCount ?? 0,
     trackCount: stats[index]?.trackCount ?? 0,
   }));
@@ -159,7 +163,10 @@ async function collectTracksDeep(
   return tracks;
 }
 
-async function getFolderNavStats(folderId: string): Promise<{
+async function getFolderNavStats(
+  folderId: string,
+  folderName?: string,
+): Promise<{
   folderCount: number;
   trackCount: number;
   coverUrl: string | null;
@@ -168,7 +175,7 @@ async function getFolderNavStats(folderId: string): Promise<{
     const children = await listDriveFolderChildren(folderId);
     const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
     const tracks = children.filter((item) => isDriveAudioFile(item));
-    const cover = children.find((item) => isFolderCoverFile(item));
+    const cover = pickCoverFromChildren(children, folderName);
     let trackCount = tracks.length;
 
     // Pasta só com subpastas: soma faixas do 1º nível interno (útil sem deep-walk caro).
@@ -187,7 +194,7 @@ async function getFolderNavStats(folderId: string): Promise<{
     return {
       folderCount: folders.length,
       trackCount,
-      coverUrl: cover ? folderCoverUrl(cover.id) : null,
+      coverUrl: cover?.coverUrl ?? null,
     };
   } catch {
     return { folderCount: 0, trackCount: 0, coverUrl: null };
@@ -199,8 +206,11 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
   const children = await listDriveFolderChildren(folderId);
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
-  const coverFile = children.find((item) => isFolderCoverFile(item));
-  const coverUrl = coverFile ? folderCoverUrl(coverFile.id) : null;
+  const coverFile = pickCoverFromChildren(children, folderName);
+  const coverUrl = resolveFolderCoverUrl({
+    folderName,
+    driveCoverUrl: coverFile?.coverUrl ?? null,
+  });
 
   // Há subpastas: navega por pastas; se também houver áudio no mesmo nível, inclui as faixas.
   if (subfolders.length > 0) {

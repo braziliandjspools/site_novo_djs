@@ -84,6 +84,8 @@ export function CollectionVolumesView({ volumes, canDownload }: CollectionVolume
           const cover = volume.coverUrl?.trim() || PLACEHOLDER.trackCover;
           const countLabel = `${volume.trackCount} ${volume.trackCount === 1 ? "faixa" : "faixas"}`;
 
+          const canSend = canDownload && volume.trackCount > 0;
+
           const actions: CollectionMenuAction[] = [
             {
               id: "open",
@@ -97,13 +99,16 @@ export function CollectionVolumesView({ volumes, canDownload }: CollectionVolume
               icon: ListMusic,
               onClick: () => router.push(href),
             },
-            {
-              id: "downloader",
-              label: "Enviar álbum ao Downloader",
-              icon: MonitorDown,
-              onClick: () => void sendAlbum(volume.downloaderSlug, volume.displayName),
-              disabled: !canDownload,
-            },
+            ...(canSend
+              ? [
+                  {
+                    id: "downloader",
+                    label: "Enviar álbum ao Downloader",
+                    icon: MonitorDown,
+                    onClick: () => void sendAlbum(volume.downloaderSlug, volume.displayName),
+                  } satisfies CollectionMenuAction,
+                ]
+              : []),
             {
               id: "copy",
               label: "Copiar link",
@@ -161,7 +166,7 @@ export function CollectionVolumesView({ volumes, canDownload }: CollectionVolume
               </Link>
 
               <div className="flex flex-shrink-0 items-center gap-0.5 sm:gap-1">
-                {canDownload ? (
+                {canSend ? (
                   <SendPackToDownloaderButton
                     slug={volume.downloaderSlug}
                     root="colecoes"

@@ -5,11 +5,6 @@ import {
   VIP_MUSIC_PREVIEW_MAX_BYTES,
   VIP_MUSIC_PREVIEW_SECONDS,
 } from "./vip-music-preview";
-import {
-  assertDownloadsAllowed,
-  abuseJsonBody,
-  type DownloadAbuseStatus,
-} from "./download-abuse";
 
 export { VIP_MUSIC_PREVIEW_MAX_BYTES, VIP_MUSIC_PREVIEW_SECONDS };
 
@@ -53,38 +48,17 @@ export async function requireVipMusicAccess() {
   if (!access.canPlay) {
     return { ok: false as const, status: 403, error: "Plano VIP necessário para ouvir as faixas." };
   }
-  const abuse = await assertDownloadsAllowed(access.user.id);
-  if (!abuse.ok) {
-    return {
-      ok: false as const,
-      status: 403 as const,
-      error: abuse.error,
-      code: abuse.code,
-      abuse: abuse.abuse,
-    };
-  }
-  return { ok: true as const, user: access.user, abuseWarning: abuse.status };
+  return { ok: true as const, user: access.user };
 }
 
-/** Stream: só VIP. Sem plano → 403. Ban de abuso → 403. */
+/** Stream: só VIP. Sem plano → 403. */
 export async function resolveVipMusicStreamAccess() {
   const session = await getVipMusicSession();
   if (session.canPlay && session.authenticated) {
-    const abuse = await assertDownloadsAllowed(session.user.id);
-    if (!abuse.ok) {
-      return {
-        ok: false as const,
-        status: 403 as const,
-        error: abuse.error,
-        code: abuse.code,
-        abuse: abuse.abuse,
-      };
-    }
     return {
       ok: true as const,
       mode: "full" as const,
       user: session.user,
-      abuseWarning: abuse.status as DownloadAbuseStatus,
     };
   }
   return {
@@ -93,5 +67,3 @@ export async function resolveVipMusicStreamAccess() {
     error: "Plano VIP necessário para ouvir as faixas.",
   };
 }
-
-export { abuseJsonBody };

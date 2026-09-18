@@ -20,6 +20,8 @@ type MusicLibraryFolderGridProps = {
   sectionDescription?: string;
   /** overlay = título na capa; below = capa colorida + título embaixo */
   caption?: "overlay" | "below";
+  /** Centraliza os cards (raiz do acervo com poucas pastas). */
+  centerItems?: boolean;
 };
 
 export function MusicLibraryFolderGrid({
@@ -33,6 +35,7 @@ export function MusicLibraryFolderGrid({
   sectionTitle,
   sectionDescription,
   caption = "below",
+  centerItems = false,
 }: MusicLibraryFolderGridProps) {
   if (folders.length === 0) {
     return (
@@ -45,12 +48,18 @@ export function MusicLibraryFolderGrid({
     );
   }
 
-  const gridClass =
-    columns === "dense"
+  const few = centerItems || folders.length <= 4;
+  const gridClass = few
+    ? "flex flex-wrap justify-center gap-x-4 gap-y-6 sm:gap-x-5 sm:gap-y-7"
+    : columns === "dense"
       ? "grid grid-cols-3 gap-x-2.5 gap-y-4 sm:grid-cols-4 sm:gap-x-3 sm:gap-y-5 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
       : caption === "below"
         ? "grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-6 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
         : "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3.5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+
+  const tileWidth = few
+    ? "w-[min(100%,11.5rem)] sm:w-[12.5rem] md:w-[13.5rem]"
+    : undefined;
 
   return (
     <div className={className} data-layout="library-tiles">
@@ -94,6 +103,7 @@ export function MusicLibraryFolderGrid({
                 folderCount={folder.folderCount}
                 imageUrl={folder.coverUrl}
                 caption={caption}
+                className={tileWidth}
               />
             );
           })}
