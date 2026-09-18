@@ -1,7 +1,7 @@
 {
   "name": "brazilian-packs-downloader",
   "private": true,
-  "version": "1.0.11_estable",
+  "version": "1.0.12_estable",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,7 +23,8 @@
     "@tauri-apps/plugin-opener": "^2",
     "lucide-react": "^1.39.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-onesignal": "^3.5.6"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

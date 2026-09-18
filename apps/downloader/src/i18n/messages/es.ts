@@ -492,6 +492,19 @@ export const messagesEs = {
   notificationsDismiss: "Descartar",
   notificationsCountAria: "{count} notificaciones",
   notificationsNewAria: "{count} nueva(s)",
+  onesignalReadyTitle: "OneSignal listo en el Downloader",
+  onesignalReadyBody:
+    "Los avisos de la plataforma pueden llegar aquí. Activa el push en Ajustes si quieres campañas y alertas.",
+  onesignalGotIt: "Entendido",
+  settingsOneSignalPush: "Push OneSignal",
+  settingsOneSignalPushDesc:
+    "Vincula esta cuenta VIP a las campañas de OneSignal y pide permiso de notificación en Windows.",
+  settingsOneSignalActivate: "Activar push",
+  settingsOneSignalDisable: "Desactivar push",
+  settingsOneSignalUnavailable: "OneSignal no disponible (falta App ID en el servidor).",
+  settingsOneSignalOn: "Push activo",
+  settingsOneSignalOff: "Push desactivado",
+  settingsOneSignalDenied: "Permiso denegado por el sistema",
 
   // settings (extras)
   settingsPlan: "Plan {plan}",

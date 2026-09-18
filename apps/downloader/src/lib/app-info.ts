@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.11_estable";
-export const APP_CORE_VERSION = "1.0.11_estable";
+export const WEBUI_VERSION = "1.0.12_estable";
+export const APP_CORE_VERSION = "1.0.12_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.12_estable",
+    date: "2026-09-17",
+    items: [
+      "Alerta e ban por abuso de download (Plano Teste / loop do acervo) com aviso no app",
+      "Integração OneSignal: campanhas da plataforma e bridge para notificações nativas no Windows",
+      "Ativar/desativar push OneSignal em Configurações",
+    ],
+  },
   {
     version: "1.0.11_estable",
     date: "2026-09-15",

@@ -488,6 +488,19 @@ export const messagesEn = {
   notificationsDismiss: "Dismiss",
   notificationsCountAria: "{count} notifications",
   notificationsNewAria: "{count} new",
+  onesignalReadyTitle: "OneSignal ready in the Downloader",
+  onesignalReadyBody:
+    "Platform alerts can reach this app. Enable push in Settings if you want campaigns and notices.",
+  onesignalGotIt: "Got it",
+  settingsOneSignalPush: "OneSignal push",
+  settingsOneSignalPushDesc:
+    "Links this VIP account to OneSignal campaigns and asks for Windows notification permission.",
+  settingsOneSignalActivate: "Enable push",
+  settingsOneSignalDisable: "Disable push",
+  settingsOneSignalUnavailable: "OneSignal unavailable (server missing App ID).",
+  settingsOneSignalOn: "Push on",
+  settingsOneSignalOff: "Push off",
+  settingsOneSignalDenied: "Permission denied by the system",
 
   // settings (extras)
   settingsPlan: "{plan} plan",

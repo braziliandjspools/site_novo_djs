@@ -20,6 +20,7 @@ import { DesktopRequiredNotice } from "./components/DesktopRequiredNotice";
 import { LanguageOnboardingPage } from "./pages/LanguageOnboardingPage";
 import { LocaleProvider, useLocale, type MessageKey } from "./i18n/LocaleContext";
 import { ToastProvider, useToast } from "./components/ui/Toast";
+import { OneSignalProvider } from "./components/OneSignalProvider";
 import type { DownloadJob } from "./lib/api/jobs";
 
 const PAGE_META: Record<AppRoute, { title: MessageKey; subtitle: MessageKey }> = {
@@ -210,9 +211,11 @@ function App() {
   return (
     <LocaleProvider>
       <ToastProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
+        <OneSignalProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </OneSignalProvider>
       </ToastProvider>
     </LocaleProvider>
   );

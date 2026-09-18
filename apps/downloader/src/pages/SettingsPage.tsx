@@ -33,6 +33,7 @@ import {
 } from "../lib/native/download";
 import { useLocale, type MessageKey } from "../i18n/LocaleContext";
 import { LanguagePicker } from "../i18n/LanguagePicker";
+import { useToast } from "../components/ui/Toast";
 
 const EXISTING_FILE_OPTIONS: {
   value: ExistingFileBehavior;
@@ -85,6 +86,81 @@ function PreferenceToggle({
         <span className="mt-1 block text-xs leading-relaxed text-zinc-500">{description}</span>
       </span>
     </label>
+  );
+}
+
+function OneSignalSettingsPanel() {
+  const { t } = useLocale();
+  const { showToast } = useToast();
+  const [state, setState] = useState<"loading" | "unavailable" | "subscribed" | "unsubscribed" | "denied">(
+    "loading",
+  );
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const { initDownloaderOneSignal, oneSignalPushState } = await import("../lib/onesignal");
+      await initDownloaderOneSignal();
+      if (!cancelled) setState(oneSignalPushState());
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function activate() {
+    setBusy(true);
+    try {
+      const { requestOneSignalPush, oneSignalPushState } = await import("../lib/onesignal");
+      const ok = await requestOneSignalPush();
+      setState(oneSignalPushState());
+      showToast(ok ? t("settingsOneSignalOn") : t("settingsOneSignalUnavailable"), ok ? "success" : "warning");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disable() {
+    setBusy(true);
+    try {
+      const { optOutOneSignalPush, oneSignalPushState } = await import("../lib/onesignal");
+      await optOutOneSignalPush();
+      setState(oneSignalPushState());
+      showToast(t("settingsOneSignalOff"), "info");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const statusLabel =
+    state === "subscribed"
+      ? t("settingsOneSignalOn")
+      : state === "denied"
+        ? t("settingsOneSignalDenied")
+        : state === "unavailable"
+          ? t("settingsOneSignalUnavailable")
+          : t("settingsOneSignalOff");
+
+  return (
+    <Panel title={t("settingsOneSignalPush")} description={t("settingsOneSignalPushDesc")}>
+      <div className="flex flex-col gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-zinc-300">{statusLabel}</p>
+        <div className="flex flex-wrap gap-2">
+          {state === "subscribed" ? (
+            <Button variant="ghost" disabled={busy} onClick={() => void disable()}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {t("settingsOneSignalDisable")}
+            </Button>
+          ) : (
+            <Button disabled={busy || state === "unavailable" || state === "loading"} onClick={() => void activate()}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {t("settingsOneSignalActivate")}
+            </Button>
+          )}
+        </div>
+      </div>
+    </Panel>
   );
 }
 
@@ -279,6 +355,8 @@ export function SettingsPage() {
         </div>
         {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
       </Panel>
+
+      <OneSignalSettingsPanel />
 
       <Panel title={t("settingsOrganization")} description={t("settingsOrganizationDesc")}>
         <div className="space-y-2">

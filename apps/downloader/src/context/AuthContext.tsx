@@ -144,6 +144,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Autentica antes do registro do device — falha de device não pode deslogar.
       applyAuthenticated(token, mappedUser, deviceInfo);
+      void import("../lib/onesignal").then(({ linkOneSignalUser }) =>
+        linkOneSignalUser(mappedUser.email),
+      );
 
       try {
         await registerCurrentDevice(token, deviceInfo);
@@ -262,6 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    await import("../lib/onesignal").then(({ unlinkOneSignalUser }) => unlinkOneSignalUser());
     await clearSessionToken();
     clearLocalSession();
     setError(null);
