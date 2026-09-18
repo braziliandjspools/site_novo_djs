@@ -50,6 +50,12 @@ model PortalUser {
   downloaderQuotaTier            DownloaderQuotaTier @default(STARTER) @map("downloader_quota_tier")
   active                         Boolean    @default(true)
   musicProducerDeliveriesEnabled Boolean    @default(false) @map("music_producer_deliveries_enabled")
+  /** Ban automático/manual de downloads (stream + Downloader). */
+  downloadBannedAt               DateTime?  @map("download_banned_at")
+  downloadBanReason              String?    @map("download_ban_reason") @db.VarChar(500)
+  /** Alerta de abuso (ainda pode baixar, mas UI/API avisam). */
+  downloadAbuseAlertAt           DateTime?  @map("download_abuse_alert_at")
+  downloadAbuseAlertReason       String?    @map("download_abuse_alert_reason") @db.VarChar(500)
   createdAt                      DateTime   @default(now()) @map("created_at")
   updatedAt                      DateTime   @updatedAt @map("updated_at")
 
@@ -57,6 +63,7 @@ model PortalUser {
   briefings                  MusicProducerBriefing[]
   downloadDevices            DownloadDevice[]
   downloadJobs               DownloadJob[]
+  downloadFileHits           DownloadFileHit[]
   siteNotices                SiteNotice[]
   noticeReceipts             SiteNoticeReceipt[]
   hotmartSubscriptions       HotmartSubscription[]
@@ -301,6 +308,20 @@ model DownloaderQuotaState {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("downloader_quota_states")
+}
+
+/** Hits de stream/download/job para detectar abuso (teste em massa / loop). */
+model DownloadFileHit {
+  id           BigInt     @id @default(autoincrement())
+  portalUserId Int        @map("portal_user_id")
+  portalUser   PortalUser @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  fileId       String     @map("file_id") @db.VarChar(128)
+  kind         String     @db.VarChar(16)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@index([portalUserId, createdAt], map: "download_file_hits_user_created_idx")
+  @@index([portalUserId, fileId, createdAt], map: "download_file_hits_user_file_created_idx")
+  @@map("download_file_hits")
 }
 
 model DownloadJob {

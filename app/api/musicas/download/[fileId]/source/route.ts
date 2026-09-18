@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAudioSourceUrl } from "../../../../../lib/google-drive";
-import { requireVipMusicAccess } from "../../../../../lib/vip-music-access";
+import { abuseJsonBody, requireVipMusicAccess } from "../../../../../lib/vip-music-access";
+import { recordAndPoliceDownloadAccess } from "../../../../../lib/download-abuse";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,11 @@ type RouteContext = {
 export async function GET(request: Request, context: RouteContext) {
   const access = await requireVipMusicAccess();
   if (!access.ok) {
+    if ("abuse" in access && access.abuse) {
+      return NextResponse.json(abuseJsonBody(access.abuse, access.error), {
+        status: access.status,
+      });
+    }
     return NextResponse.json({ error: access.error }, { status: access.status });
   }
 
@@ -29,8 +35,21 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
 
+  const abuseStatus = await recordAndPoliceDownloadAccess({
+    portalUserId: access.user.id,
+    fileId,
+    kind: "proxy",
+  });
+  if (abuseStatus.banned) {
+    return NextResponse.json(
+      abuseJsonBody(abuseStatus, abuseStatus.message ?? "Downloads bloqueados."),
+      { status: 403 },
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     url: getAudioSourceUrl(fileId),
+    abuse: abuseStatus.alerted ? abuseStatus : undefined,
   });
 }

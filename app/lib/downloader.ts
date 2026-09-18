@@ -484,6 +484,9 @@ export async function heartbeatDownloadDevice(
 }
 
 export async function createDownloadJob(portalUserId: number, input: DownloadJobInput) {
+  const { policeJobBatch } = await import("./download-abuse");
+  await policeJobBatch({ portalUserId, fileIds: [input.fileId] });
+
   const job = await prisma.downloadJob.create({
     data: buildJobCreateData(portalUserId, input),
     include: { downloadDevice: true },
@@ -496,6 +499,12 @@ export async function createDownloadJobsBatch(
   inputs: DownloadJobInput[],
 ) {
   if (inputs.length === 0) return [];
+
+  const { policeJobBatch } = await import("./download-abuse");
+  await policeJobBatch({
+    portalUserId,
+    fileIds: inputs.map((input) => input.fileId),
+  });
 
   const data = inputs.map((input) => buildJobCreateData(portalUserId, input));
   const jobs = [];

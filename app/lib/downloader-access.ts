@@ -1,6 +1,7 @@
 import { getAuthenticatedPortalUser } from "./portal";
 import { isDownloaderPlanExpired } from "./plan-billing";
 import { userHasPools } from "./portal-users";
+import { assertDownloadsAllowed, abuseJsonBody } from "./download-abuse";
 
 export async function requireDownloaderAccess() {
   const user = await getAuthenticatedPortalUser();
@@ -17,5 +18,17 @@ export async function requireDownloaderAccess() {
       error: "Seu plano VIP está vencido. Renove no Portal para continuar usando o Downloader.",
     };
   }
-  return { ok: true as const, user };
+  const abuse = await assertDownloadsAllowed(user.id);
+  if (!abuse.ok) {
+    return {
+      ok: false as const,
+      status: 403 as const,
+      error: abuse.error,
+      code: abuse.code,
+      abuse: abuse.abuse,
+    };
+  }
+  return { ok: true as const, user, abuseWarning: abuse.status };
 }
+
+export { abuseJsonBody };

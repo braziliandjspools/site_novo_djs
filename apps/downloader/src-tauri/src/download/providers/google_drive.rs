@@ -187,6 +187,16 @@ async fn download_from_url(
 
     let status = response.status();
     if !status.is_success() && status.as_u16() != 206 {
+        if status.as_u16() == 403 {
+            if let Ok(text) = response.text().await {
+                if text.contains("DOWNLOAD_ABUSE_BANNED") || text.contains("uso abusivo") {
+                    return Err(
+                        "Downloads bloqueados por uso abusivo. Contate o suporte.".to_string(),
+                    );
+                }
+            }
+            return Err("Download bloqueado (HTTP 403).".to_string());
+        }
         return Err(format!("Download indisponível (HTTP {}).", status));
     }
 

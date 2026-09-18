@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireDownloaderAccess } from "../../../../lib/downloader-access";
+import { abuseJsonBody, requireDownloaderAccess } from "../../../../lib/downloader-access";
 import { handleDownloaderCorsPreflight, withDownloaderCorsJson } from "../../../../lib/downloader-cors";
 import {
   importArtistJobsBySlug,
   importPackJobsBySlug,
   parsePackDownloadInput,
 } from "../../../../lib/pack-download";
+import { DownloadAbuseBannedError } from "../../../../lib/download-abuse";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,11 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request) {
   const access = await requireDownloaderAccess();
   if (!access.ok) {
+    if ("abuse" in access && access.abuse) {
+      return withDownloaderCorsJson(request, abuseJsonBody(access.abuse, access.error), {
+        status: access.status,
+      });
+    }
     return withDownloaderCorsJson(request, { error: access.error }, { status: access.status });
   }
 
@@ -107,6 +113,11 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof DownloadAbuseBannedError) {
+      return withDownloaderCorsJson(request, abuseJsonBody(error.abuse, error.message), {
+        status: 403,
+      });
+    }
     const message = error instanceof Error ? error.message : "Erro ao enfileirar faixas.";
     return withDownloaderCorsJson(request, { error: message }, { status: 500 });
   }

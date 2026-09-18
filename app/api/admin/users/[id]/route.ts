@@ -140,6 +140,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "musicProducerDeliveriesEnabled inválido." }, { status: 400 });
   }
 
+  if (body.clearDownloadAbuse !== undefined && typeof body.clearDownloadAbuse !== "boolean") {
+    return NextResponse.json({ error: "clearDownloadAbuse inválido." }, { status: 400 });
+  }
+
   const passwordChanged =
     typeof body.password === "string" && body.password.trim().length >= 8
       ? body.password.trim()

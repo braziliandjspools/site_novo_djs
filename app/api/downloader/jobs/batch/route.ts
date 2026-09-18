@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
-import { requireDownloaderAccess } from "../../../../lib/downloader-access";
+import { abuseJsonBody, requireDownloaderAccess } from "../../../../lib/downloader-access";
 import { createDownloadJobsBatch, parseBatchCreateJobsBody } from "../../../../lib/downloader";
+import { DownloadAbuseBannedError } from "../../../../lib/download-abuse";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const access = await requireDownloaderAccess();
   if (!access.ok) {
+    if ("abuse" in access && access.abuse) {
+      return NextResponse.json(abuseJsonBody(access.abuse, access.error), {
+        status: access.status,
+      });
+    }
     return NextResponse.json({ error: access.error }, { status: access.status });
   }
 
@@ -26,6 +32,9 @@ export async function POST(request: Request) {
     const jobs = await createDownloadJobsBatch(access.user.id, parsed.value!);
     return NextResponse.json({ ok: true, jobs, count: jobs.length }, { status: 201 });
   } catch (error) {
+    if (error instanceof DownloadAbuseBannedError) {
+      return NextResponse.json(abuseJsonBody(error.abuse, error.message), { status: 403 });
+    }
     const message = error instanceof Error ? error.message : "Erro ao criar jobs.";
     return NextResponse.json({ error: message }, { status: 500 });
   }

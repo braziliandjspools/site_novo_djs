@@ -32,6 +32,10 @@ type AdminUser = {
   active: boolean;
   musicProducerDeliveriesEnabled?: boolean;
   downloaderQuotaTier?: "STARTER" | "PRO" | "MAX";
+  downloadBannedAt?: string | null;
+  downloadBanReason?: string | null;
+  downloadAbuseAlertAt?: string | null;
+  downloadAbuseAlertReason?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -246,6 +250,7 @@ function UserAccountModal({
   onChange,
   onSave,
   onDelete,
+  onClearDownloadAbuse,
 }: {
   user: AdminUser;
   draft: DraftRow;
@@ -254,6 +259,7 @@ function UserAccountModal({
   onChange: (patch: Partial<DraftRow>) => void;
   onSave: () => void;
   onDelete: () => void;
+  onClearDownloadAbuse: () => void;
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -479,6 +485,30 @@ function UserAccountModal({
                 Entregas Music Producer
               </label>
             </div>
+            {(user.downloadBannedAt || user.downloadAbuseAlertAt) && (
+              <div
+                className={`rounded-lg border px-3 py-3 text-sm ${
+                  user.downloadBannedAt
+                    ? "border-red-500/40 bg-red-500/10 text-red-200"
+                    : "border-amber-500/40 bg-amber-500/10 text-amber-100"
+                }`}
+              >
+                <p className="font-semibold">
+                  {user.downloadBannedAt ? "Downloads banidos (abuso)" : "Alerta de abuso de download"}
+                </p>
+                <p className="mt-1 text-xs opacity-90">
+                  {user.downloadBanReason || user.downloadAbuseAlertReason || "Sem detalhe."}
+                </p>
+                <button
+                  type="button"
+                  onClick={onClearDownloadAbuse}
+                  disabled={isSaving}
+                  className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold hover:bg-white/10 disabled:opacity-50"
+                >
+                  Liberar downloads (limpar alerta/ban)
+                </button>
+              </div>
+            )}
             <label className="block text-xs text-gray-400">
               Nova senha (opcional)
               <input
@@ -722,6 +752,27 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function clearDownloadAbuse(id: number) {
+    setSavingId(id);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clearDownloadAbuse: true }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Erro ao liberar downloads.");
+      setSuccess("Alerta/ban de download removido.");
+      await loadUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao liberar downloads.");
     } finally {
       setSavingId(null);
     }
@@ -1015,15 +1066,26 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                           </div>
                         </td>
                         <td className={sheetCell}>
-                          <span
-                            className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                              draft.active
-                                ? "bg-[#009739]/20 text-[#1ed760]"
-                                : "bg-zinc-700/40 text-zinc-400"
-                            }`}
-                          >
-                            {draft.active ? "Ativo" : "Inativo"}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span
+                              className={`inline-flex w-fit rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                draft.active
+                                  ? "bg-[#009739]/20 text-[#1ed760]"
+                                  : "bg-zinc-700/40 text-zinc-400"
+                              }`}
+                            >
+                              {draft.active ? "Ativo" : "Inativo"}
+                            </span>
+                            {user.downloadBannedAt ? (
+                              <span className="inline-flex w-fit rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-red-500/20 text-red-300">
+                                Ban download
+                              </span>
+                            ) : user.downloadAbuseAlertAt ? (
+                              <span className="inline-flex w-fit rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-amber-500/20 text-amber-200">
+                                Alerta abuso
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1068,6 +1130,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           onChange={(patch) => updateDraft(selectedUser.id, patch)}
           onSave={() => void saveUser(selectedUser.id)}
           onDelete={() => void deleteUser(selectedUser.id, selectedDraft.name || selectedUser.name)}
+          onClearDownloadAbuse={() => void clearDownloadAbuse(selectedUser.id)}
         />
       )}
     </div>

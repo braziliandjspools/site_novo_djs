@@ -48,6 +48,10 @@ export type PortalUser = {
   active: boolean;
   musicProducerDeliveriesEnabled: boolean;
   downloaderQuotaTier: "STARTER" | "PRO" | "MAX";
+  downloadBannedAt: Date | null;
+  downloadBanReason: string | null;
+  downloadAbuseAlertAt: Date | null;
+  downloadAbuseAlertReason: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -89,6 +93,8 @@ export type UpdatePortalUserInput = {
   password?: string;
   /** Tier de cota do Downloader. */
   downloaderQuotaTier?: "STARTER" | "PRO" | "MAX";
+  /** Admin: limpa alerta/ban de download. */
+  clearDownloadAbuse?: boolean;
   /** @deprecated use services */
   plan?: PortalPlan;
 };
@@ -120,6 +126,12 @@ function mapServiceBilling(user: PrismaPortalUser): ServiceBilling {
 
 function mapUser(user: PrismaPortalUser): PortalUser {
   const tier = (user as PrismaPortalUser & { downloaderQuotaTier?: string }).downloaderQuotaTier;
+  const abuseFields = user as PrismaPortalUser & {
+    downloadBannedAt?: Date | null;
+    downloadBanReason?: string | null;
+    downloadAbuseAlertAt?: Date | null;
+    downloadAbuseAlertReason?: string | null;
+  };
   return {
     id: user.id,
     name: user.name,
@@ -134,6 +146,10 @@ function mapUser(user: PrismaPortalUser): PortalUser {
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
     downloaderQuotaTier:
       tier === "PRO" || tier === "MAX" || tier === "STARTER" ? tier : "STARTER",
+    downloadBannedAt: abuseFields.downloadBannedAt ?? null,
+    downloadBanReason: abuseFields.downloadBanReason ?? null,
+    downloadAbuseAlertAt: abuseFields.downloadAbuseAlertAt ?? null,
+    downloadAbuseAlertReason: abuseFields.downloadAbuseAlertReason ?? null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -483,6 +499,12 @@ export async function updatePortalUser(id: number, input: UpdatePortalUserInput)
   if (input.downloaderQuotaTier !== undefined) {
     data.downloaderQuotaTier = input.downloaderQuotaTier;
   }
+  if (input.clearDownloadAbuse) {
+    data.downloadBannedAt = null;
+    data.downloadBanReason = null;
+    data.downloadAbuseAlertAt = null;
+    data.downloadAbuseAlertReason = null;
+  }
   if (input.password) data.passwordHash = await bcrypt.hash(input.password, 12);
 
   const user = await prisma.portalUser.update({
@@ -562,6 +584,10 @@ export function serializePortalUser(user: PortalUser) {
     active: user.active,
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
     downloaderQuotaTier: user.downloaderQuotaTier,
+    downloadBannedAt: user.downloadBannedAt?.toISOString() ?? null,
+    downloadBanReason: user.downloadBanReason,
+    downloadAbuseAlertAt: user.downloadAbuseAlertAt?.toISOString() ?? null,
+    downloadAbuseAlertReason: user.downloadAbuseAlertReason,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
