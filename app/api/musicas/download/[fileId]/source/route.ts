@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAudioSourceUrl } from "../../../../../lib/google-drive";
+import { getDriveUserContentDownloadUrl } from "../../../../../lib/drive-audio-stream";
 import { requireVipMusicAccess } from "../../../../../lib/vip-music-access";
 
 export const dynamic = "force-dynamic";
@@ -9,9 +10,9 @@ type RouteContext = {
 };
 
 /**
- * Devolve a URL de origem do arquivo para o app desktop baixar direto do Drive,
- * evitando o proxy do Vercel (que trava downloads longos ~3%).
- * Só para cliente desktop autenticado VIP.
+ * Devolve a URL de origem do arquivo para baixar direto do Drive
+ * (Downloader e web VIP), evitando proxy de bytes na VPS.
+ * Resposta web nunca inclui API key.
  */
 export async function GET(request: Request, context: RouteContext) {
   const access = await requireVipMusicAccess();
@@ -20,17 +21,19 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const client = request.headers.get("X-BP-Client");
-  if (client !== "downloader") {
-    return NextResponse.json({ error: "Cliente não autorizado." }, { status: 403 });
-  }
+  const isDownloader = client === "downloader";
 
   const fileId = (await context.params).fileId;
   if (!fileId || !/^[a-zA-Z0-9_-]+$/.test(fileId)) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
 
+  const url = isDownloader
+    ? getAudioSourceUrl(fileId)
+    : getDriveUserContentDownloadUrl(fileId);
+
   return NextResponse.json({
     ok: true,
-    url: getAudioSourceUrl(fileId),
+    url,
   });
 }

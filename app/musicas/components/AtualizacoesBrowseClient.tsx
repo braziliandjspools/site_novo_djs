@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { ChevronRight } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
-import { ensureAudioExtension } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import {
@@ -23,6 +22,7 @@ import {
   peekMusicasCache,
   setMusicasCache,
 } from "../lib/musicas-fetch-cache";
+import { startBrowserTrackDownload } from "../lib/browser-download-file";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
@@ -78,23 +78,7 @@ function resolveUrl(slugPath: string, forceRefresh = false) {
 }
 
 async function triggerTrackDownload(track: PreviewTrack) {
-  const filename = ensureAudioExtension(track.fileName ?? track.title);
-  const name = encodeURIComponent(filename);
-  const response = await fetch(`/api/musicas/download/${track.id}?name=${name}`);
-  if (!response.ok) throw new Error("Não foi possível baixar a faixa.");
-  const blob = await response.blob();
-  if (blob.type.includes("json") || blob.size < 256) {
-    throw new Error("Arquivo indisponível no Drive.");
-  }
-  const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = filename;
-  link.rel = "noopener";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(objectUrl);
+  startBrowserTrackDownload(track);
 }
 
 function formatUpdatedLabel(iso: string | null | undefined): string | null {
@@ -465,6 +449,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         try {
           await triggerTrackDownload(track);
           ok += 1;
+          await new Promise((resolve) => window.setTimeout(resolve, 250));
         } catch {
           failed += 1;
         }

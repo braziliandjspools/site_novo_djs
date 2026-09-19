@@ -76,6 +76,11 @@ function userContentUrl(fileId: string): string {
   return `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`;
 }
 
+/** URL pública do Drive para o browser/Downloader baixarem sem proxy (sem API key). */
+export function getDriveUserContentDownloadUrl(fileId: string): string {
+  return userContentUrl(fileId);
+}
+
 async function fetchOnce(url: string, headers: Record<string, string>): Promise<Response> {
   return fetch(url, {
     redirect: "follow",

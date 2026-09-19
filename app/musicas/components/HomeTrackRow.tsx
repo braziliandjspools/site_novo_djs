@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Download, Loader2, MonitorDown, Play } from "lucide-react";
 import type { HomeTrackItem } from "../../lib/vip-music-home";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { startBrowserTrackDownload } from "../lib/browser-download-file";
 import { sendTrackToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
@@ -25,26 +26,19 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
   const [sending, setSending] = useState(false);
   const display = getTrackDisplayMetadata(track);
 
-  async function handleDownload(event: React.MouseEvent) {
+  function handleDownload(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
     if (!hasVip) return;
     setDownloading(true);
     try {
-      const name = encodeURIComponent(track.fileName ?? track.title);
-      const res = await fetch(`/api/musicas/download/${track.id}?name=${name}`);
-      if (!res.ok) throw new Error("Download indisponível");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = track.fileName ?? track.title;
-      link.click();
-      URL.revokeObjectURL(url);
+      startBrowserTrackDownload(track);
+      showToast("Download iniciado");
     } catch {
       showToast("Não foi possível baixar.", "error");
     } finally {
-      setDownloading(false);
+      // O gerenciador do browser assume o stream; libera o botão na hora.
+      window.setTimeout(() => setDownloading(false), 400);
     }
   }
 

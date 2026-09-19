@@ -24,9 +24,10 @@ import {
   Share2,
   Square,
 } from "lucide-react";
-import { ensureAudioExtension, type PreviewTrack } from "../../lib/google-drive";
+import { type PreviewTrack } from "../../lib/google-drive";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { PLACEHOLDER } from "../../lib/theme";
+import { startBrowserTrackDownload } from "../lib/browser-download-file";
 import { sendTrackToDownloader, sendTracksToDownloaderBatch } from "../lib/send-to-downloader";
 import { getTrackDownloadLabel } from "../lib/downloader-sync";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -92,28 +93,9 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function downloadUrl(track: PreviewTrack) {
-  const name = encodeURIComponent(ensureAudioExtension(track.fileName ?? track.title));
-  return `/api/musicas/download/${track.id}?name=${name}`;
-}
-
 async function triggerDownload(track: PreviewTrack) {
-  const filename = ensureAudioExtension(track.fileName ?? track.title);
-  const response = await fetch(downloadUrl(track));
-  if (!response.ok) throw new Error("Não foi possível baixar a faixa.");
-  const blob = await response.blob();
-  if (blob.type.includes("json") || blob.size < 256) {
-    throw new Error("Arquivo indisponível no Drive.");
-  }
-  const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = filename;
-  link.rel = "noopener";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(objectUrl);
+  // Auth + 302 para o Drive (sem carregar o MP3 na RAM nem proxyar pela VPS).
+  startBrowserTrackDownload(track);
 }
 
 function PlayingBars() {
@@ -884,10 +866,11 @@ export function VipMusicTrackList({
       setDownloadingId(track.id);
       try {
         await triggerDownload(track);
+        showToast("Download iniciado");
       } catch {
         showToast("Não foi possível baixar a faixa. Tente novamente.", "error");
       } finally {
-        setDownloadingId(null);
+        window.setTimeout(() => setDownloadingId(null), 400);
       }
     },
     [downloadingId, showToast],
@@ -996,6 +979,8 @@ export function VipMusicTrackList({
         try {
           await triggerDownload(track);
           ok += 1;
+          // Evita disparar dezenas de redirects de uma vez no browser/VPS.
+          await new Promise((resolve) => window.setTimeout(resolve, 250));
         } catch {
           failed += 1;
         }
