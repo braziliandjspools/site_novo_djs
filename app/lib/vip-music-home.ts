@@ -10,6 +10,7 @@ import {
   folderHref,
   parseMonthStatus,
   slugifyFolderName,
+  stylesHref,
 } from "./vip-music-slugs";
 
 export type HomeTrackItem = PreviewTrack & {
@@ -93,11 +94,14 @@ function pickPriorityMonth(months: VipMusicFolder[]) {
 }
 
 function stylePageHref(monthSlug: string, styleSlug: string, weekSlug?: string, trackId?: string) {
-  const params = new URLSearchParams({ estilo: styleSlug });
-  if (trackId) params.set("faixa", trackId);
+  // Perfis de estilo usam /musicas/estilos/[slug]; faixas continuam no path do pack.
+  if (!trackId) {
+    return stylesHref(styleSlug);
+  }
+  const params = new URLSearchParams({ faixa: trackId });
   const base = weekSlug
-    ? folderHref([monthSlug, weekSlug])
-    : folderHref([monthSlug]);
+    ? folderHref([monthSlug, weekSlug, styleSlug])
+    : folderHref([monthSlug, styleSlug]);
   return `${base}?${params.toString()}`;
 }
 

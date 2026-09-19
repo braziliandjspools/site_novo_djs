@@ -220,7 +220,7 @@ export function MusicasHubClient() {
       <MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} />
 
       {genres.length > 0 ? (
-        <MusicLibraryShelf title="Estilos" actionHref="/musicas/atualizacoes">
+        <MusicLibraryShelf title="Estilos" actionHref="/musicas/estilos" actionLabel="Ver todos">
           {genres.map((genre, index) => (
             <MusicLibraryTile
               key={`${genre.styleFolderId}-${genre.slug}`}

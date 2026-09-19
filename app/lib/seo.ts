@@ -48,6 +48,7 @@ export type SeoPageKey =
   | "musicas-atualizacoes"
   | "musicas-colecoes"
   | "musicas-artistas"
+  | "musicas-estilos"
   | "musicas-entrar"
   | "packs-para-djs"
   | "dj-pool-brasil"
@@ -248,6 +249,19 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
       "Perfis de artistas do acervo BRS: bios, gêneros e faixas remixadas para DJs. Explore nomes do funk, sertanejo, eletrônico, MPB e mais.",
     ogImage: "musicas",
     keywords: [...SHARED_KEYWORDS, "artistas remix DJ"],
+    sitemap: true,
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  "musicas-estilos": {
+    key: "musicas-estilos",
+    path: "/musicas/estilos",
+    title: `Estilos do acervo VIP | ${SITE_NAME}`,
+    description:
+      "Estilos do acervo BRS para DJs: funk, sertanejo, eletrônico, flashback e mais. Abra um estilo e encontre remixes e packs em todo o catálogo.",
+    ogImage: "musicas",
+    keywords: [...SHARED_KEYWORDS, "estilos DJ", "gêneros remix"],
     sitemap: true,
     changeFrequency: "weekly",
     priority: 0.8,
@@ -807,6 +821,25 @@ export async function buildFullSitemap(): Promise<
     }
   } catch {
     /* catálogo de artistas indisponível */
+  }
+
+  try {
+    const { listVipMusicStyles } = await import("./vip-style-tracks");
+    const { stylesHref } = await import("./vip-music-slugs");
+    const styles = await listVipMusicStyles();
+    for (const style of styles) {
+      const path = stylesHref(style.slug);
+      const url = absoluteUrl(path);
+      if (seen.has(url)) continue;
+      seen.add(url);
+      dynamic.push({
+        url,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      });
+    }
+  } catch {
+    /* estilos VIP indisponíveis no build */
   }
 
   return [...staticEntries, ...dynamic];

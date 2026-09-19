@@ -6,6 +6,7 @@ import {
   Layers,
   Mic2,
   MonitorDown,
+  Music2,
   RefreshCw,
   Sparkles,
 } from "lucide-react";
@@ -30,16 +31,16 @@ const QUICK_LINKS: Array<{
     icon: Mic2,
   },
   {
+    href: "/musicas/estilos",
+    title: "Estilos",
+    subtitle: "Gêneros",
+    icon: Music2,
+  },
+  {
     href: "/musicas/colecoes",
     title: "Coleções",
     subtitle: "Curadoria",
     icon: Layers,
-  },
-  {
-    href: "/portal?view=services",
-    title: "Downloader",
-    subtitle: "App desktop",
-    icon: MonitorDown,
   },
 ];
 

@@ -2,19 +2,17 @@ import { listDriveFolderChildren, parseTrackMeta, type PreviewTrack } from "./go
 import { getTrackDisplayMetadata, UNKNOWN_ARTIST_LABEL } from "./track-display-metadata";
 import { isDriveAudioFile } from "./folder-cover";
 import { mapPool } from "./map-pool";
-import { listVipMusicFolders } from "./vip-music-catalog";
-import {
-  childrenAreWeekFolders,
-  displayFolderName,
-  folderHref,
-  slugifyFolderName,
-} from "./vip-music-slugs";
+import { folderHref, slugifyFolderName, displayFolderName } from "./vip-music-slugs";
 import {
   findKnownArtistBySlug,
   knownArtistSlug,
   splitArtistCredits,
   type VipKnownArtist,
 } from "./vip-known-artists";
+import {
+  collectVipStyleTargets,
+  type VipStyleScanTarget,
+} from "./vip-style-tracks";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const STYLE_SCAN_CONCURRENCY = 10;
@@ -23,6 +21,8 @@ const DEFAULT_TRACK_LIMIT = 200;
 export type ArtistTrackHit = PreviewTrack & {
   styleFolderId: string;
   styleName: string;
+  packSlug?: string;
+  packName?: string;
   monthSlug: string;
   monthName: string;
   weekSlug?: string;
@@ -41,15 +41,6 @@ export type ArtistProfileResult = {
   tracks: ArtistTrackHit[];
 };
 
-type StyleScanTarget = {
-  id: string;
-  name: string;
-  monthSlug: string;
-  monthName: string;
-  weekSlug?: string;
-  weekName?: string;
-};
-
 function creditMatchesArtistSlug(displayArtist: string, targetSlug: string): boolean {
   if (!displayArtist.trim() || displayArtist === UNKNOWN_ARTIST_LABEL) return false;
   const fullSlug = slugifyFolderName(displayArtist);
@@ -60,63 +51,17 @@ function creditMatchesArtistSlug(displayArtist: string, targetSlug: string): boo
   );
 }
 
-async function collectStyleTargets(): Promise<StyleScanTarget[]> {
-  const months = await listVipMusicFolders();
-  const targets: StyleScanTarget[] = [];
-
-  const monthTrees = await mapPool(months, 6, async (month) => {
-    const monthSlug = slugifyFolderName(month.name);
-    const monthName = displayFolderName(month.name);
-    const monthChildren = await listVipMusicFolders(month.id);
-    return { monthSlug, monthName, monthChildren };
-  });
-
-  for (const { monthSlug, monthName, monthChildren } of monthTrees) {
-    if (childrenAreWeekFolders(monthChildren)) {
-      const weekTrees = await mapPool(monthChildren, 6, async (week) => {
-        const weekSlug = slugifyFolderName(week.name);
-        const weekName = displayFolderName(week.name);
-        const styles = await listVipMusicFolders(week.id);
-        return { weekSlug, weekName, styles };
-      });
-
-      for (const { weekSlug, weekName, styles } of weekTrees) {
-        for (const style of styles) {
-          targets.push({
-            id: style.id,
-            name: style.name,
-            monthSlug,
-            monthName,
-            weekSlug,
-            weekName,
-          });
-        }
-      }
-      continue;
-    }
-
-    for (const style of monthChildren) {
-      targets.push({
-        id: style.id,
-        name: style.name,
-        monthSlug,
-        monthName,
-      });
-    }
-  }
-
-  return targets;
-}
-
 function toArtistTrack(
   file: { id: string; name: string; createdTime?: string; modifiedTime?: string; size?: string },
   packName: string,
-  style: StyleScanTarget,
+  style: VipStyleScanTarget,
 ): ArtistTrackHit | null {
   const meta = parseTrackMeta(file.name);
   const display = getTrackDisplayMetadata({ fileName: file.name, ...meta });
   const styleSlug = slugifyFolderName(style.name);
-  const segments = [style.monthSlug, style.weekSlug, styleSlug].filter(Boolean) as string[];
+  const segments = [style.packSlug, style.monthSlug, style.weekSlug, styleSlug].filter(
+    (part): part is string => Boolean(part),
+  );
 
   return {
     id: file.id,
@@ -132,15 +77,17 @@ function toArtistTrack(
         : null,
     styleFolderId: style.id,
     styleName: displayFolderName(style.name),
+    packSlug: style.packSlug,
+    packName: style.packName,
     monthSlug: style.monthSlug,
     monthName: style.monthName,
     weekSlug: style.weekSlug,
     weekName: style.weekName,
     styleSlug,
     href: `${folderHref(segments)}?faixa=${encodeURIComponent(file.id)}`,
-    relativePath: style.weekName
-      ? `${style.monthName}/${style.weekName}/${displayFolderName(style.name)}`
-      : `${style.monthName}/${displayFolderName(style.name)}`,
+    relativePath: [style.packName, style.monthName, style.weekName, displayFolderName(style.name)]
+      .filter(Boolean)
+      .join("/"),
   };
 }
 
@@ -167,7 +114,7 @@ export async function findTracksByArtistSlug(
     };
   }
 
-  const targets = await collectStyleTargets();
+  const targets = await collectVipStyleTargets();
   const tracks: ArtistTrackHit[] = [];
   let stop = false;
 

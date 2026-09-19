@@ -61,6 +61,12 @@ export function artistsHref(slug?: string | null): string {
   return `/musicas/artistas/${encodeURIComponent(slugifyArtistName(clean))}`;
 }
 
+export function stylesHref(slug?: string | null): string {
+  const clean = slug?.trim();
+  if (!clean) return "/musicas/estilos";
+  return `/musicas/estilos/${encodeURIComponent(slugifyStyleName(clean))}`;
+}
+
 function parseWeekNumberFromSlug(slug: string): number | null {
   const match = slug.match(/^semana-0*(\d+)$/i);
   if (!match) return null;
