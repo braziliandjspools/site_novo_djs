@@ -71,16 +71,30 @@ export function isDesktopRuntime() {
   return isTauriRuntime();
 }
 
+export async function setMaxConcurrentDownloads(_value: number) {
+  if (!isTauriRuntime()) return 1;
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<number>("set_max_concurrent_downloads", { value: 1 });
+}
+
 export async function getMaxConcurrentDownloads() {
-  if (!isTauriRuntime()) return 3;
+  if (!isTauriRuntime()) return 1;
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<number>("get_max_concurrent_downloads");
 }
 
-export async function setMaxConcurrentDownloads(value: number) {
-  if (!isTauriRuntime()) return value;
+export async function appendDownloadFailureLog(input: {
+  fileName: string;
+  relativePath: string | null;
+  error?: string | null;
+}) {
+  if (!isTauriRuntime()) return null;
   const { invoke } = await import("@tauri-apps/api/core");
-  return invoke<number>("set_max_concurrent_downloads", { value });
+  return invoke<string>("append_download_failure_log", {
+    fileName: input.fileName,
+    relativePath: input.relativePath,
+    error: input.error ?? null,
+  });
 }
 
 export async function cancelNativeDownload(input: {

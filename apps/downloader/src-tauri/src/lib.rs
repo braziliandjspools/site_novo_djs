@@ -50,6 +50,7 @@ pub fn run() {
             download::cancel_download_job,
             download::get_max_concurrent_downloads,
             download::set_max_concurrent_downloads,
+            download::append_download_failure_log,
             download::get_download_speed_limit_bps,
             download::set_download_speed_limit_bps,
             download::zip::create_pack_zip,

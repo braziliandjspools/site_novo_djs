@@ -26,15 +26,6 @@ import {
   mergeDownloadCatalog,
   type DownloadFinderFilter,
 } from "../lib/download/job-finder";
-import {
-  EMPTY_ORG_FILTERS,
-  collectOrgFacets,
-  filterJobsByOrgMeta,
-  groupJobsByOrg,
-  type OrgGroupBy,
-  type OrgMetaFilters,
-} from "../lib/download/job-organization";
-import { DownloadOrgToolbar } from "../components/downloads/DownloadOrgToolbar";
 import { ZipTaskRow } from "../components/downloads/ZipTaskRow";
 import { openDownloadDir } from "../lib/native/download";
 import { openZipFile } from "../lib/native/zip";
@@ -145,8 +136,6 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [cancelAllBusy, setCancelAllBusy] = useState(false);
-  const [orgFilters, setOrgFilters] = useState<OrgMetaFilters>({ ...EMPTY_ORG_FILTERS });
-  const [groupBy, setGroupBy] = useState<OrgGroupBy>("none");
 
   const hasActiveFlow =
     activeJobIds.length > 0 ||
@@ -181,31 +170,14 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     return mergeDownloadCatalog(merged, buildStressCatalogJobs(500 - merged.length));
   }, [activeJobIds, copy, isQueue, managerJobs, serverJobs, stressEnabled]);
 
-  const orgFacets = useMemo(() => collectOrgFacets(catalog), [catalog]);
-
-  const { visible: statusFilteredJobs, counts } = useMemo(
+  const { visible: filteredJobs, counts } = useMemo(
     () => filterFinderJobs(catalog, { query: deferredQuery, filter: statusFilter }),
     [catalog, deferredQuery, statusFilter],
   );
 
-  const filteredJobs = useMemo(
-    () => filterJobsByOrgMeta(statusFilteredJobs, orgFilters),
-    [orgFilters, statusFilteredJobs],
-  );
-
-  const groupFallbackLabels = useMemo(
-    () => ({
-      all: t("orgAllGroup"),
-      noDate: t("orgNoDate"),
-      noFolder: t("orgNoFolder"),
-      noCategory: t("orgNoCategory"),
-    }),
-    [t],
-  );
-
   const jobGroups = useMemo(
-    () => groupJobsByOrg(filteredJobs, groupBy, groupFallbackLabels),
-    [filteredJobs, groupBy, groupFallbackLabels],
+    () => [{ key: "all", label: t("orgAllGroup"), jobs: filteredJobs }],
+    [filteredJobs, t],
   );
 
   // Limpa seleção de itens que saíram da lista visível.
@@ -345,14 +317,6 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
         counts={counts}
       />
 
-      <DownloadOrgToolbar
-        facets={orgFacets}
-        filters={orgFilters}
-        groupBy={groupBy}
-        onFiltersChange={setOrgFilters}
-        onGroupByChange={setGroupBy}
-      />
-
       <BulkSelectionBar
         selectedCount={selectedIds.size}
         visibleCount={filteredJobs.length}
@@ -456,9 +420,9 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
           <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
         </div>
       ) : filteredJobs.length === 0 ? (
-        isDownloads && activeJobIds.length > 0 && !deferredQuery && statusFilter === "all" && !Object.values(orgFilters).some(Boolean) ? (
+        isDownloads && activeJobIds.length > 0 && !deferredQuery && statusFilter === "all" ? (
           <p className="text-sm text-zinc-500">{t("jobsPreparingNext")}</p>
-        ) : deferredQuery || statusFilter !== "all" || Object.values(orgFilters).some(Boolean) ? (
+        ) : deferredQuery || statusFilter !== "all" ? (
           <p className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-8 text-center text-sm text-zinc-500">
             {t("jobsNoMatch")}
           </p>
@@ -469,20 +433,12 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
         <div className="space-y-5">
           {jobGroups.map((group) => (
             <div key={group.key} className="space-y-2.5">
-              {groupBy !== "none" && (
-                <div className="flex items-center justify-between gap-2 px-0.5">
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">
-                    {group.label}
-                  </p>
-                  <span className="text-[11px] tabular-nums text-zinc-600">{group.jobs.length}</span>
-                </div>
-              )}
               <QueueJobList
                 jobs={group.jobs}
                 activeJobIds={activeJobIds}
                 jobMetrics={jobMetrics}
                 showQueueActions={isQueue || isDownloads}
-                enableDragReorder={isQueue && groupBy === "none"}
+                enableDragReorder={isQueue}
                 selectable
                 selectedIds={selectedIds}
                 onToggleSelect={toggleSelect}

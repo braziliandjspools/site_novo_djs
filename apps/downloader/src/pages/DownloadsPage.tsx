@@ -12,7 +12,6 @@ export function DownloadsPage() {
     workerError,
     pendingCount,
     activeJobIds,
-    maxConcurrency,
     jobMetrics,
     pauseJob,
     resumeJob,
@@ -37,7 +36,7 @@ export function DownloadsPage() {
           <p className="mt-1 text-sm text-zinc-500">
             {pendingCount === 0
               ? "Nenhum item aguardando download"
-              : `${pendingCount} item(ns) na fila · ${activeJobIds.length}/${maxConcurrency} ativos`}
+              : `${pendingCount} item(ns) na fila · ${activeJobIds.length} baixando`}
           </p>
         </div>
         <Button variant="secondary" className="text-xs sm:text-sm" onClick={() => void openPlatform()}>

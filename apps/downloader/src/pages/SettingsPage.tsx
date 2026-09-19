@@ -3,7 +3,6 @@ import { Download, ExternalLink, FolderOpen, Info, Loader2, LogOut, MessageCircl
 import { Panel } from "../components/ui/Panel";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
-import { useDownloadManager } from "../context/DownloadManagerContext";
 import { APP_VERSION, DEFAULT_API_BASE_URL, normalizeApiBaseUrl, setCachedApiBaseUrl } from "../lib/api/config";
 import { APP_CHANGELOG, APP_CORE_VERSION, RUSTC_VERSION, WEBUI_VERSION } from "../lib/app-info";
 import { checkForAppUpdates, openUpdateDownload } from "../lib/updater";
@@ -167,7 +166,6 @@ function OneSignalSettingsPanel() {
 export function SettingsPage() {
   const { t, locale, setLocale } = useLocale();
   const { user, device, logout } = useAuth();
-  const { maxConcurrency, setMaxConcurrency } = useDownloadManager();
   const [downloadDir, setDownloadDir] = useState<string>("");
   const [loadingDir, setLoadingDir] = useState(true);
   const [dirError, setDirError] = useState<string | null>(null);
@@ -204,7 +202,7 @@ export function SettingsPage() {
   async function updatePreference(patch: Partial<AppPreferences>) {
     setPrefsError(null);
     const previous = prefs;
-    const next = { ...prefs, ...patch, maxConcurrentDownloads: maxConcurrency };
+    const next = { ...prefs, ...patch, maxConcurrentDownloads: 1 };
     setPrefs(next);
     try {
       const saved = await setAppPreferences(next);
@@ -506,25 +504,6 @@ export function SettingsPage() {
           />
         </div>
         {prefsError && <p className="mt-3 text-xs text-red-400">{prefsError}</p>}
-      </Panel>
-
-      <Panel title={t("settingsConcurrency")} description={t("settingsConcurrencyDesc")}>
-        <div className="flex flex-wrap gap-2">
-          {[1, 2, 3, 4, 5].map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setMaxConcurrency(value)}
-              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
-                maxConcurrency === value
-                  ? "border-[#1db954] bg-[#1db954]/10 text-[#1db954]"
-                  : "border-zinc-800 bg-black/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
-              }`}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
       </Panel>
 
       <Panel title={t("settingsNetwork")} description={t("settingsNetworkDesc")}>

@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.13_estable";
-export const APP_CORE_VERSION = "1.0.13_estable";
+export const WEBUI_VERSION = "1.0.14_estable";
+export const APP_CORE_VERSION = "1.0.14_estable";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.14_estable",
+    date: "2026-09-19",
+    items: [
+      "Downloads um arquivo por vez (mais estáveis; opção de simultâneos removida)",
+      "Removida a organização por metadados na fila/histórico",
+      "Em falhas, grava TXT na pasta de destino com o nome da música e a pasta do pack",
+    ],
+  },
   {
     version: "1.0.13_estable",
     date: "2026-09-18",

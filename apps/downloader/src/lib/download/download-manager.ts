@@ -14,6 +14,7 @@ import {
   isDesktopRuntime,
   onDownloadProgress,
   setMaxConcurrentDownloads,
+  appendDownloadFailureLog,
   type DownloadProgressEvent,
 } from "../native/download";
 import { cancelPackZip, createPackZip, onZipProgress } from "../native/zip";
@@ -46,7 +47,7 @@ import type {
   DownloadManagerSnapshot,
   QueueTransport,
 } from "./types";
-import { DEFAULT_MAX_CONCURRENCY, PROGRESS_SYNC_MS, PROGRESS_UI_MS, QUEUE_STATUSES } from "./types";
+import { DEFAULT_MAX_CONCURRENCY, INTER_DOWNLOAD_DELAY_MS, PROGRESS_SYNC_MS, PROGRESS_UI_MS, QUEUE_STATUSES } from "./types";
 import type { DownloadJob } from "../api/jobs";
 import { clearAllJobs } from "../api/jobs";
 import type { AppPreferences } from "../native/app-preferences";
@@ -366,20 +367,21 @@ export class DownloadManager {
 
     if (isDesktopRuntime()) {
       try {
-        this.maxConcurrency = await getMaxConcurrentDownloads();
+        await getMaxConcurrentDownloads();
       } catch {
-        this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
+        /* ignore */
       }
     }
+    this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
+    void setMaxConcurrentDownloads(1).catch(() => undefined);
     this.notify();
     void this.processQueue();
   }
 
-  async setMaxConcurrency(value: number) {
-    const clamped = Math.min(5, Math.max(1, Math.round(value)));
-    this.maxConcurrency = clamped;
+  async setMaxConcurrency(_value: number) {
+    this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
     if (isDesktopRuntime()) {
-      this.maxConcurrency = await setMaxConcurrentDownloads(clamped);
+      this.maxConcurrency = await setMaxConcurrentDownloads(1);
     }
     this.notify();
     void this.processQueue();
@@ -1431,11 +1433,14 @@ export class DownloadManager {
       this.progressTracker.clear(job.id);
       this.lastProgressSync.delete(job.id);
       this.persistLocalQueue();
-      if (this.isScheduleAllowingStarts(false)) {
-        this.startAvailableJobs();
-      }
-      this.notify();
-      void this.refreshDiskSpace();
+      void (async () => {
+        await sleep(INTER_DOWNLOAD_DELAY_MS);
+        if (this.isScheduleAllowingStarts(false)) {
+          this.startAvailableJobs();
+        }
+        this.notify();
+        void this.refreshDiskSpace();
+      })();
     });
 
     this.slotPromises.set(job.id, promise);
@@ -1451,10 +1456,12 @@ export class DownloadManager {
       if (token) this.authToken = token;
     }
     if (!token) {
+      const message = "Sessão expirada. Entre novamente.";
       await this.updateJobStatus(initialJob.id, {
         status: "FAILED",
-        error: "Sessão expirada. Entre novamente.",
+        error: message,
       });
+      void this.recordFailedDownload(initialJob, message);
       return;
     }
 
@@ -1593,6 +1600,7 @@ export class DownloadManager {
             error: message,
           });
           this.mergeServerJob(failed);
+          void this.recordFailedDownload(job, message);
         } catch {
           if (this.remoteCancelledJobIds.has(job.id) || !this.jobs.has(job.id)) {
             this.remoteCancelledJobIds.delete(job.id);
@@ -1600,10 +1608,23 @@ export class DownloadManager {
             return;
           }
           this.jobs.set(job.id, { ...job, status: "FAILED", error: message });
+          void this.recordFailedDownload(job, message);
         }
         this.error = message;
         return;
       }
+    }
+  }
+
+  private async recordFailedDownload(job: DownloadJob, message: string) {
+    try {
+      await appendDownloadFailureLog({
+        fileName: job.fileName,
+        relativePath: job.relativePath,
+        error: message,
+      });
+    } catch {
+      /* log local é best-effort */
     }
   }
 

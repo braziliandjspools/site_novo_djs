@@ -42,7 +42,7 @@ export const DEFAULT_PREFERENCES: AppPreferences = {
   autoDownload: true,
   showNotifications: true,
   downloadDir: null,
-  maxConcurrentDownloads: 3,
+  maxConcurrentDownloads: 1,
   preserveFolderStructure: true,
   existingFileBehavior: "ignore",
   apiBaseUrl: null,

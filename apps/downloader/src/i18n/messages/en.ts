@@ -403,7 +403,7 @@ export const messagesEn = {
   // jobs (extras)
   jobsNoneFound: "No downloads found.",
   jobsNoneWaiting: "No items waiting to download.",
-  jobsSummary: "{count} item(s) · {active}/{max} active",
+  jobsSummary: "{count} item(s) · {active} downloading",
   jobsDiskAvailable: "Available space",
   jobsQueueEstimated: "Estimated queue size",
   jobsNoSizeInfo: "Size not reported",

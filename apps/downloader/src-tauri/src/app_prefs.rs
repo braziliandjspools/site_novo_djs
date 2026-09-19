@@ -104,7 +104,7 @@ fn default_true() -> bool {
 }
 
 fn default_max_concurrent_downloads() -> u8 {
-    3
+    1
 }
 
 fn default_custom_mbps() -> f64 {
@@ -288,7 +288,7 @@ pub fn set_app_preferences(
     limiter: State<'_, Arc<GlobalSpeedLimiter>>,
 ) -> Result<AppPreferences, String> {
     let mut prefs = prefs;
-    prefs.max_concurrent_downloads = prefs.max_concurrent_downloads.clamp(1, 5);
+    prefs.max_concurrent_downloads = 1;
     prefs.normalize_speed_limit();
     sync_autostart(&app, prefs.start_with_windows)?;
     write_preferences(&app, &prefs)?;

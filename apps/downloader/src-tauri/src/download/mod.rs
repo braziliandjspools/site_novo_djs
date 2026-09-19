@@ -7,6 +7,7 @@ mod disk_space;
 pub mod speed_limit;
 pub mod zip;
 
+use std::path::Path;
 use std::sync::Arc;
 
 use tauri::{AppHandle, Manager, State};
@@ -205,6 +206,91 @@ pub fn get_max_concurrent_downloads(app: AppHandle) -> Result<u8, String> {
 #[tauri::command]
 pub fn set_max_concurrent_downloads(app: AppHandle, value: u8) -> Result<u8, String> {
     settings::set_max_concurrent_downloads(&app, value)
+}
+
+/// Registra falha de download na pasta de destino (TXT por faixa + log acumulado).
+#[tauri::command]
+pub fn append_download_failure_log(
+    app: AppHandle,
+    file_name: String,
+    relative_path: Option<String>,
+    error: Option<String>,
+) -> Result<String, String> {
+    use std::fs::{create_dir_all, OpenOptions};
+    use std::io::Write;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let base_dir = resolve_download_dir(&app)?;
+    create_dir_all(&base_dir).map_err(|e| format!("Não foi possível criar a pasta de destino: {e}"))?;
+
+    let folder = relative_path
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("(raiz da pasta de destino)");
+
+    let err_text = error
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("Falha desconhecida");
+
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let stamp = format!("unix:{secs}");
+
+    let block = format!(
+        "[{stamp}]\nMúsica: {file_name}\nPasta: {folder}\nErro: {err_text}\nBaixe manualmente no site VIP (/musicas) ou tente de novo na fila.\n{}\n",
+        "-".repeat(48)
+    );
+
+    let summary = base_dir.join("falhas-download-BRS.txt");
+    {
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&summary)
+            .map_err(|e| format!("Não foi possível gravar falhas-download-BRS.txt: {e}"))?;
+        file
+            .write_all(block.as_bytes())
+            .map_err(|e| format!("Falha ao escrever log de falhas: {e}"))?;
+    }
+
+    let stem = Path::new(&file_name)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("faixa");
+    let safe: String = stem
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == ' ' || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect::<String>()
+        .trim()
+        .chars()
+        .take(80)
+        .collect();
+    let safe = if safe.is_empty() {
+        "faixa".to_string()
+    } else {
+        safe
+    };
+    let per_track = base_dir.join(format!("{safe}-FALHOU.txt"));
+    std::fs::write(
+        &per_track,
+        format!(
+            "Música: {file_name}\nPasta: {folder}\nErro: {err_text}\nRegistrado em: {stamp}\n\nBaixe esta faixa manualmente no site VIP ou use \"Tentar novamente\" na fila do Downloader.\n"
+        ),
+    )
+    .map_err(|e| format!("Não foi possível gravar {}: {e}", per_track.display()))?;
+
+    Ok(per_track.to_string_lossy().to_string())
 }
 
 #[tauri::command]

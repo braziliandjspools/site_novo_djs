@@ -410,7 +410,7 @@ export const messagesPtBR = {
   // jobs (extras)
   jobsNoneFound: "Nenhum download encontrado.",
   jobsNoneWaiting: "Nenhum item aguardando download.",
-  jobsSummary: "{count} item(ns) · {active}/{max} ativos",
+  jobsSummary: "{count} item(ns) · {active} baixando",
   jobsDiskAvailable: "Espaço disponível",
   jobsQueueEstimated: "Tamanho estimado na fila",
   jobsNoSizeInfo: "Sem tamanho informado",

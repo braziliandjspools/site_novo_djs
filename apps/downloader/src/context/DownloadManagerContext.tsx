@@ -13,7 +13,7 @@ const EMPTY_SNAPSHOT: DownloadManagerSnapshot = {
   error: null,
   pendingCount: 0,
   activeJobIds: [],
-  maxConcurrency: 3,
+  maxConcurrency: 1,
   globalPaused: false,
   autoDownload: true,
   jobMetrics: {},

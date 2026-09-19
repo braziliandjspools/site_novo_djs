@@ -405,7 +405,7 @@ export const messagesEs = {
   // jobs (extras)
   jobsNoneFound: "No se encontraron descargas.",
   jobsNoneWaiting: "No hay elementos esperando descarga.",
-  jobsSummary: "{count} elemento(s) · {active}/{max} activas",
+  jobsSummary: "{count} elemento(s) · {active} descargando",
   jobsDiskAvailable: "Espacio disponible",
   jobsQueueEstimated: "Tamaño estimado de la cola",
   jobsNoSizeInfo: "Tamaño no informado",

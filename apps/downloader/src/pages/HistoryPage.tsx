@@ -16,15 +16,6 @@ import {
   filterFinderJobs,
   type DownloadFinderFilter,
 } from "../lib/download/job-finder";
-import {
-  EMPTY_ORG_FILTERS,
-  collectOrgFacets,
-  filterJobsByOrgMeta,
-  groupJobsByOrg,
-  type OrgGroupBy,
-  type OrgMetaFilters,
-} from "../lib/download/job-organization";
-import { DownloadOrgToolbar } from "../components/downloads/DownloadOrgToolbar";
 import { useLocale } from "../i18n/LocaleContext";
 
 export function HistoryPage() {
@@ -44,39 +35,20 @@ export function HistoryPage() {
   const deferredQuery = useDeferredValue(query);
   const [statusFilter, setStatusFilter] = useState<DownloadFinderFilter>("all");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
-  const [orgFilters, setOrgFilters] = useState<OrgMetaFilters>({ ...EMPTY_ORG_FILTERS });
-  const [groupBy, setGroupBy] = useState<OrgGroupBy>("none");
 
   const historyJobs = useMemo(
     () => jobs.filter((job) => job.status === "COMPLETED" || job.status === "FAILED"),
     [jobs],
   );
 
-  const orgFacets = useMemo(() => collectOrgFacets(historyJobs), [historyJobs]);
-
-  const { visible: statusFiltered, counts } = useMemo(
+  const { visible: filteredJobs, counts } = useMemo(
     () => filterFinderJobs(historyJobs, { query: deferredQuery, filter: statusFilter }),
     [deferredQuery, historyJobs, statusFilter],
   );
 
-  const filteredJobs = useMemo(
-    () => filterJobsByOrgMeta(statusFiltered, orgFilters),
-    [orgFilters, statusFiltered],
-  );
-
-  const groupFallbackLabels = useMemo(
-    () => ({
-      all: t("orgAllGroup"),
-      noDate: t("orgNoDate"),
-      noFolder: t("orgNoFolder"),
-      noCategory: t("orgNoCategory"),
-    }),
-    [t],
-  );
-
   const jobGroups = useMemo(
-    () => groupJobsByOrg(filteredJobs, groupBy, groupFallbackLabels),
-    [filteredJobs, groupBy, groupFallbackLabels],
+    () => [{ key: "all", label: t("orgAllGroup"), jobs: filteredJobs }],
+    [filteredJobs, t],
   );
 
   useEffect(() => {
@@ -178,14 +150,6 @@ export function HistoryPage() {
         counts={counts}
       />
 
-      <DownloadOrgToolbar
-        facets={orgFacets}
-        filters={orgFilters}
-        groupBy={groupBy}
-        onFiltersChange={setOrgFilters}
-        onGroupByChange={setGroupBy}
-      />
-
       <BulkSelectionBar
         selectedCount={selectedIds.size}
         visibleCount={filteredJobs.length}
@@ -244,14 +208,6 @@ export function HistoryPage() {
         <div className="space-y-5">
           {jobGroups.map((group) => (
             <div key={group.key} className="space-y-2">
-              {groupBy !== "none" && (
-                <div className="flex items-center justify-between gap-2 px-0.5">
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">
-                    {group.label}
-                  </p>
-                  <span className="text-[11px] tabular-nums text-zinc-600">{group.jobs.length}</span>
-                </div>
-              )}
               {group.jobs.map((job) => (
                 <div key={job.id} className="space-y-2">
                   <JobRow
