@@ -5,6 +5,10 @@ const APP_CORS_ORIGINS = new Set([
   "http://127.0.0.1:1420",
   "http://tauri.localhost",
   "https://tauri.localhost",
+  "http://asset.localhost",
+  "https://asset.localhost",
+  "http://ipc.localhost",
+  "https://ipc.localhost",
   "tauri://localhost",
   "https://localhost",
   "http://localhost",
@@ -22,6 +26,7 @@ function resolveCorsOrigin(request: Request) {
   if (origin) {
     if (APP_CORS_ORIGINS.has(origin)) return origin;
     if (origin.includes("tauri.localhost") || origin.startsWith("tauri://")) return origin;
+    if (origin.includes("asset.localhost") || origin.includes("ipc.localhost")) return origin;
     if (origin.startsWith("capacitor://") || origin.startsWith("ionic://")) return origin;
     if (process.env.NODE_ENV !== "production" && origin.startsWith("http://localhost:")) {
       return origin;
