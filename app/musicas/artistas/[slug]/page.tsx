@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
 import { ArtistaSlugClient } from "./ArtistaSlugClient";
-import { findKnownArtistBySlug } from "../../../lib/vip-known-artists";
+import { JsonLd } from "../../../components/JsonLd";
+import {
+  findKnownArtistBySlug,
+  listFeaturedKnownArtists,
+} from "../../../lib/vip-known-artists";
 import { SITE_NAME } from "../../../lib/branding";
-import { SITE_URL } from "../../../lib/seo";
+import {
+  breadcrumbJsonLd,
+  collectionPageJsonLd,
+  musicArtistJsonLd,
+  SITE_URL,
+} from "../../../lib/seo";
+import { artistsHref } from "../../../lib/vip-music-slugs";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -12,13 +22,17 @@ function absoluteUrl(path: string) {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+export function generateStaticParams() {
+  return listFeaturedKnownArtists().map((artist) => ({ slug: artist.slug }));
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug: raw } = await params;
   const slug = decodeURIComponent(raw ?? "");
   const known = findKnownArtistBySlug(slug);
   const name = known?.name ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const artistSlug = known?.slug ?? slug;
-  const path = `/musicas/artistas/${encodeURIComponent(artistSlug)}`;
+  const path = artistsHref(artistSlug);
   const title = `${name} – Remixes e faixas para DJs | BRS`;
   const description =
     known?.shortBio?.trim() ||
@@ -50,6 +64,43 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ArtistaSlugPage({ params }: PageProps) {
-  const { slug } = await params;
-  return <ArtistaSlugClient slug={decodeURIComponent(slug)} />;
+  const { slug: raw } = await params;
+  const slug = decodeURIComponent(raw ?? "");
+  const known = findKnownArtistBySlug(slug);
+  const name = known?.name ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const artistSlug = known?.slug ?? slug;
+  const path = artistsHref(artistSlug);
+  const description =
+    known?.shortBio?.trim() ||
+    `Explore o perfil de ${name} no acervo BRS: remixes, edits e faixas organizadas para DJs.`;
+
+  return (
+    <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Músicas", path: "/musicas" },
+          { name: "Artistas", path: "/musicas/artistas" },
+          { name, path },
+        ])}
+      />
+      <JsonLd
+        data={collectionPageJsonLd({
+          name,
+          description,
+          path,
+        })}
+      />
+      <JsonLd
+        data={musicArtistJsonLd({
+          name,
+          description,
+          path,
+          imageUrl: known?.imageUrl,
+          genres: known?.genres,
+        })}
+      />
+      <ArtistaSlugClient slug={slug} />
+    </>
+  );
 }

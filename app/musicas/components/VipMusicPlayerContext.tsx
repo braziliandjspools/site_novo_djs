@@ -32,6 +32,9 @@ type VipMusicPlayerContextValue = {
   currentTrack: PreviewTrack | null;
   isPlaying: boolean;
   currentCoverUrl: string | null;
+  volume: number;
+  setVolume: (value: number) => void;
+  seekBy: (deltaSeconds: number) => Promise<void>;
   setFolderPlayback: (folderId: string, state: FolderPlaybackState) => void;
   registerTrackMeta: (track: PreviewTrack) => void;
   toggleTrack: (folderId: string, trackId: string) => Promise<void>;
@@ -454,6 +457,9 @@ export function VipMusicPlayerProvider({
       currentTrack,
       isPlaying,
       currentCoverUrl,
+      volume: player.volume,
+      setVolume: player.setVolume,
+      seekBy: seekBySeconds,
       setFolderPlayback,
       registerTrackMeta,
       toggleTrack,
@@ -474,6 +480,8 @@ export function VipMusicPlayerProvider({
       player.currentTime,
       player.error,
       player.pause,
+      player.volume,
+      player.setVolume,
       displayDuration,
       displayProgress,
       canPlayFull,
@@ -483,6 +491,7 @@ export function VipMusicPlayerProvider({
       currentTrack,
       isPlaying,
       currentCoverUrl,
+      seekBySeconds,
       setFolderPlayback,
       registerTrackMeta,
       toggleTrack,

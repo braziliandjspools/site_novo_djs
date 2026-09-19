@@ -63,20 +63,39 @@ export function PackHero({
   extraActions,
 }: PackHeroProps) {
   const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
+  const hasFolderCover = Boolean(coverUrl?.trim());
 
   return (
     <section className="relative mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-[#17191d] shadow-2xl shadow-black/40">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <Image
-          src={MUSICAS_HERO_BG_SRC}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center opacity-85"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/15" />
+        {hasFolderCover ? (
+          <>
+            <Image
+              src={cover}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="scale-110 object-cover object-center opacity-50 blur-2xl"
+              unoptimized={cover.startsWith("/api/")}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/45" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#101412] via-transparent to-black/20" />
+          </>
+        ) : (
+          <>
+            <Image
+              src={MUSICAS_HERO_BG_SRC}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center opacity-85"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/15" />
+          </>
+        )}
       </div>
       <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1ed760] via-[#1ed760]/40 to-transparent" />
 

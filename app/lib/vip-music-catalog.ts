@@ -566,3 +566,64 @@ export async function getLatestVipPreviewPlaylists(limit = 3): Promise<PreviewPl
   if (playlists.length) return playlists;
   return (await getPreviewPlaylists()).slice(0, limit);
 }
+
+/** Entrada de pasta navegável para sitemap/SEO de /musicas/atualizacoes. */
+export type VipAtualizacoesSitemapEntry = {
+  segments: string[];
+  label: string;
+  depth: number;
+};
+
+const SITEMAP_WALK_CONCURRENCY = 6;
+/** Pack → mês → semana → estilo (máx. 4 níveis de URL). */
+const SITEMAP_MAX_DEPTH = 4;
+const SITEMAP_MAX_ENTRIES = 2500;
+
+/**
+ * Percorre o acervo VIP e devolve todos os paths de pasta indexáveis
+ * (`/musicas/atualizacoes/...slug`). Falha vazia se o Drive estiver indisponível.
+ */
+export async function listVipMusicAtualizacoesSitemapPaths(): Promise<
+  VipAtualizacoesSitemapEntry[]
+> {
+  if (!isVipMusicCatalogConfigured()) return [];
+
+  async function walk(
+    parentFolderId: string | undefined,
+    parentSegments: string[],
+    depth: number,
+  ): Promise<VipAtualizacoesSitemapEntry[]> {
+    if (depth > SITEMAP_MAX_DEPTH) return [];
+
+    const folders = await listVipMusicFolders(parentFolderId);
+    if (folders.length === 0) return [];
+
+    const level: VipAtualizacoesSitemapEntry[] = [];
+    const nextTargets: Array<{ id: string; segments: string[] }> = [];
+
+    for (const folder of folders) {
+      const slug = slugifyFolderName(folder.name);
+      if (!slug) continue;
+      const segments = [...parentSegments, slug];
+      level.push({
+        segments,
+        label: displayFolderName(folder.name),
+        depth,
+      });
+      if (depth < SITEMAP_MAX_DEPTH) {
+        nextTargets.push({ id: folder.id, segments });
+      }
+    }
+
+    if (nextTargets.length === 0) return level;
+
+    const nested = await mapPool(nextTargets, SITEMAP_WALK_CONCURRENCY, (target) =>
+      walk(target.id, target.segments, depth + 1),
+    );
+
+    return [...level, ...nested.flat()];
+  }
+
+  const all = await walk(undefined, [], 1);
+  return all.slice(0, SITEMAP_MAX_ENTRIES);
+}

@@ -745,8 +745,8 @@ export function sitemapEntries() {
 }
 
 /**
- * Sitemap completo: páginas estáticas SEO_PAGES + packs raiz indexados + artistas featured.
- * Packs vêm do catálogo VIP (Drive com cache Next) — falha silenciosa se indisponível.
+ * Sitemap completo: SEO_PAGES + pastas aninhadas de /musicas/atualizacoes + artistas featured.
+ * Pastas vêm do catálogo VIP (Drive com cache Next) — falha silenciosa se indisponível.
  */
 export async function buildFullSitemap(): Promise<
   Array<{
@@ -761,21 +761,30 @@ export async function buildFullSitemap(): Promise<
   const dynamic: typeof staticEntries = [];
 
   try {
-    const { listVipMusicFolders } = await import("./vip-music-catalog");
-    const { displayFolderName, folderHref, slugifyFolderName } = await import("./vip-music-slugs");
-    const folders = await listVipMusicFolders();
-    for (const folder of folders.slice(0, 200)) {
-      const slug = slugifyFolderName(folder.name);
-      if (!slug) continue;
-      const path = folderHref([slug]);
+    const { listVipMusicAtualizacoesSitemapPaths } = await import("./vip-music-catalog");
+    const { folderHref } = await import("./vip-music-slugs");
+    const folders = await listVipMusicAtualizacoesSitemapPaths();
+    for (const folder of folders) {
+      const path = folderHref(folder.segments);
       const url = absoluteUrl(path);
       if (seen.has(url)) continue;
       seen.add(url);
-      const yearMatch = displayFolderName(folder.name).match(/\b(20\d{2})\b/);
+      const yearMatch = folder.label.match(/\b(20\d{2})\b/);
+      const isCurrentYear = yearMatch?.[1] === "2026";
+      const priority =
+        folder.depth === 1
+          ? isCurrentYear
+            ? 0.9
+            : 0.78
+          : folder.depth === 2
+            ? 0.72
+            : folder.depth === 3
+              ? 0.64
+              : 0.55;
       dynamic.push({
         url,
-        changeFrequency: "weekly",
-        priority: yearMatch && yearMatch[1] === "2026" ? 0.88 : 0.75,
+        changeFrequency: folder.depth <= 2 ? "weekly" : "monthly",
+        priority,
       });
     }
   } catch {
@@ -785,7 +794,7 @@ export async function buildFullSitemap(): Promise<
   try {
     const { listFeaturedKnownArtists } = await import("./vip-known-artists");
     const { artistsHref } = await import("./vip-music-slugs");
-    for (const artist of listFeaturedKnownArtists().slice(0, 150)) {
+    for (const artist of listFeaturedKnownArtists()) {
       const path = artistsHref(artist.slug);
       const url = absoluteUrl(path);
       if (seen.has(url)) continue;
@@ -806,18 +815,26 @@ export async function buildFullSitemap(): Promise<
 /** Metadata dinâmica para pastas de /musicas/atualizacoes/[...slug]. */
 export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel: string) {
   const path = `/musicas/atualizacoes/${segments.map(encodeURIComponent).join("/")}`;
-  const yearMatch = folderLabel.match(/\b(20\d{2})\b/);
+  const trailLabels = segments.map((segment) =>
+    displayFolderLabelFromSlug(segment),
+  );
+  const trail = trailLabels.join(" › ");
+  const yearFromTrail = trail.match(/\b(20\d{2})\b/);
+  const yearMatch = folderLabel.match(/\b(20\d{2})\b/) ?? yearFromTrail;
   const isPackRoot = segments.length === 1;
+  const isStyleLeaf = segments.length >= 3;
   const title = isPackRoot
     ? yearMatch
       ? `Packs para DJs ${yearMatch[1]} – Remixes, Extended e Edits | BRS`
       : `${folderLabel} – Packs e Remixes para DJs | BRS`
-    : `${folderLabel} – Atualizações para DJs | BRS`;
+    : isStyleLeaf
+      ? `${folderLabel} – ${trailLabels[0] ?? "Atualizações"} | BRS`
+      : `${folderLabel} – Atualizações para DJs | BRS`;
   const description = isPackRoot
     ? yearMatch
       ? `Packs para DJs atualizados em ${yearMatch[1]} com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, open format e muito mais no acervo BRS.`
       : `Explore ${folderLabel} no acervo BRS: packs, remixes, extended mixes, intro edits e pastas organizadas para DJs.`
-    : `Confira ${folderLabel} nas atualizações BRS: DJ pools, remix services, edits, remixes e versões para DJs.`;
+    : `Confira ${folderLabel} em ${trail} nas atualizações BRS: DJ pools, remix services, edits, remixes e versões para DJs.`;
 
   return {
     title: { absolute: title },
@@ -852,6 +869,14 @@ export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel:
   };
 }
 
+function displayFolderLabelFromSlug(segment: string) {
+  return segment
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function collectionPageJsonLd(input: {
   name: string;
   description: string;
@@ -864,6 +889,45 @@ export function collectionPageJsonLd(input: {
     description: input.description,
     url: absoluteUrl(input.path),
     isPartOf: { "@id": `${SITE_URL}/#website` },
+    inLanguage: SITE_LANGUAGE,
+  };
+}
+
+export function itemListJsonLd(input: {
+  name: string;
+  path: string;
+  items: { name: string; path: string }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: input.name,
+    url: absoluteUrl(input.path),
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: absoluteUrl(item.path),
+    })),
+  };
+}
+
+export function musicArtistJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+  imageUrl?: string | null;
+  genres?: string[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "MusicGroup",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    ...(input.imageUrl ? { image: absoluteUrl(input.imageUrl) } : {}),
+    ...(input.genres?.length ? { genre: input.genres } : {}),
     inLanguage: SITE_LANGUAGE,
   };
 }

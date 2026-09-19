@@ -571,22 +571,34 @@ export function LibraryFolderList({
         {before}
         <section className={`mx-auto w-full ${fillColumn ? "max-w-none" : "max-w-[1440px]"}`}>
           {sectionTitle ? (
-            <div className="mb-5 text-center sm:mb-6">
-              <h2 className="text-xl font-extrabold uppercase tracking-[0.08em] text-white sm:text-2xl">
+            <div className="relative mb-7 overflow-hidden rounded-3xl border border-[#1ed760]/20 bg-gradient-to-br from-[#15241e] via-[#101612] to-[#0a0c0b] px-5 py-7 text-center shadow-[0_20px_60px_rgba(0,0,0,0.45)] sm:mb-8 sm:px-8 sm:py-9">
+              <div
+                className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-[#1ed760]/20 blur-3xl"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute -right-8 bottom-0 h-36 w-36 rounded-full bg-[#00b4d8]/15 blur-3xl"
+                aria-hidden
+              />
+              <p className="relative text-[11px] font-bold uppercase tracking-[0.28em] text-[#1ed760]/90">
+                Acervo VIP
+              </p>
+              <h2 className="relative mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-[2.75rem]">
                 {sectionTitle}
               </h2>
-              <div className="mx-auto mt-2 h-0.5 w-16 rounded-full bg-[#1ed760]/50" aria-hidden />
+              <div
+                className="relative mx-auto mt-3 h-1 w-20 rounded-full bg-gradient-to-r from-[#00b4d8] via-[#1ed760] to-[#2dff7a]"
+                aria-hidden
+              />
               {sectionDescription ? (
-                <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/50 sm:text-[15px]">
+                <p className="relative mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/60 sm:text-base">
                   {sectionDescription}
                 </p>
               ) : null}
-              <div className="mx-auto mt-5 max-w-3xl rounded-2xl border border-[#1ed760]/35 bg-[#17191d] px-4 py-4 text-center shadow-[0_8px_20px_rgba(0,0,0,0.35)] sm:mt-6 sm:px-6 sm:py-5">
+              <div className="relative mx-auto mt-6 max-w-3xl rounded-2xl border border-[#1ed760]/30 bg-black/30 px-4 py-4 text-center backdrop-blur-sm sm:px-6 sm:py-5">
                 <p className="text-[13px] leading-relaxed text-white/80 sm:text-sm sm:leading-[1.6]">
-                  🎉 Bem-vindo ao nosso acervo exclusivo! 🚀 Usuários VIP têm acesso a downloads
-                  ilimitados de todo o nosso conteúdo. Se você é um visitante, para baixar os
-                  arquivos e ter acesso completo, é necessário assinar um de nossos planos.
-                  Torne-se VIP e aproveite o melhor da música sem limites! ✨
+                  Bem-vindo ao nosso acervo exclusivo. Usuários VIP têm downloads ilimitados.
+                  Visitantes navegam livremente — assine um plano para baixar e ouvir sem limites.
                 </p>
               </div>
             </div>

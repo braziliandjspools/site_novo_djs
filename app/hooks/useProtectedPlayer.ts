@@ -67,6 +67,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   const ctxRef = useRef<AudioContext | null>(null);
   const bufferRef = useRef<AudioBuffer | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const startAtRef = useRef(0);
@@ -74,6 +75,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   const trackIdRef = useRef<string | null>(null);
   const rafRef = useRef<number | null>(null);
   const stoppingRef = useRef(false);
+  const volumeRef = useRef(1);
 
   const [state, setState] = useState<PlayerState>({
     playingId: null,
@@ -82,6 +84,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
     duration: 0,
     error: null,
   });
+  const [volume, setVolumeState] = useState(1);
 
   const revokeObjectUrl = useCallback(() => {
     if (objectUrlRef.current) {
@@ -143,6 +146,13 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   const getContext = useCallback(() => {
     if (!ctxRef.current || ctxRef.current.state === "closed") {
       ctxRef.current = new AudioContext();
+      gainRef.current = null;
+    }
+    if (!gainRef.current) {
+      const gain = ctxRef.current.createGain();
+      gain.gain.value = volumeRef.current;
+      gain.connect(ctxRef.current.destination);
+      gainRef.current = gain;
     }
     return ctxRef.current;
   }, []);
@@ -170,6 +180,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
       if (!audio) {
         audio = new Audio();
         audio.preload = "auto";
+        audio.volume = volumeRef.current;
         audioRef.current = audio;
       }
 
@@ -312,7 +323,12 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    const gain = gainRef.current;
+    if (gain) {
+      source.connect(gain);
+    } else {
+      source.connect(ctx.destination);
+    }
     source.onended = () => {
       if (stoppingRef.current) {
         stoppingRef.current = false;
@@ -488,6 +504,18 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
     [playBufferNode, playMediaElement, stopSource, useMediaElement],
   );
 
+  const setVolume = useCallback((value: number) => {
+    const next = Math.min(1, Math.max(0, value));
+    volumeRef.current = next;
+    setVolumeState(next);
+    if (audioRef.current) {
+      audioRef.current.volume = next;
+    }
+    if (gainRef.current) {
+      gainRef.current.gain.value = next;
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       stopSource();
@@ -504,15 +532,18 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
         void ctx.close();
       }
       ctxRef.current = null;
+      gainRef.current = null;
     };
   }, [revokeObjectUrl, stopSource]);
 
   return {
     ...state,
     progress: state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0,
+    volume,
     toggle,
     play,
     pause,
     seek,
+    setVolume,
   };
 }

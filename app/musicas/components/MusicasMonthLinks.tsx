@@ -10,7 +10,7 @@ import {
   sortFoldersByYearCollection,
 } from "../../lib/vip-music-slugs";
 import type { LibraryFolderItem } from "./LibraryFolderGrid";
-import { MusicLibraryFolderGrid } from "./MusicLibraryFolderGrid";
+import { LibraryFolderList } from "./LibraryFolderGrid";
 
 type MusicasMonthLinksProps = {
   folders: Array<VipMusicFolder | VipMusicCatalogItem>;
@@ -22,6 +22,8 @@ type MusicasMonthLinksProps = {
 export function MusicasMonthLinks({
   folders,
   newFolderIds,
+  variant = "hero",
+  fillColumn = false,
 }: MusicasMonthLinksProps) {
   const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
   const byStructure =
@@ -76,15 +78,16 @@ export function MusicasMonthLinks({
   }, [sorted, newFolderIds]);
 
   return (
-    <MusicLibraryFolderGrid
+    <LibraryFolderList
       folders={items}
       slugSegments={[]}
       newFolderIds={newFolderIds}
-      caption="below"
-      centerItems
+      layout={variant === "hero" ? "grid" : "list"}
+      fillColumn={fillColumn}
       sectionTitle="Seu acervo"
       sectionDescription="Pastas do mês e packs prontos para ouvir ou baixar."
       emptyMessage="Nenhum mês encontrado."
+      className="acervo-section"
     />
   );
 }

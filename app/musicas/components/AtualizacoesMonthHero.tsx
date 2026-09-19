@@ -39,6 +39,7 @@ export function AtualizacoesMonthHero({
   const title = displayFolderName(folderName);
   const { label, status } = parseMonthStatus(folderName);
   const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
+  const hasFolderCover = Boolean(coverUrl?.trim());
 
   const eyebrow =
     mode === "weeks"
@@ -82,16 +83,34 @@ export function AtualizacoesMonthHero({
   return (
     <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#17191d] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <Image
-          src={MUSICAS_HERO_BG_SRC}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center opacity-90"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/10" />
+        {hasFolderCover ? (
+          <>
+            <Image
+              src={cover}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="scale-110 object-cover object-center opacity-45 blur-2xl"
+              unoptimized={cover.startsWith("/api/")}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#101412] via-transparent to-black/15" />
+          </>
+        ) : (
+          <>
+            <Image
+              src={MUSICAS_HERO_BG_SRC}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center opacity-90"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/10" />
+          </>
+        )}
       </div>
       <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1ed760] via-[#1ed760]/40 to-transparent" />
 

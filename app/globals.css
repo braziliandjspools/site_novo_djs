@@ -252,6 +252,35 @@ button {
   backdrop-filter: blur(12px);
 }
 
+.player-shell--vip {
+  border-color: rgba(30, 215, 96, 0.18);
+  box-shadow:
+    0 -12px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(30, 215, 96, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.player-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.35);
+  cursor: pointer;
+}
+
+.player-volume::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.35);
+  cursor: pointer;
+}
+
 .player-track-row {
   border: 1px solid transparent;
   border-radius: 0.75rem;

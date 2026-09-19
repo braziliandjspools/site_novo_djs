@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
+import { resolveFolderCoverUrl } from "../../lib/local-folder-covers";
 import { clearMusicasCache, fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
 import {
   getContinueListening,
@@ -24,7 +25,6 @@ import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { MusicasMonthLinks } from "./MusicasMonthLinks";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
-import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
 import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -132,8 +132,16 @@ export function AtualizacoesRootClient() {
     return null;
   }, [folders, home]);
 
-  const latestTracks = home?.latestTracks?.slice(0, 12) ?? [];
-  const topWeek = home?.topWeek?.slice(0, 12) ?? [];
+  const heroCoverUrl = useMemo(() => {
+    for (const folder of folders) {
+      const cover = resolveFolderCoverUrl({
+        folderName: folder.name,
+        driveCoverUrl: (folder as VipMusicCatalogItem).coverUrl,
+      });
+      if (cover) return cover;
+    }
+    return null;
+  }, [folders]);
 
   const updatedLabel =
     updatedAt || home?.syncedAt
@@ -142,75 +150,99 @@ export function AtualizacoesRootClient() {
 
   return (
     <div className="w-full">
-      <header className="relative mb-5 overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a2a24] via-[#121816] to-[#0c0e0d] px-4 py-5 ring-1 ring-white/10 sm:mb-7 sm:px-6 sm:py-6">
-        <div
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#1ed760]/15 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-24 left-10 h-48 w-48 rounded-full bg-[#00b4d8]/10 blur-3xl"
-          aria-hidden
-        />
-        <div className="relative z-10">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1ed760]/90">
-            Brazilian Remix Service
-          </p>
-          <h1 className="mt-1.5 font-display text-[28px] font-extrabold tracking-tight text-white sm:text-4xl">
-            Atualizações para DJs
-          </h1>
-          <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-white/55 sm:text-sm">
-            Novos packs, pools, edits, remixes e coleções organizados para DJs.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {folders.length > 0 ? (
-              <span className="rounded-lg bg-black/35 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/70 ring-1 ring-white/10">
-                {folders.length} {folders.length === 1 ? "pack" : "packs"}
-              </span>
-            ) : null}
-            {typeof trackCount === "number" && trackCount > 0 ? (
-              <span className="rounded-lg bg-black/35 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/70 ring-1 ring-white/10">
-                {trackCount.toLocaleString("pt-BR")} faixas
-              </span>
-            ) : null}
-            {home?.stats.genreCount ? (
-              <span className="rounded-lg bg-black/35 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/70 ring-1 ring-white/10">
-                {home.stats.genreCount} estilos
-              </span>
-            ) : null}
-            <span
-              className={`rounded-lg px-2.5 py-1 text-[12px] font-semibold ring-1 ${
-                hasVip
-                  ? "bg-[#1ed760]/15 text-[#1ed760] ring-[#1ed760]/25"
-                  : "bg-black/35 text-white/55 ring-white/10"
-              }`}
-            >
-              {hasVip ? "Premium ativo" : "Só navegação"}
-            </span>
-            {updatedLabel ? (
-              <span className="text-[11px] text-white/35">Atualizado {updatedLabel}</span>
-            ) : null}
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <AtualizacoesDriveSyncButton
-              className="w-full sm:w-auto"
-              onSynced={async (result) => {
-                if (result?.syncedAt) {
-                  writeLastSync(result.syncedAt);
-                  setUpdatedAt(result.syncedAt);
-                }
-                await Promise.all([loadTree(true), loadHome(true)]);
-              }}
+      <header className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a2a24] via-[#121816] to-[#0c0e0d] px-4 py-6 ring-1 ring-white/10 sm:mb-8 sm:px-7 sm:py-8">
+        {heroCoverUrl ? (
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroCoverUrl}
+              alt=""
+              className="h-full w-full scale-110 object-cover opacity-35 blur-2xl"
             />
-            {home?.newsBanner?.href ? (
-              <Link
-                href={home.newsBanner.href}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#1ed760]/30 bg-[#1ed760]/10 px-5 text-sm font-bold text-[#1ed760] transition hover:bg-[#1ed760]/20 sm:w-auto"
-              >
-                <Flame className="h-4 w-4" aria-hidden />
-                Ver novidades
-              </Link>
-            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0c1210]/80 via-[#0e1412]/75 to-[#0a0c0b]/92" />
           </div>
+        ) : null}
+        <div
+          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#1ed760]/20 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -bottom-24 left-10 h-48 w-48 rounded-full bg-[#00b4d8]/15 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#1ed760]/90">
+              Brazilian Remix Service
+            </p>
+            <h1 className="mt-2 font-display text-[30px] font-extrabold tracking-tight text-white sm:text-5xl">
+              Atualizações para DJs
+            </h1>
+            <p className="mt-2.5 max-w-xl text-[14px] leading-relaxed text-white/60 sm:text-[15px]">
+              Novos packs, pools, edits, remixes e coleções organizados para DJs.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {folders.length > 0 ? (
+                <span className="rounded-lg bg-black/40 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/75 ring-1 ring-white/10">
+                  {folders.length} {folders.length === 1 ? "pack" : "packs"}
+                </span>
+              ) : null}
+              {typeof trackCount === "number" && trackCount > 0 ? (
+                <span className="rounded-lg bg-black/40 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/75 ring-1 ring-white/10">
+                  {trackCount.toLocaleString("pt-BR")} faixas
+                </span>
+              ) : null}
+              {home?.stats.genreCount ? (
+                <span className="rounded-lg bg-black/40 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/75 ring-1 ring-white/10">
+                  {home.stats.genreCount} estilos
+                </span>
+              ) : null}
+              <span
+                className={`rounded-lg px-2.5 py-1 text-[12px] font-semibold ring-1 ${
+                  hasVip
+                    ? "bg-[#1ed760]/15 text-[#1ed760] ring-[#1ed760]/25"
+                    : "bg-black/35 text-white/55 ring-white/10"
+                }`}
+              >
+                {hasVip ? "Premium ativo" : "Só navegação"}
+              </span>
+              {updatedLabel ? (
+                <span className="text-[11px] text-white/35">Atualizado {updatedLabel}</span>
+              ) : null}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <AtualizacoesDriveSyncButton
+                className="w-full sm:w-auto"
+                onSynced={async (result) => {
+                  if (result?.syncedAt) {
+                    writeLastSync(result.syncedAt);
+                    setUpdatedAt(result.syncedAt);
+                  }
+                  await Promise.all([loadTree(true), loadHome(true)]);
+                }}
+              />
+              {home?.newsBanner?.href ? (
+                <Link
+                  href={home.newsBanner.href}
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#1ed760]/30 bg-[#1ed760]/10 px-5 text-sm font-bold text-[#1ed760] transition hover:bg-[#1ed760]/20 sm:w-auto"
+                >
+                  <Flame className="h-4 w-4" aria-hidden />
+                  Ver novidades
+                </Link>
+              ) : null}
+            </div>
+          </div>
+          {heroCoverUrl ? (
+            <div className="relative mx-auto h-36 w-36 flex-shrink-0 sm:mx-0 sm:h-44 sm:w-44">
+              <div className="absolute -inset-3 rounded-[28px] bg-[#1ed760]/25 blur-2xl" aria-hidden />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroCoverUrl}
+                alt=""
+                className="relative h-full w-full rounded-[22px] object-cover shadow-[0_20px_50px_rgba(0,0,0,0.55)] ring-2 ring-white/20"
+              />
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -244,6 +276,12 @@ export function AtualizacoesRootClient() {
       ) : null}
 
       <div className="space-y-9">
+        {loading && folders.length === 0 ? (
+          <MusicasListSkeleton rows={10} />
+        ) : (
+          <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
+        )}
+
         <MusicLibraryQuickLinks />
 
         {continueItem ? (
@@ -282,21 +320,6 @@ export function AtualizacoesRootClient() {
             ))}
           </MusicLibraryShelf>
         ) : null}
-
-        <MusicLibraryTrackShelf
-          title="Últimas adicionadas"
-          tracks={latestTracks}
-          actionHref={home?.newsBanner?.href}
-          actionLabel="Ver mais"
-        />
-
-        <MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} />
-
-        {loading && folders.length === 0 ? (
-          <MusicasListSkeleton rows={10} />
-        ) : (
-          <MusicasMonthLinks folders={folders} newFolderIds={newFolderIds} variant="hero" />
-        )}
       </div>
     </div>
   );
