@@ -20,6 +20,7 @@ export async function GET() {
     ok: diag.ok,
     mode: diag.mode,
     siteUrlHost: diag.siteUrlHost,
+    configuredSiteUrlHost: diag.configuredSiteUrlHost,
     present: diag.present,
     issues: diag.issues,
   });

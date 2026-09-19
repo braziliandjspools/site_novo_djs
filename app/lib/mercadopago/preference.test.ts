@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { getCanonicalPlanById } from "../billing/plan-catalog";
+import { SITE_PRODUCTION_URL } from "../branding";
 import {
   buildMercadoPagoPreferenceBody,
   MERCADO_PAGO_NOTIFICATION_URL,
   resolveCheckoutUrl,
+  resolveMercadoPagoCheckoutSiteUrl,
   sanitizeMercadoPagoErrorMessage,
 } from "./preference-policy";
 
@@ -58,6 +60,52 @@ test("preference body rejeita siteUrl sem HTTPS", () => {
       externalReference: "brs_mp_x",
       siteUrl: "http://localhost:3000",
       payer: { id: 1, email: "a@b.com", name: "A" },
+    }),
+  );
+});
+
+test("preference body rejeita https://localhost", () => {
+  const plan = getCanonicalPlanById("brs-drive-1m");
+  assert.ok(plan);
+  assert.throws(() =>
+    buildMercadoPagoPreferenceBody({
+      plan,
+      externalReference: "brs_mp_local",
+      siteUrl: "https://localhost:3000",
+      payer: { id: 1, email: "a@b.com", name: "A" },
+    }),
+  );
+});
+
+test("resolveMercadoPagoCheckoutSiteUrl em production troca localhost pelo domínio canônico", () => {
+  assert.equal(
+    resolveMercadoPagoCheckoutSiteUrl({
+      mode: "production",
+      configuredUrl: "http://localhost:3000",
+    }),
+    SITE_PRODUCTION_URL,
+  );
+  assert.equal(
+    resolveMercadoPagoCheckoutSiteUrl({
+      mode: "production",
+      configuredUrl: "https://localhost:3000",
+    }),
+    SITE_PRODUCTION_URL,
+  );
+  assert.equal(
+    resolveMercadoPagoCheckoutSiteUrl({
+      mode: "production",
+      configuredUrl: null,
+    }),
+    SITE_PRODUCTION_URL,
+  );
+});
+
+test("resolveMercadoPagoCheckoutSiteUrl em test rejeita localhost", () => {
+  assert.throws(() =>
+    resolveMercadoPagoCheckoutSiteUrl({
+      mode: "test",
+      configuredUrl: "http://localhost:3000",
     }),
   );
 });

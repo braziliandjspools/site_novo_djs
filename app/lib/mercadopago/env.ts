@@ -1,4 +1,9 @@
 import "server-only";
+import { SITE_PRODUCTION_URL } from "../branding";
+import {
+  isUnsafeMercadoPagoCheckoutHost,
+  resolveMercadoPagoCheckoutSiteUrl,
+} from "./preference-policy";
 
 export type MercadoPagoMode = "test" | "production";
 
@@ -15,6 +20,8 @@ export type MercadoPagoEnvDiagnostic = {
   ok: boolean;
   mode: MercadoPagoMode | null;
   siteUrlHost: string | null;
+  /** Host configurado na env antes do fallback de produção (se houver). */
+  configuredSiteUrlHost: string | null;
   /** Quais chaves estão presentes (nunca valores). */
   present: {
     accessToken: boolean;
@@ -83,41 +90,49 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function normalizeSiteUrl(raw: string): string {
-  let value = raw.replace(/\/$/, "").trim();
-  if (!value) return value;
-
-  // Colaram só o host (www....) ou http:// — forçamos HTTPS.
-  if (!/^https?:\/\//i.test(value)) {
-    value = `https://${value.replace(/^\/+/, "")}`;
-  } else if (value.toLowerCase().startsWith("http://")) {
-    value = `https://${value.slice("http://".length)}`;
+function peekConfiguredSiteHost(): string | null {
+  const found = readFirstPresent(SITE_URL_KEYS);
+  if (!found) return null;
+  try {
+    let value = found.value.replace(/\/+$/, "");
+    if (!/^https?:\/\//i.test(value)) {
+      value = `https://${value.replace(/^\/+/, "")}`;
+    } else if (/^http:\/\//i.test(value)) {
+      value = `https://${value.slice("http://".length)}`;
+    }
+    return new URL(value).hostname;
+  } catch {
+    return null;
   }
-
-  return value.replace(/\/$/, "");
 }
 
-function resolveSiteUrl(): string {
+function resolveSiteUrl(mode: MercadoPagoMode): string {
   const found = readFirstPresent(SITE_URL_KEYS);
-  if (!found) {
-    throw new Error(
-      `[Mercado Pago] Variável de ambiente obrigatória ausente: NEXT_PUBLIC_SITE_URL (ou SITE_URL).`,
-    );
-  }
-  const siteUrl = normalizeSiteUrl(found.value);
-  if (!siteUrl.startsWith("https://")) {
-    throw new Error(
-      `[Mercado Pago] ${found.key} deve usar HTTPS (ex.: https://www.brazilianremixservice.com.br).`,
-    );
-  }
-  // Valida URL parseável
   try {
-    // eslint-disable-next-line no-new
-    new URL(siteUrl);
-  } catch {
-    throw new Error(`[Mercado Pago] ${found.key} inválida.`);
+    const siteUrl = resolveMercadoPagoCheckoutSiteUrl({
+      mode,
+      configuredUrl: found?.value ?? null,
+      fallbackUrl: SITE_PRODUCTION_URL,
+    });
+    const configuredHost = peekConfiguredSiteHost();
+    if (
+      mode === "production" &&
+      configuredHost &&
+      isUnsafeMercadoPagoCheckoutHost(configuredHost)
+    ) {
+      console.warn(
+        `[Mercado Pago] ${found?.key} aponta para ${configuredHost}; back_urls usando ${SITE_PRODUCTION_URL}`,
+      );
+    } else if (mode === "production" && !found) {
+      console.warn(
+        `[Mercado Pago] SITE_URL ausente; back_urls usando ${SITE_PRODUCTION_URL}`,
+      );
+    }
+    return siteUrl;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "SITE_URL inválida.";
+    throw new Error(`[Mercado Pago] ${message}`);
   }
-  return siteUrl;
 }
 
 /**
@@ -152,7 +167,6 @@ export function diagnoseMercadoPagoEnv(): MercadoPagoEnvDiagnostic {
   if (!present.accessToken) issues.push("missing_MERCADO_PAGO_ACCESS_TOKEN");
   if (!present.webhookSecret) issues.push("missing_MERCADO_PAGO_WEBHOOK_SECRET");
   if (!present.mode) issues.push("missing_MERCADO_PAGO_MODE");
-  if (!present.siteUrl) issues.push("missing_NEXT_PUBLIC_SITE_URL");
 
   let mode: MercadoPagoMode | null = null;
   if (modeRaw) {
@@ -163,18 +177,33 @@ export function diagnoseMercadoPagoEnv(): MercadoPagoEnvDiagnostic {
     }
   }
 
+  if (!present.siteUrl && mode !== "production") {
+    issues.push("missing_NEXT_PUBLIC_SITE_URL");
+  }
+
+  const configuredSiteUrlHost = peekConfiguredSiteHost();
   let siteUrlHost: string | null = null;
-  if (site?.value) {
+
+  if (configuredSiteUrlHost && isUnsafeMercadoPagoCheckoutHost(configuredSiteUrlHost)) {
+    if (mode === "production") {
+      issues.push("site_url_localhost_overridden");
+      siteUrlHost = new URL(SITE_PRODUCTION_URL).host;
+    } else {
+      issues.push("site_url_localhost");
+    }
+  } else if (site?.value) {
     try {
-      const url = normalizeSiteUrl(site.value);
-      if (!url.startsWith("https://")) {
-        issues.push("site_url_must_be_https");
-      } else {
-        siteUrlHost = new URL(url).host;
-      }
+      const resolved = resolveMercadoPagoCheckoutSiteUrl({
+        mode: mode ?? "test",
+        configuredUrl: site.value,
+        fallbackUrl: SITE_PRODUCTION_URL,
+      });
+      siteUrlHost = new URL(resolved).host;
     } catch {
       issues.push("invalid_site_url");
     }
+  } else if (mode === "production") {
+    siteUrlHost = new URL(SITE_PRODUCTION_URL).host;
   }
 
   if (accessToken && mode === "production" && accessToken.startsWith("TEST-")) {
@@ -191,10 +220,20 @@ export function diagnoseMercadoPagoEnv(): MercadoPagoEnvDiagnostic {
     }
   }
 
+  const blockingIssues = issues.filter(
+    (issue) => issue !== "site_url_localhost_overridden",
+  );
+
   return {
-    ok: issues.length === 0 && present.accessToken && present.webhookSecret && present.mode && present.siteUrl,
+    ok:
+      blockingIssues.length === 0 &&
+      present.accessToken &&
+      present.webhookSecret &&
+      present.mode &&
+      (present.siteUrl || mode === "production"),
     mode,
     siteUrlHost,
+    configuredSiteUrlHost,
     present,
     issues,
   };
@@ -209,7 +248,7 @@ export function getMercadoPagoEnv(): MercadoPagoEnv {
   const accessToken = requireEnv(ACCESS_TOKEN_KEY);
   const webhookSecret = requireEnv(WEBHOOK_SECRET_KEY);
   const mode = parseMode(requireEnv(MODE_KEY));
-  const siteUrl = resolveSiteUrl();
+  const siteUrl = resolveSiteUrl(mode);
 
   let collectorId: number | null = null;
   const rawCollector = readTrimmed("MERCADO_PAGO_COLLECTOR_ID");

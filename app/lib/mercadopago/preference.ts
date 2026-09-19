@@ -25,6 +25,7 @@ export {
   buildMercadoPagoPreferenceBody,
   MERCADO_PAGO_NOTIFICATION_URL,
   resolveCheckoutUrl,
+  resolveMercadoPagoCheckoutSiteUrl,
   sanitizeMercadoPagoErrorMessage,
   type MercadoPagoPreferenceBody,
   type PreferencePayer,

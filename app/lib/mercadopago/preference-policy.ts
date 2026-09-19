@@ -1,9 +1,10 @@
+import { SITE_PRODUCTION_URL } from "../branding";
 import type { CanonicalPlan } from "../billing/plan-catalog";
 
 export type PreferenceCheckoutMode = "test" | "production";
 
 export const MERCADO_PAGO_NOTIFICATION_URL =
-  "https://www.brazilianremixservice.com.br/api/webhooks/mercadopago";
+  `${SITE_PRODUCTION_URL}/api/webhooks/mercadopago`;
 
 export type PreferencePayer = {
   id: number;
@@ -28,6 +29,70 @@ export type MercadoPagoPreferenceBody = {
   metadata: Record<string, string>;
 };
 
+/** Hosts que nunca podem ir para back_urls / retorno do Checkout Pro. */
+export function isUnsafeMercadoPagoCheckoutHost(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase();
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "0.0.0.0" ||
+    host === "::1" ||
+    host.endsWith(".local") ||
+    host.endsWith(".internal")
+  );
+}
+
+/**
+ * Normaliza a URL do site para back_urls.
+ * Em production, localhost/http privado caem no domínio canônico
+ * (evita retorno pós-pagamento em https://localhost quando o Dokploy
+ * herda NEXT_PUBLIC_SITE_URL/SITE_URL de desenvolvimento).
+ */
+export function resolveMercadoPagoCheckoutSiteUrl(input: {
+  mode: PreferenceCheckoutMode;
+  configuredUrl?: string | null;
+  fallbackUrl?: string;
+}): string {
+  const fallback = (input.fallbackUrl ?? SITE_PRODUCTION_URL).replace(/\/+$/, "");
+
+  const raw = input.configuredUrl?.trim() ?? "";
+  if (!raw) {
+    if (input.mode === "production") return fallback;
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL ausente. Defina um HTTPS público ou use MERCADO_PAGO_MODE=production.",
+    );
+  }
+
+  let value = raw.replace(/\/+$/, "");
+  if (!/^https?:\/\//i.test(value)) {
+    value = `https://${value.replace(/^\/+/, "")}`;
+  } else if (/^http:\/\//i.test(value)) {
+    value = `https://${value.slice("http://".length)}`;
+  }
+  value = value.replace(/\/+$/, "");
+
+  let hostname: string;
+  try {
+    hostname = new URL(value).hostname;
+  } catch {
+    if (input.mode === "production") return fallback;
+    throw new Error("NEXT_PUBLIC_SITE_URL inválida.");
+  }
+
+  if (isUnsafeMercadoPagoCheckoutHost(hostname)) {
+    if (input.mode === "production") return fallback;
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL não pode ser localhost no Checkout Pro. Use um HTTPS público (ex.: ngrok) ou o domínio de produção.",
+    );
+  }
+
+  if (!value.startsWith("https://")) {
+    throw new Error("NEXT_PUBLIC_SITE_URL deve usar HTTPS para back_urls do Checkout Pro.");
+  }
+
+  return value;
+}
+
 /** Monta o body da Preference (testável sem chamar a API). */
 export function buildMercadoPagoPreferenceBody(input: {
   plan: CanonicalPlan;
@@ -42,6 +107,18 @@ export function buildMercadoPagoPreferenceBody(input: {
   const base = input.siteUrl.replace(/\/$/, "");
   if (!base.startsWith("https://")) {
     throw new Error("NEXT_PUBLIC_SITE_URL deve usar HTTPS para back_urls do Checkout Pro.");
+  }
+
+  let hostname: string;
+  try {
+    hostname = new URL(base).hostname;
+  } catch {
+    throw new Error("NEXT_PUBLIC_SITE_URL inválida.");
+  }
+  if (isUnsafeMercadoPagoCheckoutHost(hostname)) {
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL não pode ser localhost para back_urls do Checkout Pro.",
+    );
   }
 
   const unitPrice = Number(input.plan.amountBrl);
