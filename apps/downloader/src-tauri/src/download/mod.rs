@@ -208,7 +208,8 @@ pub fn set_max_concurrent_downloads(app: AppHandle, value: u8) -> Result<u8, Str
     settings::set_max_concurrent_downloads(&app, value)
 }
 
-/// Registra falha de download na pasta de destino (TXT por faixa + log acumulado).
+/// Registra falha de download na pasta de destino (TXT acumulado + TXT por faixa).
+/// O arquivo `falhas-download-BRS.txt` serve para o usuário enviar ao administrador/suporte.
 #[tauri::command]
 pub fn append_download_failure_log(
     app: AppHandle,
@@ -218,7 +219,6 @@ pub fn append_download_failure_log(
 ) -> Result<String, String> {
     use std::fs::{create_dir_all, OpenOptions};
     use std::io::Write;
-    use std::time::{SystemTime, UNIX_EPOCH};
 
     let base_dir = resolve_download_dir(&app)?;
     create_dir_all(&base_dir).map_err(|e| format!("Não foi possível criar a pasta de destino: {e}"))?;
@@ -235,14 +235,10 @@ pub fn append_download_failure_log(
         .filter(|value| !value.is_empty())
         .unwrap_or("Falha desconhecida");
 
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    let stamp = format!("unix:{secs}");
+    let stamp = failure_log_stamp();
 
     let block = format!(
-        "[{stamp}]\nMúsica: {file_name}\nPasta: {folder}\nErro: {err_text}\nBaixe manualmente no site VIP (/musicas) ou tente de novo na fila.\n{}\n",
+        "[{stamp}]\nMúsica: {file_name}\nPasta: {folder}\nMotivo do erro: {err_text}\n\nEnvie este arquivo (falhas-download-BRS.txt) ao administrador/suporte BRS se precisar de ajuda.\nVocê também pode baixar a faixa manualmente no site VIP (/musicas) ou usar \"Tentar novamente\" na fila.\n{}\n",
         "-".repeat(48)
     );
 
@@ -253,6 +249,16 @@ pub fn append_download_failure_log(
             .append(true)
             .open(&summary)
             .map_err(|e| format!("Não foi possível gravar falhas-download-BRS.txt: {e}"))?;
+        // Cabeçalho na primeira gravação do arquivo
+        if file.metadata().map(|m| m.len()).unwrap_or(1) == 0 {
+            let header = "BRS Downloader — relatório de falhas\n\
+Envie este arquivo ao administrador/suporte com a descrição do problema.\n\
+Cada bloco abaixo lista a música e o motivo do erro.\n\
+================================================================================\n\n";
+            file
+                .write_all(header.as_bytes())
+                .map_err(|e| format!("Falha ao escrever cabeçalho do log: {e}"))?;
+        }
         file
             .write_all(block.as_bytes())
             .map_err(|e| format!("Falha ao escrever log de falhas: {e}"))?;
@@ -285,12 +291,36 @@ pub fn append_download_failure_log(
     std::fs::write(
         &per_track,
         format!(
-            "Música: {file_name}\nPasta: {folder}\nErro: {err_text}\nRegistrado em: {stamp}\n\nBaixe esta faixa manualmente no site VIP ou use \"Tentar novamente\" na fila do Downloader.\n"
+            "BRS Downloader — falha de download\n\nMúsica: {file_name}\nPasta: {folder}\nMotivo do erro: {err_text}\nRegistrado em: {stamp}\n\nEnvie este texto (ou o arquivo falhas-download-BRS.txt da pasta de destino) ao administrador/suporte.\nVocê também pode baixar esta faixa manualmente no site VIP ou usar \"Tentar novamente\" na fila do Downloader.\n"
         ),
     )
     .map_err(|e| format!("Não foi possível gravar {}: {e}", per_track.display()))?;
 
-    Ok(per_track.to_string_lossy().to_string())
+    Ok(summary.to_string_lossy().to_string())
+}
+
+fn failure_log_stamp() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let total = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0) as i64;
+    let secs = total.rem_euclid(60);
+    let mins = (total / 60).rem_euclid(60);
+    let hours = (total / 3600).rem_euclid(24);
+    let days = total.div_euclid(86_400);
+    // Algoritmo civil a partir de dias desde 1970-01-01 (Howard Hinnant).
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = if m <= 2 { y + 1 } else { y };
+    format!("{year:04}-{m:02}-{d:02} {hours:02}:{mins:02}:{secs:02} UTC")
 }
 
 #[tauri::command]

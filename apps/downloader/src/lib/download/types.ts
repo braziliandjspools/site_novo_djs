@@ -59,7 +59,9 @@ export type QueueTransport = {
 
 export const PROGRESS_SYNC_MS = 1_500;
 export const PROGRESS_UI_MS = 500;
-/** Sempre 1 — downloads em paralelo saturavam a rede/API e falhavam com frequência. */
-export const DEFAULT_MAX_CONCURRENCY = 1;
-/** Pausa entre um arquivo e o próximo (mais estável). */
-export const INTER_DOWNLOAD_DELAY_MS = 2_000;
+/** Padrão: 3 downloads ao mesmo tempo (configurável de 1 a 10). */
+export const DEFAULT_MAX_CONCURRENCY = 3;
+export const MIN_MAX_CONCURRENCY = 1;
+export const MAX_MAX_CONCURRENCY = 10;
+/** Pausa curta ao liberar um slot antes de puxar o próximo da fila. */
+export const INTER_DOWNLOAD_DELAY_MS = 400;

@@ -219,7 +219,8 @@ export const messagesEs = {
   settingsDownloads: "Descargas",
   settingsDownloadsDesc: "Comportamiento de la cola y de los archivos descargados.",
   settingsConcurrency: "Descargas simultáneas",
-  settingsConcurrencyDesc: "Cuántos archivos se descargan al mismo tiempo.",
+  settingsConcurrencyDesc:
+    "Cuántos archivos se descargan al mismo tiempo (1 a 10). Predeterminado: 3. Valores altos pueden fallar más en redes inestables.",
   settingsNetwork: "Red",
   settingsNetworkDesc: "Límite de velocidad y horarios de descarga.",
   settingsApplication: "Aplicación",

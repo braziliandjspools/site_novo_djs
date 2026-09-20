@@ -225,7 +225,8 @@ export const messagesPtBR = {
   settingsDownloads: "Downloads",
   settingsDownloadsDesc: "Comportamento da fila e dos arquivos baixados.",
   settingsConcurrency: "Downloads simultâneos",
-  settingsConcurrencyDesc: "Quantos arquivos baixam ao mesmo tempo.",
+  settingsConcurrencyDesc:
+    "Quantos arquivos baixam ao mesmo tempo (1 a 10). Padrão: 3. Valores altos podem aumentar falhas em redes instáveis.",
   settingsNetwork: "Rede",
   settingsNetworkDesc: "Limite de velocidade e horários de download.",
   settingsApplication: "Aplicativo",

@@ -2,8 +2,8 @@
  * Manifesto de release do Downloader.
  * Fonte da verdade = FALLBACK_* no código (sempre sobe no deploy).
  * Env no Vercel só sobrescreve se a versão for **estritamente maior** que o fallback.
- * - DOWNLOADER_LATEST_VERSION=1.0.14_estable
- * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.14_estable_x64-setup.exe
+ * - DOWNLOADER_LATEST_VERSION=1.0.15_estable
+ * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.15_estable_x64-setup.exe
  */
 
 export type DownloaderReleaseManifest = {
@@ -14,12 +14,12 @@ export type DownloaderReleaseManifest = {
   platform: "windows";
 };
 
-const FALLBACK_VERSION = "1.0.14_estable";
+const FALLBACK_VERSION = "1.0.15_estable";
 const FALLBACK_DOWNLOAD_URL =
-  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.14_estable_x64-setup.exe";
+  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.15_estable_x64-setup.exe";
 const FALLBACK_NOTES =
-  "BRS Downloader 1.0.14_estable: 1 arquivo por vez, sem metadados na fila, TXT de falhas na pasta de destino.";
-const FALLBACK_PUBLISHED_AT = "2026-09-19T15:00:00.000Z";
+  "BRS Downloader 1.0.15_estable: downloads simultâneos (1–10, padrão 3) e TXT de falhas na pasta de destino para enviar ao suporte.";
+const FALLBACK_PUBLISHED_AT = "2026-09-20T21:00:00.000Z";
 
 function cleanEnv(value: string | undefined) {
   const trimmed = value?.trim() ?? "";

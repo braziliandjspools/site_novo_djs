@@ -219,7 +219,8 @@ export const messagesEn = {
   settingsDownloads: "Downloads",
   settingsDownloadsDesc: "Queue behavior and downloaded files.",
   settingsConcurrency: "Simultaneous downloads",
-  settingsConcurrencyDesc: "How many files download at the same time.",
+  settingsConcurrencyDesc:
+    "How many files download at the same time (1 to 10). Default: 3. Higher values may fail more on unstable networks.",
   settingsNetwork: "Network",
   settingsNetworkDesc: "Speed limit and download schedule.",
   settingsApplication: "Application",

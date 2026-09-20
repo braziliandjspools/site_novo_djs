@@ -71,14 +71,15 @@ export function isDesktopRuntime() {
   return isTauriRuntime();
 }
 
-export async function setMaxConcurrentDownloads(_value: number) {
-  if (!isTauriRuntime()) return 1;
+export async function setMaxConcurrentDownloads(value: number) {
+  const clamped = Math.min(10, Math.max(1, Math.round(Number(value) || 3)));
+  if (!isTauriRuntime()) return clamped;
   const { invoke } = await import("@tauri-apps/api/core");
-  return invoke<number>("set_max_concurrent_downloads", { value: 1 });
+  return invoke<number>("set_max_concurrent_downloads", { value: clamped });
 }
 
 export async function getMaxConcurrentDownloads() {
-  if (!isTauriRuntime()) return 1;
+  if (!isTauriRuntime()) return 3;
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<number>("get_max_concurrent_downloads");
 }

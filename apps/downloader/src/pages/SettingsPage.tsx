@@ -202,7 +202,13 @@ export function SettingsPage() {
   async function updatePreference(patch: Partial<AppPreferences>) {
     setPrefsError(null);
     const previous = prefs;
-    const next = { ...prefs, ...patch, maxConcurrentDownloads: 1 };
+    const next = { ...prefs, ...patch };
+    if (patch.maxConcurrentDownloads != null) {
+      next.maxConcurrentDownloads = Math.min(
+        10,
+        Math.max(1, Math.round(Number(patch.maxConcurrentDownloads) || 3)),
+      );
+    }
     setPrefs(next);
     try {
       const saved = await setAppPreferences(next);
@@ -210,6 +216,9 @@ export function SettingsPage() {
       downloadManager.setAutoDownload(saved.autoDownload);
       downloadManager.setSchedulePreferences(saved);
       downloadManager.setZipCompressDownloads(saved.zipCompressDownloads);
+      if (patch.maxConcurrentDownloads != null) {
+        downloadManager.setMaxConcurrency(saved.maxConcurrentDownloads);
+      }
       notificationManager.setEnabled(saved.showNotifications);
     } catch (error) {
       setPrefs(previous);
@@ -435,6 +444,54 @@ export function SettingsPage() {
 
       <Panel title={t("settingsDownloads")} description={t("settingsDownloadsDesc")}>
         <div className="space-y-3">
+          <div className="rounded-lg border border-zinc-800 bg-black/40 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">{t("settingsConcurrency")}</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                  {t("settingsConcurrencyDesc")}
+                </p>
+              </div>
+              <span className="flex-shrink-0 rounded-md border border-[#1db954]/40 bg-[#1db954]/10 px-2.5 py-1 text-sm font-bold text-[#1db954]">
+                {prefs.maxConcurrentDownloads}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={10}
+              step={1}
+              value={prefs.maxConcurrentDownloads}
+              onChange={(event) => {
+                const maxConcurrentDownloads = Number(event.target.value);
+                setPrefs((current) => ({ ...current, maxConcurrentDownloads }));
+              }}
+              onMouseUp={(event) => {
+                void updatePreference({
+                  maxConcurrentDownloads: Number(event.currentTarget.value),
+                });
+              }}
+              onTouchEnd={(event) => {
+                void updatePreference({
+                  maxConcurrentDownloads: Number(event.currentTarget.value),
+                });
+              }}
+              onKeyUp={(event) => {
+                if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "Home" || event.key === "End") {
+                  void updatePreference({
+                    maxConcurrentDownloads: Number(event.currentTarget.value),
+                  });
+                }
+              }}
+              className="mt-4 w-full accent-[#1db954]"
+              aria-label={t("settingsConcurrency")}
+            />
+            <div className="mt-2 flex justify-between text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+              <span>1</span>
+              <span>10</span>
+            </div>
+          </div>
+
           <PreferenceToggle
             label={t("settingsScheduleEnabled")}
             description={t("settingsScheduleEnabledDesc")}

@@ -367,21 +367,26 @@ export class DownloadManager {
 
     if (isDesktopRuntime()) {
       try {
-        await getMaxConcurrentDownloads();
+        this.maxConcurrency = await getMaxConcurrentDownloads();
       } catch {
-        /* ignore */
+        this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
       }
+    } else {
+      this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
     }
-    this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
-    void setMaxConcurrentDownloads(1).catch(() => undefined);
     this.notify();
     void this.processQueue();
   }
 
-  async setMaxConcurrency(_value: number) {
-    this.maxConcurrency = DEFAULT_MAX_CONCURRENCY;
+  async setMaxConcurrency(value: number) {
+    const next = Math.min(10, Math.max(1, Math.round(Number(value) || DEFAULT_MAX_CONCURRENCY)));
+    this.maxConcurrency = next;
     if (isDesktopRuntime()) {
-      this.maxConcurrency = await setMaxConcurrentDownloads(1);
+      try {
+        this.maxConcurrency = await setMaxConcurrentDownloads(next);
+      } catch {
+        /* mantém valor em memória */
+      }
     }
     this.notify();
     void this.processQueue();

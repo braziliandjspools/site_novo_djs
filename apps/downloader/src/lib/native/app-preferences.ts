@@ -42,7 +42,7 @@ export const DEFAULT_PREFERENCES: AppPreferences = {
   autoDownload: true,
   showNotifications: true,
   downloadDir: null,
-  maxConcurrentDownloads: 1,
+  maxConcurrentDownloads: 3,
   preserveFolderStructure: true,
   existingFileBehavior: "ignore",
   apiBaseUrl: null,
@@ -101,6 +101,10 @@ function normalizePreferences(raw: Partial<AppPreferences> | null | undefined): 
   merged.checkAppUpdates = merged.checkAppUpdates !== false;
   merged.locale = normalizeLocale(merged.locale);
   merged.localeConfigured = Boolean(merged.localeConfigured);
+  const concurrency = Number(merged.maxConcurrentDownloads);
+  merged.maxConcurrentDownloads = Number.isFinite(concurrency)
+    ? Math.min(10, Math.max(1, Math.round(concurrency)))
+    : 3;
   return merged;
 }
 

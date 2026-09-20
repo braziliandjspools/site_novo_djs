@@ -108,14 +108,19 @@ pub fn open_download_dir(app: &AppHandle) -> Result<(), String> {
     }
 }
 
-pub fn get_max_concurrent_downloads(_app: &AppHandle) -> Result<u8, String> {
-    // Downloads paralelos aumentavam falhas; o app baixa sempre 1 arquivo por vez.
-    Ok(1)
+fn clamp_max_concurrent(value: u8) -> u8 {
+    value.clamp(1, 10)
 }
 
-pub fn set_max_concurrent_downloads(app: &AppHandle, _value: u8) -> Result<u8, String> {
+pub fn get_max_concurrent_downloads(app: &AppHandle) -> Result<u8, String> {
+    let prefs = read_preferences(app)?;
+    Ok(clamp_max_concurrent(prefs.max_concurrent_downloads))
+}
+
+pub fn set_max_concurrent_downloads(app: &AppHandle, value: u8) -> Result<u8, String> {
+    let clamped = clamp_max_concurrent(value);
     update_prefs(app, |prefs| {
-        prefs.max_concurrent_downloads = 1;
+        prefs.max_concurrent_downloads = clamped;
     })?;
-    Ok(1)
+    Ok(clamped)
 }
