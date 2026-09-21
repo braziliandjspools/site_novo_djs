@@ -2,12 +2,23 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Disc3, FolderOpen, Music2, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Disc3, FolderOpen, Music2, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import { resolveFolderCoverUrl } from "../../lib/local-folder-covers";
-import { displayFolderName, folderHref, slugifyFolderName } from "../../lib/vip-music-slugs";
-import { clearMusicasCache, fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
+import {
+  displayFolderName,
+  folderHref,
+  parseMonthStatus,
+  slugifyFolderName,
+} from "../../lib/vip-music-slugs";
+import {
+  clearMusicasCache,
+  fetchMusicasJson,
+  peekMusicasCache,
+  prefetchMusicasJson,
+} from "../lib/musicas-fetch-cache";
 import {
   getContinueListening,
   getRecentFolders,
@@ -74,88 +85,106 @@ function AcervoCard({
   const slug = slugifyFolderName(folder.name);
   const href = folderHref([slug]);
   const title = displayFolderName(folder.name);
-  const cover = resolveFolderCoverUrl({
-    folderName: folder.name,
-    driveCoverUrl: catalog.coverUrl,
-  });
+  // Prioriza capa do Drive (folder.*); fallback para capa local estática.
+  const cover =
+    catalog.coverUrl?.trim() ||
+    resolveFolderCoverUrl({
+      folderName: folder.name,
+      driveCoverUrl: null,
+    });
   const folderCount = catalog.folderCount;
   const trackCount = catalog.trackCount;
+  const hasFolderStats = typeof folderCount === "number" && folderCount > 0;
+  const hasTrackStats = typeof trackCount === "number" && trackCount > 0;
+  const { label: statusLabel, status } = parseMonthStatus(folder.name);
+  const badge = isNew ? "Novo" : statusLabel || null;
+
+  function prefetch() {
+    prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(slug)}`);
+  }
 
   return (
     <article
-      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#151a17] shadow-[0_18px_50px_rgba(0,0,0,0.4)] transition duration-300 hover:-translate-y-0.5 hover:border-[#1ed760]/35 hover:shadow-[0_22px_60px_rgba(0,0,0,0.5)]"
-      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+      className="group/acervo min-w-0"
+      style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-60" aria-hidden>
-        {cover ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cover} alt="" className="h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0c1210]/90 via-[#101412]/80 to-[#0a0c0b]/95" />
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a2a24] via-[#121816] to-[#0c0e0d]" />
-        )}
-      </div>
-
       <Link
         href={href}
         prefetch={false}
-        className="relative z-10 flex h-full flex-col gap-4 p-4 sm:p-5"
-        onMouseEnter={() => {
-          void import("../lib/musicas-fetch-cache").then(({ prefetchMusicasJson }) => {
-            prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(slug)}`);
-          });
-        }}
+        onMouseEnter={prefetch}
+        onFocus={prefetch}
+        aria-label={`Abrir acervo ${title}`}
+        className="block outline-none focus-visible:ring-2 focus-visible:ring-[#1ed760]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#101412]"
       >
-        <div className="flex items-start gap-3.5">
-          <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/15 sm:h-[72px] sm:w-[72px]">
-            {cover ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={cover} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1ed760]/30 to-white/5 text-[#1ed760]">
+        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-[#17191d] shadow-[0_16px_40px_-18px_rgba(0,0,0,0.85)] ring-1 ring-white/10 transition duration-300 group-hover/acervo:-translate-y-1 group-hover/acervo:ring-[#1ed760]/40">
+          {cover ? (
+            <>
+              <Image
+                src={cover}
+                alt=""
+                fill
+                sizes="(max-width:420px) 50vw, (max-width:1024px) 33vw, 20vw"
+                className="object-cover transition duration-500 group-hover/acervo:scale-105"
+                unoptimized={cover.startsWith("/api/")}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
+            </>
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#1a2a24] via-[#141816] to-[#0c0e0d]">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1ed760]/15 text-[#1ed760] ring-1 ring-[#1ed760]/25">
                 <FolderOpen className="h-7 w-7" aria-hidden />
               </span>
-            )}
-          </div>
-          <div className="min-w-0 flex-1 pt-0.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]/80">
-                Acervo
-              </p>
-              {isNew ? (
-                <span className="rounded-full bg-[#1ed760]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#1ed760]">
-                  Novo
-                </span>
-              ) : null}
             </div>
-            <h2 className="mt-1 truncate font-display text-[20px] font-extrabold uppercase tracking-tight text-white sm:text-[22px]">
-              {title}
-            </h2>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {typeof folderCount === "number" && folderCount > 0 ? (
-                <span className="rounded-lg bg-black/40 px-2 py-1 text-[11px] font-semibold tabular-nums text-white/65 ring-1 ring-white/10">
-                  {folderCount.toLocaleString("pt-BR")}{" "}
-                  {folderCount === 1 ? "pasta" : "pastas"}
-                </span>
-              ) : null}
-              {typeof trackCount === "number" && trackCount > 0 ? (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[11px] font-semibold tabular-nums text-white/65 ring-1 ring-white/10">
-                  <Music2 className="h-3 w-3 opacity-60" aria-hidden />
-                  {trackCount.toLocaleString("pt-BR")}{" "}
-                  {trackCount === 1 ? "música" : "músicas"}
-                </span>
-              ) : null}
-            </div>
-          </div>
-        </div>
+          )}
 
-        <span className="mt-auto inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] text-[13px] font-bold uppercase tracking-wide text-black transition group-hover:brightness-110">
-          Abrir acervo
-          <ArrowRight className="h-4 w-4" aria-hidden />
-        </span>
+          {badge ? (
+            <span
+              className={`absolute left-2.5 top-2.5 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] backdrop-blur-sm ${
+                isNew || status === "completo" || status === "em-atualizacao"
+                  ? "bg-[#1ed760]/90 text-black"
+                  : "bg-black/55 text-white"
+              }`}
+            >
+              {badge}
+            </span>
+          ) : null}
+        </div>
       </Link>
+
+      <div className="mt-2.5 min-w-0 px-0.5">
+        <Link
+          href={href}
+          prefetch={false}
+          onMouseEnter={prefetch}
+          onFocus={prefetch}
+          className="outline-none"
+        >
+          <h2 className="line-clamp-2 text-[13px] font-bold leading-snug tracking-tight text-white transition-colors hover:text-[#1ed760] sm:text-[14px]">
+            {title}
+          </h2>
+        </Link>
+
+        {hasFolderStats || hasTrackStats ? (
+          <p className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] leading-snug text-white/50">
+            {hasFolderStats ? (
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <FolderOpen className="h-3 w-3 opacity-70" aria-hidden />
+                {folderCount!.toLocaleString("pt-BR")}{" "}
+                {folderCount === 1 ? "pasta" : "pastas"}
+              </span>
+            ) : null}
+            {hasTrackStats ? (
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <Music2 className="h-3 w-3 opacity-70" aria-hidden />
+                {trackCount!.toLocaleString("pt-BR")}{" "}
+                {trackCount === 1 ? "música" : "músicas"}
+              </span>
+            ) : null}
+          </p>
+        ) : (
+          <p className="mt-1 text-[11px] text-white/35">Acervo BRS</p>
+        )}
+      </div>
     </article>
   );
 }
@@ -305,21 +334,19 @@ export function AtualizacoesRootClient() {
       )}
 
       <section className="mb-10">
-        <div className="mb-4 flex items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-xl font-extrabold uppercase tracking-tight text-white sm:text-2xl">
-              Acervos
-            </h2>
-            <p className="mt-1 text-[13px] text-white/45">
-              Abra um acervo para navegar estilos em acordeão. O acervo inteiro não pode ser baixado de uma vez.
-            </p>
-          </div>
+        <div className="mb-4">
+          <h2 className="font-display text-xl font-extrabold uppercase tracking-tight text-white sm:text-2xl">
+            Acervos
+          </h2>
+          <p className="mt-1 text-[13px] text-white/45">
+            Capas do Drive com pastas e músicas reais de cada acervo.
+          </p>
         </div>
 
         {loading && folders.length === 0 ? (
           <MusicasListSkeleton rows={8} />
         ) : (
-          <div className="grid grid-cols-1 gap-3.5 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 min-[480px]:grid-cols-3 sm:gap-x-4 sm:gap-y-6 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {folders.map((folder, index) => (
               <AcervoCard
                 key={folder.id}
