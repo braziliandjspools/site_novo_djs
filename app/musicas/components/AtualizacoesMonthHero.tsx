@@ -50,7 +50,7 @@ export function AtualizacoesMonthHero({
           ? "Pack"
           : mode === "week-styles"
             ? "Mês"
-            : "Pastas";
+            : "Acervo";
   const description =
     mode === "weeks"
       ? "Escolha a pasta do mês e continue até as subpastas e faixas."
@@ -60,7 +60,7 @@ export function AtualizacoesMonthHero({
           ? "Ouça no navegador ou envie ao BRS Downloader."
           : mode === "week-styles"
             ? "Abra uma pasta — pode ter subpastas ou MP3s diretos."
-            : "Abra a pasta e continue até as faixas.";
+            : "Abra um estilo em acordeão. Pastas internas podem ser baixadas; o acervo inteiro não.";
   const countLabel =
     mode === "weeks"
       ? itemCount === 1

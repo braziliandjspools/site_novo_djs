@@ -34,6 +34,7 @@ import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { MusicLibraryBrowseShell } from "./MusicLibraryBrowseShell";
 import { VipMusicTrackList } from "./VipMusicTrackList";
+import { AtualizacoesAcervoAccordion } from "./AtualizacoesAcervoAccordion";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -276,6 +277,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
+  /** Página do acervo (1 segmento) com estilos → acordeões, sem baixar o acervo inteiro. */
+  const useAcervoAccordion =
+    slugSegments.length === 1 && showingStyles && !showingMonths && !showingWeeks;
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -655,7 +659,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           monthWeeks={siblingWeeks}
           newChildIds={newChildIds}
         >
-          {data.items.length > 0 ? (
+          {useAcervoAccordion ? (
+            <AtualizacoesAcervoAccordion
+              folders={data.items}
+              acervoSegments={slugSegments}
+              packTitle={displayFolderName(data.folderName)}
+              canPlay={playbackEnabled}
+              canDownload={downloadEnabled}
+              newFolderIds={newChildIds}
+            />
+          ) : data.items.length > 0 ? (
             <StyleFolderLinks
               folders={data.items}
               slugSegments={slugSegments}
@@ -685,7 +698,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               />
             </div>
           )}
-          {useSiblingFolderNav ? (
+          {!useAcervoAccordion && useSiblingFolderNav ? (
             <AtualizacoesMonthFooterNav
               monthSlug={monthSlug}
               months={months}
@@ -694,7 +707,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               homeHref={homeParentHref}
               homeLabel="Home"
             />
-          ) : (
+          ) : !useAcervoAccordion ? (
             <AtualizacoesMonthFooterNav
               monthSlug={monthSlug}
               months={months}
@@ -707,7 +720,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               }
               homeLabel="Home"
             />
-          )}
+          ) : null}
         </MusicLibraryBrowseShell>
       )}
 

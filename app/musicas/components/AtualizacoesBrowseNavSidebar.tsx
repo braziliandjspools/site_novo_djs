@@ -436,7 +436,7 @@ export function AtualizacoesBrowseNavSidebar({
                         meta={meta}
                       />
                     </div>
-                    {canSendFolderToDownloader(catalog) ? (
+                    {canSendFolderToDownloader(catalog, hrefSegments.slice(0, -1)) ? (
                       <SendPackToDownloaderButton
                         slug={styleSlugPath}
                         label={`Enviar ${displayFolderName(folder.name)} ao Downloader`}

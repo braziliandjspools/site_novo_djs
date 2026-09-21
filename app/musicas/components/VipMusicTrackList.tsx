@@ -434,7 +434,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const progressBlock =
     isActive && canPlay && showDuration ? (
       <div className="mt-2 flex items-center gap-2">
-        <span className="w-8 flex-shrink-0 font-mono text-[10px] tabular-nums text-white/40">
+        <span className="w-9 flex-shrink-0 font-mono text-[10px] tabular-nums text-white/40 sm:w-8">
           {formatTime(currentTime)}
         </span>
         <div
@@ -444,17 +444,19 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           aria-valuemin={0}
           aria-valuemax={Math.round(displayDuration)}
           aria-valuenow={Math.round(currentTime)}
-          className="h-3 min-w-0 flex-1 cursor-pointer py-1"
+          className="flex h-8 min-w-0 flex-1 cursor-pointer items-center py-2 touch-manipulation sm:h-5 sm:py-1"
           onClick={handleSeekClick}
         >
-          <div className="h-[3px] rounded-full bg-white/12">
+          <div className="h-1.5 w-full rounded-full bg-white/12 sm:h-[3px]">
             <div
-              className="h-full rounded-full bg-[#1ed760]"
+              className="relative h-full rounded-full bg-[#1ed760]"
               style={{ width: `${Math.min(100, progress)}%` }}
-            />
+            >
+              <span className="absolute -right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#1ed760] shadow sm:h-2.5 sm:w-2.5" />
+            </div>
           </div>
         </div>
-        <span className="w-8 flex-shrink-0 text-right font-mono text-[10px] tabular-nums text-white/40">
+        <span className="w-9 flex-shrink-0 text-right font-mono text-[10px] tabular-nums text-white/40 sm:w-8">
           {formatTime(displayDuration)}
         </span>
       </div>

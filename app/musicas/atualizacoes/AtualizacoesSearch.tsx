@@ -38,7 +38,7 @@ export function AtualizacoesSearch() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar mês, pasta ou faixa..."
+          placeholder="Buscar músicas, artistas ou acervos…"
           className="w-full rounded-full border-0 bg-[#242424] py-3 pl-10 pr-10 text-sm text-white outline-none transition-colors placeholder:text-zinc-500 focus:bg-[#2a2a2a] focus:ring-2 focus:ring-white/10"
         />
         {query && (

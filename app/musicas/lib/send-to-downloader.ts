@@ -215,6 +215,17 @@ export async function sendPackSlugToDownloader(
     throw new Error(options.kind === "artist" ? "Slug do artista inválido." : "Slug da pasta inválido.");
   }
 
+  const rootHint = options.root === "colecoes" ? "colecoes" : "vip";
+  if (
+    options.kind !== "artist" &&
+    rootHint === "vip" &&
+    normalized.split("/").filter(Boolean).length === 1
+  ) {
+    throw new Error(
+      "Não é permitido baixar o acervo inteiro. Abra um estilo ou uma pasta e envie essa pasta ao Downloader.",
+    );
+  }
+
   if (!options.skipConfirm) {
     await assertDownloaderConfirm({
       count: Math.max(1, options.previewCount ?? 1),

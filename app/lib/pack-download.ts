@@ -176,6 +176,15 @@ export async function importPackJobsBySlug(
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
   }
 
+  // Segurança: acervo VIP de 1º nível não pode ser enfileirado inteiro.
+  // Pastas internas (estilo, data, etc.) continuam permitidas.
+  if (folder.root === "vip" && folder.slugSegments.length === 1) {
+    return {
+      error:
+        "Não é permitido baixar o acervo inteiro. Abra um estilo ou uma pasta e envie essa pasta ao Downloader." as const,
+    };
+  }
+
   const tracks = await collectTracksRecursive(folder.folderId, folder.folderName, folder.relativePath);
   if (tracks.length === 0) {
     return { error: "Esta pasta não possui faixas para baixar." as const };

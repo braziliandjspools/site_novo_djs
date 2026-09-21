@@ -244,7 +244,7 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
   const folderCount = folder.folderCount ?? 0;
   const trackCount = folder.trackCount ?? 0;
   const hasSubfolders = folderCount > 0;
-  const canSend = canSendFolderToDownloader(folder);
+  const canSend = canSendFolderToDownloader(folder, slugSegments);
   const metaParts = formatMeta(folderCount, trackCount, folder.detail);
   const badge = folder.badge?.trim() || (isNew ? "Novo" : null);
   const badgeTone = folder.badgeTone ?? "green";
@@ -352,11 +352,16 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
         disabled: sending || sent,
         onClick: () => void sendToDownloader(),
       });
+      actions.push({
+        id: "download",
+        label: "Baixar pasta",
+        icon: Download,
+        onClick: downloadFolderLink,
+      });
     }
     actions.push(
       { id: "copy", label: "Copiar link", icon: Copy, onClick: copyLink },
       { id: "share", label: "Compartilhar", icon: Share2, onClick: () => void shareFolder() },
-      { id: "download", label: "Baixar pasta", icon: Download, onClick: downloadFolderLink },
     );
     return actions;
   }, [
@@ -625,7 +630,7 @@ export function LibraryFolderList({
               return (
                 <article key={folder.id} className="group/cardwrap relative w-full max-w-[280px] md:max-w-none">
                   <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 opacity-100 transition-opacity duration-200 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/cardwrap:opacity-100 [@media(hover:hover)]:group-focus-within/cardwrap:opacity-100">
-                    {canSendFolderToDownloader(folder) ? (
+                    {canSendFolderToDownloader(folder, slugSegments) ? (
                       <FolderDownloaderButton
                         slug={resolveSlug}
                         label={`Enviar ${titleLabel} ao Downloader`}
@@ -780,7 +785,7 @@ export function LibraryFolderList({
 
           {!muted ? (
             <div className="flex flex-shrink-0 items-center gap-1">
-              {canSendFolderToDownloader(folder) ? (
+              {canSendFolderToDownloader(folder, slugSegments) ? (
                 <FolderDownloaderButton
                   slug={resolveSlug}
                   label={`Enviar ${titleLabel} ao Downloader`}
