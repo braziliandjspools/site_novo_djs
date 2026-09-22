@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getNewFolderIds, markFoldersRead } from "./read-state";
+import { getNewFolderIds } from "./read-state";
 
 export function useNewFolderHighlights(storageKey: string, folderIds: string[]) {
   const [newIds, setNewIds] = useState<Set<string>>(() => new Set());
@@ -9,13 +9,8 @@ export function useNewFolderHighlights(storageKey: string, folderIds: string[]) 
 
   useEffect(() => {
     if (folderIds.length === 0) return;
-
+    // Destaque expira à meia-noite (getNewFolderIds cuida do estado persistido).
     setNewIds(getNewFolderIds(storageKey, folderIds));
-
-    const idsToSave = [...folderIds];
-    return () => {
-      markFoldersRead(storageKey, idsToSave);
-    };
   }, [storageKey, idsKey]);
 
   return newIds;

@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { MUSICAS_HERO_BG_SRC, MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
-import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 
 export type PackHeroStat = {
   label: string;
@@ -35,7 +34,6 @@ type PackHeroProps = {
   onPlay?: () => void;
   onSendToDownloader?: () => void;
   onDownload?: () => void;
-  onSynced?: () => void | Promise<void>;
   /** Slot extra após os botões padrão (raro). */
   extraActions?: ReactNode;
 };
@@ -59,7 +57,6 @@ export function PackHero({
   onPlay,
   onSendToDownloader,
   onDownload,
-  onSynced,
   extraActions,
 }: PackHeroProps) {
   const cover = coverUrl?.trim() || MUSICAS_HERO_COVER_SRC;
@@ -220,9 +217,6 @@ export function PackHero({
               )}
             </button>
 
-            {onSynced ? (
-              <AtualizacoesDriveSyncButton onSynced={onSynced} className="w-full lg:w-auto" />
-            ) : null}
             {extraActions}
           </div>
         </div>

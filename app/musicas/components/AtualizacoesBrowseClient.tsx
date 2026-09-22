@@ -25,7 +25,7 @@ import {
 import { startBrowserTrackDownload } from "../lib/browser-download-file";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
-import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
+import { autoSyncDriveOnEnter } from "../lib/auto-drive-sync";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
@@ -254,6 +254,20 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   useEffect(() => {
     void loadBrowse();
   }, [loadBrowse]);
+
+  // Sincroniza automaticamente ao entrar/recarregar a pasta (substitui botão manual).
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const result = await autoSyncDriveOnEnter();
+      if (cancelled || !result) return;
+      await loadBrowse({ forceRefresh: true });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slugPath]);
 
   // Mantém o player ao navegar pastas (como pools DJ). Só limpa ao sair da árvore.
   useEffect(() => {
@@ -576,9 +590,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           onPlay={() => void handlePackPlay()}
           onSendToDownloader={() => void handlePackSendToDownloader()}
           onDownload={() => void handlePackDownload()}
-          onSynced={async () => {
-            await loadBrowse({ forceRefresh: true });
-          }}
         />
       ) : null}
 
@@ -589,14 +600,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           hasVip={hasVip}
           mode={heroMode}
           coverUrl={data.coverUrl}
-          actions={
-            <AtualizacoesDriveSyncButton
-              className="w-full sm:w-auto"
-              onSynced={async () => {
-                await loadBrowse({ forceRefresh: true });
-              }}
-            />
-          }
         />
       ) : null}
 

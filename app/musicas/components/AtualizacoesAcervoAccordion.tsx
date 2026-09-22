@@ -21,10 +21,14 @@ import { fetchMusicasJson, peekMusicasCache, setMusicasCache } from "../lib/musi
 import { canSendFolderToDownloader } from "../lib/can-send-to-downloader";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
+import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
+
+/** Faixas visíveis por página dentro do acordeão (restante via "Carregar mais"). */
+const ACCORDION_TRACKS_PAGE_SIZE = 35;
 
 type ResolveResponse = {
   folderId: string;
@@ -96,12 +100,75 @@ function FolderDownloadButton({
       type="button"
       onClick={(event) => void handleClick(event)}
       disabled={sending}
-      className="inline-flex h-11 min-w-[44px] flex-shrink-0 items-center justify-center gap-2 rounded-full border border-[#1ed760]/35 bg-[#1ed760]/12 px-3.5 text-[12px] font-bold uppercase tracking-wide text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
+      className="inline-flex h-8 min-w-[32px] flex-shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#1ed760]/35 bg-[#1ed760]/12 px-2.5 text-[11px] font-bold uppercase tracking-wide text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
       aria-label={`Baixar pasta ${label}`}
     >
-      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MonitorDown className="h-4 w-4" />}
-      <span className="hidden min-[380px]:inline">{sending ? "Enviando…" : "Baixar pasta"}</span>
+      {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
+      <span className="hidden min-[420px]:inline">{sending ? "Enviando…" : "Baixar"}</span>
     </button>
+  );
+}
+
+/** Pagina a lista completa de faixas já carregada (35 por vez, sem nova chamada de rede). */
+function useAccordionTrackPage(tracks: PreviewTrack[] | undefined) {
+  const all = tracks ?? [];
+  const [visibleCount, setVisibleCount] = useState(ACCORDION_TRACKS_PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(ACCORDION_TRACKS_PAGE_SIZE);
+  }, [all]);
+
+  const visible = all.slice(0, visibleCount);
+  const hasMore = all.length > visibleCount;
+
+  const loadMore = useCallback(async () => {
+    const next = Math.min(all.length, visibleCount + ACCORDION_TRACKS_PAGE_SIZE);
+    setVisibleCount(next);
+    return { tracks: all.slice(0, next), hasMore: all.length > next };
+  }, [all, visibleCount]);
+
+  return { visible, hasMore, loadMore };
+}
+
+function AccordionLoadMoreButton({
+  hasMore,
+  onLoadMore,
+  shownCount,
+  totalCount,
+}: {
+  hasMore: boolean;
+  onLoadMore: () => Promise<unknown>;
+  shownCount: number;
+  totalCount: number;
+}) {
+  const [loading, setLoading] = useState(false);
+  if (!hasMore) return null;
+
+  async function handleClick() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await onLoadMore();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 py-3">
+      <button
+        type="button"
+        disabled={loading}
+        onClick={() => void handleClick()}
+        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-colors hover:border-[#1ed760]/50 hover:bg-[#1ed760]/10 hover:text-[#1ed760] disabled:opacity-50"
+      >
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+        Carregar mais
+      </button>
+      <p className="text-[10px] text-white/35">
+        Mostrando {shownCount} de {totalCount} faixas
+      </p>
+    </div>
   );
 }
 
@@ -155,24 +222,26 @@ function NestedFolderAccordion({
 
   const tracks = data?.tracks ?? [];
   const childFolders = data?.level === "folders" ? data.items : [];
+  const { visible: visibleTracks, hasMore: hasMoreTracks, loadMore: loadMoreTracks } =
+    useAccordionTrackPage(tracks);
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/10 bg-black/25">
-      <div className="flex items-stretch gap-2 p-1.5 sm:p-2">
+      <div className="flex items-stretch gap-1.5 p-1.5">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
-          className="flex min-h-[48px] min-w-0 flex-1 items-center gap-3 rounded-lg px-2.5 py-2 text-left transition hover:bg-white/[0.04]"
+          className="flex min-h-[40px] min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/[0.04]"
         >
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-white/70">
-            <FolderOpen className="h-4 w-4" aria-hidden />
+          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-white/70">
+            <FolderOpen className="h-3.5 w-3.5" aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[14px] font-bold uppercase tracking-wide text-white">
+            <span className="block truncate text-[12.5px] font-bold uppercase tracking-wide text-white">
               {title}
             </span>
-            <span className="mt-0.5 block text-[11px] text-white/45">
+            <span className="mt-0.5 block text-[10.5px] text-white/45">
               {(folder.trackCount ?? 0) > 0
                 ? `${folder.trackCount} ${(folder.trackCount ?? 0) === 1 ? "faixa" : "faixas"}`
                 : (folder.folderCount ?? 0) > 0
@@ -181,17 +250,21 @@ function NestedFolderAccordion({
             </span>
           </span>
           <ChevronDown
-            className={`h-5 w-5 flex-shrink-0 text-white/50 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`h-4 w-4 flex-shrink-0 text-white/50 transition-transform ${open ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>
+        <CopyPackLinkButton
+          slugSegments={[...parentSegments, folderSlug]}
+          label={`Copiar link de ${title}`}
+        />
         {showDownload ? (
           <FolderDownloadButton slug={slugPath} label={title} trackCountHint={folder.trackCount} />
         ) : null}
       </div>
 
       {open ? (
-        <div className="border-t border-white/[0.06] px-2 pb-3 pt-2 sm:px-3">
+        <div className="max-h-[60vh] overflow-y-auto overscroll-contain border-t border-white/[0.06] px-2 pb-3 pt-2 sm:px-3">
           {loading && !data ? (
             <div className="flex items-center justify-center gap-2 py-8 text-sm text-white/50">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -200,16 +273,26 @@ function NestedFolderAccordion({
           ) : null}
           {error ? <p className="px-2 py-4 text-sm text-red-400">{error}</p> : null}
           {data?.level === "tracks" || tracks.length > 0 ? (
-            <VipMusicTrackList
-              folderId={data?.folderId ?? folder.id}
-              tracks={tracks}
-              canPlay={canPlay && Boolean(data?.canPlay ?? canPlay)}
-              canDownload={canDownload && Boolean(data?.canDownload ?? data?.canPlayFull ?? canDownload)}
-              relativePath={`${packTitle}/${title}`}
-              coverUrl={data?.coverUrl}
-              albumTitle={title}
-              layout="table"
-            />
+            <>
+              <VipMusicTrackList
+                folderId={data?.folderId ?? folder.id}
+                tracks={visibleTracks}
+                canPlay={canPlay && Boolean(data?.canPlay ?? canPlay)}
+                canDownload={canDownload && Boolean(data?.canDownload ?? data?.canPlayFull ?? canDownload)}
+                relativePath={`${packTitle}/${title}`}
+                coverUrl={data?.coverUrl}
+                albumTitle={title}
+                layout="table"
+                hasMore={hasMoreTracks}
+                onLoadMore={loadMoreTracks}
+              />
+              <AccordionLoadMoreButton
+                hasMore={hasMoreTracks}
+                onLoadMore={loadMoreTracks}
+                shownCount={visibleTracks.length}
+                totalCount={tracks.length}
+              />
+            </>
           ) : null}
           {childFolders.length > 0 ? (
             <div className="space-y-2">
@@ -242,6 +325,7 @@ function GenreAccordion({
   packTitle,
   forceOpen,
   searchQuery,
+  isNew,
 }: {
   folder: VipMusicCatalogItem;
   acervoSegments: string[];
@@ -250,6 +334,7 @@ function GenreAccordion({
   packTitle: string;
   forceOpen?: boolean;
   searchQuery?: string;
+  isNew?: boolean;
 }) {
   const [open, setOpen] = useState(Boolean(forceOpen));
   const [loading, setLoading] = useState(false);
@@ -297,6 +382,8 @@ function GenreAccordion({
     if (!q) return data.items;
     return data.items.filter((item) => displayFolderName(item.name).toLowerCase().includes(q));
   }, [data, searchQuery]);
+  const { visible: visibleTracks, hasMore: hasMoreTracks, loadMore: loadMoreTracks } =
+    useAccordionTrackPage(tracks);
 
   const badgeCount =
     typeof folder.trackCount === "number" && folder.trackCount > 0
@@ -307,21 +394,28 @@ function GenreAccordion({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#141816] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
-      <div className="flex flex-col gap-2 p-2 sm:flex-row sm:items-stretch sm:gap-2 sm:p-2.5">
+      <div className="flex flex-col gap-1.5 p-1.5 sm:flex-row sm:items-stretch sm:gap-1.5 sm:p-2">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
-          className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/[0.04]"
+          className="flex min-h-[40px] min-w-0 flex-1 items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition hover:bg-white/[0.04]"
         >
-          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ed760]/25 to-white/5 text-[#1ed760] ring-1 ring-[#1ed760]/25">
-            <Music2 className="h-5 w-5" aria-hidden />
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ed760]/25 to-white/5 text-[#1ed760] ring-1 ring-[#1ed760]/25">
+            <Music2 className="h-4 w-4" aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate font-display text-[16px] font-extrabold uppercase tracking-tight text-white sm:text-[18px]">
-              {title}
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="block truncate font-display text-[13.5px] font-extrabold uppercase tracking-tight text-white sm:text-[14.5px]">
+                {title}
+              </span>
+              {isNew ? (
+                <span className="flex-shrink-0 rounded-md bg-[#1ed760]/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-black">
+                  Novo
+                </span>
+              ) : null}
             </span>
-            <span className="mt-0.5 block text-[12px] text-white/45">
+            <span className="mt-0.5 block text-[11px] text-white/45">
               {badgeCount != null
                 ? `${badgeCount.toLocaleString("pt-BR")} ${
                     (folder.trackCount ?? 0) > 0
@@ -336,19 +430,23 @@ function GenreAccordion({
             </span>
           </span>
           <ChevronDown
-            className={`h-5 w-5 flex-shrink-0 text-white/55 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            className={`h-4 w-4 flex-shrink-0 text-white/55 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>
-        {showDownload ? (
-          <div className="flex justify-end px-1 pb-1 sm:items-center sm:pb-0">
+        <div className="flex items-center justify-end gap-1.5 px-1 pb-0.5 sm:items-center sm:pb-0">
+          <CopyPackLinkButton
+            slugSegments={[...acervoSegments, folderSlug]}
+            label={`Copiar link de ${title}`}
+          />
+          {showDownload ? (
             <FolderDownloadButton slug={slugPath} label={title} trackCountHint={folder.trackCount} />
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
 
       {open ? (
-        <div className="border-t border-white/[0.06] px-2.5 pb-3 pt-3 sm:px-3.5">
+        <div className="max-h-[70vh] overflow-y-auto overscroll-contain border-t border-white/[0.06] px-2.5 pb-3 pt-3 sm:px-3.5">
           {loading && !data ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-white/50">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -358,16 +456,26 @@ function GenreAccordion({
           {error ? <p className="px-2 py-4 text-sm text-red-400">{error}</p> : null}
 
           {data?.level === "tracks" || (tracks.length > 0 && childFolders.length === 0) ? (
-            <VipMusicTrackList
-              folderId={data?.folderId ?? folder.id}
-              tracks={tracks}
-              canPlay={canPlay && Boolean(data?.canPlay ?? canPlay)}
-              canDownload={canDownload && Boolean(data?.canDownload ?? data?.canPlayFull ?? canDownload)}
-              relativePath={`${packTitle}/${title}`}
-              coverUrl={data?.coverUrl}
-              albumTitle={title}
-              layout="table"
-            />
+            <>
+              <VipMusicTrackList
+                folderId={data?.folderId ?? folder.id}
+                tracks={visibleTracks}
+                canPlay={canPlay && Boolean(data?.canPlay ?? canPlay)}
+                canDownload={canDownload && Boolean(data?.canDownload ?? data?.canPlayFull ?? canDownload)}
+                relativePath={`${packTitle}/${title}`}
+                coverUrl={data?.coverUrl}
+                albumTitle={title}
+                layout="table"
+                hasMore={hasMoreTracks}
+                onLoadMore={loadMoreTracks}
+              />
+              <AccordionLoadMoreButton
+                hasMore={hasMoreTracks}
+                onLoadMore={loadMoreTracks}
+                shownCount={visibleTracks.length}
+                totalCount={tracks.length}
+              />
+            </>
           ) : null}
 
           {childFolders.length > 0 ? (
@@ -472,6 +580,7 @@ export function AtualizacoesAcervoAccordion({
               packTitle={packTitle}
               forceOpen={Boolean(query.trim()) && filtered.length <= 8}
               searchQuery={query}
+              isNew={newFolderIds?.has(folder.id)}
             />
           ))}
         </div>
@@ -479,7 +588,7 @@ export function AtualizacoesAcervoAccordion({
 
       {newFolderIds && newFolderIds.size > 0 ? (
         <p className="text-[11px] text-white/30">
-          Pastas novas neste acervo aparecem destacadas ao abrir o estilo.
+          Estilos com conteúdo novo ficam marcados com “Novo” até meia-noite.
         </p>
       ) : null}
     </div>

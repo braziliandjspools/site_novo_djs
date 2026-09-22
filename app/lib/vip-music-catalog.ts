@@ -33,6 +33,8 @@ export type VipMusicCatalogItem = VipMusicFolder & {
   folderCount?: number;
   /** Faixas imediatas (quando calculado). */
   trackCount?: number;
+  /** ISO do Drive (`modifiedTime`/`createdTime`) — destaque até 00:00 local. */
+  modifiedAt?: string | null;
 };
 
 export type VipMusicCatalogResponse = {
@@ -105,7 +107,11 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
 
   return sortVipChildFolders(
-    subfolders.map((folder) => ({ id: folder.id, name: folder.name })),
+    subfolders.map((folder) => ({
+      id: folder.id,
+      name: folder.name,
+      modifiedAt: folder.modifiedTime ?? folder.createdTime ?? null,
+    })),
   );
 }
 

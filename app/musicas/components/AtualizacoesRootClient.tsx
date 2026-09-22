@@ -27,8 +27,8 @@ import {
 } from "../lib/music-library-storage";
 import { monthsReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
+import { autoSyncDriveOnEnter, readLastAutoSync } from "../lib/auto-drive-sync";
 import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
-import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
@@ -37,25 +37,6 @@ import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 
 type TreeResponse = { folders?: Array<VipMusicFolder | VipMusicCatalogItem>; error?: string };
-
-const LAST_SYNC_KEY = "brs-atualizacoes-last-sync";
-
-function readLastSync(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return sessionStorage.getItem(LAST_SYNC_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeLastSync(iso: string) {
-  try {
-    sessionStorage.setItem(LAST_SYNC_KEY, iso);
-  } catch {
-    /* ignore */
-  }
-}
 
 function formatRelativeUpdate(iso: string): string | null {
   const date = new Date(iso);
@@ -199,7 +180,7 @@ export function AtualizacoesRootClient() {
   const [home, setHome] = useState<VipMusicHomeSnapshot | null>(cachedHome ?? null);
   const [loading, setLoading] = useState(!cachedTree?.folders?.length);
   const [error, setError] = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<string | null>(() => readLastSync());
+  const [updatedAt, setUpdatedAt] = useState<string | null>(() => readLastAutoSync());
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recent, setRecent] = useState<RecentFolder[]>([]);
 
@@ -228,7 +209,7 @@ export function AtualizacoesRootClient() {
         { forceRefresh },
       );
       setHome(data);
-      if (data.syncedAt && !readLastSync()) {
+      if (data.syncedAt && !readLastAutoSync()) {
         setUpdatedAt(data.syncedAt);
       }
     } catch {
@@ -237,10 +218,18 @@ export function AtualizacoesRootClient() {
   }, []);
 
   useEffect(() => {
-    void loadTree();
-    void loadHome();
+    let cancelled = false;
+    void (async () => {
+      const result = await autoSyncDriveOnEnter();
+      if (cancelled) return;
+      if (result?.syncedAt) setUpdatedAt(result.syncedAt);
+      await Promise.all([loadTree(Boolean(result)), loadHome(Boolean(result))]);
+    })();
     setContinueItem(getContinueListening());
     setRecent(getRecentFolders());
+    return () => {
+      cancelled = true;
+    };
   }, [loadHome, loadTree]);
 
   const folderIds = folders.map((folder) => folder.id);
@@ -305,18 +294,6 @@ export function AtualizacoesRootClient() {
             {updatedLabel ? (
               <span className="text-[11px] text-white/35">Atualizado {updatedLabel}</span>
             ) : null}
-          </div>
-          <div className="mt-4">
-            <AtualizacoesDriveSyncButton
-              className="w-full sm:w-auto"
-              onSynced={async (result) => {
-                if (result?.syncedAt) {
-                  writeLastSync(result.syncedAt);
-                  setUpdatedAt(result.syncedAt);
-                }
-                await Promise.all([loadTree(true), loadHome(true)]);
-              }}
-            />
           </div>
         </div>
       </header>

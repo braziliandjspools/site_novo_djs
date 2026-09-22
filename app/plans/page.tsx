@@ -145,21 +145,29 @@ export default async function PlansPage() {
 
   const drivePlans = toCards(SITE_DRIVE_PLANS);
 
-  const user = await getAuthenticatedPortalUser();
-  const activeVip =
-    user &&
-    userHasActiveVipAccess({
-      servicePoolsVip: user.services.poolsVip,
-      nextDueAt: user.nextDueAt,
-      servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
-    })
-      ? {
-          expiresLabel: formatDueDate(
-            user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt,
-          ),
-        }
-      : null;
-  const testPlanUsed = user ? await hasUsedDriveTestPlan(user.id) : false;
+  // Auth/DB failures must not take down the public plans page.
+  let activeVip: { expiresLabel: string } | null = null;
+  let testPlanUsed = false;
+  try {
+    const user = await getAuthenticatedPortalUser();
+    if (
+      user &&
+      userHasActiveVipAccess({
+        servicePoolsVip: user.services.poolsVip,
+        nextDueAt: user.nextDueAt,
+        servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
+      })
+    ) {
+      activeVip = {
+        expiresLabel: formatDueDate(
+          user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt,
+        ),
+      };
+    }
+    testPlanUsed = user ? await hasUsedDriveTestPlan(user.id) : false;
+  } catch (error) {
+    console.error("[plans] failed to resolve portal session", error);
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
