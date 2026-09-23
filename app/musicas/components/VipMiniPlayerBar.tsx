@@ -44,8 +44,7 @@ export function VipMiniPlayerBar() {
   const isPlaying = player.isPlaying;
   const display = getTrackDisplayMetadata(track);
   const albumOrPack = track.album?.trim() || track.pack?.trim() || "";
-  const coverSrc =
-    track.coverUrl?.trim() || player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
+  const coverSrc = player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
   const volume = muted ? 0 : player.volume;
 
   async function handleSend() {

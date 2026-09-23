@@ -6,7 +6,6 @@ import Image from "next/image";
 import { Disc3, FolderOpen, Music2, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
-import { resolveFolderCoverUrl } from "../../lib/local-folder-covers";
 import {
   displayFolderName,
   folderHref,
@@ -66,13 +65,7 @@ function AcervoCard({
   const slug = slugifyFolderName(folder.name);
   const href = folderHref([slug]);
   const title = displayFolderName(folder.name);
-  // Prioriza capa do Drive (folder.*); fallback para capa local estática.
-  const cover =
-    catalog.coverUrl?.trim() ||
-    resolveFolderCoverUrl({
-      folderName: folder.name,
-      driveCoverUrl: null,
-    });
+  const cover = catalog.coverUrl?.trim() || null;
   const folderCount = catalog.folderCount;
   const trackCount = catalog.trackCount;
   const hasFolderStats = typeof folderCount === "number" && folderCount > 0;

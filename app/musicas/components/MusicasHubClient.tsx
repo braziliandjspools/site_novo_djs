@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Disc3,
+  Layers,
   Mic2,
+  MonitorDown,
   Music2,
   RefreshCw,
+  Search,
   Sparkles,
 } from "lucide-react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
@@ -15,11 +19,16 @@ import {
 } from "../../lib/vip-music-slugs";
 import {
   getContinueListening,
+  getFavoriteTracks,
   getRecentFolders,
+  subscribeFavoriteTracks,
   type ContinueListening,
+  type FavoriteTrack,
   type RecentFolder,
 } from "../lib/music-library-storage";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
+import { useDownloaderSync } from "./DownloaderSyncContext";
+import { FavoriteTracksShelf } from "./FavoriteTracksShelf";
 import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
@@ -37,24 +46,54 @@ type ArtistListItem = {
   imageUrl?: string | null;
 };
 
+type CollectionListItem = {
+  id: string;
+  slug: string;
+  displayName: string;
+  trackCount: number;
+  albumCount: number;
+  coverUrl?: string | null;
+};
+
 export function MusicasHubClient() {
   const { authenticated, hasVip, userName } = useMusicasSession();
   const { folders, home, loadingTree, loadingHome, error, newFolderIds } = useMusicasLibraryHome();
+  const downloaderSync = useDownloaderSync();
+  const router = useRouter();
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recent, setRecent] = useState<RecentFolder[]>([]);
   const [artists, setArtists] = useState<ArtistListItem[]>([]);
+  const [collections, setCollections] = useState<CollectionListItem[]>([]);
+  const [favorites, setFavorites] = useState<FavoriteTrack[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const firstName = userName.trim().split(/\s+/)[0] || "DJ";
 
   useEffect(() => {
     setContinueItem(getContinueListening());
     setRecent(getRecentFolders());
+    setFavorites(getFavoriteTracks());
+    const unsubscribe = subscribeFavoriteTracks(() => setFavorites(getFavoriteTracks()));
     void fetch("/api/musicas/artists", { cache: "no-store" })
       .then(async (res) => {
         const body = (await res.json()) as { artists?: ArtistListItem[] };
         setArtists((body.artists ?? []).slice(0, 16));
       })
       .catch(() => setArtists([]));
+    void fetch("/api/musicas/colecoes", { cache: "no-store" })
+      .then(async (res) => {
+        const body = (await res.json()) as { collections?: CollectionListItem[] };
+        setCollections((body.collections ?? []).slice(0, 10));
+      })
+      .catch(() => setCollections([]));
+    return unsubscribe;
   }, []);
+
+  function handleSearchSubmit(event: FormEvent) {
+    event.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    router.push(`/musicas/atualizacoes?q=${encodeURIComponent(q)}`);
+  }
 
   const packItems = useMemo((): LibraryFolderItem[] => {
     return folders.slice(0, 12).map((folder, index) => {
@@ -73,10 +112,27 @@ export function MusicasHubClient() {
     });
   }, [folders, newFolderIds]);
 
-  const genres = home?.genres?.slice(0, 14) ?? [];
+  const genres = useMemo(() => {
+    const base = home?.genres ?? [];
+    const boosted = new Set<string>();
+    if (continueItem?.styleName) boosted.add(continueItem.styleName.trim().toLowerCase());
+    for (const folder of recent) boosted.add(folder.name.trim().toLowerCase());
+    if (boosted.size === 0) return base.slice(0, 14);
+    return [...base]
+      .sort((a, b) => {
+        const aBoost = boosted.has(a.name.trim().toLowerCase()) ? 0 : 1;
+        const bBoost = boosted.has(b.name.trim().toLowerCase()) ? 0 : 1;
+        return aBoost - bBoost;
+      })
+      .slice(0, 14);
+  }, [home?.genres, continueItem, recent]);
+  const isPersonalizedGenres = genres.some((genre, index) => genre.slug !== home?.genres?.[index]?.slug);
+
   const latestTracks = home?.latestTracks?.slice(0, 12) ?? [];
   const topWeek = home?.topWeek?.slice(0, 10) ?? [];
   const bootLoading = loadingTree && loadingHome && folders.length === 0 && !home;
+  const downloaderOnlineCount = downloaderSync?.devices.filter((device) => device.isOnline).length ?? 0;
+  const showDownloaderCard = authenticated && hasVip && Boolean(downloaderSync);
 
   if (bootLoading) {
     return <MusicasPageSkeleton />;
@@ -105,6 +161,20 @@ export function MusicasHubClient() {
               ? "Sua central da biblioteca — packs, artistas, coleções e downloads em um fluxo só."
               : "Explore o acervo, ouça no navegador e entre para liberar downloads e o Downloader."}
           </p>
+          <form onSubmit={handleSearchSubmit} className="relative mt-5 max-w-md" role="search">
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
+              aria-hidden
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Buscar música, artista ou estilo…"
+              aria-label="Buscar no acervo"
+              className="h-11 w-full rounded-full border border-white/10 bg-black/35 pl-10 pr-4 text-[13px] font-medium text-white placeholder:text-white/35 outline-none ring-0 transition focus:border-[#1ed760]/50 focus:bg-black/50"
+            />
+          </form>
           <div className="mt-5 flex flex-wrap gap-2">
             {home?.stats.trackCount ? (
               <span className="rounded-lg bg-black/35 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/70 ring-1 ring-white/10">
@@ -125,6 +195,23 @@ export function MusicasHubClient() {
             >
               {hasVip ? "Premium ativo" : authenticated ? "Só navegação" : "Visitante"}
             </span>
+            {showDownloaderCard ? (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-semibold ring-1 ${
+                  downloaderOnlineCount > 0
+                    ? "bg-[#00b4d8]/15 text-[#5fd4ea] ring-[#00b4d8]/25"
+                    : "bg-black/35 text-white/55 ring-white/10"
+                }`}
+              >
+                <MonitorDown className="h-3.5 w-3.5" aria-hidden />
+                {downloaderOnlineCount > 0
+                  ? `Downloader online (${downloaderOnlineCount})`
+                  : "Downloader offline"}
+                {downloaderSync && downloaderSync.totalQueueCount > 0
+                  ? ` · ${downloaderSync.totalQueueCount} na fila`
+                  : ""}
+              </span>
+            ) : null}
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
@@ -210,6 +297,8 @@ export function MusicasHubClient() {
         </MusicLibraryShelf>
       ) : null}
 
+      <FavoriteTracksShelf tracks={favorites} />
+
       <MusicLibraryTrackShelf
         title="Últimas adicionadas"
         tracks={latestTracks}
@@ -217,10 +306,10 @@ export function MusicasHubClient() {
         actionLabel="Biblioteca"
       />
 
-      <MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} />
+      <MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} showRank />
 
       {genres.length > 0 ? (
-        <MusicLibraryShelf title="Estilos" actionHref="/musicas/estilos" actionLabel="Ver todos">
+        <MusicLibraryShelf title={isPersonalizedGenres ? "Estilos · Pra você" : "Estilos"} actionHref="/musicas/estilos" actionLabel="Ver todos">
           {genres.map((genre, index) => (
             <MusicLibraryTile
               key={`${genre.styleFolderId}-${genre.slug}`}
@@ -250,6 +339,24 @@ export function MusicasHubClient() {
               size="shelf"
               round
               icon={Mic2}
+            />
+          ))}
+        </MusicLibraryShelf>
+      ) : null}
+
+      {collections.length > 0 ? (
+        <MusicLibraryShelf title="Coleções" actionHref="/musicas/colecoes" actionLabel="Ver todas">
+          {collections.map((collection, index) => (
+            <MusicLibraryTile
+              key={collection.id}
+              href={`/musicas/colecoes/${collection.slug}`}
+              title={collection.displayName}
+              trackCount={collection.trackCount}
+              index={index + 8}
+              tone={libraryTileTone(index + 8)}
+              imageUrl={collection.coverUrl}
+              size="shelf"
+              icon={Layers}
             />
           ))}
         </MusicLibraryShelf>

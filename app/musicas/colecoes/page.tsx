@@ -101,7 +101,7 @@ export default function ColecoesPage() {
           <p className="text-sm font-semibold text-amber-200">Pasta COLEÇÕES não encontrada</p>
           <p className="mx-auto mt-2 max-w-lg text-sm text-amber-100/80">
             No Google Drive do acervo VIP, crie a pasta <strong>COLEÇÕES</strong> com a estrutura:
-            Coleção → Discos/pastas → arquivos. Coloque uma imagem <strong>folder.jpg</strong> (ou .png) na
+            Coleção → Discos/pastas → arquivos. Coloque uma imagem <strong>folder.png</strong> na
             raiz de cada coleção para a capa. Ou defina{" "}
             <code className="rounded bg-black/30 px-1">GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID</code> no
             ambiente.

@@ -413,7 +413,7 @@ export function VipMusicPlayerProvider({
 
   useMediaSession({
     track: currentTrack,
-    coverUrl: currentTrack?.coverUrl?.trim() || currentCoverUrl,
+    coverUrl: currentCoverUrl,
     albumTitle: currentAlbumTitle || currentTrack?.album || currentTrack?.pack || null,
     isPlaying: mediaSessionPlaying,
     isActive: mediaActive,

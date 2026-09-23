@@ -8,12 +8,12 @@ test("resolve capa local por nome BRS PACKS 2025/2026", () => {
   assert.equal(localFolderCoverUrl("Packs 2026"), "/musicas/folder-covers/brs-packs-2026.jpg");
 });
 
-test("local tem prioridade sobre drive", () => {
+test("drive folder.png tem prioridade e é a única capa usada pelo acervo", () => {
   assert.equal(
     resolveFolderCoverUrl({
       folderName: "BRS - PACKS 2025",
       driveCoverUrl: "/api/musicas/cover/abc",
     }),
-    "/musicas/folder-covers/brs-packs-2025.jpg",
+    "/api/musicas/cover/abc",
   );
 });

@@ -28,8 +28,6 @@ export function resolveFolderCoverUrl(input: {
   folderName: string;
   driveCoverUrl?: string | null;
 }): string | null {
-  const local = localFolderCoverUrl(input.folderName);
-  if (local) return local;
   const drive = input.driveCoverUrl?.trim();
   return drive || null;
 }

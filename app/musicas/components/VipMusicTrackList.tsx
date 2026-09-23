@@ -81,9 +81,9 @@ const STREAM_DESKTOP_GRID_SELECT =
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
-/** Capa da faixa (tag) → capa do álbum/pasta → padrão BRS. */
+/** Capa da pasta (folder.png) → padrão BRS. */
 function resolveTrackCoverSrc(track: PreviewTrack, albumCoverUrl?: string | null) {
-  return track.coverUrl?.trim() || albumCoverUrl?.trim() || PLACEHOLDER.trackCover;
+  return albumCoverUrl?.trim() || PLACEHOLDER.trackCover;
 }
 
 function formatTime(seconds: number) {
@@ -198,7 +198,7 @@ type StreamingRowProps = {
   isBusy: boolean;
   isHighlighted: boolean;
   setDomAnchor?: boolean;
-  /** Capa da pasta/álbum (folder.jpg), fallback da faixa. */
+  /** Capa da pasta/álbum (folder.png), fallback visual. */
   albumCoverUrl?: string | null;
   progress: number;
   currentTime: number;

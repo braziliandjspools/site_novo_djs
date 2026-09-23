@@ -69,7 +69,7 @@ export type LibraryFolderItem = {
   title?: string;
   folderCount?: number;
   trackCount?: number;
-  /** Capa da pasta (folder.jpg / API); fallback no grid. */
+  /** Capa da pasta (folder.png / API); fallback no grid. */
   coverUrl?: string | null;
   /** Texto extra no mobile / sob o título (ex.: intervalo da semana). */
   detail?: string | null;

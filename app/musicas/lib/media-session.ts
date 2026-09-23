@@ -232,7 +232,7 @@ export function useMediaSession(input: MediaSessionInput) {
     if (!activeTrack) return;
 
     const meta = resolveTrackMediaMetadata(activeTrack, albumTitle);
-    const artwork = buildArtwork(coverUrl || activeTrack.coverUrl);
+    const artwork = buildArtwork(coverUrl);
 
     if (native) {
       void native.setMetadata({

@@ -1,5 +1,4 @@
 import { listDriveFolderChildren } from "./google-drive";
-import { displayFolderName, slugifyFolderName } from "./vip-music-slugs";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const AUDIO_EXTENSIONS = /\.(mp3|wav|flac|m4a|aac|ogg)$/i;
@@ -12,35 +11,16 @@ export type FolderCoverRef = {
   coverUrl: string;
 };
 
-function baseNameWithoutExt(name: string) {
-  const trimmed = name.trim();
-  const idx = trimmed.lastIndexOf(".");
-  if (idx <= 0) return trimmed;
-  return trimmed.slice(0, idx).trim();
-}
-
 function isImageFile(file: { name: string; mimeType: string }) {
   if (file.mimeType === FOLDER_MIME) return false;
   if (file.mimeType.startsWith("image/")) return true;
   return IMAGE_EXTENSIONS.test(file.name);
 }
 
-/** Arquivo de capa: nome "folder" (com ou sem extensão de imagem). */
+/** Arquivo oficial de capa: somente folder.png na raiz da pasta. */
 export function isFolderCoverFile(file: { name: string; mimeType: string }) {
   if (!isImageFile(file)) return false;
-  const base = baseNameWithoutExt(file.name);
-  return /^folder$/i.test(base);
-}
-
-/** Imagem com o mesmo nome (slug) da pasta pai — capa da raiz. */
-export function isNamedFolderCoverFile(
-  file: { name: string; mimeType: string },
-  folderName: string,
-) {
-  if (!isImageFile(file)) return false;
-  const fileSlug = slugifyFolderName(baseNameWithoutExt(file.name));
-  const folderSlug = slugifyFolderName(displayFolderName(folderName));
-  return Boolean(fileSlug && folderSlug && fileSlug === folderSlug);
+  return file.name.trim().toLowerCase() === "folder.png";
 }
 
 export function isDriveAudioFile(file: { name: string; mimeType: string }) {
@@ -53,20 +33,12 @@ export function folderCoverUrl(fileId: string) {
   return `/api/musicas/cover/${encodeURIComponent(fileId)}`;
 }
 
-/**
- * Procura capa na pasta:
- * 1) imagem com o mesmo nome da pasta
- * 2) `folder.jpg` / `folder.png` / etc.
- */
+/** Procura folder.png diretamente entre os filhos da pasta. */
 export function pickCoverFromChildren(
   children: Array<{ id: string; name: string; mimeType: string }>,
-  folderName?: string,
+  _folderName?: string,
 ): FolderCoverRef | null {
-  const named =
-    folderName?.trim()
-      ? children.find((file) => isNamedFolderCoverFile(file, folderName))
-      : undefined;
-  const cover = named ?? children.find((file) => isFolderCoverFile(file));
+  const cover = children.find((file) => isFolderCoverFile(file));
   if (!cover) return null;
   return {
     fileId: cover.id,

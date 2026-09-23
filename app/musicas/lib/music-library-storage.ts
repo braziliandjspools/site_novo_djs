@@ -6,6 +6,18 @@ const FAVORITES_KEY = "bp_music_favorites";
 const CONTINUE_KEY = "bp_music_continue";
 const RECENT_FOLDERS_KEY = "bp_music_recent_folders";
 const LAST_VISIT_KEY = "bp_music_last_visit";
+const FAVORITES_EVENT = "musicas:favorites-changed";
+const FAVORITES_MAX = 40;
+
+export type FavoriteTrack = {
+  id: string;
+  title: string;
+  artist: string;
+  href: string;
+  styleName?: string;
+  monthName?: string;
+  addedAt: string;
+};
 
 export type ContinueListening = {
   trackId: string;
@@ -40,21 +52,36 @@ function writeJson(key: string, value: unknown) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-export function getFavoriteTrackIds(): string[] {
-  return readJson<string[]>(FAVORITES_KEY, []);
+export function getFavoriteTracks(): FavoriteTrack[] {
+  const raw = readJson<unknown[]>(FAVORITES_KEY, []);
+  return raw.filter(
+    (item): item is FavoriteTrack =>
+      Boolean(item) && typeof item === "object" && typeof (item as FavoriteTrack).id === "string",
+  );
 }
 
 export function isFavoriteTrack(trackId: string) {
-  return getFavoriteTrackIds().includes(trackId);
+  return getFavoriteTracks().some((item) => item.id === trackId);
 }
 
-export function toggleFavoriteTrack(trackId: string) {
-  const current = new Set(getFavoriteTrackIds());
-  if (current.has(trackId)) current.delete(trackId);
-  else current.add(trackId);
-  const next = [...current];
+export function toggleFavoriteTrack(track: Omit<FavoriteTrack, "addedAt">) {
+  const current = getFavoriteTracks();
+  const exists = current.some((item) => item.id === track.id);
+  const next = exists
+    ? current.filter((item) => item.id !== track.id)
+    : [{ ...track, addedAt: new Date().toISOString() }, ...current].slice(0, FAVORITES_MAX);
   writeJson(FAVORITES_KEY, next);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(FAVORITES_EVENT));
+  }
   return next;
+}
+
+/** Notifica quando os favoritos mudam em qualquer parte da UI (mesma aba). */
+export function subscribeFavoriteTracks(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(FAVORITES_EVENT, callback);
+  return () => window.removeEventListener(FAVORITES_EVENT, callback);
 }
 
 export function getContinueListening(): ContinueListening | null {
