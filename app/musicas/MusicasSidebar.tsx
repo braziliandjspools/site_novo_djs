@@ -26,8 +26,6 @@ const PLATFORM_NAV = [
   { href: "/musicas", label: "Início", icon: Home },
   { href: "/musicas/atualizacoes", label: "Atualizações", icon: RefreshCw },
   { href: "/musicas/artistas", label: "Artistas", icon: Mic2 },
-  { href: "/musicas/estilos", label: "Estilos", icon: Music2 },
-  { href: "/musicas/colecoes", label: "Coleções", icon: Layers },
 ] as const;
 
 function navActive(pathname: string, href: string) {

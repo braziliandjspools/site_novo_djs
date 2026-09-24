@@ -5,10 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Disc3,
-  Layers,
   Mic2,
   MonitorDown,
-  Music2,
   RefreshCw,
   Search,
   Sparkles,
@@ -46,15 +44,6 @@ type ArtistListItem = {
   imageUrl?: string | null;
 };
 
-type CollectionListItem = {
-  id: string;
-  slug: string;
-  displayName: string;
-  trackCount: number;
-  albumCount: number;
-  coverUrl?: string | null;
-};
-
 export function MusicasHubClient() {
   const { authenticated, hasVip, userName } = useMusicasSession();
   const { folders, home, loadingTree, loadingHome, error, newFolderIds } = useMusicasLibraryHome();
@@ -63,7 +52,6 @@ export function MusicasHubClient() {
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recent, setRecent] = useState<RecentFolder[]>([]);
   const [artists, setArtists] = useState<ArtistListItem[]>([]);
-  const [collections, setCollections] = useState<CollectionListItem[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTrack[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const firstName = userName.trim().split(/\s+/)[0] || "DJ";
@@ -79,12 +67,6 @@ export function MusicasHubClient() {
         setArtists((body.artists ?? []).slice(0, 16));
       })
       .catch(() => setArtists([]));
-    void fetch("/api/musicas/colecoes", { cache: "no-store" })
-      .then(async (res) => {
-        const body = (await res.json()) as { collections?: CollectionListItem[] };
-        setCollections((body.collections ?? []).slice(0, 10));
-      })
-      .catch(() => setCollections([]));
     return unsubscribe;
   }, []);
 
@@ -111,22 +93,6 @@ export function MusicasHubClient() {
       };
     });
   }, [folders, newFolderIds]);
-
-  const genres = useMemo(() => {
-    const base = home?.genres ?? [];
-    const boosted = new Set<string>();
-    if (continueItem?.styleName) boosted.add(continueItem.styleName.trim().toLowerCase());
-    for (const folder of recent) boosted.add(folder.name.trim().toLowerCase());
-    if (boosted.size === 0) return base.slice(0, 14);
-    return [...base]
-      .sort((a, b) => {
-        const aBoost = boosted.has(a.name.trim().toLowerCase()) ? 0 : 1;
-        const bBoost = boosted.has(b.name.trim().toLowerCase()) ? 0 : 1;
-        return aBoost - bBoost;
-      })
-      .slice(0, 14);
-  }, [home?.genres, continueItem, recent]);
-  const isPersonalizedGenres = genres.some((genre, index) => genre.slug !== home?.genres?.[index]?.slug);
 
   const latestTracks = home?.latestTracks?.slice(0, 12) ?? [];
   const topWeek = home?.topWeek?.slice(0, 10) ?? [];
@@ -308,23 +274,6 @@ export function MusicasHubClient() {
 
       <MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} showRank />
 
-      {genres.length > 0 ? (
-        <MusicLibraryShelf title={isPersonalizedGenres ? "Estilos · Pra você" : "Estilos"} actionHref="/musicas/estilos" actionLabel="Ver todos">
-          {genres.map((genre, index) => (
-            <MusicLibraryTile
-              key={`${genre.styleFolderId}-${genre.slug}`}
-              href={genre.href}
-              title={genre.name}
-              index={index + 4}
-              tone={libraryTileTone(index + 4)}
-              trackCount={genre.trackCount}
-              size="shelf"
-              icon={Music2}
-            />
-          ))}
-        </MusicLibraryShelf>
-      ) : null}
-
       {artists.length > 0 ? (
         <MusicLibraryShelf title="Artistas em destaque" actionHref="/musicas/artistas" actionLabel="Ver todos">
           {artists.map((artist, index) => (
@@ -339,24 +288,6 @@ export function MusicasHubClient() {
               size="shelf"
               round
               icon={Mic2}
-            />
-          ))}
-        </MusicLibraryShelf>
-      ) : null}
-
-      {collections.length > 0 ? (
-        <MusicLibraryShelf title="Coleções" actionHref="/musicas/colecoes" actionLabel="Ver todas">
-          {collections.map((collection, index) => (
-            <MusicLibraryTile
-              key={collection.id}
-              href={`/musicas/colecoes/${collection.slug}`}
-              title={collection.displayName}
-              trackCount={collection.trackCount}
-              index={index + 8}
-              tone={libraryTileTone(index + 8)}
-              imageUrl={collection.coverUrl}
-              size="shelf"
-              icon={Layers}
             />
           ))}
         </MusicLibraryShelf>

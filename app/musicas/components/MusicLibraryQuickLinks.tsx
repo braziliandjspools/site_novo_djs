@@ -3,10 +3,8 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
-  Layers,
   Mic2,
   MonitorDown,
-  Music2,
   RefreshCw,
   Sparkles,
 } from "lucide-react";
@@ -29,18 +27,6 @@ const QUICK_LINKS: Array<{
     title: "Artistas",
     subtitle: "Perfis",
     icon: Mic2,
-  },
-  {
-    href: "/musicas/estilos",
-    title: "Estilos",
-    subtitle: "Gêneros",
-    icon: Music2,
-  },
-  {
-    href: "/musicas/colecoes",
-    title: "Coleções",
-    subtitle: "Curadoria",
-    icon: Layers,
   },
 ];
 

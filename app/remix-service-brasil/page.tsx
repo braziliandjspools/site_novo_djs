@@ -78,12 +78,6 @@ export default function RemixServiceBrasilPage() {
         >
           Packs para DJs
         </Link>
-        <Link
-          href="/musicas/colecoes"
-          className="inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white"
-        >
-          Coleções
-        </Link>
       </section>
 
       <section className="mt-12 space-y-4">

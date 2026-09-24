@@ -399,14 +399,14 @@ function GenreAccordion({
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
-          className="flex min-h-[40px] min-w-0 flex-1 items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition hover:bg-white/[0.04]"
+          className="flex min-h-[34px] min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/[0.04]"
         >
-          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#1ed760]/25 to-white/5 text-[#1ed760] ring-1 ring-[#1ed760]/25">
-            <Music2 className="h-4 w-4" aria-hidden />
+          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1ed760]/25 to-white/5 text-[#1ed760] ring-1 ring-[#1ed760]/25">
+            <Music2 className="h-3 w-3" aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex min-w-0 items-center gap-1.5">
-              <span className="block truncate font-display text-[13.5px] font-extrabold uppercase tracking-tight text-white sm:text-[14.5px]">
+              <span className="block truncate font-display text-[12px] font-bold uppercase tracking-tight text-white sm:text-[12.5px]">
                 {title}
               </span>
               {isNew ? (
@@ -415,7 +415,7 @@ function GenreAccordion({
                 </span>
               ) : null}
             </span>
-            <span className="mt-0.5 block text-[11px] text-white/45">
+            <span className="mt-0.5 block text-[10px] text-white/45">
               {badgeCount != null
                 ? `${badgeCount.toLocaleString("pt-BR")} ${
                     (folder.trackCount ?? 0) > 0
@@ -430,7 +430,7 @@ function GenreAccordion({
             </span>
           </span>
           <ChevronDown
-            className={`h-4 w-4 flex-shrink-0 text-white/55 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            className={`h-3.5 w-3.5 flex-shrink-0 text-white/55 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>

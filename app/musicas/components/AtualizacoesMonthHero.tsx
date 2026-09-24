@@ -60,7 +60,7 @@ export function AtualizacoesMonthHero({
           ? "Ouça no navegador ou envie ao BRS Downloader."
           : mode === "week-styles"
             ? "Abra uma pasta — pode ter subpastas ou MP3s diretos."
-            : "Abra um estilo em acordeão. Pastas internas podem ser baixadas; o acervo inteiro não.";
+            : "Abra um estilo para ver as pastas. Pastas com músicas abrem em acordeão; o acervo inteiro não pode ser baixado de uma vez.";
   const countLabel =
     mode === "weeks"
       ? itemCount === 1

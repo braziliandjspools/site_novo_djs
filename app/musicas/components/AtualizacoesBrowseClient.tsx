@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -32,6 +32,7 @@ import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
 import { WeekFolderGrid } from "./WeekFolderGrid";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
+import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { MusicLibraryBrowseShell } from "./MusicLibraryBrowseShell";
 import { VipMusicTrackList } from "./VipMusicTrackList";
 import { AtualizacoesAcervoAccordion } from "./AtualizacoesAcervoAccordion";
@@ -291,9 +292,18 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
-  /** Página do acervo (1 segmento) com estilos → acordeões, sem baixar o acervo inteiro. */
+  /**
+   * Só usa acordeão no último nível antes das faixas: quando toda a pasta filha já
+   * contém músicas direto (sem subpastas). Demais níveis navegam para uma nova página.
+   */
   const useAcervoAccordion =
-    slugSegments.length === 1 && showingStyles && !showingMonths && !showingWeeks;
+    showingStyles &&
+    !showingMonths &&
+    !showingWeeks &&
+    (data?.items.length ?? 0) > 0 &&
+    (data?.items ?? []).every(
+      (item) => (item.trackCount ?? 0) > 0 && !(item.folderCount ?? 0),
+    );
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -530,6 +540,23 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   return (
     <div className="w-full">
+      <div className="mb-3 flex items-center gap-2">
+        <Link
+          href={homeParentHref}
+          prefetch={false}
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white/70 transition hover:border-[#1ed760]/40 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+          Voltar
+        </Link>
+        {data ? (
+          <CopyPackLinkButton
+            slugSegments={slugSegments}
+            label={`Copiar link de ${currentTitle}`}
+            className="h-9 w-9 rounded-full"
+          />
+        ) : null}
+      </div>
       <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
         <Link
           href="/musicas/atualizacoes"

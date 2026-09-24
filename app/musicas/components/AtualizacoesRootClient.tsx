@@ -30,7 +30,6 @@ import { autoSyncDriveOnEnter, readLastAutoSync } from "../lib/auto-drive-sync";
 import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
-import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -304,11 +303,15 @@ export function AtualizacoesRootClient() {
       )}
 
       <section className="mb-10">
-        <div className="mb-4">
-          <h2 className="font-display text-xl font-extrabold uppercase tracking-tight text-white sm:text-2xl">
-            Acervos
-          </h2>
-          <p className="mt-1 text-[13px] text-white/45">
+        <div className="mb-5 flex flex-col items-center gap-2 text-center">
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#1ed760]/60 sm:w-14" aria-hidden />
+            <h2 className="font-display text-xl font-extrabold uppercase tracking-tight text-white sm:text-2xl">
+              Acervos
+            </h2>
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#1ed760]/60 sm:w-14" aria-hidden />
+          </div>
+          <p className="text-[13px] text-white/45">
             Capas do Drive com pastas e músicas reais de cada acervo.
           </p>
         </div>
@@ -328,8 +331,6 @@ export function AtualizacoesRootClient() {
           </div>
         )}
       </section>
-
-      <MusicLibraryQuickLinks />
 
       {continueItem ? (
         <MusicLibraryShelf title="Continuar ouvindo">
