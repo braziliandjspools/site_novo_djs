@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import { fetchMusicasJson, peekMusicasCache } from "../lib/musicas-fetch-cache";
@@ -51,7 +51,11 @@ export function useMusicasLibraryHome() {
   }, []);
 
   const folderIds = folders.map((folder) => folder.id);
-  const newFolderIds = useNewFolderHighlights(monthsReadKey(), folderIds);
+  const seenNewFolderIds = useNewFolderHighlights(monthsReadKey(), folderIds);
+  const newFolderIds = useMemo(
+    () => new Set([...seenNewFolderIds, ...folders.filter((folder) => folder.isNew).map((folder) => folder.id)]),
+    [folders, seenNewFolderIds],
+  );
 
   return { folders, home, loadingTree, loadingHome, error, newFolderIds };
 }

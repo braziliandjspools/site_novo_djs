@@ -29,13 +29,11 @@ import { autoSyncDriveOnEnter } from "../lib/auto-drive-sync";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
-import { WeekFolderGrid } from "./WeekFolderGrid";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
 import { MusicLibraryBrowseShell } from "./MusicLibraryBrowseShell";
 import { VipMusicTrackList } from "./VipMusicTrackList";
-import { AtualizacoesAcervoAccordion } from "./AtualizacoesAcervoAccordion";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -292,19 +290,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
-  /**
-   * Só usa acordeão no último nível antes das faixas: quando toda pasta filha já
-   * contém músicas direto (sem subpastas). Se ainda houver subpastas (ex.: pack com
-   * estilos dentro), navega para uma nova página — evita acordeão dentro de acordeão.
-   */
-  const useAcervoAccordion =
-    showingStyles &&
-    !showingMonths &&
-    !showingWeeks &&
-    (data?.items.length ?? 0) > 0 &&
-    (data?.items ?? []).every(
-      (item) => (item.trackCount ?? 0) > 0 && !(item.folderCount ?? 0),
-    );
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -342,12 +327,19 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       ? displayFolderName(data?.resolvedPath[1]?.name ?? weekSlug.replace(/-/g, " "))
       : undefined;
   const currentTitle = data ? displayFolderName(data.folderName) : monthTitle;
+  const parentFolderTitle = data?.resolvedPath.at(-2)
+    ? displayFolderName(data.resolvedPath.at(-2)?.name ?? "")
+    : null;
 
   const childIds = data?.items.map((item) => item.id) ?? [];
   const highlightKey = showingWeeks
     ? weeksReadKey(slugPath)
     : stylesReadKey(slugPath);
-  const newChildIds = useNewFolderHighlights(highlightKey, childIds);
+  const seenNewChildIds = useNewFolderHighlights(highlightKey, childIds);
+  const newChildIds = useMemo(
+    () => new Set([...seenNewChildIds, ...(data?.items.filter((item) => item.isNew).map((item) => item.id) ?? [])]),
+    [data?.items, seenNewChildIds],
+  );
 
   const relativeStyleBase = weekTitle ? `${monthTitle}/${weekTitle}` : monthTitle;
   const tracksRelativePath = data
@@ -605,7 +597,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       {data && showingTracks ? (
         <PackHero
           title={displayFolderName(data.folderName)}
-          eyebrow="Pack"
+          eyebrow={parentFolderTitle ? `Pasta · ${parentFolderTitle}` : "Pasta"}
           description="Ouça no navegador, baixe no dispositivo ou envie direto ao BRS Downloader."
           coverUrl={data.coverUrl}
           stats={packStats}
@@ -656,11 +648,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           monthWeeks={data.items}
           newChildIds={newChildIds}
         >
-          <WeekFolderGrid
-            parentSegments={slugSegments}
-            monthName={calendarMonthName}
-            weeks={data.items}
-            newWeekIds={newChildIds}
+          <StyleFolderLinks
+            folders={data.items}
+            slugSegments={slugSegments}
+            newFolderIds={newChildIds}
           />
           <AtualizacoesMonthFooterNav
             monthSlug={monthSlug}
@@ -690,16 +681,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           monthWeeks={siblingWeeks}
           newChildIds={newChildIds}
         >
-          {useAcervoAccordion ? (
-            <AtualizacoesAcervoAccordion
-              folders={data.items}
-              acervoSegments={slugSegments}
-              packTitle={displayFolderName(data.folderName)}
-              canPlay={playbackEnabled}
-              canDownload={downloadEnabled}
-              newFolderIds={newChildIds}
-            />
-          ) : data.items.length > 0 ? (
+          {data.items.length > 0 ? (
             <StyleFolderLinks
               folders={data.items}
               slugSegments={slugSegments}
@@ -729,7 +711,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               />
             </div>
           )}
-          {!useAcervoAccordion && useSiblingFolderNav ? (
+          {useSiblingFolderNav ? (
             <AtualizacoesMonthFooterNav
               monthSlug={monthSlug}
               months={months}
@@ -738,7 +720,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               homeHref={homeParentHref}
               homeLabel="Home"
             />
-          ) : !useAcervoAccordion ? (
+          ) : (
             <AtualizacoesMonthFooterNav
               monthSlug={monthSlug}
               months={months}
@@ -751,7 +733,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               }
               homeLabel="Home"
             />
-          ) : null}
+          )}
         </MusicLibraryBrowseShell>
       )}
 

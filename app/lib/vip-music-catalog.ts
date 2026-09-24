@@ -8,6 +8,7 @@ import { GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 import {
   childrenAreWeekFolders,
   displayFolderName,
+  isNewFolderName,
   parseUpdateDateFolder,
   slugifyFolderName,
   sortVipChildFolders,
@@ -24,6 +25,8 @@ const TRACK_WALK_CONCURRENCY = 8;
 export type VipMusicFolder = {
   id: string;
   name: string;
+  /** Pasta marcada como `[new]` no Google Drive. */
+  isNew?: boolean;
 };
 
 export type VipMusicCatalogItem = VipMusicFolder & {
@@ -110,6 +113,7 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
     subfolders.map((folder) => ({
       id: folder.id,
       name: folder.name,
+      isNew: isNewFolderName(folder.name),
       modifiedAt: folder.modifiedTime ?? folder.createdTime ?? null,
     })),
   );
@@ -263,7 +267,11 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
     }
 
     const sorted = sortVipChildFolders(
-      otherFolders.map((folder) => ({ id: folder.id, name: folder.name })),
+      otherFolders.map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+        isNew: isNewFolderName(folder.name),
+      })),
     );
     // Contagens + capa para todos os níveis (meses → semanas → estilos → subpastas).
     const stats = await mapPool(sorted, 8, (folder) => getFolderNavStats(folder.id));

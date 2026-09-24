@@ -13,7 +13,6 @@ import {
 import type { PreviewTrack } from "../../lib/google-drive";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import {
-  childrenAreWeekFolders,
   displayFolderName,
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
@@ -513,10 +512,7 @@ type AtualizacoesAcervoAccordionProps = {
   newFolderIds?: Set<string>;
 };
 
-/**
- * Acervo com estilos em acordeão (lazy-load ao abrir).
- * Usado em `/musicas/atualizacoes/[acervo]` quando o 1º nível são pastas de estilo.
- */
+/** Acervo em acordeão recursivo (lazy-load ao abrir cada pasta). */
 export function AtualizacoesAcervoAccordion({
   folders,
   acervoSegments,
@@ -535,13 +531,6 @@ export function AtualizacoesAcervoAccordion({
       return name.includes(q);
     });
   }, [folders, query]);
-
-  const hasWeekChildren = childrenAreWeekFolders(folders);
-
-  if (hasWeekChildren) {
-    // Estrutura de semanas: mantém navegação por links (WeekFolderGrid no browse client).
-    return null;
-  }
 
   return (
     <div className="space-y-4">

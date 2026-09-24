@@ -7,6 +7,8 @@ export type TopDownloadTrack = {
   title: string;
   artist: string;
   pack: string;
+  pool: string;
+  style: string;
   fileName: string;
   downloadCount: number;
   musicalKey: string | null;
@@ -23,7 +25,7 @@ function folderHrefFromRelativePath(relativePath: string | null | undefined) {
   const parts = relativePath.replace(/\\/g, "/").split("/").filter(Boolean);
   // remove filename
   if (parts.length <= 1) return "/musicas/atualizacoes";
-  const folders = parts.slice(0, -1).slice(0, 3);
+  const folders = parts.slice(0, -1);
   const slug = folders
     .map((p) =>
       p
@@ -43,6 +45,13 @@ function packFromRelativePath(relativePath: string | null | undefined, fileName:
   const parts = relativePath.replace(/\\/g, "/").split("/").filter(Boolean);
   if (parts.length >= 2) return parts[parts.length - 2] ?? "Atualizações";
   return fileName.replace(/\.[^.]+$/, "") || "Atualizações";
+}
+
+function folderContextFromRelativePath(relativePath: string | null | undefined) {
+  const folders = (relativePath ?? "").replace(/\\/g, "/").split("/").filter(Boolean).slice(0, -1);
+  const pool = folders[0] ?? "Atualizações";
+  const style = folders.at(-1) ?? pool;
+  return { pool, style };
 }
 
 /** Mais baixadas via jobs do Downloader / plataforma (proxy de /musicas/atualizacoes). */
@@ -73,12 +82,15 @@ export async function getMostDownloadedTracks(limit = 12): Promise<TopDownloadTr
       const fileName = sample?.fileName || row.fileName;
       const relativePath = sample?.relativePath ?? null;
       const meta = parseTrackMeta(fileName);
+      const { pool, style } = folderContextFromRelativePath(relativePath);
 
       tracks.push({
         id: row.fileId,
         title: meta.title,
         artist: meta.artist,
         pack: packFromRelativePath(relativePath, fileName),
+        pool,
+        style,
         fileName,
         downloadCount: row._count._all,
         musicalKey: meta.musicalKey,
@@ -109,6 +121,8 @@ async function fallbackFromRecentPlaylists(limit: number): Promise<TopDownloadTr
         title: t.title,
         artist: t.artist,
         pack: t.pack || p.name,
+        pool: p.name,
+        style: t.pack || p.name,
         fileName: t.fileName ?? `${t.title}.mp3`,
         downloadCount: Math.max(1, 40 - i),
         musicalKey: t.musicalKey,

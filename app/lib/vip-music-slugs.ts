@@ -184,6 +184,11 @@ export function displayFolderName(name: string): string {
     .toLocaleUpperCase("pt-BR");
 }
 
+/** Marcador temporário no Drive para destacar e priorizar uma pasta nova. */
+export function isNewFolderName(name: string): boolean {
+  return /\[\s*new\s*\]/i.test(name);
+}
+
 /**
  * Pastas de atualização no Drive: `17-09-2026`, `17.09.2026`, `17/09/2026`.
  * Não confunde com meses tipo `04- ABRIL 2024`.
@@ -355,14 +360,21 @@ export function sortFoldersByMonthDate<T extends VipMusicFolder>(
 }
 
 export function sortVipChildFolders<T extends VipMusicFolder>(folders: T[]): T[] {
-  if (childrenAreWeekFolders(folders)) return sortFoldersByWeek(folders);
-  const monthLike = folders.filter((folder) => parseMonthFolderDate(folder.name)).length;
-  if (monthLike >= Math.ceil(folders.length * 0.5)) {
-    return sortFoldersByMonthDate(folders, true);
+  let sorted: T[];
+  if (childrenAreWeekFolders(folders)) {
+    sorted = sortFoldersByWeek(folders);
+  } else {
+    const monthLike = folders.filter((folder) => parseMonthFolderDate(folder.name)).length;
+    if (monthLike >= Math.ceil(folders.length * 0.5)) {
+      sorted = sortFoldersByMonthDate(folders, true);
+    } else {
+      const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
+      sorted =
+        yearLike >= Math.ceil(folders.length * 0.5)
+          ? sortFoldersByYearCollection(folders, true)
+          : [...folders].sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
+    }
   }
-  const yearLike = folders.filter((folder) => parseYearCollectionFolder(folder.name)).length;
-  if (yearLike >= Math.ceil(folders.length * 0.5)) {
-    return sortFoldersByYearCollection(folders, true);
-  }
-  return [...folders].sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
+
+  return sorted.sort((a, b) => Number(isNewFolderName(b.name)) - Number(isNewFolderName(a.name)));
 }

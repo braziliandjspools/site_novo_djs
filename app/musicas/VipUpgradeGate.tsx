@@ -129,7 +129,7 @@ export function VipLockedPlayHint({
   const positionClass =
     side === "top"
       ? "bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2"
-      : "left-[calc(100%+10px)] top-1/2 -translate-y-1/2";
+      : "left-[calc(100%+10px)] top-0";
 
   return (
     <div className={`group/locked relative inline-flex ${className}`}>

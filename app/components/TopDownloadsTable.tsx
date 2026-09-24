@@ -95,7 +95,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
             <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-600">
               <th className="w-10 px-3 py-2.5 text-center sm:w-12 sm:px-4">#</th>
               <th className="px-2 py-2.5">Faixa</th>
-              <th className="hidden px-2 py-2.5 md:table-cell">Pasta</th>
+              <th className="hidden px-2 py-2.5 md:table-cell">Pool / estilo</th>
               <th className="w-28 px-3 py-2.5 text-right sm:px-4">
                 <span className="inline-flex items-center gap-1">
                   <Download className="h-3 w-3" />
@@ -179,9 +179,10 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                   <td className="hidden px-2 py-2.5 align-middle md:table-cell">
                     <Link
                       href={track.href}
-                      className="line-clamp-1 max-w-[240px] text-xs text-zinc-400 transition hover:text-white"
+                      className="block max-w-[240px] text-xs transition hover:text-white"
                     >
-                      {track.pack}
+                      <span className="block truncate font-medium text-zinc-300">{track.pool}</span>
+                      <span className="block truncate text-zinc-500">{track.style}</span>
                     </Link>
                   </td>
                   <td className="px-3 py-2.5 text-right align-middle sm:px-4">

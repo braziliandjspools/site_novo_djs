@@ -225,7 +225,11 @@ export function AtualizacoesRootClient() {
   }, [loadHome, loadTree]);
 
   const folderIds = folders.map((folder) => folder.id);
-  const newFolderIds = useNewFolderHighlights(monthsReadKey(), folderIds);
+  const seenNewFolderIds = useNewFolderHighlights(monthsReadKey(), folderIds);
+  const newFolderIds = useMemo(
+    () => new Set([...seenNewFolderIds, ...folders.filter((folder) => folder.isNew).map((folder) => folder.id)]),
+    [folders, seenNewFolderIds],
+  );
 
   const trackCount = useMemo(() => {
     const fromTree = folders.reduce((sum, folder) => {
