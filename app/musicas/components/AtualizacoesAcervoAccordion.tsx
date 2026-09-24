@@ -283,6 +283,7 @@ function NestedFolderAccordion({
                 coverUrl={data?.coverUrl}
                 albumTitle={title}
                 layout="table"
+                groupByDate={false}
                 hasMore={hasMoreTracks}
                 onLoadMore={loadMoreTracks}
               />
@@ -466,6 +467,7 @@ function GenreAccordion({
                 coverUrl={data?.coverUrl}
                 albumTitle={title}
                 layout="table"
+                groupByDate={false}
                 hasMore={hasMoreTracks}
                 onLoadMore={loadMoreTracks}
               />

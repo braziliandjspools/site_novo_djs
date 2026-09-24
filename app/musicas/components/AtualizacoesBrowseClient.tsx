@@ -293,16 +293,18 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
   /**
-   * Só usa acordeão no último nível antes das faixas: quando toda a pasta filha já
-   * tem faixas (o acordeão expande subpastas dela recursivamente, sem navegar).
-   * Demais níveis (ex.: lista de estilos sem contagem ainda) navegam para uma nova página.
+   * Só usa acordeão no último nível antes das faixas: quando toda pasta filha já
+   * contém músicas direto (sem subpastas). Se ainda houver subpastas (ex.: pack com
+   * estilos dentro), navega para uma nova página — evita acordeão dentro de acordeão.
    */
   const useAcervoAccordion =
     showingStyles &&
     !showingMonths &&
     !showingWeeks &&
     (data?.items.length ?? 0) > 0 &&
-    (data?.items ?? []).every((item) => (item.trackCount ?? 0) > 0);
+    (data?.items ?? []).every(
+      (item) => (item.trackCount ?? 0) > 0 && !(item.folderCount ?? 0),
+    );
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
