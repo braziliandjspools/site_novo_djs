@@ -75,9 +75,9 @@ type VipMusicTrackListProps = {
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_72px_60px_80px_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px_36px] md:items-center md:gap-x-3";
 const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_72px_60px_80px_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -467,8 +467,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     ) : null;
 
   const showSideDuration = showDuration && !(isActive && canPlay);
-  const trackBpm = track.bpm ?? (track.bpmFrom != null ? String(track.bpmFrom) : null);
-  const trackVersion = track.editType || track.version;
 
   const selectCheckbox =
     selectionMode && canDownload ? (
@@ -492,10 +490,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative hover:z-10 focus-within:z-10 border-b border-white/[0.06] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
+      className={`group/row relative hover:z-10 focus-within:z-10 border-b border-violet-200/[0.07] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#a78bfa]"
-          : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
+          : "hover:shadow-[inset_3px_0_0_0_rgba(167,139,250,0.75)]"
       }`}
     >
       {/* Mobile */}
@@ -505,7 +503,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <div className="min-w-0 flex-1">
           {titleBlock}
           {progressBlock}
-          <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-violet-200/80">{trackBpm ? <span>{trackBpm} BPM</span> : null}{track.musicalKey ? <span>· {track.musicalKey}</span> : null}{trackVersion ? <span className="max-w-[130px] truncate">· {trackVersion}</span> : null}</div>
           {showSideDuration ? (
             <p className="mt-1.5 font-mono text-[11px] tabular-nums text-white/40">
               {formatTime(displayDuration)}
@@ -563,9 +560,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {progressBlock}
         </div>
 
-        <span className="truncate text-center font-mono text-[11px] tabular-nums text-violet-200/80" title={trackBpm ?? "BPM não informado"}>{trackBpm ?? "—"}</span>
-        <span className="truncate text-center font-mono text-[11px] text-violet-200/70" title={track.musicalKey ?? "Tom não informado"}>{track.musicalKey ?? "—"}</span>
-        <span className="truncate text-center text-[10px] text-zinc-300" title={trackVersion ?? "Versão não informada"}>{trackVersion ?? "—"}</span>
         <div className="text-right font-mono text-[12px] tabular-nums text-white/40">
           {showSideDuration ? formatTime(displayDuration) : null}
         </div>
@@ -800,8 +794,6 @@ export function VipMusicTrackList({
   const [batchSending, setBatchSending] = useState(false);
   const [batchDownloading, setBatchDownloading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
-  const [trackFilter, setTrackFilter] = useState("");
-  const [bpmFilter, setBpmFilter] = useState<"all" | "slow" | "mid" | "fast">("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
@@ -816,22 +808,6 @@ export function VipMusicTrackList({
     () => (shouldGroupByDate ? groupTracksByUploadDate(tracks) : null),
     [shouldGroupByDate, tracks],
   );
-  const normalizedFilter = trackFilter.trim().toLocaleLowerCase("pt-BR");
-  const visibleTracks = useMemo(() => {
-    return tracks.filter((track) => {
-      const bpm = track.bpmFrom ?? (track.bpm ? Number.parseInt(track.bpm, 10) : NaN);
-      if (bpmFilter !== "all") {
-        if (!Number.isFinite(bpm)) return false;
-        if (bpmFilter === "slow" && bpm >= 100) return false;
-        if (bpmFilter === "mid" && (bpm < 100 || bpm > 129)) return false;
-        if (bpmFilter === "fast" && bpm < 130) return false;
-      }
-      if (!normalizedFilter) return true;
-      const display = getTrackDisplayMetadata(track);
-      return [display.title, display.artist, track.fileName, track.pack, track.version, track.editType, track.musicalKey, track.bpm]
-        .some((value) => typeof value === "string" && value.toLocaleLowerCase("pt-BR").includes(normalizedFilter));
-    });
-  }, [tracks, normalizedFilter, bpmFilter]);
   const orderedTracks = useMemo(
     () => (trackSections ? flattenTrackSections(trackSections) : tracks),
     [trackSections, tracks],
@@ -1061,8 +1037,8 @@ export function VipMusicTrackList({
   }, []);
 
   const selectAllTracks = useCallback(() => {
-    setSelectedIds((current) => new Set([...current, ...visibleTracks.map((track) => track.id)]));
-  }, [visibleTracks]);
+    setSelectedIds(new Set(tracks.map((track) => track.id)));
+  }, [tracks]);
 
   useEffect(() => {
     if (highlightTrackId) setFocusedTrackId(highlightTrackId);
@@ -1127,7 +1103,7 @@ export function VipMusicTrackList({
     trackSections?.some((section) => section.kind === "folder"),
   );
   const panelClass =
-    "musicas-track-panel rounded-2xl border border-white/10 bg-[#14101e] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
+    "musicas-track-panel rounded-2xl border border-white/10 bg-[#15111f] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
@@ -1248,28 +1224,6 @@ export function VipMusicTrackList({
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
 
-      {useStreaming && tracks.length > 1 ? (
-        <div className="flex flex-wrap items-center gap-3 border-b border-violet-400/15 bg-[#171122] px-3.5 py-3">
-          <label htmlFor={`track-filter-${folderId}`} className="text-xs font-bold uppercase tracking-wider text-violet-200">Filtrar faixas</label>
-          <input
-            id={`track-filter-${folderId}`}
-            type="search"
-            value={trackFilter}
-            onChange={(event) => setTrackFilter(event.target.value)}
-            placeholder="Título, artista, versão ou pack…"
-            className="h-10 min-w-[180px] flex-1 rounded-lg border border-white/15 bg-black/35 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-violet-400"
-          />
-          <label htmlFor={`bpm-filter-${folderId}`} className="sr-only">Filtrar por BPM</label>
-          <select id={`bpm-filter-${folderId}`} value={bpmFilter} onChange={(event) => setBpmFilter(event.target.value as typeof bpmFilter)} className="h-10 rounded-lg border border-violet-400/25 bg-[#21182e] px-3 text-xs font-semibold text-violet-100 outline-none focus:border-violet-400">
-            <option value="all">Todos os BPMs</option><option value="slow">Até 99 BPM</option><option value="mid">100–129 BPM</option><option value="fast">130+ BPM</option>
-          </select>
-          <span role="status" className="text-xs tabular-nums text-zinc-400">{visibleTracks.length} de {tracks.length} faixas carregadas</span>
-        </div>
-      ) : null}
-      {useStreaming && (normalizedFilter || bpmFilter !== "all") && visibleTracks.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-zinc-400">Nenhuma faixa encontrada entre as músicas carregadas.</p>
-      ) : null}
-
       {useDiscography ? (
         <div className="px-1 py-1">
           {tracks.map((track, index) => {
@@ -1320,17 +1274,17 @@ export function VipMusicTrackList({
           {selectionToolbar ? (
             <div className={`${panelClass} !shadow-none`}>{selectionToolbar}</div>
           ) : null}
-          {trackSections.filter((section) => section.tracks.some((track) => visibleTracks.includes(track))).map((section) => (
+          {trackSections.map((section) => (
             <div key={section.id} className={panelClass}>
               <header className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#141414] px-3.5 py-3 sm:px-4">
                 <h3 className="text-[13px] font-bold tabular-nums tracking-[0.14em] text-white">
                   {section.title}
                 </h3>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  {section.tracks.filter((track) => visibleTracks.includes(track)).length} faixas
+                  {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"
                 </p>
               </header>
-              <div>{renderStreamingRows(section.tracks.filter((track) => visibleTracks.includes(track)))}</div>
+              <div>{renderStreamingRows(section.tracks)}</div>
             </div>
           ))}
         </>
@@ -1341,7 +1295,7 @@ export function VipMusicTrackList({
           {selectionToolbar}
           {(trackSections ?? [
             { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
-          ]).filter((section) => section.tracks.some((track) => visibleTracks.includes(track))).map((section) => (
+          ]).map((section) => (
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
                 <header
@@ -1368,7 +1322,7 @@ export function VipMusicTrackList({
                   ) : null}
                 </header>
               ) : null}
-              {renderStreamingRows(section.tracks.filter((track) => visibleTracks.includes(track)))}
+              {renderStreamingRows(section.tracks)}
             </section>
           ))}
         </div>
