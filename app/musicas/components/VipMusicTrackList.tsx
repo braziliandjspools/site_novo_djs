@@ -1102,8 +1102,9 @@ export function VipMusicTrackList({
   const separateByFolderDate = Boolean(
     trackSections?.some((section) => section.kind === "folder"),
   );
-  const panelClass =
-    "musicas-track-panel rounded-2xl border border-white/10 bg-[#15111f] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
+  const panelClass = layout === "table"
+    ? "musicas-track-panel overflow-hidden rounded-2xl border border-violet-400/15 bg-[#110e1b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    : "musicas-track-panel rounded-2xl border border-white/10 bg-[#15111f] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
