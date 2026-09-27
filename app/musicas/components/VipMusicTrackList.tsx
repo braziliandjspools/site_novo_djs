@@ -75,9 +75,9 @@ type VipMusicTrackListProps = {
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_72px_60px_80px_36px_36px_36px] md:items-center md:gap-x-3";
 const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_72px_60px_80px_36px_36px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -463,6 +463,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     ) : null;
 
   const showSideDuration = showDuration && !(isActive && canPlay);
+  const trackBpm = track.bpm ?? (track.bpmFrom != null ? String(track.bpmFrom) : null);
+  const trackVersion = track.editType || track.version;
 
   const selectCheckbox =
     selectionMode && canDownload ? (
@@ -499,6 +501,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <div className="min-w-0 flex-1">
           {titleBlock}
           {progressBlock}
+          <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-violet-200/80">{trackBpm ? <span>{trackBpm} BPM</span> : null}{track.musicalKey ? <span>· {track.musicalKey}</span> : null}{trackVersion ? <span className="max-w-[130px] truncate">· {trackVersion}</span> : null}</div>
           {showSideDuration ? (
             <p className="mt-1.5 font-mono text-[11px] tabular-nums text-white/40">
               {formatTime(displayDuration)}
@@ -556,6 +559,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {progressBlock}
         </div>
 
+        <span className="truncate text-center font-mono text-[11px] tabular-nums text-violet-200/80" title={trackBpm ?? "BPM não informado"}>{trackBpm ?? "—"}</span>
+        <span className="truncate text-center font-mono text-[11px] text-violet-200/70" title={track.musicalKey ?? "Tom não informado"}>{track.musicalKey ?? "—"}</span>
+        <span className="truncate text-center text-[10px] text-zinc-300" title={trackVersion ?? "Versão não informada"}>{trackVersion ?? "—"}</span>
         <div className="text-right font-mono text-[12px] tabular-nums text-white/40">
           {showSideDuration ? formatTime(displayDuration) : null}
         </div>
@@ -791,6 +797,7 @@ export function VipMusicTrackList({
   const [batchDownloading, setBatchDownloading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [trackFilter, setTrackFilter] = useState("");
+  const [bpmFilter, setBpmFilter] = useState<"all" | "slow" | "mid" | "fast">("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
@@ -807,14 +814,20 @@ export function VipMusicTrackList({
   );
   const normalizedFilter = trackFilter.trim().toLocaleLowerCase("pt-BR");
   const visibleTracks = useMemo(() => {
-    if (!normalizedFilter) return tracks;
     return tracks.filter((track) => {
+      const bpm = track.bpmFrom ?? (track.bpm ? Number.parseInt(track.bpm, 10) : NaN);
+      if (bpmFilter !== "all") {
+        if (!Number.isFinite(bpm)) return false;
+        if (bpmFilter === "slow" && bpm >= 100) return false;
+        if (bpmFilter === "mid" && (bpm < 100 || bpm > 129)) return false;
+        if (bpmFilter === "fast" && bpm < 130) return false;
+      }
+      if (!normalizedFilter) return true;
       const display = getTrackDisplayMetadata(track);
-      return [display.title, display.artist, track.fileName, track.pack]
-        .filter(Boolean)
-        .some((value) => value.toLocaleLowerCase("pt-BR").includes(normalizedFilter));
+      return [display.title, display.artist, track.fileName, track.pack, track.version, track.editType, track.musicalKey, track.bpm]
+        .some((value) => typeof value === "string" && value.toLocaleLowerCase("pt-BR").includes(normalizedFilter));
     });
-  }, [tracks, normalizedFilter]);
+  }, [tracks, normalizedFilter, bpmFilter]);
   const orderedTracks = useMemo(
     () => (trackSections ? flattenTrackSections(trackSections) : tracks),
     [trackSections, tracks],
@@ -1242,10 +1255,14 @@ export function VipMusicTrackList({
             placeholder="Título, artista, versão ou pack…"
             className="h-10 min-w-[180px] flex-1 rounded-lg border border-white/15 bg-black/35 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-violet-400"
           />
+          <label htmlFor={`bpm-filter-${folderId}`} className="sr-only">Filtrar por BPM</label>
+          <select id={`bpm-filter-${folderId}`} value={bpmFilter} onChange={(event) => setBpmFilter(event.target.value as typeof bpmFilter)} className="h-10 rounded-lg border border-violet-400/25 bg-[#21182e] px-3 text-xs font-semibold text-violet-100 outline-none focus:border-violet-400">
+            <option value="all">Todos os BPMs</option><option value="slow">Até 99 BPM</option><option value="mid">100–129 BPM</option><option value="fast">130+ BPM</option>
+          </select>
           <span role="status" className="text-xs tabular-nums text-zinc-400">{visibleTracks.length} de {tracks.length} faixas carregadas</span>
         </div>
       ) : null}
-      {useStreaming && normalizedFilter && visibleTracks.length === 0 ? (
+      {useStreaming && (normalizedFilter || bpmFilter !== "all") && visibleTracks.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-zinc-400">Nenhuma faixa encontrada entre as músicas carregadas.</p>
       ) : null}
 
