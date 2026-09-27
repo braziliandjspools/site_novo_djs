@@ -30,9 +30,20 @@ export async function GET() {
     console.error("[musicas/artists] electronic discovery", error);
     return [];
   });
-  const bySlug = new Map(curated.map((artist) => [artist.slug, artist]));
+  const bySlug = new Map<string, (typeof curated)[number]>(curated.map((artist) => [artist.slug, artist]));
   for (const artist of discovered) {
-    if (!bySlug.has(artist.slug)) bySlug.set(artist.slug, artist);
+    if (!bySlug.has(artist.slug)) bySlug.set(artist.slug, {
+      slug: artist.slug,
+      name: artist.name,
+      imageUrl: artist.imageUrl,
+      shortBio: artist.shortBio,
+      bio: artist.bio,
+      genres: artist.genres,
+      origin: null,
+      spotifyUrl: null,
+      href: artist.href,
+      known: artist.known,
+    });
   }
   const artists = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   return NextResponse.json({ artists, count: artists.length, discoveredCount: discovered.length, ...access });
