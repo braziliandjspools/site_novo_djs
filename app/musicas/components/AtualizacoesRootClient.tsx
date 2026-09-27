@@ -268,9 +268,9 @@ export function AtualizacoesRootClient() {
           <span className="text-xs font-semibold tabular-nums text-zinc-400">{visibleFolders.length} {visibleFolders.length === 1 ? "resultado" : "resultados"}</span>
         </div>
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-violet-400/15 bg-[#191425] p-3 shadow-[0_14px_35px_-25px_rgba(139,92,246,0.45)] sm:flex-row sm:items-center">
-          <label className="min-w-0 flex-1">
+          <label className="relative min-w-0 flex-1">
             <span className="sr-only">Buscar acervo</span>
-            <Search className="pointer-events-none absolute ml-4 mt-3.5 h-4 w-4 text-violet-300" aria-hidden />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-300" aria-hidden />
             <input type="search" value={folderQuery} onChange={(event) => setFolderQuery(event.target.value)}
               placeholder="Encontre um pack ou acervo..."
               className="w-full rounded-xl border border-white/10 bg-[#100d1a] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-violet-400/60" />
