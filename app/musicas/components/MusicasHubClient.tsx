@@ -27,6 +27,7 @@ import {
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { FavoriteTracksShelf } from "./FavoriteTracksShelf";
+import { DjPoolDiscovery } from "./DjPoolDiscovery";
 import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
@@ -199,6 +200,8 @@ export function MusicasHubClient() {
           </div>
         </div>
       </header>
+
+      <DjPoolDiscovery />
 
       {authenticated && !hasVip ? <VipUpgradeBanner /> : null}
       {!authenticated ? <VipUpgradeBanner /> : null}
