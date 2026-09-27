@@ -157,7 +157,7 @@ export function MusicasHubClient() {
               {hasVip ? "Premium ativo" : authenticated ? "Só navegação" : "Visitante"}
             </span>
             {showDownloaderCard ? (
-              <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold ${downloaderOnlineCount > 0 ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
+              <span id="downloader-status" className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold ${downloaderOnlineCount > 0 ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
                 <MonitorDown className="h-3.5 w-3.5" />
                 {downloaderOnlineCount > 0 ? `Downloader online (${downloaderOnlineCount})` : "Downloader offline"}
                 {downloaderSync && downloaderSync.totalQueueCount > 0 ? ` · ${downloaderSync.totalQueueCount} na fila` : ""}
@@ -232,7 +232,7 @@ export function MusicasHubClient() {
         </MusicLibraryShelf>
       ) : null}
 
-      <FavoriteTracksShelf tracks={favorites} />
+      <section id="favoritos" className="scroll-mt-24"><FavoriteTracksShelf tracks={favorites} /></section>
 
       <div className="rounded-2xl border border-violet-400/15 bg-gradient-to-b from-violet-500/[0.07] to-transparent p-3 sm:p-4"><MusicLibraryTrackShelf
         title="Últimas adicionadas"
