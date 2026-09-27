@@ -492,10 +492,8 @@ async function listVipMusicFeedCandidates(options?: {
     }
   }
 
-  // Uma faixa adicionada em uma subpasta antiga deve trazer seu pack ao topo.
-  // Percorre até quatro níveis internos e considera createdTime/modifiedTime dos áudios.
-  // O cache existente de listDriveFolderChildren evita repetir leituras a cada request.
-  const recentTimes = await mapPool(candidates, 6, async (candidate) => {
+  // Considera músicas adicionadas em subpastas de packs antigos, com limite de concorrência.
+  const recentTimes = await mapPool(candidates, 4, async (candidate) => {
     const visited = new Set<string>();
     async function newestInFolder(id: string, depth: number): Promise<number> {
       if (depth > 4 || visited.has(id)) return 0;
@@ -505,14 +503,13 @@ async function listVipMusicFeedCandidates(options?: {
         let newest = 0;
         const folders: string[] = [];
         for (const child of children) {
-          if (child.mimeType === FOLDER_MIME) {
-            folders.push(child.id);
-          } else if (isDriveAudioFile(child)) {
-            const timestamp = Date.parse(child.createdTime ?? child.modifiedTime ?? "");
+          if (child.mimeType === FOLDER_MIME) folders.push(child.id);
+          else if (isDriveAudioFile(child)) {
+            const timestamp = Date.parse(child.modifiedTime ?? child.createdTime ?? "");
             if (Number.isFinite(timestamp)) newest = Math.max(newest, timestamp);
           }
         }
-        if (folders.length && depth < 4) {
+        if (depth < 4 && folders.length) {
           const nested = await mapPool(folders, 4, (childId) => newestInFolder(childId, depth + 1));
           for (const timestamp of nested) newest = Math.max(newest, timestamp);
         }
