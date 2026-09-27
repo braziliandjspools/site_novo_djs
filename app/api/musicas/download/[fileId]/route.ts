@@ -64,7 +64,7 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const requestedName = searchParams.get("name");
-  // Prioriza o nome original do arquivo no Google Drive; o nome vindo da UI\n  // serve apenas de fallback quando a API de metadados estiver indisponível.\n  const driveName = await getDriveFileName(fileId).catch(() => null);
+  const driveName = await getDriveFileName(fileId).catch(() => null);
   const filename = ensureAudioExtension(driveName ?? requestedName ?? "faixa.mp3");
 
   try {
@@ -77,7 +77,6 @@ export async function GET(request: Request, context: RouteContext) {
     const headers = driveAudioResponseHeaders(upstream);
     headers.set("Content-Type", contentTypeForFilename(filename));
     headers.set("Content-Disposition", contentDispositionAttachment(filename));
-    // O navegador deve baixar o áudio, nunca reproduzi-lo como página inline.
 
     const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
     upstream.body
