@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getVipMusicSession, vipMusicClientAccess } from "@/app/lib/vip-music-access";
+import { listElectronicArtistsFromDrive } from "@/app/lib/vip-electronic-artists";
 import { listFeaturedKnownArtists } from "@/app/lib/vip-known-artists";
 import { artistsHref } from "@/app/lib/vip-music-slugs";
 
@@ -9,7 +10,7 @@ export async function GET() {
   const session = await getVipMusicSession();
   const access = vipMusicClientAccess(session);
 
-  const artists = listFeaturedKnownArtists()
+  const curated = listFeaturedKnownArtists()
     .map((artist) => ({
       slug: artist.slug,
       name: artist.name,
@@ -24,5 +25,15 @@ export async function GET() {
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
-  return NextResponse.json({ artists, count: artists.length, ...access });
+  // Falhas temporárias do Drive não devem impedir a listagem editorial.
+  const discovered = await listElectronicArtistsFromDrive().catch((error) => {
+    console.error("[musicas/artists] electronic discovery", error);
+    return [];
+  });
+  const bySlug = new Map(curated.map((artist) => [artist.slug, artist]));
+  for (const artist of discovered) {
+    if (!bySlug.has(artist.slug)) bySlug.set(artist.slug, artist);
+  }
+  const artists = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  return NextResponse.json({ artists, count: artists.length, discoveredCount: discovered.length, ...access });
 }
