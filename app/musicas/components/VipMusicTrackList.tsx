@@ -490,10 +490,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative hover:z-10 focus-within:z-10 border-b border-violet-200/[0.07] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
+      className={`group/row relative hover:z-10 focus-within:z-10 border-b border-white/[0.06] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#a78bfa]"
-          : "hover:shadow-[inset_3px_0_0_0_rgba(167,139,250,0.75)]"
+          : "hover:shadow-[inset_3px_0_0_0_rgba(167,139,250,0.55)]"
       }`}
     >
       {/* Mobile */}
@@ -1301,7 +1301,7 @@ export function VipMusicTrackList({
                 <header
                   className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
                     section.isNew
-                      ? "border-[#a78bfa]/20 bg-[rgba(30,215,96,0.07)]"
+                      ? "border-[#a78bfa]/20 bg-[rgba(167,139,250,0.07)]"
                       : "border-white/[0.05] bg-white/[0.02]"
                   }`}
                 >
@@ -1329,7 +1329,7 @@ export function VipMusicTrackList({
       ) : null}
 
       {selectionMode && selectedCount > 0 ? (
-        <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#171122]/95 px-3.5 py-3 backdrop-blur-md">
+        <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#0f1012]/95 px-3.5 py-3 backdrop-blur-md">
           <p className="text-xs font-semibold tabular-nums text-white">
             {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
           </p>
