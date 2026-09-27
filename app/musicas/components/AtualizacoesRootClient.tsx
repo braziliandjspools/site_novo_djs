@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Disc3, FolderOpen, Headphones, Music2, Radio, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, Disc3, FolderOpen, Grid2X2, Headphones, List, Music2, Radio, RefreshCw, Search, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import {
@@ -55,10 +55,12 @@ function AcervoCard({
   folder,
   isNew,
   index,
+  view,
 }: {
   folder: VipMusicFolder | VipMusicCatalogItem;
   isNew: boolean;
   index: number;
+  view: "grid" | "list";
 }) {
   const catalog = folder as VipMusicCatalogItem;
   const slug = slugifyFolderName(folder.name);
@@ -77,86 +79,33 @@ function AcervoCard({
   }
 
   return (
-    <article
-      className="group/acervo min-w-0"
-      style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
-    >
-      <Link
-        href={href}
-        prefetch={false}
-        onMouseEnter={prefetch}
-        onFocus={prefetch}
+    <article className={`group/acervo min-w-0 overflow-hidden rounded-[20px] border border-white/[0.09] bg-[#191424] transition duration-300 hover:-translate-y-1 hover:border-violet-400/45 hover:bg-[#20172f] hover:shadow-[0_18px_45px_-20px_rgba(139,92,246,0.45)] ${view === "list" ? "flex items-center gap-3 p-2.5 sm:gap-5 sm:p-3" : "flex flex-col"}`}
+      style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}>
+      <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch}
         aria-label={`Abrir acervo ${title}`}
-        className="block outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#101412]"
-      >
-        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-[#17191d] shadow-[0_16px_40px_-18px_rgba(0,0,0,0.85)] ring-1 ring-white/10 transition duration-300 group-hover/acervo:-translate-y-1 group-hover/acervo:ring-[#a78bfa]/40">
-          {cover ? (
-            <>
-              <Image
-                src={cover}
-                alt=""
-                fill
-                sizes="(max-width:420px) 50vw, (max-width:1024px) 33vw, 20vw"
-                className="object-cover transition duration-500 group-hover/acervo:scale-105"
-                unoptimized={cover.startsWith("/api/")}
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
-            </>
-          ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#1a2a24] via-[#141816] to-[#0c0e0d]">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#a78bfa]/15 text-[#a78bfa] ring-1 ring-[#a78bfa]/25">
-                <FolderOpen className="h-7 w-7" aria-hidden />
-              </span>
-            </div>
-          )}
-
-          {badge ? (
-            <span
-              className={`absolute left-2.5 top-2.5 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] backdrop-blur-sm ${
-                isNew || status === "completo" || status === "em-atualizacao"
-                  ? "bg-[#a78bfa]/90 text-black"
-                  : "bg-black/55 text-white"
-              }`}
-            >
-              {badge}
-            </span>
-          ) : null}
-        </div>
-      </Link>
-
-      <div className="mt-2.5 min-w-0 px-0.5">
-        <Link
-          href={href}
-          prefetch={false}
-          onMouseEnter={prefetch}
-          onFocus={prefetch}
-          className="outline-none"
-        >
-          <h2 className="line-clamp-2 text-[13px] font-bold leading-snug tracking-tight text-white transition-colors hover:text-[#a78bfa] sm:text-[14px]">
-            {title}
-          </h2>
-        </Link>
-
-        {hasFolderStats || hasTrackStats ? (
-          <p className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] leading-snug text-white/50">
-            {hasFolderStats ? (
-              <span className="inline-flex items-center gap-1 tabular-nums">
-                <FolderOpen className="h-3 w-3 opacity-70" aria-hidden />
-                {folderCount!.toLocaleString("pt-BR")}{" "}
-                {folderCount === 1 ? "pasta" : "pastas"}
-              </span>
-            ) : null}
-            {hasTrackStats ? (
-              <span className="inline-flex items-center gap-1 tabular-nums">
-                <Music2 className="h-3 w-3 opacity-70" aria-hidden />
-                {trackCount!.toLocaleString("pt-BR")}{" "}
-                {trackCount === 1 ? "música" : "músicas"}
-              </span>
-            ) : null}
-          </p>
+        className={`relative block shrink-0 overflow-hidden rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${view === "list" ? "h-20 w-20 sm:h-24 sm:w-24" : "aspect-[5/4] w-full rounded-b-none"}`}>
+        {cover ? (
+          <Image src={cover} alt="" fill sizes={view === "list" ? "96px" : "(max-width:480px) 50vw, (max-width:1024px) 33vw, 220px"}
+            className="object-cover transition duration-500 group-hover/acervo:scale-105" unoptimized={cover.startsWith("/api/")} />
         ) : (
-          <p className="mt-1 text-[11px] text-white/35">Acervo BRS</p>
+          <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_28%_25%,rgba(167,139,250,0.35),transparent_60%),linear-gradient(135deg,#30204c,#120f20)]">
+            <Disc3 className="h-14 w-14 text-violet-200/45 sm:h-20 sm:w-20" strokeWidth={0.9} aria-hidden />
+          </div>
         )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#120d1b]/75 via-transparent to-transparent" />
+        {badge ? <span className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${isNew ? "border border-fuchsia-300/40 bg-fuchsia-500/85 text-white" : "border border-violet-300/25 bg-[#241635]/85 text-violet-100"}`}>{badge}</span> : null}
+        <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-violet-500 text-white opacity-90 shadow-lg transition group-hover/acervo:scale-110" aria-hidden><ArrowRight className="h-4 w-4" /></span>
+      </Link>
+      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-1 flex-col px-3 pb-3 pt-3 sm:px-4"}`}>
+        <p className="mb-1 text-[9px] font-extrabold uppercase tracking-[0.17em] text-violet-300">{statusLabel || (isNew ? "Adicionado recentemente" : "BRS · DJ Pool")}</p>
+        <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="outline-none focus-visible:text-violet-300">
+          <h3 className="line-clamp-2 text-[13px] font-extrabold leading-snug text-white transition group-hover/acervo:text-violet-200 sm:text-[15px]">{title}</h3>
+        </Link>
+        <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-400 ${view === "list" ? "mt-2" : "mt-auto pt-3"}`}>
+          {hasFolderStats ? <span className="inline-flex items-center gap-1"><FolderOpen className="h-3.5 w-3.5 text-violet-300/80" />{folderCount!.toLocaleString("pt-BR")} pastas</span> : null}
+          {hasTrackStats ? <span className="inline-flex items-center gap-1"><Music2 className="h-3.5 w-3.5 text-violet-300/80" />{trackCount!.toLocaleString("pt-BR")} faixas</span> : null}
+          {!hasFolderStats && !hasTrackStats ? <span>Explorar catálogo</span> : null}
+        </div>
       </div>
     </article>
   );
@@ -177,6 +126,7 @@ export function AtualizacoesRootClient() {
   const [recent, setRecent] = useState<RecentFolder[]>([]);
   const [folderQuery, setFolderQuery] = useState("");
   const [showOnlyNew, setShowOnlyNew] = useState(false);
+  const [catalogView, setCatalogView] = useState<"grid" | "list">("grid");
 
   const loadTree = useCallback(async (forceRefresh = false) => {
     if (forceRefresh || !peekMusicasCache("/api/musicas/tree")) setLoading(true);
@@ -317,29 +267,37 @@ export function AtualizacoesRootClient() {
           </div>
           <span className="text-xs font-semibold tabular-nums text-zinc-400">{visibleFolders.length} {visibleFolders.length === 1 ? "resultado" : "resultados"}</span>
         </div>
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-violet-400/15 bg-[#191425] p-3 shadow-[0_14px_35px_-25px_rgba(139,92,246,0.45)] sm:flex-row sm:items-center">
           <label className="min-w-0 flex-1">
             <span className="sr-only">Buscar acervo</span>
+            <Search className="pointer-events-none absolute ml-4 mt-3.5 h-4 w-4 text-violet-300" aria-hidden />
             <input type="search" value={folderQuery} onChange={(event) => setFolderQuery(event.target.value)}
               placeholder="Encontre um pack ou acervo..."
-              className="w-full rounded-xl border border-white/10 bg-[#171322] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-violet-400/60" />
+              className="w-full rounded-xl border border-white/10 bg-[#100d1a] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-violet-400/60" />
           </label>
           <button type="button" onClick={() => setShowOnlyNew((value) => !value)} aria-pressed={showOnlyNew}
             className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition ${showOnlyNew ? "border-violet-400 bg-violet-500/20 text-violet-200" : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-violet-400/40"}`}>
             <Sparkles className="h-4 w-4" /> Somente novidades
           </button>
+          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#100d1a] p-1" aria-label="Visualização do catálogo">
+            <button type="button" aria-label="Ver em grade" aria-pressed={catalogView === "grid"} onClick={() => setCatalogView("grid")}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "grid" ? "bg-violet-500 text-white" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><Grid2X2 className="h-4 w-4" /></button>
+            <button type="button" aria-label="Ver em lista" aria-pressed={catalogView === "list"} onClick={() => setCatalogView("list")}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "list" ? "bg-violet-500 text-white" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><List className="h-4 w-4" /></button>
+          </div>
         </div>
 
         {loading && folders.length === 0 ? (
           <MusicasListSkeleton rows={8} />
         ) : (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5 min-[480px]:grid-cols-3 sm:gap-x-4 sm:gap-y-6 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className={catalogView === "grid" ? "grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" : "grid grid-cols-1 gap-3 md:grid-cols-2"}>
             {visibleFolders.map((folder, index) => (
               <AcervoCard
                 key={folder.id}
                 folder={folder}
                 isNew={newFolderIds.has(folder.id)}
                 index={index}
+                view={catalogView}
               />
             ))}
           </div>
