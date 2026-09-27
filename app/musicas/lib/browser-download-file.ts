@@ -27,7 +27,7 @@ export function startBrowserFileDownload(url: string, filename?: string) {
 }
 
 /**
- * Download de faixa pelo navegador: usa por padrão o streaming autenticado\n * com Content-Disposition: attachment, para salvar o arquivo original sem\n * abrir a página de confirmação/visualização do Google Drive.\n * O redirect direto continua disponível apenas quando proxy: false é explícito.
+ * Download de faixa: tenta offload (auth + redirect Drive) e, se pedido, proxy OAuth.
  */
 export function startBrowserTrackDownload(
   track: Pick<PreviewTrack, "id" | "fileName" | "title">,
