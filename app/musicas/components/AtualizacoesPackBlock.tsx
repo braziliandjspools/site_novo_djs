@@ -74,6 +74,8 @@ export function AtualizacoesPackBlock({
   const dateLabel = formatPackDate(pack.modifiedAt);
   const stamp = formatPackStamp(pack.modifiedAt);
   const tags = [pack.monthName, pack.weekName].filter(Boolean) as string[];
+  const newestAt = pack.modifiedAt ? Date.parse(pack.modifiedAt) : NaN;
+  const isRecent = Number.isFinite(newestAt) && newestAt <= Date.now() && Date.now() - newestAt < 7 * 86_400_000;
 
   const [tracks, setTracks] = useState(pack.tracks);
   const [page, setPage] = useState(1);
@@ -132,9 +134,10 @@ export function AtualizacoesPackBlock({
 
   return (
     <article className={`${poolPanelClass} bg-[#181818]`}>
-      <header className="border-b border-white/[0.07] px-4 py-4 sm:px-5">
+      <header className={`border-b px-4 py-4 sm:px-5 ${isRecent ? "border-violet-400/30 bg-violet-500/[0.09]" : "border-white/[0.07]"}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
+            {isRecent ? <span className="mb-2 inline-flex rounded-full border border-violet-400/40 bg-violet-500/20 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.13em] text-violet-200">Novidades · últimos 7 dias</span> : null}
             <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">
               <Link href={href} className="hover:text-[#1ed760]">
                 {pack.name}
