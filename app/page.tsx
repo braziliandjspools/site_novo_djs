@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import {
+  ArrowRight,
   ChevronDown,
+  Headphones,
   Download,
   Infinity,
   KeyRound,
@@ -170,9 +172,28 @@ export default async function Home() {
       <JsonLd data={faqJsonLd(SITE_FAQS)} />
       <Hero />
 
+      {/* Acesso direto às áreas mais utilizadas pelos DJs */}
+      <section aria-label="Comece pela BRS" className="border-b border-violet-400/10 bg-[#100d1b] px-4 pb-12 pt-3 sm:px-6 md:pb-16">
+        <div className="mx-auto grid max-w-6xl gap-3 sm:grid-cols-3 sm:gap-4">
+          {[
+            { href: "/musicas/atualizacoes", icon: RefreshCw, eyebrow: "Sempre em movimento", title: "Últimas atualizações", description: "Novos packs e faixas organizados para sua próxima apresentação." },
+            { href: "/musicas/artistas", icon: Headphones, eyebrow: "Descubra seu som", title: "Explore artistas", description: "Encontre artistas, versões e remixes no acervo BRS." },
+            { href: "#downloader", icon: Download, eyebrow: "Seu acervo no PC", title: "BRS Downloader", description: "Envie suas faixas para o computador e organize seus downloads." },
+          ].map((item) => (
+            <Link key={item.title} href={item.href} className="group relative flex min-h-44 flex-col overflow-hidden rounded-2xl border border-violet-400/15 bg-gradient-to-br from-violet-500/[0.12] via-[#191326] to-[#110e1b] p-5 transition hover:-translate-y-1 hover:border-violet-400/45 hover:shadow-[0_20px_45px_-28px_rgba(139,92,246,0.8)] sm:p-6">
+              <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-violet-400/20 bg-violet-500/15 text-violet-200"><item.icon className="h-5 w-5" /></span>
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-violet-300">{item.eyebrow}</span>
+              <span className="mt-1 text-lg font-extrabold text-white">{item.title}</span>
+              <span className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-400">{item.description}</span>
+              <ArrowRight className="absolute right-5 top-6 h-5 w-5 text-violet-300 transition group-hover:translate-x-1" />
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section id="pools" className="px-4 pb-12 pt-4 br-pattern sm:px-6 md:pb-20">
         <div className="mx-auto max-w-6xl">
-          <div className="mx-auto grid max-w-md gap-4 sm:max-w-none sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          <div className="mx-auto grid max-w-md gap-4 sm:max-w-none sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {poolHighlights.map((item) => (
               <IconBox key={item.title} icon={item.icon} title={item.title} description={item.description} color={item.color} />
             ))}
