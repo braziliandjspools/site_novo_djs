@@ -13,15 +13,15 @@ type ParallaxLayer = {
 const floatingLayers: ParallaxLayer[] = [
   {
     depth: 0.04,
-    className: "left-[8%] top-[18%] h-48 w-48 rounded-full bg-[#009739]/25 blur-3xl",
+    className: "left-[8%] top-[18%] h-48 w-48 rounded-full bg-violet-600/30 blur-3xl",
   },
   {
     depth: 0.07,
-    className: "right-[10%] top-[22%] h-56 w-56 rounded-full bg-[#FFDF00]/15 blur-3xl",
+    className: "right-[10%] top-[22%] h-56 w-56 rounded-full bg-fuchsia-600/20 blur-3xl",
   },
   {
     depth: 0.05,
-    className: "bottom-[20%] left-[35%] h-40 w-40 rounded-full bg-[#002776]/50 blur-3xl",
+    className: "bottom-[20%] left-[35%] h-40 w-40 rounded-full bg-indigo-600/35 blur-3xl",
   },
   {
     depth: 0.1,
@@ -46,27 +46,27 @@ const HERO_STATS = [
     prefix: "+",
     suffix: " GB",
     label: "Acervo VIP",
-    color: "text-[#1ed760]",
-    accent: "from-[#009739]/35 via-transparent to-transparent",
-    ring: "ring-[#1ed760]/25",
+    color: "text-violet-300",
+    accent: "from-violet-500/25 via-transparent to-transparent",
+    ring: "ring-violet-400/25",
   },
   {
     target: 739,
     prefix: "",
     suffix: "",
     label: "Pastas",
-    color: "text-[#FFDF00]",
-    accent: "from-[#FFDF00]/25 via-transparent to-transparent",
-    ring: "ring-[#FFDF00]/20",
+    color: "text-fuchsia-300",
+    accent: "from-fuchsia-500/20 via-transparent to-transparent",
+    ring: "ring-fuchsia-400/20",
   },
   {
     target: 40012,
     prefix: "+",
     suffix: "",
     label: "Músicas",
-    color: "text-[#7eb6ff]",
-    accent: "from-[#6B9FFF]/30 via-transparent to-transparent",
-    ring: "ring-[#6B9FFF]/25",
+    color: "text-indigo-300",
+    accent: "from-indigo-500/25 via-transparent to-transparent",
+    ring: "ring-indigo-400/25",
     format: "pt-BR" as const,
   },
 ];
@@ -220,7 +220,7 @@ export function Hero() {
         ref={sectionRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative overflow-hidden br-pattern"
+        className="relative overflow-hidden bg-[#100b1c]"
       >
         {floatingLayers.map((layer, index) => (
           <div
@@ -235,39 +235,38 @@ export function Hero() {
           </div>
         ))}
 
-        <div className="absolute inset-0 bg-gradient-to-b from-[#002776]/55 via-[#121212]/90 to-[#121212]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#291448]/80 via-[#130e21]/90 to-[#0b0a11]" />
 
-        <div className="relative z-10 mx-auto max-w-5xl px-4 pb-10 pt-16 text-center sm:px-6 md:pb-14 md:pt-28">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 pb-12 pt-16 text-center sm:px-6 md:pb-20 md:pt-24">
           <div
             className="animate-fade-in-up transition-transform duration-300 ease-out will-change-transform"
             style={{
               transform: `translate(${offset.x * -8}px, ${offset.y * -6}px)`,
             }}
           >
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#FFDF00]/40 bg-[#FFDF00]/10 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-[#FFDF00]">
-              <span className="h-2 w-2 rounded-full bg-[#009739]" />
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-400/35 bg-violet-400/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-violet-200">
+              <span className="h-2 w-2 rounded-full bg-fuchsia-400" />
               Pools · Curadoria · Remix Services
             </span>
-            <h1 className="font-display break-words text-3xl font-semibold leading-[1.08] text-white sm:text-5xl md:text-7xl">
-              Repertório, packs e remixes para DJs
+            <h1 className="font-display break-words text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl md:text-7xl">
+              O repertório que move <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-violet-400 bg-clip-text text-transparent">a sua pista.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base text-gray-300 sm:text-lg">
-              Packs, remix services, DJ pools, versões extended, intro edits e coleções organizadas
-              para diferentes pistas e estilos. Conteúdo atualizado para a rotina do DJ no Brasil.
+              Remixes, DJ pools, versões extended e intro edits em um só lugar. Descubra novos sons, organize seu repertório e prepare sets para qualquer pista.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
               <a
-                href="#acervo"
-                className="site-btn site-btn-primary w-full max-w-md px-8 py-4 text-base sm:w-auto sm:min-w-[260px] sm:px-10 sm:py-4 sm:text-lg"
+                href="/musicas"
+                className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-violet-500 px-7 py-4 text-sm font-extrabold text-white shadow-[0_12px_35px_-14px_rgba(139,92,246,0.85)] transition hover:bg-violet-400 sm:w-auto sm:min-w-[245px] sm:text-base"
               >
-                Ver catálogo de pools
+                Explorar a plataforma
                 <ArrowRight className="h-5 w-5" />
               </a>
               <Link
                 href="/musicas/atualizacoes"
-                className="site-btn site-btn-ghost w-full max-w-md border-[#FFDF00]/60 px-8 py-4 text-base uppercase tracking-[0.08em] text-[#FFDF00] hover:bg-[#FFDF00]/10 sm:w-auto sm:min-w-[320px] sm:px-10 sm:py-4 sm:text-lg"
+                className="inline-flex w-full max-w-md items-center justify-center rounded-full border border-violet-300/35 bg-white/[0.06] px-7 py-4 text-sm font-bold text-white transition hover:bg-violet-400/15 sm:w-auto sm:min-w-[260px] sm:text-base"
               >
-                Acessar plataforma de músicas
+                Ver últimas atualizações
               </Link>
             </div>
           </div>
@@ -277,7 +276,7 @@ export function Hero() {
 
       <section
         ref={statsRef}
-        className="relative z-10 border-b border-white/5 bg-[#0b0b0b] px-4 py-10 sm:px-6 md:-mt-2 md:py-12"
+        className="relative z-10 border-b border-violet-400/10 bg-[#100d1b] px-4 py-10 sm:px-6 md:-mt-2 md:py-12"
       >
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
           {HERO_STATS.map((stat, i) => (
