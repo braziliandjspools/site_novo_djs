@@ -1281,7 +1281,7 @@ export function VipMusicTrackList({
                   {section.title}
                 </h3>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"
+                  {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
               <div>{renderStreamingRows(section.tracks)}</div>
