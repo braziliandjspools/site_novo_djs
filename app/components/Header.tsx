@@ -42,11 +42,11 @@ export function Header() {
       <header className={APP_TOP_CHROME}>
         <div className="br-stripe" />
         <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-6xl md:px-6`}>
-          <div className="absolute left-1/2 -translate-x-1/2 flex-shrink-0 lg:static lg:translate-x-0">
+          <div className="mr-auto flex min-w-0 flex-shrink-0 items-center lg:mr-0">
             <BrsLogo
               href="/"
               priority
-              className="h-9 w-auto max-w-[200px] object-contain sm:h-10 sm:max-w-[240px] md:h-11 md:max-w-[260px]"
+              className="h-8 w-auto max-w-[138px] object-contain min-[380px]:max-w-[165px] sm:h-10 sm:max-w-[220px] md:h-11 md:max-w-[260px]"
             />
           </div>
 
@@ -125,7 +125,7 @@ export function Header() {
             </Link>
           </div>
 
-          <div className="app-no-drag ml-auto flex items-center gap-1.5 lg:hidden">
+          <div className="app-no-drag ml-auto flex shrink-0 items-center gap-1 lg:hidden">
             <MarketingAuthControls compact />
             <SiteNotificationBell compact />
             <button
