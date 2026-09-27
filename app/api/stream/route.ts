@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAudioSourceUrl } from "../../lib/google-drive";
+import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../lib/drive-audio-stream";
 import { resolveVipMusicStreamAccess } from "../../lib/vip-music-access";
 
 export async function POST(request: Request) {
@@ -22,33 +22,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const upstream = await fetch(getAudioSourceUrl(id), {
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-    });
-
-    if (!upstream.ok || !upstream.body) {
-      return NextResponse.json({ error: "Stream indisponível" }, { status: upstream.status });
+    const upstream = await fetchDriveAudioUpstream(id, request);
+    if ("error" in upstream) {
+      return NextResponse.json({ error: upstream.error }, { status: upstream.status });
     }
 
-    const contentType = upstream.headers.get("Content-Type") ?? "";
-    if (contentType.includes("text/html")) {
-      return NextResponse.json({ error: "Arquivo indisponível no Drive" }, { status: 502 });
-    }
-
-    const headers = new Headers();
+    const headers = driveAudioResponseHeaders(upstream, { inline: true });
     headers.set("Content-Type", "application/octet-stream");
-    headers.set("Cache-Control", "private, no-store, no-cache");
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Content-Disposition", "inline");
 
-    const length = upstream.headers.get("Content-Length");
-    if (length) headers.set("Content-Length", length);
-
-    return new NextResponse(upstream.body, { status: 200, headers });
+    return new NextResponse(upstream.body, { status: upstream.status, headers });
   } catch {
     return NextResponse.json({ error: "Falha no stream" }, { status: 502 });
   }

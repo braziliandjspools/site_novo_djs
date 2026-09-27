@@ -21,7 +21,7 @@ struct SourceResponse {
     url: String,
 }
 
-/// Baixa do Drive com fallbacks: URL direta do backend → usercontent → proxy autenticado.
+/// Baixa do Drive com fallbacks: URL direta do backend → usercontent → proxy OAuth (`?proxy=1`).
 pub struct GoogleDriveProvider;
 
 impl GoogleDriveProvider {
@@ -138,15 +138,22 @@ fn build_usercontent_url(file_id: &str) -> String {
 }
 
 fn build_proxy_url(ctx: &DownloadContext) -> Result<String, String> {
-    let mut url = reqwest::Url::parse(ctx.api_base_url.trim_end_matches('/'))
+    proxy_download_url(&ctx.api_base_url, &ctx.file_id, &ctx.file_name)
+}
+
+/// Proxy autenticado no servidor (`?proxy=1`) para o OAuth do dono furar a cota pública.
+fn proxy_download_url(api_base_url: &str, file_id: &str, file_name: &str) -> Result<String, String> {
+    let mut url = reqwest::Url::parse(api_base_url.trim_end_matches('/'))
         .map_err(|e| e.to_string())?;
     url.path_segments_mut()
         .map_err(|_| "URL inválida.".to_string())?
         .push("api")
         .push("musicas")
         .push("download")
-        .push(&ctx.file_id);
-    url.query_pairs_mut().append_pair("name", &ctx.file_name);
+        .push(file_id);
+    url.query_pairs_mut()
+        .append_pair("proxy", "1")
+        .append_pair("name", file_name);
     Ok(url.to_string())
 }
 
@@ -388,4 +395,27 @@ fn emit_progress(
             progress,
         },
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::proxy_download_url;
+
+    #[test]
+    fn proxy_url_pede_oauth_do_dono() {
+        let url = proxy_download_url(
+            "https://site.example/",
+            "abc_123",
+            "Faixa 01.mp3",
+        )
+        .unwrap();
+        let parsed = reqwest::Url::parse(&url).unwrap();
+        assert_eq!(
+            parsed.path(),
+            "/api/musicas/download/abc_123"
+        );
+        let query: Vec<(String, String)> = parsed.query_pairs().map(|(k, v)| (k.into(), v.into())).collect();
+        assert!(query.iter().any(|(k, v)| k == "proxy" && v == "1"));
+        assert!(query.iter().any(|(k, v)| k == "name" && v == "Faixa 01.mp3"));
+    }
 }

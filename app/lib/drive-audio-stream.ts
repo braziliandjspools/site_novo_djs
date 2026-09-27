@@ -64,9 +64,7 @@ async function detectQuotaError(upstream: Response): Promise<boolean> {
   }
   try {
     const text = await upstream.clone().text();
-    return /downloadQuotaExceeded|Quota exceeded|Too many users have viewed or downloaded/i.test(
-      text,
-    );
+    return DRIVE_QUOTA_PATTERN.test(text);
   } catch {
     return false;
   }
@@ -76,9 +74,56 @@ function userContentUrl(fileId: string): string {
   return `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`;
 }
 
+const DRIVE_QUOTA_PATTERN =
+  /downloadQuotaExceeded|Quota exceeded|Too many users have viewed or downloaded/i;
+
+/** Cota pública (ou 403/429) no link compartilhado — o site deve usar o proxy OAuth. */
+export function publicDriveResponseNeedsOwnerProxy(input: {
+  status: number;
+  contentType: string;
+  bodyText: string;
+}): boolean {
+  const usableStatus = input.status === 200 || input.status === 206;
+  if (usableStatus && isAudioContentType(input.contentType)) {
+    return false;
+  }
+  if (input.status === 403 || input.status === 429) return true;
+  return DRIVE_QUOTA_PATTERN.test(input.bodyText);
+}
+
 /** URL pública do Drive para o browser/Downloader baixarem sem proxy (sem API key). */
 export function getDriveUserContentDownloadUrl(fileId: string): string {
   return userContentUrl(fileId);
+}
+
+/**
+ * Confere se o link público está na cota. Só lê o corpo quando a resposta não é áudio,
+ * para não baixar a faixa inteira no caminho feliz.
+ */
+export async function publicDriveDownloadNeedsOwnerProxy(fileId: string): Promise<boolean> {
+  try {
+    const response = await fetchOnce(userContentUrl(fileId), {
+      "User-Agent": DRIVE_USER_AGENT,
+      Range: "bytes=0-1023",
+    });
+    if (isUsableAudioResponse(response)) {
+      await response.body?.cancel();
+      return false;
+    }
+    let bodyText = "";
+    try {
+      bodyText = await response.text();
+    } catch {
+      bodyText = "";
+    }
+    return publicDriveResponseNeedsOwnerProxy({
+      status: response.status,
+      contentType: response.headers.get("Content-Type") ?? "",
+      bodyText,
+    });
+  } catch {
+    return false;
+  }
 }
 
 async function fetchOnce(url: string, headers: Record<string, string>): Promise<Response> {

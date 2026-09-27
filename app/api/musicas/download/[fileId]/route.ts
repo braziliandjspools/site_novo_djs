@@ -9,6 +9,7 @@ import {
   driveAudioResponseHeaders,
   fetchDriveAudioUpstream,
   getDriveUserContentDownloadUrl,
+  publicDriveDownloadNeedsOwnerProxy,
 } from "../../../../lib/drive-audio-stream";
 import { requireVipMusicAccess } from "../../../../lib/vip-music-access";
 
@@ -30,8 +31,8 @@ function releaseProxySlot() {
 
 /**
  * Download de faixa (VIP):
- * - Padrão: 302 para o Drive (VPS só autentica — não passa o áudio pelo Node).
- * - ?proxy=1: proxy OAuth/API (fallback se o link público falhar por cota).
+ * - Sem cota: 302 para o Drive (a VPS só autentica).
+ * - Cota pública: proxy OAuth do dono, o mesmo caminho de ?proxy=1.
  */
 export async function GET(request: Request, context: RouteContext) {
   const access = await requireVipMusicAccess();
@@ -46,8 +47,9 @@ export async function GET(request: Request, context: RouteContext) {
 
   const { searchParams } = new URL(request.url);
   const forceProxy = searchParams.get("proxy") === "1";
+  const quotaBlocked = forceProxy ? false : await publicDriveDownloadNeedsOwnerProxy(fileId);
 
-  if (!forceProxy) {
+  if (!forceProxy && !quotaBlocked) {
     return NextResponse.redirect(getDriveUserContentDownloadUrl(fileId), 302);
   }
 
