@@ -296,7 +296,7 @@ export function AtualizacoesRootClient() {
         </div>
       </header>
 
-      <AtualizacoesSearch />
+      <div id="busca" className="scroll-mt-24"><AtualizacoesSearch /></div>
       <AtualizacoesSearchResults />
       <AtualizacoesSyncNotice />
 
