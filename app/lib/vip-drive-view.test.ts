@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isGmailAccount, verifyVipDriveFile } from "./vip-drive-view-policy";
+import { googleDriveFileLink, isGmailAccount, verifyVipDriveFile } from "./vip-drive-view-policy";
 
 test("Drive eligibility uses the registered Gmail domain", () => {
   assert.equal(isGmailAccount(" dj@GMAIL.com "), true);
   assert.equal(isGmailAccount("dj@gmail.com.br"), false);
   assert.equal(isGmailAccount("dj@other.com"), false);
+});
+
+test("Google Drive link contains only the validated file identifier", () => {
+  assert.equal(googleDriveFileLink("abc_123-Z"), "https://drive.google.com/file/d/abc_123-Z/view");
+  assert.throws(() => googleDriveFileLink("abc/../private"));
 });
 
 test("Drive file must be audio and descended from the configured catalog root", async () => {

@@ -33,7 +33,7 @@ export function DriveAccessHelpDialog({ onClose }: { onClose: () => void }) {
 
         <h2 id="brs-drive-help-title" className="mt-5 text-xl font-bold">Acesso pelo Google Drive</h2>
         <p id="brs-drive-help-description" className="mt-2 text-sm leading-relaxed text-white/70">
-          Para abrir a faixa pelo Drive, sua conta cadastrada na BRS precisa usar um endereço <strong className="text-[#1ed760]">@gmail.com</strong>.
+          Para copiar o link da faixa no Google Drive, sua conta cadastrada na BRS precisa usar um endereço <strong className="text-[#1ed760]">@gmail.com</strong>.
         </p>
 
         <div className="mt-5 space-y-3">

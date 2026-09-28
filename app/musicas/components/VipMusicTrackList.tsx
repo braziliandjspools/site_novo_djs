@@ -105,6 +105,26 @@ async function triggerDownload(track: PreviewTrack) {
   startBrowserTrackDownload(track);
 }
 
+async function copyToClipboard(value: string) {
+  try {
+    await navigator.clipboard.writeText(value);
+    return;
+  } catch {
+    // Fallback para navegadores que bloqueiam a Clipboard API após a validação assíncrona.
+  }
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  try {
+    if (!document.execCommand("copy")) throw new Error("Permissão para copiar negada pelo navegador.");
+  } finally {
+    input.remove();
+  }
+}
+
 function PlayingBars() {
   return (
     <span className="inline-flex h-3.5 items-end gap-[2px]" aria-hidden>
@@ -340,14 +360,30 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
   const coverUnoptimized = coverSrc.startsWith("/api/");
   const { authenticated, hasVip, userEmail } = useMusicasSession();
+  const { showToast } = useMusicasToast();
   const [driveHelpOpen, setDriveHelpOpen] = useState(false);
+  const [copyingDrive, setCopyingDrive] = useState(false);
   const gmailDriveAllowed =
     authenticated && hasVip && /@gmail\.com$/i.test(userEmail.trim());
 
-  const openDrive = useCallback(() => {
-    if (!gmailDriveAllowed) return;
-    window.open(`/musicas/drive/${encodeURIComponent(track.id)}`, "_blank", "noopener,noreferrer");
-  }, [gmailDriveAllowed, track.id]);
+  const copyDriveLink = useCallback(async () => {
+    if (!gmailDriveAllowed || copyingDrive) return;
+    setCopyingDrive(true);
+    try {
+      const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link`, {
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      const result = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !result.url) throw new Error(result.error || "Link do Drive indisponível.");
+      await copyToClipboard(result.url);
+      showToast("Link do Google Drive copiado");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Não foi possível copiar o link do Drive.", "error");
+    } finally {
+      setCopyingDrive(false);
+    }
+  }, [copyingDrive, gmailDriveAllowed, showToast, track.id]);
 
   const explainDriveBlock = useCallback(() => {
     setDriveHelpOpen(true);
@@ -409,13 +445,13 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     }
     if (showDriveButton && authenticated && hasVip) {
       extras.push(gmailDriveAllowed
-        ? { id: "drive", label: "Abrir no Drive", icon: HardDrive, onClick: openDrive }
+        ? { id: "drive", label: "Copiar link do Google Drive", icon: HardDrive, disabled: copyingDrive, onClick: () => void copyDriveLink() }
         : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
     }
     const beforeCopy = actions.findIndex((action) => action.id === "copy");
     actions.splice(beforeCopy, 0, ...extras);
     return actions;
-  }, [menuActions, canDownload, isDownloading, onDownload, showDriveButton, authenticated, hasVip, gmailDriveAllowed, openDrive, explainDriveBlock]);
+  }, [menuActions, canDownload, isDownloading, onDownload, showDriveButton, authenticated, hasVip, gmailDriveAllowed, copyingDrive, copyDriveLink, explainDriveBlock]);
 
   const rowBg =
     isHighlighted || isSelected || isActive
@@ -681,13 +717,14 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  openDrive();
+                  void copyDriveLink();
                 }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
-                title={`Abrir ${display.title} no Drive dentro da BRS`}
-                aria-label={`Abrir ${display.title} no Drive`}
+                disabled={copyingDrive}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
+                title={`Copiar link do Google Drive de ${display.title}`}
+                aria-label={`Copiar link do Google Drive de ${display.title}`}
               >
-                <HardDrive className="h-3.5 w-3.5" />
+                {copyingDrive ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <HardDrive className="h-3.5 w-3.5" />}
               </button>
             ) : (
               <button

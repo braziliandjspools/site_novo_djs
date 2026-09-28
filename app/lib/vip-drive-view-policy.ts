@@ -4,6 +4,12 @@ export function isGmailAccount(email: string | null | undefined) {
   return /@gmail\.com$/i.test(email?.trim() ?? "");
 }
 
+/** Link sem credenciais. O servidor só deve entregá-lo após validar conta e arquivo. */
+export function googleDriveFileLink(fileId: string) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(fileId)) throw new Error("ID do Drive inválido.");
+  return `https://drive.google.com/file/d/${fileId}/view`;
+}
+
 export async function verifyVipDriveFile(
   fileId: string,
   rootId: string,
