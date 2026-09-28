@@ -15,6 +15,8 @@ import {
   Check,
   Copy,
   Download,
+  HardDrive,
+  HelpCircle,
   ListPlus,
   Loader2,
   Lock,
@@ -75,9 +77,9 @@ type VipMusicTrackListProps = {
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px_36px_36px] md:items-center md:gap-x-3";
 const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px_36px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -182,6 +184,38 @@ function TrackDownloaderButton({
         </>
       ) : null}
     </button>
+  );
+}
+
+function MobilePlayingTitle({ title, active }: { title: string; active: boolean }) {
+  const viewportRef = useRef<HTMLSpanElement | null>(null);
+  const textRef = useRef<HTMLSpanElement | null>(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const measure = () => {
+      const viewport = viewportRef.current;
+      const text = textRef.current;
+      setOverflowing(Boolean(viewport && text && text.scrollWidth > viewport.clientWidth + 2));
+    };
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (viewportRef.current) observer?.observe(viewportRef.current);
+    if (textRef.current) observer?.observe(textRef.current);
+    return () => observer?.disconnect();
+  }, [title]);
+
+  return (
+    <span ref={viewportRef} className="block min-w-0 w-full overflow-hidden md:hidden">
+      <span
+        ref={textRef}
+        className={`block w-max max-w-none whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
+          active ? "text-[#1ed760]" : "text-white"
+        } ${active && overflowing ? "brs-mobile-track-marquee" : ""}`}
+      >
+        {title}
+      </span>
+    </span>
   );
 }
 
@@ -295,6 +329,20 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const showDuration = displayDuration > 0;
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
   const coverUnoptimized = coverSrc.startsWith("/api/");
+  const { authenticated, hasVip, userEmail } = useMusicasSession();
+  const gmailDriveAllowed =
+    authenticated && hasVip && /@gmail\.com$/i.test(userEmail.trim());
+
+  const openDrive = useCallback(() => {
+    if (!gmailDriveAllowed) return;
+    window.open(`/musicas/drive/${encodeURIComponent(track.id)}`, "_blank", "noopener,noreferrer");
+  }, [gmailDriveAllowed, track.id]);
+
+  const explainDriveBlock = useCallback(() => {
+    window.alert(
+      "Sua conta BRS não utiliza um endereço @gmail.com, necessário para a liberação do link no Google Drive. Baixe a pasta inteira pelo BRS Downloader ou baixe as faixas individualmente pelo navegador.",
+    );
+  }, []);
 
   const menuActions = useMemo(() => {
     const actions: CollectionMenuAction[] = [
@@ -416,8 +464,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const titleBlock = (
     <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
+        <MobilePlayingTitle title={display.title} active={isPlaying} />
         <span
-          className={`block truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
+          className={`hidden truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] md:block ${
             isActive || isPlaying ? "text-[#1ed760]" : "text-white"
           }`}
         >
@@ -533,6 +582,35 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 compact
               />
             </>
+          ) : null}
+          {authenticated && hasVip ? (
+            gmailDriveAllowed ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openDrive();
+                }}
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
+                title={`Abrir ${display.title} no Drive dentro da BRS`}
+                aria-label={`Abrir ${display.title} no Drive`}
+              >
+                <HardDrive className="h-3.5 w-3.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  explainDriveBlock();
+                }}
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
+                title="Drive indisponível para este e-mail — toque para entender"
+                aria-label="Drive indisponível — saiba por quê"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            )
           ) : null}
           <CollectionContextMenu
             label={`Opções · ${display.title}`}
@@ -740,6 +818,38 @@ function DiscographyTrackRow({
         </VipLockedPlayHint>
       )}
       <div className="flex-shrink-0 pr-1 sm:pr-2">
+        <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
+          {authenticated && hasVip ? (
+            gmailDriveAllowed ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openDrive();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
+                title={`Abrir ${display.title} no Drive dentro da BRS`}
+                aria-label={`Abrir ${display.title} no Drive`}
+              >
+                <HardDrive className="h-3.5 w-3.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  explainDriveBlock();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
+                title="Drive indisponível para este e-mail — clique para entender"
+                aria-label="Drive indisponível — saiba por quê"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            )
+          ) : null}
+        </div>
+
         <CollectionContextMenu
           label={`Opções · ${display.title}`}
           buttonClassName="!h-8 !w-8 text-zinc-500 hover:text-white"
