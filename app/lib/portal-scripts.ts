@@ -218,4 +218,127 @@ Write-Host "Encontrados: $($Resumo.Encontrados) | Movidos: $($Resumo.Movidos)"
 Write-Host "Já organizados: $($Resumo.JaOrganizados) | UNDEFINED: $($Resumo.Undefined)"
 Write-Host "Nomes repetidos ajustados: $($Resumo.Renomeados) | Erros: $($Resumo.Erros)"`,
   },
+  {
+    id: "reunir-musicas-na-pasta-atual",
+    title: "Reunir músicas na pasta atual",
+    description:
+      "Reúne na pasta em que o PowerShell foi aberto todas as músicas encontradas nas subpastas, mesmo em níveis profundos. Mantém intactos os arquivos que já estão na raiz, evita sobrescrever nomes repetidos e remove as subpastas que ficarem vazias.",
+    fileName: "reunir-musicas-na-pasta-atual.ps1",
+    language: "powershell",
+    script: String.raw`# BRS - Reunir músicas na pasta atual
+$Raiz = (Get-Location).Path
+$ErrorActionPreference = 'Stop'
+
+$Extensoes = @(
+    '.mp3', '.flac', '.wav', '.m4a', '.aac', '.wma',
+    '.ogg', '.opus', '.aif', '.aiff', '.alac'
+)
+
+$Pastas = New-Object 'System.Collections.Generic.List[string]'
+$Musicas = New-Object 'System.Collections.Generic.List[System.IO.FileInfo]'
+$Pilha = New-Object 'System.Collections.Generic.Stack[string]'
+$Pilha.Push($Raiz)
+
+# Percorre todos os níveis sem entrar em atalhos ou links de pastas.
+while ($Pilha.Count -gt 0) {
+    $Atual = $Pilha.Pop()
+
+    try {
+        $Itens = @(Get-ChildItem -LiteralPath $Atual -Force -ErrorAction Stop)
+    }
+    catch {
+        Write-Warning "Não foi possível ler $Atual : $($_.Exception.Message)"
+        continue
+    }
+
+    foreach ($Item in $Itens) {
+        if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            continue
+        }
+
+        if ($Item.PSIsContainer) {
+            $Pastas.Add($Item.FullName)
+            $Pilha.Push($Item.FullName)
+        }
+        elseif (
+            $Item.DirectoryName -ine $Raiz -and
+            $Extensoes -contains $Item.Extension.ToLowerInvariant()
+        ) {
+            $Musicas.Add($Item)
+        }
+    }
+}
+
+$Movidas = 0
+$Renomeadas = 0
+$Erros = 0
+$PastasRemovidas = 0
+
+Write-Host "Pasta raiz: $Raiz"
+Write-Host "Músicas encontradas nas subpastas: $($Musicas.Count)"
+Write-Host ""
+
+foreach ($Musica in $Musicas) {
+    try {
+        $Destino = Join-Path $Raiz $Musica.Name
+        $Numero = 2
+        $NomeAlterado = $false
+
+        while (Test-Path -LiteralPath $Destino) {
+            $NomeNovo = '{0} ({1}){2}' -f
+                $Musica.BaseName, $Numero, $Musica.Extension
+
+            $Destino = Join-Path $Raiz $NomeNovo
+            $Numero++
+            $NomeAlterado = $true
+        }
+
+        Move-Item §
+            -LiteralPath $Musica.FullName §
+            -Destination $Destino §
+            -ErrorAction Stop
+
+        $Movidas++
+
+        if ($NomeAlterado) {
+            $Renomeadas++
+        }
+
+        Write-Host "MOVIDA: $($Musica.FullName) -> $Destino"
+    }
+    catch {
+        $Erros++
+        Write-Warning "Erro ao mover $($Musica.FullName): $($_.Exception.Message)"
+    }
+}
+
+# Começa pelas pastas mais profundas, para remover também as pastas
+# que ficarem vazias depois da remoção das pastas internas.
+foreach ($Pasta in ($Pastas | Sort-Object Length -Descending)) {
+    try {
+        if (-not (Test-Path -LiteralPath $Pasta -PathType Container)) {
+            continue
+        }
+
+        $Conteudo = Get-ChildItem -LiteralPath $Pasta -Force -ErrorAction Stop |
+            Select-Object -First 1
+
+        if ($null -eq $Conteudo) {
+            Remove-Item -LiteralPath $Pasta -Force -ErrorAction Stop
+            $PastasRemovidas++
+            Write-Host "PASTA VAZIA REMOVIDA: $Pasta"
+        }
+    }
+    catch {
+        $Erros++
+        Write-Warning "Erro ao verificar $Pasta : $($_.Exception.Message)"
+    }
+}
+
+Write-Host "§nConcluído."
+Write-Host "Músicas movidas: $Movidas"
+Write-Host "Nomes repetidos ajustados: $Renomeadas"
+Write-Host "Pastas vazias removidas: $PastasRemovidas"
+Write-Host "Erros: $Erros"`.replaceAll("§", "`"),
+  },
 ];
