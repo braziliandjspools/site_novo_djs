@@ -366,18 +366,19 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const gmailDriveAllowed =
     authenticated && hasVip && /@gmail\.com$/i.test(userEmail.trim());
 
-  const copyDriveLink = useCallback(async () => {
+  const copyDriveLink = useCallback(async (format: "drive" | "direct" = "drive") => {
     if (!gmailDriveAllowed || copyingDrive) return;
     setCopyingDrive(true);
     try {
-      const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link`, {
+      const suffix = format === "direct" ? "?format=direct" : "";
+      const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link${suffix}`, {
         credentials: "same-origin",
         cache: "no-store",
       });
       const result = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !result.url) throw new Error(result.error || "Link do Drive indisponível.");
+      if (!response.ok || !result.url) throw new Error(result.error || "Link de download indisponível.");
       await copyToClipboard(result.url);
-      showToast("Link do Google Drive copiado");
+      showToast(format === "direct" ? "Link direto copiado. Válido por 2 horas." : "Link do Google Drive copiado");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Não foi possível copiar o link do Drive.", "error");
     } finally {
@@ -415,6 +416,15 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         onClick: onSendToDownloader,
       });
     }
+    if (showDriveButton && gmailDriveAllowed) {
+      actions.push({
+        id: "external-download",
+        label: "Copiar link direto · Allavsoft/JDownloader",
+        icon: Download,
+        disabled: copyingDrive,
+        onClick: () => void copyDriveLink("direct"),
+      });
+    }
     actions.push(
       { id: "copy", label: "Copiar link", icon: Copy, onClick: onCopyLink },
       { id: "share", label: "Compartilhar", icon: Share2, onClick: onShare },
@@ -423,6 +433,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   }, [
     canDownload,
     canPlay,
+    showDriveButton,
+    gmailDriveAllowed,
+    copyingDrive,
+    copyDriveLink,
     isSendingToDownloader,
     onCopyLink,
     onQueueNext,
@@ -445,7 +459,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     }
     if (showDriveButton && authenticated && hasVip) {
       extras.push(gmailDriveAllowed
-        ? { id: "drive", label: "Copiar link do Google Drive", icon: HardDrive, disabled: copyingDrive, onClick: () => void copyDriveLink() }
+        ? { id: "drive", label: "Copiar link do Google Drive", icon: HardDrive, disabled: copyingDrive, onClick: () => void copyDriveLink("drive") }
         : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
     }
     const beforeCopy = actions.findIndex((action) => action.id === "copy");
@@ -717,7 +731,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  void copyDriveLink();
+                  void copyDriveLink("drive");
                 }}
                 disabled={copyingDrive}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
