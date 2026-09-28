@@ -2,6 +2,8 @@
  * Catálogo de mensajes en español. Refleja todas las claves de `pt-BR.ts` (fuente de verdad).
  */
 export const messagesEs = {
+  homeActivityMore: "Mostrar más",
+  homeActivityLess: "Mostrar menos",
   // language
   languageTitle: "Elige tu idioma",
   languageSubtitle: "Puedes cambiarlo después en Ajustes.",

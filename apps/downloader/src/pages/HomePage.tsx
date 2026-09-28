@@ -16,6 +16,9 @@ import { openPlatform } from "../lib/open-site";
 import { SITE_NAME } from "../lib/site";
 import type { AppRoute } from "../components/layout/Sidebar";
 import type { DownloadJob } from "../lib/api/jobs";
+import { HomeActivity } from "../components/downloads/HomeActivity";
+import { WEBUI_VERSION } from "../lib/app-info";
+import { formatSpeed } from "../lib/download/progress-tracker";
 import { ImportPackPanel } from "../components/ImportPackPanel";
 import { useLocale, type MessageKey } from "../i18n/LocaleContext";
 
@@ -94,11 +97,11 @@ const QUICK_LINKS: {
 export function HomePage({ userName, onNavigate }: HomePageProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
-  const { jobs, connectionState, activeJobIds, pendingCount, syncNow, workerError } = useDownloadManager();
+  const { jobs, connectionState, activeJobIds, pendingCount, syncNow, workerError, jobMetrics } = useDownloadManager();
   const firstName = userName.split(" ")[0] ?? userName;
   const counts = countByStatus(jobs, activeJobIds);
   const isOffline = connectionState === "offline";
-  const recentJobs = jobs.slice(0, 5);
+  const speed = activeJobIds.reduce((sum, id) => sum + (jobMetrics[id]?.speedBytesPerSec ?? 0), 0);
   const [syncing, setSyncing] = useState(false);
   const lastOfflineToast = useRef(false);
   const lastWorkerError = useRef<string | null>(null);
@@ -139,7 +142,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-      <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_18px_48px_rgba(0,0,0,0.35)]">
+      <section className="studio-hero relative overflow-hidden rounded-3xl border border-white/10">
         <img
           src="/images/home-hero.jpg"
           alt=""
@@ -153,7 +156,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         <div className="relative z-10 flex min-h-[220px] flex-col justify-end gap-5 p-6 sm:min-h-[260px] sm:flex-row sm:items-end sm:justify-between sm:p-8 lg:min-h-[280px]">
           <div className="max-w-2xl min-w-0">
             <p className="text-eyebrow text-[#1ed760] drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">
-              {t("homeWelcomeEyebrow")}
+              <span className="studio-edition">BRS / {WEBUI_VERSION}</span><span className="ml-3">{t("homeWelcomeEyebrow")}</span>
             </p>
             <h1 className="text-page-title mt-2 text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.75)]">
               {t("homeWelcome", { name: firstName })}
@@ -175,32 +178,45 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         </div>
       </section>
 
+      <div className="studio-live flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 px-5 py-3">
+        <span className="flex items-center gap-3 text-sm text-zinc-300">
+          <span className={activeJobIds.length ? "studio-signal is-active" : "studio-signal"} aria-hidden><i /><i /><i /><i /><i /></span>
+          {t("homeStatDownloadingHint", { count: activeJobIds.length })}
+        </span>
+        <span className="font-mono text-sm tabular-nums text-[var(--accent)]">{formatSpeed(speed)}</span>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label={t("homeStatDownloading")}
           value={counts.downloading}
           hint={t("homeStatDownloadingHint", { count: activeJobIds.length })}
           tone="sky"
+          onClick={() => onNavigate("downloads")}
         />
         <StatCard
           label={t("homeStatsQueue")}
           value={counts.queue || pendingCount}
           hint={t("homeStatQueueHint")}
           tone="teal"
+          onClick={() => onNavigate("queue")}
         />
         <StatCard
           label={t("homeStatsCompleted")}
           value={counts.completed}
           hint={t("homeStatCompletedHint")}
           tone="green"
+          onClick={() => onNavigate("completed")}
         />
         <StatCard
           label={t("homeStatConnection")}
-          value={isOffline ? t("commonOffline") : t("commonOnline")}
-          hint={isOffline ? t("homeStatConnectionOffline") : t("homeStatConnectionOnline")}
-          tone={isOffline ? "amber" : "emerald"}
+          value={isOffline ? t("commonOffline") : connectionState === "connecting" ? t("connectionConnecting") : t("commonOnline")}
+          hint={isOffline ? t("homeStatConnectionOffline") : connectionState === "connecting" ? t("connectionConnecting") : t("homeStatConnectionOnline")}
+          tone={connectionState !== "online" ? "amber" : "emerald"}
+          onClick={handleSync}
         />
       </div>
+
+      <HomeActivity />
 
       <ImportPackPanel />
 
@@ -227,7 +243,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
                 key={route}
                 type="button"
                 onClick={() => onNavigate(route)}
-                className={`group flex min-h-[148px] flex-col rounded-2xl border border-white/[0.06] bg-[#1f1f1f] p-5 text-left transition-colors ${borderHover}`}
+                className={`studio-shortcut group flex min-h-[148px] flex-col rounded-xl border border-white/[0.06] bg-[var(--bg-card)] p-5 text-left transition-colors ${borderHover}`}
               >
                 <div className="mb-4 flex items-center justify-between gap-2">
                   <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}>
@@ -242,7 +258,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
                 <h3 className="text-[1.05rem] font-bold text-white">{t(labelKey)}</h3>
                 <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">{t(descriptionKey)}</p>
                 <span
-                  className={`mt-4 inline-flex items-center gap-1.5 text-sm font-semibold opacity-0 transition-opacity group-hover:opacity-100 ${accent}`}
+                  className={`mt-4 inline-flex items-center gap-1.5 text-sm font-medium ${accent}`}
                 >
                   {t("commonOpen")}
                   <ArrowRight className="h-4 w-4" />
@@ -253,48 +269,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1a1a1a]">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4 sm:px-6">
-          <div>
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              {t("homeRecentActivity")}
-            </p>
-            <h2 className="text-lg font-bold text-white">{t("homeRecentTitle")}</h2>
-          </div>
-          {jobs.length > 0 && (
-            <button
-              type="button"
-              onClick={() => onNavigate("queue")}
-              className="text-sm font-semibold text-[#1db954] hover:underline"
-            >
-              {t("homeViewFullQueue")}
-            </button>
-          )}
-        </div>
-        {recentJobs.length === 0 ? (
-          <div className="px-5 py-12 text-center sm:px-6">
-            <p className="text-base text-zinc-500">{t("homeNoItems")}</p>
-            <Button className="mt-4" onClick={() => void openPlatform()}>
-              <ExternalLink className="h-4 w-4" />
-              {t("commonOpenPlatform")}
-            </Button>
-          </div>
-        ) : (
-          <ul className="divide-y divide-white/[0.05]">
-            {recentJobs.map((job) => (
-              <li key={job.id} className="flex items-center justify-between gap-4 px-5 py-4 text-base sm:px-6">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-white">{job.fileName}</p>
-                  <p className="truncate text-sm text-zinc-500">{job.relativePath ?? job.provider}</p>
-                </div>
-                <span className="flex-shrink-0 rounded-md bg-white/5 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
-                  {job.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+
     </div>
   );
 }
@@ -332,18 +307,20 @@ function StatCard({
   value,
   hint,
   tone,
+  onClick,
 }: {
   label: string;
   value: string | number;
   hint: string;
   tone: keyof typeof STAT_TONES;
+  onClick: () => void;
 }) {
   const colors = STAT_TONES[tone];
   return (
-    <div className={`rounded-2xl border px-4 py-4 ${colors.card}`}>
+    <button type="button" onClick={onClick} className={`studio-stat rounded-2xl border px-5 py-5 text-left ${colors.card}`}>
       <p className={`text-[0.7rem] font-extrabold uppercase tracking-[0.12em] ${colors.label}`}>{label}</p>
-      <p className={`mt-2 text-2xl font-black tracking-tight ${colors.value}`}>{value}</p>
+      <p className={`mt-2 text-3xl font-black tracking-tight ${colors.value}`}>{value}</p>
       <p className="mt-1.5 text-sm text-zinc-500">{hint}</p>
-    </div>
+    </button>
   );
 }

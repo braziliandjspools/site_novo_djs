@@ -2,6 +2,8 @@
  * English message catalog. Mirrors every key of `pt-BR.ts` (source of truth).
  */
 export const messagesEn = {
+  homeActivityMore: "Show more",
+  homeActivityLess: "Show less",
   // language
   languageTitle: "Choose your language",
   languageSubtitle: "You can change this later in Settings.",

@@ -130,8 +130,8 @@ export const JobRow = memo(function JobRow({
 
   return (
     <article
-      className={`rounded-2xl border bg-[var(--bg-card)] px-4 py-3.5 ${
-        selected ? "border-[#1ed760]/40" : "border-white/[0.06]"
+      className={`overflow-hidden rounded-xl border bg-[var(--bg-card)] ${
+        selected ? "border-[var(--accent)]/45" : downloading ? "border-[var(--accent)]/25" : "border-white/[0.06]"
       }`}
       draggable={draggable && canReorder}
       onDragStart={draggable && canReorder ? onDragStart : undefined}
@@ -139,7 +139,7 @@ export const JobRow = memo(function JobRow({
       onDrop={draggable ? onDrop : undefined}
       onDragEnd={draggable ? onDragEnd : undefined}
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-start gap-2.5 px-4 py-3.5">
         {selectable && (
           <label className="mt-2.5 flex cursor-pointer items-center">
             <input
@@ -162,7 +162,7 @@ export const JobRow = memo(function JobRow({
           </div>
         )}
 
-        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#1ed760]/10">
+        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.05]">
           <StatusIcon status={job.status} isActive={isActive} />
         </div>
 
@@ -317,6 +317,16 @@ export const JobRow = memo(function JobRow({
           </div>
         </div>
       </div>
+      {(downloading || paused) && (
+        <div className={`h-1 w-full ${indeterminate ? "progress-indeterminate bg-white/10" : "bg-white/10"}`}>
+          {!indeterminate && (
+            <div
+              className="h-full bg-[var(--accent)] transition-[width] duration-300 ease-out"
+              style={{ width: `${Math.max(progress, paused ? 0 : 2)}%` }}
+            />
+          )}
+        </div>
+      )}
     </article>
   );
 }, (prev, next) => {

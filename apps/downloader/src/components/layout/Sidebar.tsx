@@ -69,19 +69,19 @@ export function Sidebar({
   const firstName = userName.split(" ")[0] ?? userName;
 
   return (
-    <aside className="flex h-full w-[240px] flex-shrink-0 flex-col border-r border-white/[0.05] bg-[var(--bg-sidebar)]">
-      <div className="br-stripe-thin" />
-      <div className="px-4 py-4">
-        <BrsLogo className="h-9 w-auto max-w-[190px] object-contain object-left" />
-        <p className="text-eyebrow mt-2 text-zinc-500">{DOWNLOADER_NAME}</p>
+    <aside className="flex h-full w-[232px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-[var(--bg-sidebar)]">
+      <div className="px-5 pb-3 pt-5">
+        <BrsLogo className="h-8 w-auto max-w-[168px] object-contain object-left" />
+        <p className="mt-2 text-[0.7rem] font-medium tracking-[0.16em] text-zinc-500 uppercase">
+          {DOWNLOADER_NAME}
+        </p>
       </div>
 
-      <div className="px-3">
+      <div className="px-4">
         <ConnectionStatus device={device} connectionState={connectionState} error={syncError} />
       </div>
 
-      <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-2.5">
-        <p className="text-eyebrow px-2.5 pb-1.5 text-zinc-600">{t("navMenu")}</p>
+      <nav className="mt-5 flex-1 space-y-0.5 overflow-y-auto px-3">
         {NAV_ITEMS.map(({ id, labelKey, icon: Icon, countKey }) => {
           const active = activeRoute === id;
           const badge = countKey && counts ? counts[countKey] : 0;
@@ -91,23 +91,21 @@ export function Sidebar({
               key={id}
               type="button"
               onClick={() => onNavigate(id)}
-              className={`group relative flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[0.9rem] font-bold leading-snug tracking-[-0.01em] transition-all duration-200 ${
+              aria-current={active ? "page" : undefined}
+              className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[0.92rem] font-medium tracking-[-0.01em] transition-colors ${
                 active
-                  ? "bg-[#1ed760]/12 text-white shadow-[inset_0_0_0_1px_rgba(30,215,96,0.16)]"
+                  ? "bg-[var(--accent-dim)] text-white ring-1 ring-[var(--accent)]/20 shadow-[inset_3px_0_0_var(--accent)]"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
-              {active && (
-                <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-[#1ed760]" />
-              )}
               <Icon
-                className={`h-4 w-4 flex-shrink-0 transition-colors ${
-                  active ? "text-[#1ed760]" : "text-zinc-500 group-hover:text-zinc-300"
+                className={`h-[18px] w-[18px] flex-shrink-0 ${
+                  active ? "text-[var(--accent)]" : "text-zinc-500 group-hover:text-zinc-300"
                 }`}
               />
               <span className="flex-1">{t(labelKey)}</span>
               {badge > 0 && (
-                <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[0.68rem] font-extrabold leading-none text-black">
+                <span className="min-w-5 rounded-md bg-[var(--accent)] px-1.5 py-0.5 text-center text-[0.68rem] font-bold leading-none text-black">
                   {badge}
                 </span>
               )}
@@ -116,18 +114,23 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="mx-2.5 mb-3 rounded-2xl border border-white/[0.06] bg-[var(--bg-card)] px-3.5 py-3.5">
-        <p className="truncate text-[0.88rem] font-extrabold text-[#1ed760]">
-          {t("navHello", { name: firstName })}
-        </p>
-        <button
-          type="button"
-          onClick={onLogout}
-          className="mt-2 inline-flex cursor-pointer items-center gap-1.5 text-[0.78rem] font-bold text-zinc-500 transition-colors hover:text-white"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          {t("navLogout")}
-        </button>
+      <div className="m-3 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-3">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-sm font-bold text-black">
+          {(firstName[0] ?? "B").toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-[0.88rem] font-semibold text-white">
+            {t("navHello", { name: firstName })}
+          </p>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[0.75rem] font-medium text-zinc-500 transition-colors hover:text-white"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            {t("navLogout")}
+          </button>
+        </div>
       </div>
     </aside>
   );
