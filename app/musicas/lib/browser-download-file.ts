@@ -34,5 +34,5 @@ export function startBrowserTrackDownload(
   options?: { proxy?: boolean },
 ) {
   const filename = ensureAudioExtension(track.fileName ?? track.title);
-  startBrowserFileDownload(trackDownloadPath(track, Boolean(options?.proxy)), filename);
+  startBrowserFileDownload(trackDownloadPath(track, options?.proxy !== false), filename);
 }
