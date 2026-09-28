@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ArrowLeft, ChevronRight, Home } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -511,6 +511,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     ? folderHref(parentPathKey.split("/"))
     : "/musicas/atualizacoes";
   const currentFolderSlug = slugSegments.at(-1) ?? "";
+  const breadcrumbNavRef = useRef<HTMLElement | null>(null);
+  const breadcrumbPath = data?.resolvedPath.map((part) => part.id).join("/") ?? slugSegments.join("/");
+
+  useEffect(() => {
+    const nav = breadcrumbNavRef.current;
+    if (nav) nav.scrollLeft = nav.scrollWidth;
+  }, [breadcrumbPath]);
   const siblingNavItems = useMemo(
     () =>
       siblingFolders.map((folder) => {
@@ -550,37 +557,53 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           />
         ) : null}
       </div>
-      <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+      <nav
+        ref={breadcrumbNavRef}
+        aria-label="Caminho das pastas"
+        className="mb-5 flex w-full max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#1ed760]/15 bg-[#0d130f] p-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <Link
           href="/musicas/atualizacoes"
-          className="font-medium text-zinc-400 transition-colors hover:text-white"
+          title="Atualizações"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/70 transition hover:border-[#1ed760]/40 hover:text-[#1ed760]"
         >
+          <Home className="h-3.5 w-3.5 text-[#1ed760]" aria-hidden />
           Atualizações
         </Link>
         {(data?.resolvedPath ?? []).map((part, index, all) => {
           const hrefParts = all.slice(0, index + 1).map((item) => item.slug);
           const isLast = index === all.length - 1;
+          const label = displayFolderName(part.name);
           return (
-            <span key={`${part.id}-${part.slug}`} className="contents">
-              <ChevronRight className="h-3 w-3" />
+            <span key={`${part.id}-${part.slug}`} className="inline-flex shrink-0 items-center gap-1.5">
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#1ed760]/45" aria-hidden />
               {isLast ? (
-                <span className="font-medium text-white">{displayFolderName(part.name)}</span>
+                <span
+                  aria-current="page"
+                  title={label}
+                  className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/15 px-3 font-bold text-[#6af69b] shadow-[0_0_18px_rgba(30,215,96,0.12)]"
+                >
+                  <span className="truncate">{label}</span>
+                </span>
               ) : (
                 <Link
                   href={folderHref(hrefParts)}
-                  className="font-medium text-zinc-400 transition-colors hover:text-white"
+                  title={label}
+                  className="inline-flex h-9 max-w-[min(42vw,14rem)] items-center rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/65 transition hover:border-[#1ed760]/30 hover:bg-[#1ed760]/10 hover:text-white"
                 >
-                  {displayFolderName(part.name)}
+                  <span className="truncate">{label}</span>
                 </Link>
               )}
             </span>
           );
         })}
         {!data && (
-          <>
-            <ChevronRight className="h-3 w-3" />
-            <span className="font-medium text-white">{currentTitle}</span>
-          </>
+          <span className="inline-flex shrink-0 items-center gap-1.5">
+            <ChevronRight className="h-3.5 w-3.5 text-[#1ed760]/45" aria-hidden />
+            <span aria-current="page" className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/15 px-3 font-bold text-[#6af69b]">
+              <span className="truncate">{currentTitle}</span>
+            </span>
+          </span>
         )}
       </nav>
 
