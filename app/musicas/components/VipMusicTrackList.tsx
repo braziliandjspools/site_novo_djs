@@ -429,7 +429,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     if (showDriveButton && gmailDriveAllowed) {
       actions.push({
         id: "external-download",
-        label: "Copiar link direto · Allavsoft/JDownloader",
+        label: "Copiar link direto",
         icon: Download,
         disabled: copyingDrive,
         onClick: () => void copyDriveLink("direct"),
