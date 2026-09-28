@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createExternalMusicToken,
+  externalMusicDownloadUrl,
   externalMusicFilename,
   verifyExternalMusicToken,
   EXTERNAL_LINK_TTL_SECONDS,
@@ -10,6 +11,20 @@ import { GET, HEAD } from "../api/musicas/external/[token]/[filename]/route";
 
 const secret = "brs-test-secret-with-at-least-32-characters";
 const now = Date.UTC(2026, 8, 28);
+
+test("link para downloader usa domínio público mesmo com NEXT_PUBLIC_SITE_URL local", () => {
+  const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+  try {
+    assert.equal(
+      externalMusicDownloadUrl("signed-token", "Faixa%20de%20teste.mp3"),
+      "https://www.brazilianremixservice.com.br/api/musicas/external/signed-token/Faixa%20de%20teste.mp3",
+    );
+  } finally {
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl;
+  }
+});
 
 test("link direto é restrito à faixa, ao nome e a duas horas", () => {
   const token = createExternalMusicToken("drive_123", "Minha Música.mp3", secret, now);

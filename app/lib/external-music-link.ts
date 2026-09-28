@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { SITE_PRODUCTION_URL } from "./branding";
 import { ensureAudioExtension } from "./google-drive";
 
 export const EXTERNAL_LINK_TTL_SECONDS = 2 * 60 * 60;
@@ -20,6 +21,11 @@ export function externalMusicFilename(fileName: string) {
   if (clean.length <= 180) return clean;
   const extension = clean.match(/\.(mp3|wav|flac|m4a|aac|ogg)$/i)?.[0] ?? ".mp3";
   return `${clean.slice(0, 180 - extension.length)}${extension}`;
+}
+
+/** Link for download managers must use the public host, even if Dokploy has a localhost URL configured. */
+export function externalMusicDownloadUrl(token: string, filename: string) {
+  return `${SITE_PRODUCTION_URL}/api/musicas/external/${token}/${filename}`;
 }
 
 export function createExternalMusicToken(fileId: string, fileName: string, secret: string, now = Date.now()) {

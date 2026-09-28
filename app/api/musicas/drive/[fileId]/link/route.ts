@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthorizedVipDriveTrack } from "../../../../../lib/vip-drive-view";
 import { googleDriveFileLink } from "../../../../../lib/vip-drive-view-policy";
-import { SITE_URL } from "../../../../../lib/seo";
-import { createExternalMusicToken, externalLinkSecret, externalMusicFilename } from "../../../../../lib/external-music-link";
+import { createExternalMusicToken, externalLinkSecret, externalMusicDownloadUrl, externalMusicFilename } from "../../../../../lib/external-music-link";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
     }
     const token = createExternalMusicToken(fileId, access.name, secret);
     const filename = encodeURIComponent(externalMusicFilename(access.name));
-    return NextResponse.json({ url: `${SITE_URL}/api/musicas/external/${token}/${filename}`, expiresIn: 7200 }, { headers: privateHeaders });
+    return NextResponse.json({ url: externalMusicDownloadUrl(token, filename), expiresIn: 7200 }, { headers: privateHeaders });
   }
   return NextResponse.json({ url: googleDriveFileLink(fileId) }, { headers: privateHeaders });
 }
