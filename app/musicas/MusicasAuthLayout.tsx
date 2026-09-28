@@ -21,6 +21,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   const [authenticated, setAuthenticated] = useState(false);
   const [hasVip, setHasVip] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const didBootRef = useRef(false);
 
@@ -36,15 +37,17 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
       const data = (await res.json()) as {
         authenticated?: boolean;
         hasVip?: boolean;
-        user?: { name: string } | null;
+        user?: { name: string; email?: string | null } | null;
       };
       setAuthenticated(Boolean(data.authenticated));
       setHasVip(Boolean(data.hasVip));
       setUserName(data.user?.name ?? "");
+      setUserEmail(data.user?.email ?? "");
     } catch {
       setAuthenticated(false);
       setHasVip(false);
       setUserName("");
+      setUserEmail("");
     } finally {
       setLoading(false);
     }
@@ -69,10 +72,11 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
       authenticated,
       hasVip,
       userName,
+      userEmail,
       openLogin: goToLogin,
       onLogout: () => void handleLogout(),
     }),
-    [authenticated, goToLogin, hasVip, userName],
+    [authenticated, goToLogin, hasVip, userEmail, userName],
   );
 
   if (pathname === "/musicas/entrar") {
