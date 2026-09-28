@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.15_estable";
-export const APP_CORE_VERSION = "1.0.15_estable";
+export const WEBUI_VERSION = "1.0.17";
+export const APP_CORE_VERSION = "1.0.17";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,23 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.17",
+    date: "2026-09-28",
+    items: [
+      "Novo painel com indicadores interativos e navegação refinada",
+      "Busca e filtros de atividade com pausa, retomada e nova tentativa no início",
+      "Velocidade ao vivo, foco de teclado e suporte a movimento reduzido",
+    ],
+  },
+  {
+    version: "1.0.16_estable",
+    date: "2026-09-27",
+    items: [
+      "Correção da cota do Google Drive: o fallback baixa pelo servidor como dono da conta",
+      "Interface redesenhada: tipografia Outfit, barra Brasil, sidebar e fila mais limpas",
+    ],
+  },
   {
     version: "1.0.15_estable",
     date: "2026-09-20",

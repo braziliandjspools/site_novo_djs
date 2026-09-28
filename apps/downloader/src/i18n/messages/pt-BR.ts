@@ -9,6 +9,8 @@
  * Placeholders usam `{nome}` e são substituídos por `translate(locale, key, vars)`.
  */
 export const messagesPtBR = {
+  homeActivityMore: "Mostrar mais",
+  homeActivityLess: "Mostrar menos",
   // language
   languageTitle: "Escolha seu idioma",
   languageSubtitle: "Você pode mudar depois em Configurações.",

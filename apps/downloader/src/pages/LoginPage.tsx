@@ -166,8 +166,10 @@ export function LoginPage() {
 
         <form
           onSubmit={(event) => void handleSubmit(event)}
-          className="glass-panel rounded-[1.35rem] p-5"
+          className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0f16]/90 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-md"
         >
+          <div className="br-stripe-thin" />
+          <div className="p-5">
           <p className="mb-1 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-[#1ed760]">
             {t("loginVipAccount")}
           </p>
@@ -298,6 +300,7 @@ export function LoginPage() {
             {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogIn className="h-3.5 w-3.5" />}
             {t("loginEnter")}
           </Button>
+          </div>
         </form>
 
         <p className="mt-5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center text-[0.68rem] text-zinc-400 drop-shadow">
