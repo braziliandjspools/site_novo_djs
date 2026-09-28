@@ -5,6 +5,7 @@ export type PortalView =
   | "service-deemix"
   | "service-allavsoft"
   | "service-music-producer"
+  | "scripts"
   | "account"
   | "support";
 
@@ -18,6 +19,7 @@ const VIEW_TO_SLUG: Record<PortalView, string> = {
   "service-deemix": "deemix",
   "service-allavsoft": "allavsoft",
   "service-music-producer": "producoes",
+  scripts: "scripts",
   account: "conta",
   support: "suporte",
 };
@@ -38,6 +40,7 @@ const SLUG_ALIASES: Record<string, PortalView> = {
   producoes: "service-music-producer",
   "music-producer": "service-music-producer",
   "service-music-producer": "service-music-producer",
+  scripts: "scripts",
   conta: "account",
   account: "account",
   suporte: "support",

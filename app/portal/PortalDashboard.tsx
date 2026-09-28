@@ -19,6 +19,7 @@ import {
   SupportView,
 } from "./views/ServiceViews";
 import { MusicProducerDeliveriesView } from "./views/MusicProducerDeliveriesView";
+import { PortalScriptsView } from "./views/PortalScriptsView";
 
 type PortalDashboardProps = {
   onLogout: () => void;
@@ -115,6 +116,8 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
         return <AllavsoftServiceView data={portalData} />;
       case "service-music-producer":
         return <MusicProducerDeliveriesView />;
+      case "scripts":
+        return <PortalScriptsView hasActivePlan={portalData.hasSubscriptionPlan} />;
       case "account":
         return <AccountView data={portalData} />;
       case "support":
@@ -133,6 +136,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
       hasPools={Boolean(portalData.pools)}
       hasAllavsoft={Boolean(portalData.allavsoft)}
       hasVip={Boolean(portalData.pools)}
+      hasActivePlan={portalData.hasSubscriptionPlan}
     >
       {renderView()}
     </PortalShell>
