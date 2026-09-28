@@ -770,6 +770,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 relativePath={tracksRelativePath}
                 coverUrl={data.coverUrl}
                 albumTitle={displayFolderName(data.folderName)}
+                showDriveButton
                 highlightTrackId={faixaId ?? undefined}
                 autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
                 layout="table"
