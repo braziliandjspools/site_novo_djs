@@ -564,11 +564,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       >
         <Link
           href="/musicas/atualizacoes"
-          title="Atualizações"
+          title="Voltar aos acervos"
           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/70 transition hover:border-[#1ed760]/40 hover:text-[#1ed760]"
         >
           <Home className="h-3.5 w-3.5 text-[#1ed760]" aria-hidden />
-          Atualizações
+          Acervos
         </Link>
         {(data?.resolvedPath ?? []).map((part, index, all) => {
           const hrefParts = all.slice(0, index + 1).map((item) => item.slug);
