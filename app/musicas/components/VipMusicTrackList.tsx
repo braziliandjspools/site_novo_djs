@@ -566,26 +566,19 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             </p>
           ) : null}
         </div>
-        <div className="flex flex-shrink-0 items-center gap-1">
+        <div className="flex flex-shrink-0 items-center">
+          <CollectionContextMenu
+            label={`Opções · ${display.title}`}
+            buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
+            actions={menuActions}
+          />
+        </div>
+      </div>
+
+      {(canDownload || (showDriveButton && authenticated && hasVip)) ? (
+        <div className="flex items-center justify-end gap-2 border-t border-white/[0.04] px-3 py-2 md:hidden">
           {canDownload ? (
             <>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDownload();
-                }}
-                disabled={isDownloading}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60 md:h-9 md:w-9"
-                title={`Baixar ${display.title}`}
-                aria-label={`Baixar ${display.title}`}
-              >
-                {isDownloading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Download className="h-3.5 w-3.5" />
-                )}
-              </button>
               <TrackDownloaderButton
                 fileId={track.id}
                 title={display.title}
@@ -593,6 +586,19 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 onSend={onSendToDownloader}
                 compact
               />
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDownload();
+                }}
+                disabled={isDownloading}
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60"
+                title={`Baixar ${display.title}`}
+                aria-label={`Baixar ${display.title}`}
+              >
+                {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              </button>
             </>
           ) : null}
           {showDriveButton && authenticated && hasVip ? (
@@ -624,13 +630,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               </button>
             )
           ) : null}
-          <CollectionContextMenu
-            label={`Opções · ${display.title}`}
-            buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
-            actions={menuActions}
-          />
         </div>
-      </div>
+      ) : null}
 
       {/* Desktop: capa · track/artist · duração · baixar · downloader · opções */}
       <div
