@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import dynamic from "next/dynamic";
 import {
   ArrowRight,
@@ -161,6 +162,8 @@ const testimonials = [
 ];
 
 export default async function Home() {
+  // The database and catalog services are available in the running app, not the build container.
+  await connection();
   const topDownloads = await getMostDownloadedTracks(12).catch(() => []);
   const downloaderRelease = getDownloaderReleaseManifest();
   const downloaderUrl =
