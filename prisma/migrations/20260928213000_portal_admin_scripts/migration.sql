@@ -1,4 +1,4 @@
-CREATE TABLE "portal_admin_scripts" (
+CREATE TABLE IF NOT EXISTS "portal_admin_scripts" (
     "id" TEXT NOT NULL,
     "title" VARCHAR(120) NOT NULL,
     "description" TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE "portal_admin_scripts" (
     CONSTRAINT "portal_admin_scripts_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX "portal_admin_scripts_active_created_at_idx"
+CREATE INDEX IF NOT EXISTS "portal_admin_scripts_active_created_at_idx"
     ON "portal_admin_scripts"("active", "created_at");
 
 INSERT INTO "portal_admin_scripts" ("id", "title", "description", "file_name", "language", "script", "active", "created_at", "updated_at")
@@ -223,7 +223,8 @@ Write-Host "Nomes repetidos ajustados: $($Resumo.Renomeados) | Erros: $($Resumo.
     true,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-);
+)
+ON CONFLICT ("id") DO NOTHING;
 
 INSERT INTO "portal_admin_scripts" ("id", "title", "description", "file_name", "language", "script", "active", "created_at", "updated_at")
 VALUES (
@@ -350,6 +351,6 @@ Write-Host "Erros: $Erros"$brs_script_1$,
     true,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-);
-
+)
+ON CONFLICT ("id") DO NOTHING;
 

@@ -14,6 +14,7 @@
     "test": "tsx --test app/lib/hotmart/hotmart.test.ts app/lib/hotmart/access-policy.ts app/lib/week-calendar.test.ts app/lib/track-display-metadata.test.ts app/lib/mercadopago/orders.test.ts app/lib/mercadopago/preference.test.ts app/lib/mercadopago/webhook.test.ts app/lib/mercadopago/return-policy.test.ts app/lib/billing/plan-catalog.test.ts app/lib/rate-limit.test.ts app/lib/checkout-ui.test.ts app/lib/music-producer-email.test.ts app/lib/music-studio/prompt.test.ts app/lib/drive-quota.test.ts app/lib/admin-script-input.test.ts",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
+    "db:portal-scripts": "prisma db execute --file prisma/migrations/20260928213000_portal_admin_scripts/migration.sql",
     "db:studio": "prisma studio",
     "portal:create-user": "node scripts/create-portal-user.mjs",
     "test:downloader-batch": "node scripts/test-downloader-batch-queue.mjs",
