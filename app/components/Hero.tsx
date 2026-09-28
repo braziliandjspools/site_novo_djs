@@ -13,15 +13,15 @@ type ParallaxLayer = {
 const floatingLayers: ParallaxLayer[] = [
   {
     depth: 0.04,
-    className: "left-[8%] top-[18%] h-48 w-48 rounded-full bg-violet-600/30 blur-3xl",
+    className: "left-[8%] top-[18%] h-48 w-48 rounded-full bg-green-600/30 blur-3xl",
   },
   {
     depth: 0.07,
-    className: "right-[10%] top-[22%] h-56 w-56 rounded-full bg-fuchsia-600/20 blur-3xl",
+    className: "right-[10%] top-[22%] h-56 w-56 rounded-full bg-emerald-600/20 blur-3xl",
   },
   {
     depth: 0.05,
-    className: "bottom-[20%] left-[35%] h-40 w-40 rounded-full bg-indigo-600/35 blur-3xl",
+    className: "bottom-[20%] left-[35%] h-40 w-40 rounded-full bg-green-600/35 blur-3xl",
   },
   {
     depth: 0.1,
@@ -46,27 +46,27 @@ const HERO_STATS = [
     prefix: "+",
     suffix: " GB",
     label: "Acervo VIP",
-    color: "text-violet-300",
-    accent: "from-violet-500/25 via-transparent to-transparent",
-    ring: "ring-violet-400/25",
+    color: "text-green-300",
+    accent: "from-green-500/25 via-transparent to-transparent",
+    ring: "ring-green-400/25",
   },
   {
     target: 739,
     prefix: "",
     suffix: "",
     label: "Pastas",
-    color: "text-fuchsia-300",
-    accent: "from-fuchsia-500/20 via-transparent to-transparent",
-    ring: "ring-fuchsia-400/20",
+    color: "text-emerald-300",
+    accent: "from-emerald-500/20 via-transparent to-transparent",
+    ring: "ring-emerald-400/20",
   },
   {
     target: 40012,
     prefix: "+",
     suffix: "",
     label: "Músicas",
-    color: "text-indigo-300",
-    accent: "from-indigo-500/25 via-transparent to-transparent",
-    ring: "ring-indigo-400/25",
+    color: "text-green-300",
+    accent: "from-green-500/25 via-transparent to-transparent",
+    ring: "ring-green-400/25",
     format: "pt-BR" as const,
   },
 ];
@@ -235,7 +235,7 @@ export function Hero() {
           </div>
         ))}
 
-        <div className="absolute inset-0 bg-gradient-to-br from-[#291448]/80 via-[#130e21]/90 to-[#0b0a11]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#102615]/80 via-[#130e21]/90 to-[#0b0a11]" />
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 pb-12 pt-16 text-center sm:px-6 md:pb-20 md:pt-24">
           <div
@@ -244,12 +244,12 @@ export function Hero() {
               transform: `translate(${offset.x * -8}px, ${offset.y * -6}px)`,
             }}
           >
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-400/35 bg-violet-400/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-violet-200">
-              <span className="h-2 w-2 rounded-full bg-fuchsia-400" />
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-400/35 bg-green-400/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-green-200">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
               Pools · Curadoria · Remix Services
             </span>
             <h1 className="font-display break-words text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl md:text-7xl">
-              O repertório que move <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-violet-400 bg-clip-text text-transparent">a sua pista.</span>
+              O repertório que move <span className="bg-gradient-to-r from-green-300 via-emerald-300 to-green-400 bg-clip-text text-transparent">a sua pista.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base text-gray-300 sm:text-lg">
               Remixes, DJ pools, versões extended e intro edits em um só lugar. Descubra novos sons, organize seu repertório e prepare sets para qualquer pista.
@@ -257,14 +257,14 @@ export function Hero() {
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
               <a
                 href="/musicas"
-                className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-violet-500 px-7 py-4 text-sm font-extrabold text-white shadow-[0_12px_35px_-14px_rgba(139,92,246,0.85)] transition hover:bg-violet-400 sm:w-auto sm:min-w-[245px] sm:text-base"
+                className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-green-500 px-7 py-4 text-sm font-extrabold text-white shadow-[0_12px_35px_-14px_rgba(30,215,96,0.85)] transition hover:bg-green-400 sm:w-auto sm:min-w-[245px] sm:text-base"
               >
                 Explorar a plataforma
                 <ArrowRight className="h-5 w-5" />
               </a>
               <Link
                 href="/musicas/atualizacoes"
-                className="inline-flex w-full max-w-md items-center justify-center rounded-full border border-violet-300/35 bg-white/[0.06] px-7 py-4 text-sm font-bold text-white transition hover:bg-violet-400/15 sm:w-auto sm:min-w-[260px] sm:text-base"
+                className="inline-flex w-full max-w-md items-center justify-center rounded-full border border-green-300/35 bg-white/[0.06] px-7 py-4 text-sm font-bold text-white transition hover:bg-green-400/15 sm:w-auto sm:min-w-[260px] sm:text-base"
               >
                 Ver últimas atualizações
               </Link>
@@ -276,7 +276,7 @@ export function Hero() {
 
       <section
         ref={statsRef}
-        className="relative z-10 border-b border-violet-400/10 bg-[#100d1b] px-4 py-10 sm:px-6 md:-mt-2 md:py-12"
+        className="relative z-10 border-b border-green-400/10 bg-[#100d1b] px-4 py-10 sm:px-6 md:-mt-2 md:py-12"
       >
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
           {HERO_STATS.map((stat, i) => (
