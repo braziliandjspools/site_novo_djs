@@ -59,7 +59,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
             <Link key={folder.id} href={href} prefetch={false}
               onMouseEnter={() => prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)}
               onFocus={() => prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)}
-              className="group flex min-h-[74px] w-full min-w-0 items-center gap-3 border-b border-white/[0.07] px-3 py-3 outline-none transition last:border-b-0 hover:bg-[#141914] focus-visible:bg-[#141914] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#1ed760] sm:min-h-[82px] sm:gap-4 sm:px-4">
+              className="group relative flex min-h-[74px] w-full min-w-0 items-center gap-3 px-3 py-3 outline-none transition hover:bg-[#141914] focus-visible:bg-[#141914] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#1ed760] sm:min-h-[82px] sm:gap-4 sm:px-4">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1ed760]/20 bg-[#1ed760]/[0.08] text-[#1ed760] sm:h-12 sm:w-12">
                 {hasTracks ? <Music2 className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
               </span>
@@ -76,6 +76,11 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 transition group-hover:border-[#1ed760]/50 group-hover:bg-[#1ed760] group-hover:text-black">
                 <ArrowRight className="h-4 w-4" />
               </span>
+              {folder.index < items.length - 1 ? (
+                <span aria-hidden="true" className="pointer-events-none absolute inset-x-4 bottom-0 h-px bg-gradient-to-r from-[#1ed760]/25 via-white/10 to-transparent">
+                  <span className="block h-px w-7 bg-[#1ed760]/35" />
+                </span>
+              ) : null}
             </Link>
           );
         })}
