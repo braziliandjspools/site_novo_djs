@@ -28,7 +28,8 @@ export type PortalRenewableService = {
   dueLabel: string;
   dueDayKey: string;
   daysUntilDue: number;
-  urgency: "soon" | "overdue";
+  urgency: "soon" | "overdue" | "blocked";
+  reactivation: boolean;
 };
 
 function dueDayKey(date: Date | string) {
@@ -88,17 +89,22 @@ export async function quotePortalPlanChange(
   return buildPlanChangeQuote({ user, targetPlanId, periodContext, now });
 }
 
-/** Serviços renováveis na janela de 5 dias (ou já vencidos), com valor > 0. */
+/** Serviços na janela de renovação ou bloqueados com histórico de VIP. */
 export function listPortalRenewableServices(
   user: Pick<PortalUser, "services" | "serviceBilling" | "nextDueAt">,
 ): PortalRenewableService[] {
   const items: PortalRenewableService[] = [];
 
-  if (user.services.poolsVip) {
+  {
     const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
-    const urgency = getDueUrgency(due);
-    const value = user.serviceBilling.poolsVip.value;
-    if (urgency && value > 0) {
+    const reactivation = !user.services.poolsVip;
+    const hasBillingHistory = user.serviceBilling.poolsVip.value > 0 || user.serviceBilling.poolsVip.dueAt !== null;
+    const urgency = reactivation ? "blocked" : getDueUrgency(due);
+    if (hasBillingHistory && (reactivation || urgency)) {
+      // Renovação iniciada pelo portal cobra o plano mensal, independentemente
+      // do valor histórico que possa estar salvo no cadastro.
+      const monthlyPlan = getCanonicalPlanById("brs-drive-1m");
+      const value = monthlyPlan ? Number(monthlyPlan.amountBrl) : 35.5;
       items.push({
         key: "poolsVip",
         label: "Pools VIP",
@@ -108,7 +114,8 @@ export function listPortalRenewableServices(
         dueLabel: formatDueDate(due),
         dueDayKey: dueDayKey(due),
         daysUntilDue: daysUntilDue(due),
-        urgency,
+        urgency: reactivation ? "blocked" : urgency!,
+        reactivation,
       });
     }
   }
@@ -133,7 +140,7 @@ export function buildPortalRenewalPlan(
   if (!renewable) {
     return {
       ok: false,
-      error: "Este serviço não está na janela de renovação (até 5 dias antes do vencimento ou já vencido).",
+      error: "Este serviço não está na janela de renovação ou não possui histórico de VIP para reativação.",
       code: "renewal_not_available",
     };
   }
@@ -150,8 +157,10 @@ export function buildPortalRenewalPlan(
   const plan: CanonicalPlan = {
     ...base,
     title: `Renovação ${renewable.label} — ${base.durationLabel}`,
-    description: `Renovação manual do ${renewable.label} (${base.durationLabel}) com vencimento em ${renewable.dueLabel}. Pagamento único.`,
-    badge: renewable.urgency === "overdue" ? "Vencido" : "Renovação",
+    description: renewable.reactivation
+      ? `Reativação do ${renewable.label} por ${base.durationLabel}. O acesso é liberado após a confirmação do pagamento.`
+      : `Renovação manual do ${renewable.label} (${base.durationLabel}) com vencimento em ${renewable.dueLabel}. Pagamento único.`,
+    badge: renewable.reactivation ? "Reativação" : renewable.urgency === "overdue" ? "Vencido" : "Renovação",
     highlight: true,
     isTestPlan: false,
   };
@@ -222,5 +231,6 @@ export function serializePortalRenewables(
     dueDayKey: item.dueDayKey,
     daysUntilDue: item.daysUntilDue,
     urgency: item.urgency,
+    reactivation: item.reactivation,
   }));
 }

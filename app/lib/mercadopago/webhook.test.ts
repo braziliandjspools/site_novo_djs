@@ -206,6 +206,7 @@ test("extensão de acesso: sem VIP conta da aprovação; com VIP estende do venc
     currentExpiresAt: new Date("2025-01-01T12:00:00.000Z"),
   });
   assert.ok(fromApproval.getTime() > now.getTime());
+  assert.equal(fromApproval.toISOString(), "2026-04-09T12:00:00.000Z");
 
   const currentEnd = new Date("2026-06-10T12:00:00.000Z");
   const extended = computeVipAccessPeriodEnd({

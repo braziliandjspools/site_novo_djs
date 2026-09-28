@@ -32,9 +32,9 @@ const RATE_WINDOW_MS = 10 * 60 * 1000;
 
 type PreferenceBody = {
   planId?: unknown;
-  /** Renovação no portal: valor vem do catálogo (planId opcional 1/3/6). */
+  /** Renovação no portal: plano mensal definido no servidor. */
   renewalService?: unknown;
-  /** Plano alvo na renovação (brs-drive-1m | 3m | 6m). */
+  /** Apenas o mensal é permitido na renovação de 30 dias. */
   renewalPlanId?: unknown;
   amount?: unknown;
   amountBrl?: unknown;
@@ -50,10 +50,10 @@ function classifyPreferenceError(message: string): {
   code: string;
 } {
   if (/obrigatória ausente:\s*MERCADO_PAGO_ACCESS_TOKEN/i.test(message)) {
-    return { status: 503, error: "Falta MERCADO_PAGO_ACCESS_TOKEN na Vercel (Production).", code: "missing_access_token" };
+    return { status: 503, error: "Falta MERCADO_PAGO_ACCESS_TOKEN na configuração de produção.", code: "missing_access_token" };
   }
   if (/obrigatória ausente:\s*MERCADO_PAGO_WEBHOOK_SECRET/i.test(message)) {
-    return { status: 503, error: "Falta MERCADO_PAGO_WEBHOOK_SECRET na Vercel (Production).", code: "missing_webhook_secret" };
+    return { status: 503, error: "Falta MERCADO_PAGO_WEBHOOK_SECRET na configuração de produção.", code: "missing_webhook_secret" };
   }
   if (/obrigatória ausente:\s*MERCADO_PAGO_MODE|invalid_MERCADO_PAGO_MODE|deve ser exatamente/i.test(message)) {
     return { status: 503, error: "MERCADO_PAGO_MODE inválido. Use exatamente: production", code: "invalid_mode" };
@@ -90,7 +90,7 @@ function classifyPreferenceError(message: string): {
   if (/Prisma|database|P1001|P1017|Can't reach/i.test(message)) {
     return {
       status: 502,
-      error: "Falha ao gravar o pedido no banco. Verifique DATABASE_URL na Vercel.",
+      error: "Falha ao gravar o pedido no banco. Verifique DATABASE_URL na configuração do site.",
       code: "database_error",
     };
   }
@@ -159,11 +159,13 @@ export async function POST(request: Request) {
         { status: 401 },
       );
     }
-    const renewalPlanId =
-      typeof body.renewalPlanId === "string" && isPortalSubscriptionPlanId(body.renewalPlanId)
-        ? body.renewalPlanId
-        : "brs-drive-1m";
-    const built = buildPortalRenewalPlan(user, body.renewalService, renewalPlanId);
+    if (body.renewalPlanId !== undefined && body.renewalPlanId !== "brs-drive-1m") {
+      return NextResponse.json(
+        { error: "A renovação pelo portal libera 30 dias por pagamento.", code: "invalid_renewal_plan" },
+        { status: 400 },
+      );
+    }
+    const built = buildPortalRenewalPlan(user, body.renewalService, "brs-drive-1m");
     if (!built.ok) {
       return NextResponse.json({ error: built.error, code: built.code }, { status: 409 });
     }

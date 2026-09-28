@@ -34,13 +34,13 @@ test("/plans expõe Drive canônicos (Deemix descontinuado)", () => {
       "brs-drive-3d",
       "brs-drive-1m",
       "brs-drive-3m",
-      "brs-drive-12m",
+      "brs-drive-6m",
     ],
   );
-  assert.equal(SITE_PLANS[0]?.price, "R$ 1,00");
-  assert.equal(SITE_PLANS[1]?.price, "R$ 38,00");
-  assert.equal(SITE_PLANS[2]?.price, "R$ 102,60");
-  assert.equal(SITE_PLANS[3]?.price, "R$ 384,00");
+  assert.equal(SITE_PLANS[0]?.price, "R$ 3,50");
+  assert.equal(SITE_PLANS[1]?.price, "R$ 35,50");
+  assert.equal(SITE_PLANS[2]?.price, "R$ 100,00");
+  assert.equal(SITE_PLANS[3]?.price, "R$ 200,00");
 });
 
 test("extrai brs_user_id do xcod", () => {

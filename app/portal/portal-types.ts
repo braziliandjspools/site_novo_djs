@@ -27,7 +27,8 @@ export type PortalRenewableService = {
   dueLabel: string;
   dueDayKey: string;
   daysUntilDue: number;
-  urgency: "soon" | "overdue";
+  urgency: "soon" | "overdue" | "blocked";
+  reactivation: boolean;
 };
 
 export type PortalData = {

@@ -10,6 +10,7 @@ type PortalRenewalPayProps = {
 };
 
 function urgencyCopy(item: PortalRenewableService) {
+  if (item.reactivation) return "Acesso bloqueado · pague para reativar por 30 dias";
   if (item.urgency === "overdue") {
     return item.daysUntilDue === -1 ? "Venceu ontem" : `Vencido há ${Math.abs(item.daysUntilDue)} dias`;
   }
@@ -148,7 +149,9 @@ export function PortalRenewalPay({ renewables }: PortalRenewalPayProps) {
             <p className="mb-4 text-sm text-zinc-400">
               {stacked
                 ? "Mais de um serviço vence nesta data. Escolha o que pagar agora, deixe para depois ou cancele este aviso."
-                : "Seu plano está na janela de renovação. Pague com o valor do seu serviço."}
+                : items[0]!.reactivation
+                  ? "Reative seu acesso VIP pagando pelo Mercado Pago. Após a confirmação, o plano é liberado por mais 30 dias."
+                  : "Seu plano está na janela de renovação. Pague pelo Mercado Pago para adicionar mais 30 dias de acesso."}
             </p>
 
             <ul className="space-y-3">
@@ -187,7 +190,7 @@ export function PortalRenewalPay({ renewables }: PortalRenewalPayProps) {
                         ) : (
                           <CreditCard className="h-3.5 w-3.5" />
                         )}
-                        Pagar
+                        {item.reactivation ? "Reativar com MP" : "Renovar com MP"}
                       </button>
                     )}
                     <button
@@ -292,7 +295,7 @@ export function PortalRenewPayButton({
         className="inline-flex items-center gap-1.5 rounded-lg bg-[#00ff9d] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a] disabled:opacity-60"
       >
         {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
-        Pagar
+        {item.reactivation ? "Reativar com MP" : "Renovar com MP"}
       </button>
       {error && <span className="max-w-[10rem] text-[10px] text-red-400">{error}</span>}
     </span>

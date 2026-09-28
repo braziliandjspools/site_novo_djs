@@ -51,6 +51,41 @@ test("buildPortalRenewalPlan aceita trimestral", () => {
   assert.equal(built.plan.amountBrl, "100.00");
 });
 
+test("cliente VIP bloqueado com histórico pode reativar por 30 dias", () => {
+  const user = baseUser({
+    services: { poolsVip: false, deemix: false, allavsoft: false },
+    serviceBilling: {
+      poolsVip: { value: 100, dueAt: new Date("2025-01-01T12:00:00Z") },
+      deemix: { value: 0, dueAt: null },
+      allavsoft: { value: 0, dueAt: null },
+    },
+  });
+  const items = listPortalRenewableServices(user);
+  assert.equal(items.length, 1);
+  assert.equal(items[0]?.reactivation, true);
+  assert.equal(items[0]?.urgency, "blocked");
+  assert.equal(items[0]?.value, 35.5);
+
+  const built = buildPortalRenewalPlan(user, "poolsVip");
+  assert.equal(built.ok, true);
+  if (!built.ok) return;
+  assert.equal(built.plan.id, "brs-drive-1m");
+  assert.equal(built.plan.durationDays, 30);
+});
+
+test("cliente sem VIP ativo nem histórico não recebe reativação", () => {
+  const user = baseUser({
+    services: { poolsVip: false, deemix: false, allavsoft: false },
+    serviceBilling: {
+      poolsVip: { value: 0, dueAt: null },
+      deemix: { value: 0, dueAt: null },
+      allavsoft: { value: 0, dueAt: null },
+    },
+  });
+  assert.equal(listPortalRenewableServices(user).length, 0);
+  assert.equal(buildPortalRenewalPlan(user, "poolsVip").ok, false);
+});
+
 test("fora da janela não renova", () => {
   const far = new Date();
   far.setDate(far.getDate() + 20);
