@@ -47,6 +47,7 @@ import {
 } from "./DownloaderBulkConfirm";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
+import { DriveAccessHelpDialog } from "./DriveAccessHelpDialog";
 import {
   flattenTrackSections,
   groupTracksByUploadDate,
@@ -338,6 +339,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
   const coverUnoptimized = coverSrc.startsWith("/api/");
   const { authenticated, hasVip, userEmail } = useMusicasSession();
+  const [driveHelpOpen, setDriveHelpOpen] = useState(false);
   const gmailDriveAllowed =
     authenticated && hasVip && /@gmail\.com$/i.test(userEmail.trim());
 
@@ -347,9 +349,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   }, [gmailDriveAllowed, track.id]);
 
   const explainDriveBlock = useCallback(() => {
-    window.alert(
-      "Sua conta BRS não utiliza um endereço @gmail.com, necessário para a liberação do link no Google Drive. Baixe a pasta inteira pelo BRS Downloader ou baixe as faixas individualmente pelo navegador.",
-    );
+    setDriveHelpOpen(true);
   }, []);
 
   const menuActions = useMemo(() => {
@@ -722,6 +722,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           />
         </div>
       </div>
+      {driveHelpOpen ? <DriveAccessHelpDialog onClose={() => setDriveHelpOpen(false)} /> : null}
     </article>
   );
 }, streamingRowEqual);
