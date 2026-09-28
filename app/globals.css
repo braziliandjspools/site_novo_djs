@@ -520,3 +520,26 @@ button {
 .pool-logo-dark {
   filter: invert(1) brightness(1.15) contrast(1.05);
 }
+
+
+@keyframes brs-mobile-track-marquee {
+  0%, 12% { transform: translateX(0); }
+  82%, 94% { transform: translateX(calc(-100% + min(62vw, 260px))); }
+  100% { transform: translateX(0); }
+}
+
+@media (max-width: 767px) {
+  .brs-mobile-track-marquee {
+    animation: brs-mobile-track-marquee 8s linear infinite;
+    will-change: transform;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brs-mobile-track-marquee {
+    animation: none;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+  }
+}
