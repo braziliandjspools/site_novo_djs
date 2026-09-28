@@ -2,6 +2,7 @@ import "server-only";
 import type { MercadoPagoOrderStatus } from "@prisma/client";
 import { getCanonicalPlanById } from "../billing/plan-catalog";
 import { prisma } from "../prisma";
+import { reconcilePendingMercadoPagoOrder } from "./process-webhook";
 import {
   isTrustedExternalReference,
   isTrustedOrderId,
@@ -55,24 +56,37 @@ export async function getSafeMercadoPagoOrderStatusForUser(input: {
     };
   }
 
-  const order = await prisma.mercadoPagoOrder.findFirst({
-    where: {
-      portalUserId: input.portalUserId,
-      ...(orderId ? { id: orderId } : { externalReference: externalReference! }),
-    },
-    select: {
-      status: true,
-      planId: true,
-      portalUser: {
-        select: {
-          servicePoolsVip: true,
-          servicePoolsVipDueAt: true,
-          nextDueAt: true,
-        },
+  const orderWhere = {
+    portalUserId: input.portalUserId,
+    ...(orderId ? { id: orderId } : { externalReference: externalReference! }),
+  };
+  const orderSelect = {
+    status: true,
+    planId: true,
+    id: true,
+    portalUser: {
+      select: {
+        servicePoolsVip: true,
+        servicePoolsVipDueAt: true,
+        nextDueAt: true,
       },
     },
+  } as const;
+
+  let order = await prisma.mercadoPagoOrder.findFirst({
+    where: orderWhere,
+    select: orderSelect,
   });
 
+  if (order?.status === "PENDING") {
+    await reconcilePendingMercadoPagoOrder({ orderId: order.id, portalUserId: input.portalUserId });
+    order = await prisma.mercadoPagoOrder.findFirst({ where: orderWhere, select: orderSelect });
+  }
+
+  /*
+   * A conciliação acima consulta o pagamento pela API do Mercado Pago e passa
+   * pelo mesmo caminho de validação e ativação do webhook antes de reler o pedido.
+   */
   if (!order) {
     return {
       phase: "not_found",
