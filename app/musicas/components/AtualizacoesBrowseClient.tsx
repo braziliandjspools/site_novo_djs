@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ArrowLeft, ChevronRight, Home } from "lucide-react";
+import { ArrowLeft, ChevronRight, Download, Home, Loader2, MonitorDown, Pause, Play } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -28,7 +28,7 @@ import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { autoSyncDriveOnEnter } from "../lib/auto-drive-sync";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
-import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
+import { PackHero, type PackHeroStat } from "./PackHero";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
@@ -609,15 +609,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {showInitialSkeleton &&
         (slugSegments.length >= 3 ? (
-          <>
-            <PackHeroSkeleton />
-            <MusicasTracksSkeleton rows={8} />
-          </>
+          <MusicasTracksSkeleton rows={8} />
         ) : (
           <MusicasBrowseFoldersSkeleton rows={12} />
         ))}
 
-      {data && showingTracks ? (
+      {data && showingTracks && slugSegments.length === 1 ? (
         <PackHero
           title={displayFolderName(data.folderName)}
           eyebrow={parentFolderTitle ? `Pasta · ${parentFolderTitle}` : "Pasta"}
@@ -636,7 +633,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         />
       ) : null}
 
-      {data && !showingTracks ? (
+      {data && !showingTracks && slugSegments.length === 1 ? (
         <AtualizacoesMonthHero
           folderName={data.folderName}
           itemCount={heroCount}
@@ -772,6 +769,35 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           newChildIds={newChildIds}
         >
           <div className="min-w-0 space-y-4">
+            {slugSegments.length > 1 && directTracks.length > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1ed760]/20 bg-[#0c120e] px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Faixas da pasta</p>
+                  <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
+                  <p className="text-[11px] text-white/45">{directTracks.length} {directTracks.length === 1 ? "faixa" : "faixas"}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {playbackEnabled ? (
+                    <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1ed760] px-3 text-xs font-bold text-black transition hover:bg-[#4bf082] disabled:opacity-50">
+                      {playBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : packPlaying ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="h-3.5 w-3.5" fill="currentColor" />}
+                      {packPlaying ? "Pausar" : "Reproduzir"}
+                    </button>
+                  ) : null}
+                  {downloadEnabled ? (
+                    <>
+                      <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50">
+                        {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
+                        Downloader
+                      </button>
+                      <button type="button" onClick={() => void handlePackDownload()} disabled={downloadingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:opacity-50">
+                        {downloadingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                        Baixar pasta
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
             {directTracks.length === 0 && loading ? (
               <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
                 <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />

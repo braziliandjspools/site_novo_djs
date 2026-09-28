@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from "react";
@@ -81,9 +82,9 @@ type VipMusicTrackListProps = {
 };
 
 const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_56px_36px_36px_36px_36px] xl:grid-cols-[52px_minmax(0,1fr)_52px_52px_56px_36px_36px_36px_36px] md:items-center md:gap-x-3";
 const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px_36px_36px] md:items-center md:gap-x-3";
+  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_56px_36px_36px_36px_36px] xl:grid-cols-[28px_52px_minmax(0,1fr)_52px_52px_56px_36px_36px_36px_36px] md:items-center md:gap-x-3";
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -418,13 +419,23 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
 
   const rowBg =
     isHighlighted || isSelected || isActive
-      ? "bg-white/[0.05]"
-      : "bg-transparent hover:bg-white/[0.04]";
+      ? "bg-[#102018]"
+      : "bg-[#0b0e0c] hover:bg-[#141c16]";
 
   function handleSeekClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = (event.clientX - rect.left) / rect.width;
     onSeek(Math.max(0, Math.min(1, ratio)));
+  }
+
+  function handleSeekKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      onSeek(Math.max(0, Math.min(1, currentTime / displayDuration + (event.key === "ArrowRight" ? 5 : -5) / displayDuration)));
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      onSeek(event.key === "Home" ? 0 : 1);
+    }
   }
 
   const coverButtonClass =
@@ -511,6 +522,12 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         artist={display.artist}
         className="mt-0.5 block truncate text-[12px] leading-snug text-white/50"
       />
+      {track.bpm || track.musicalKey ? (
+        <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] font-semibold text-white/50 xl:hidden">
+          {track.bpm ? <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5">{track.bpm} BPM</span> : null}
+          {track.musicalKey ? <span className="rounded border border-[#1ed760]/20 bg-[#1ed760]/[0.07] px-1.5 py-0.5 text-[#86e7a7]">{track.musicalKey}</span> : null}
+        </div>
+      ) : null}
     </div>
   );
 
@@ -523,20 +540,23 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <div
           role="slider"
           tabIndex={0}
-          aria-label="Progresso"
+          aria-label={`Posição de reprodução de ${display.title}`}
           aria-valuemin={0}
           aria-valuemax={Math.round(displayDuration)}
           aria-valuenow={Math.round(currentTime)}
+          aria-valuetext={`${formatTime(currentTime)} de ${formatTime(displayDuration)}`}
           className="flex h-8 min-w-0 flex-1 cursor-pointer items-center py-2 touch-manipulation sm:h-5 sm:py-1"
           onClick={handleSeekClick}
+          onKeyDown={handleSeekKeyDown}
         >
-          <div className="h-1.5 w-full rounded-full bg-white/12 sm:h-[3px]">
+          <div className="relative h-1.5 w-full rounded-sm bg-[#344038] sm:h-1">
             <div
-              className="relative h-full rounded-full bg-[#1ed760]"
+              className="relative h-full rounded-sm bg-[#1ed760]"
               style={{ width: `${Math.min(100, progress)}%` }}
             >
-              <span className="absolute -right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#1ed760] shadow sm:h-2.5 sm:w-2.5" />
+              <span className="absolute -right-1 top-1/2 h-3 w-2 -translate-y-1/2 rounded-sm bg-[#a7ffc6] shadow-[0_0_8px_rgba(30,215,96,0.6)] sm:h-2.5" />
             </div>
+            <span className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent_0,transparent_calc(10%_-_1px),rgba(8,14,9,0.5)_calc(10%_-_1px),rgba(8,14,9,0.5)_10%)]" aria-hidden />
           </div>
         </div>
         <span className="w-9 flex-shrink-0 text-right font-mono text-[10px] tabular-nums text-white/40 sm:w-8">
@@ -576,7 +596,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       }`}
     >
       {/* Mobile */}
-      <div className="flex items-center gap-2.5 px-3 py-3.5 md:hidden">
+      <div className="flex items-center gap-2.5 px-3 py-3 md:hidden">
         {selectCheckbox}
         {playButton}
         <div className="min-w-0 flex-1">
@@ -597,7 +617,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
       </div>
 
-      {/* Desktop: capa · track/artist · duração · baixar · downloader · opções */}
+      {/* Desktop: capa · faixa · BPM · tom · duração · ações */}
       <div
         className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} px-3.5 py-2.5`}
       >
@@ -611,7 +631,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {progressBlock}
         </div>
 
-        <div className="text-right font-mono text-[12px] tabular-nums text-white/40">
+        <span className="hidden text-center font-mono text-[11px] tabular-nums text-white/60 xl:block">{track.bpm ?? "—"}</span>
+        <span className="hidden text-center font-mono text-[11px] text-[#86e7a7] xl:block">{track.musicalKey ?? "—"}</span>
+
+        <div className="text-center font-mono text-[12px] tabular-nums text-white/40">
           {showSideDuration ? formatTime(displayDuration) : null}
         </div>
 
@@ -1306,6 +1329,18 @@ export function VipMusicTrackList({
       </div>
     ) : null;
 
+  const streamingHeader = layout === "table" ? (
+    <div className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} border-b border-white/10 bg-[#101611] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45`} aria-hidden="true">
+      {selectionMode && canDownload ? <span /> : null}
+      <span className="text-center">Ouvir</span>
+      <span>Faixa</span>
+      <span className="hidden text-center xl:block">BPM</span>
+      <span className="hidden text-center xl:block">Tom</span>
+      <span className="text-center">Tempo</span>
+      <span className="col-span-4 text-center">Ações</span>
+    </div>
+  ) : null;
+
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
       {error && isThisFolder && (
@@ -1372,6 +1407,7 @@ export function VipMusicTrackList({
                   {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
+              {streamingHeader}
               <div>{renderStreamingRows(section.tracks)}</div>
             </div>
           ))}
@@ -1381,6 +1417,7 @@ export function VipMusicTrackList({
       {useStreaming && !separateByFolderDate ? (
         <div>
           {selectionToolbar}
+          {streamingHeader}
           {(trackSections ?? [
             { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
           ]).map((section) => (
