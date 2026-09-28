@@ -523,14 +523,12 @@ button {
 
 
 @keyframes brs-mobile-track-marquee {
-  0%, 12% { transform: translateX(0); }
-  82%, 94% { transform: translateX(calc(-100% + min(62vw, 260px))); }
-  100% { transform: translateX(0); }
+  to { transform: translateX(calc(-1 * var(--brs-marquee-distance))); }
 }
 
 @media (max-width: 767px) {
   .brs-mobile-track-marquee {
-    animation: brs-mobile-track-marquee 8s linear infinite;
+    animation: brs-mobile-track-marquee var(--brs-marquee-duration) linear infinite;
     will-change: transform;
   }
 }

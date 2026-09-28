@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type MouseEvent,
   type ReactNode,
 } from "react";
@@ -192,13 +193,15 @@ function TrackDownloaderButton({
 function MobilePlayingTitle({ title, active }: { title: string; active: boolean }) {
   const viewportRef = useRef<HTMLSpanElement | null>(null);
   const textRef = useRef<HTMLSpanElement | null>(null);
-  const [overflowing, setOverflowing] = useState(false);
+  const [motion, setMotion] = useState({ overflowing: false, distance: 0, duration: 8 });
 
   useEffect(() => {
     const measure = () => {
       const viewport = viewportRef.current;
       const text = textRef.current;
-      setOverflowing(Boolean(viewport && text && text.scrollWidth > viewport.clientWidth + 2));
+      const width = text?.scrollWidth ?? 0;
+      const overflowing = Boolean(viewport && width > viewport.clientWidth + 2);
+      setMotion({ overflowing, distance: width + 24, duration: Math.max(8, (width + 24) / 36) });
     };
     measure();
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
@@ -210,12 +213,13 @@ function MobilePlayingTitle({ title, active }: { title: string; active: boolean 
   return (
     <span ref={viewportRef} className="block min-w-0 w-full overflow-hidden md:hidden">
       <span
-        ref={textRef}
-        className={`block w-max max-w-none whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
+        style={{ "--brs-marquee-distance": `${motion.distance}px`, "--brs-marquee-duration": `${motion.duration}s` } as CSSProperties}
+        className={`flex w-max max-w-none items-center whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
           active ? "text-[#1ed760]" : "text-white"
-        } ${active && overflowing ? "brs-mobile-track-marquee" : ""}`}
+        } ${active && motion.overflowing ? "brs-mobile-track-marquee" : ""}`}
       >
-        {title}
+        <span ref={textRef}>{title}</span>
+        {active && motion.overflowing ? <span className="pl-6" aria-hidden="true">{title}</span> : null}
       </span>
     </span>
   );
@@ -1254,7 +1258,7 @@ export function VipMusicTrackList({
           }}
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
-          showDriveButton={showDriveButton}
+          showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
         />
       );
     });
