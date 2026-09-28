@@ -394,6 +394,28 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     onToggle,
   ]);
 
+  const mobileMenuActions = useMemo(() => {
+    const actions = [...menuActions];
+    const extras: CollectionMenuAction[] = [];
+    if (canDownload) {
+      extras.push({
+        id: "download-browser",
+        label: "Baixar no navegador",
+        icon: Download,
+        disabled: isDownloading,
+        onClick: onDownload,
+      });
+    }
+    if (showDriveButton && authenticated && hasVip) {
+      extras.push(gmailDriveAllowed
+        ? { id: "drive", label: "Abrir no Drive", icon: HardDrive, onClick: openDrive }
+        : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
+    }
+    const beforeCopy = actions.findIndex((action) => action.id === "copy");
+    actions.splice(beforeCopy, 0, ...extras);
+    return actions;
+  }, [menuActions, canDownload, isDownloading, onDownload, showDriveButton, authenticated, hasVip, gmailDriveAllowed, openDrive, explainDriveBlock]);
+
   const rowBg =
     isHighlighted || isSelected || isActive
       ? "bg-white/[0.05]"
@@ -570,68 +592,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           <CollectionContextMenu
             label={`Opções · ${display.title}`}
             buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
-            actions={menuActions}
+            actions={mobileMenuActions}
           />
         </div>
       </div>
-
-      {(canDownload || (showDriveButton && authenticated && hasVip)) ? (
-        <div className="flex items-center justify-end gap-2 border-t border-white/[0.04] px-3 py-2 md:hidden">
-          {canDownload ? (
-            <>
-              <TrackDownloaderButton
-                fileId={track.id}
-                title={display.title}
-                sending={isSendingToDownloader}
-                onSend={onSendToDownloader}
-                compact
-              />
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDownload();
-                }}
-                disabled={isDownloading}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60"
-                title={`Baixar ${display.title}`}
-                aria-label={`Baixar ${display.title}`}
-              >
-                {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-              </button>
-            </>
-          ) : null}
-          {showDriveButton && authenticated && hasVip ? (
-            gmailDriveAllowed ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  openDrive();
-                }}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
-                title={`Abrir ${display.title} no Drive dentro da BRS`}
-                aria-label={`Abrir ${display.title} no Drive`}
-              >
-                <HardDrive className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  explainDriveBlock();
-                }}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
-                title="Drive indisponível para este e-mail — toque para entender"
-                aria-label="Drive indisponível — saiba por quê"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </button>
-            )
-          ) : null}
-        </div>
-      ) : null}
 
       {/* Desktop: capa · track/artist · duração · baixar · downloader · opções */}
       <div
