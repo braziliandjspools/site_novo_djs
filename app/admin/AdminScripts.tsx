@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Code2, Loader2, Plus, RefreshCw, Save, ToggleLeft, ToggleRight, Trash2, X } from "lucide-react";
 
 type ScriptRow = {
@@ -51,6 +52,8 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
   }, []);
 
   useEffect(() => {
+    // Carrega o banco assim que a área de scripts é aberta.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
@@ -150,7 +153,13 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
             Cadastre e publique scripts PowerShell no banco. Os scripts ativos aparecem para clientes logados com plano ativo.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin"
+            className="inline-flex min-h-10 items-center rounded-lg border border-white/10 px-3 text-xs font-bold uppercase tracking-wider text-zinc-300 hover:bg-white/5"
+          >
+            Voltar ao admin
+          </Link>
           <button
             type="button"
             onClick={() => void load()}

@@ -14,6 +14,16 @@ CREATE TABLE IF NOT EXISTS "portal_admin_scripts" (
 CREATE INDEX IF NOT EXISTS "portal_admin_scripts_active_created_at_idx"
     ON "portal_admin_scripts"("active", "created_at");
 
+CREATE TABLE IF NOT EXISTS "portal_admin_scripts_seed_migrations" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "applied_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+DO $brs_seed$
+BEGIN
+IF NOT EXISTS (
+    SELECT 1 FROM "portal_admin_scripts_seed_migrations" WHERE "id" = 'initial_scripts_v1'
+) THEN
 INSERT INTO "portal_admin_scripts" ("id", "title", "description", "file_name", "language", "script", "active", "created_at", "updated_at")
 VALUES (
     $brs_id_0$organizar-musicas-por-estilo$brs_id_0$,
@@ -354,3 +364,8 @@ Write-Host "Erros: $Erros"$brs_script_1$,
 )
 ON CONFLICT ("id") DO NOTHING;
 
+INSERT INTO "portal_admin_scripts_seed_migrations" ("id") VALUES ('initial_scripts_v1')
+ON CONFLICT ("id") DO NOTHING;
+END IF;
+END
+$brs_seed$;

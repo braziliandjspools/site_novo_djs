@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminLogin } from "./AdminLogin";
 import { AdminMusicProducerDeliveries } from "./AdminMusicProducerDeliveries";
 import { AdminNotices } from "./AdminNotices";
-import { AdminScripts } from "./AdminScripts";
 import { AdminUsersTable } from "./AdminUsersTable";
 
-type AdminTab = "dashboard" | "users" | "deliveries" | "notices" | "scripts";
+type AdminTab = "dashboard" | "users" | "deliveries" | "notices";
 
 export function AdminApp() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -25,6 +25,8 @@ export function AdminApp() {
   }, []);
 
   useEffect(() => {
+    // Consulta inicial à sessão do admin para escolher o conteúdo protegido.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void checkSession();
   }, [checkSession]);
 
@@ -41,7 +43,6 @@ export function AdminApp() {
     { id: "users", label: "Clientes" },
     { id: "deliveries", label: "Produções musicais" },
     { id: "notices", label: "Avisos" },
-    { id: "scripts", label: "Scripts" },
   ];
 
   return (
@@ -67,11 +68,18 @@ export function AdminApp() {
         <AdminUsersTable onLogout={() => setAuthenticated(false)} />
       ) : activeTab === "deliveries" ? (
         <AdminMusicProducerDeliveries onLogout={() => setAuthenticated(false)} />
-      ) : activeTab === "notices" ? (
-        <AdminNotices onLogout={() => setAuthenticated(false)} />
       ) : (
-        <AdminScripts onLogout={() => setAuthenticated(false)} />
+        <AdminNotices onLogout={() => setAuthenticated(false)} />
       )}
+
+      <div className="border-t border-white/10 pt-4">
+        <Link
+          href="/admin/scripts"
+          className="inline-flex min-h-10 items-center rounded-lg border border-[#1ed760]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#1ed760] transition hover:bg-[#1ed760]/10"
+        >
+          Gerenciar scripts do portal
+        </Link>
+      </div>
     </div>
   );
 }
