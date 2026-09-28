@@ -469,6 +469,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     </VipLockedPlayHint>
   );
 
+  const uploadedAt = track.modifiedAt ? Date.parse(track.modifiedAt) : NaN;
+  const isRecentlyAdded = Number.isFinite(uploadedAt) && uploadedAt <= Date.now() && Date.now() - uploadedAt < 7 * 86_400_000;
+
   const titleBlock = (
     <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
@@ -481,6 +484,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {display.title}
         </span>
       </p>
+      {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
       <ArtistNameLink
         artist={display.artist}
         className="mt-0.5 block truncate text-[12px] leading-snug text-white/50"
@@ -1219,8 +1223,9 @@ export function VipMusicTrackList({
   const separateByFolderDate = Boolean(
     trackSections?.some((section) => section.kind === "folder"),
   );
-  const panelClass =
-    "musicas-track-panel rounded-2xl border border-white/10 bg-[#141816] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
+  const panelClass = layout === "table"
+    ? "musicas-track-panel overflow-hidden rounded-2xl border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
