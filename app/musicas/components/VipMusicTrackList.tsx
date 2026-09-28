@@ -17,7 +17,6 @@ import {
   Check,
   Copy,
   Download,
-  HardDrive,
   HelpCircle,
   ListPlus,
   Loader2,
@@ -46,6 +45,7 @@ import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
   isDownloaderSendCancelled,
 } from "./DownloaderBulkConfirm";
+
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
 import { DriveAccessHelpDialog } from "./DriveAccessHelpDialog";
@@ -53,6 +53,16 @@ import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
+
+function GoogleDriveIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="#00832d" d="M7.7 3.5h6.6L7.7 14.1l-3.3 5.7L1.1 14.1z" />
+      <path fill="#ffba00" d="M7.7 3.5h6.6l8.6 14.9h-6.6z" />
+      <path fill="#0066da" d="M4.4 19.8l3.3-5.7h14.9l-3.3 5.7z" />
+    </svg>
+  );
+}
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -459,7 +469,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     }
     if (showDriveButton && authenticated && hasVip) {
       extras.push(gmailDriveAllowed
-        ? { id: "drive", label: "Copiar link do Google Drive", icon: HardDrive, disabled: copyingDrive, onClick: () => void copyDriveLink("drive") }
+        ? { id: "drive", label: "Copiar link do Google Drive", renderIcon: <GoogleDriveIcon />, disabled: copyingDrive, onClick: () => void copyDriveLink("drive") }
         : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
     }
     const beforeCopy = actions.findIndex((action) => action.id === "copy");
@@ -639,7 +649,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative hover:z-10 focus-within:z-10 border-b border-white/[0.06] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
+      className={`group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#1ed760]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#1ed760]"
           : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
@@ -738,7 +748,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 title={`Copiar link do Google Drive de ${display.title}`}
                 aria-label={`Copiar link do Google Drive de ${display.title}`}
               >
-                {copyingDrive ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <HardDrive className="h-3.5 w-3.5" />}
+                {copyingDrive ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <GoogleDriveIcon className="h-4 w-4" />}
               </button>
             ) : (
               <button
