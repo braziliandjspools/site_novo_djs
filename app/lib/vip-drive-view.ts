@@ -19,10 +19,16 @@ async function getMetadata(fileId: string): Promise<DriveMetadata | null> {
 }
 
 /** Verify the file and its ancestry server side; a client supplied ID is never authority. */
-export async function getAuthorizedVipDriveTrack(fileId: string) {
+export async function getAuthorizedVipDriveTrack(
+  fileId: string,
+  { requireGmail = true }: { requireGmail?: boolean } = {},
+) {
   const access = await requireVipMusicAccess();
   if (!access.ok) return { ok: false as const, status: access.status, error: access.error };
-  if (isDownloaderPlanExpired(access.user) || !isGmailAccount(access.user.email)) {
+  if (isDownloaderPlanExpired(access.user)) {
+    return { ok: false as const, status: 403, error: "Plano VIP necessário para acessar esta faixa." };
+  }
+  if (requireGmail && !isGmailAccount(access.user.email)) {
     return { ok: false as const, status: 403, error: "Acesso ao Drive exige plano ativo e conta Gmail cadastrada na BRS." };
   }
   if (!/^[a-zA-Z0-9_-]+$/.test(fileId) || !GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID) {

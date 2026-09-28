@@ -2,6 +2,7 @@ import { parseBuffer } from "music-metadata";
 import { GOOGLE_DRIVE_API_KEY } from "./site";
 import type { PreviewTrack } from "./google-drive";
 import { getAudioSourceUrl } from "./google-drive";
+import { getGoogleDriveAccessToken, googleDriveMediaUrl } from "./google-drive-auth";
 
 /** Bytes iniciais — ID3v2 + capa embutida comum cabem aqui. */
 const TAG_HEAD_BYTES = 1024 * 1024;
@@ -39,28 +40,29 @@ function cleanTag(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function contentTypeFromPicture(format?: string): string {
+function contentTypeFromPicture(format?: string): string | null {
   const raw = (format ?? "").toLowerCase().trim();
-  if (!raw) return "image/jpeg";
-  if (raw.startsWith("image/")) return raw;
+  if (raw === "jpeg" || raw === "jpg" || raw === "image/jpeg" || raw === "image/jpg") return "image/jpeg";
   if (raw === "png" || raw === "image/png") return "image/png";
-  if (raw === "webp") return "image/webp";
-  if (raw === "gif") return "image/gif";
-  if (raw === "bmp") return "image/bmp";
-  return "image/jpeg";
+  if (raw === "webp" || raw === "image/webp") return "image/webp";
+  if (raw === "gif" || raw === "image/gif") return "image/gif";
+  if (raw === "bmp" || raw === "image/bmp") return "image/bmp";
+  return null;
 }
 
 function pickCover(pictures: Array<{ data?: Uint8Array | Buffer; format?: string }> | undefined): DriveAudioCover | null {
   if (!pictures?.length) return null;
+  const supported = pictures.filter((pic) => contentTypeFromPicture(pic.format));
   const preferred =
-    pictures.find((pic) => {
-      const format = (pic.format ?? "").toLowerCase();
-      return format.includes("jpeg") || format.includes("jpg") || format.includes("png");
-    }) ?? pictures[0];
-  if (!preferred?.data || preferred.data.byteLength < 32) return null;
+    supported.find((pic) => {
+      const format = contentTypeFromPicture(pic.format);
+      return format === "image/jpeg" || format === "image/png";
+    }) ?? supported[0];
+  const contentType = contentTypeFromPicture(preferred?.format);
+  if (!preferred?.data || preferred.data.byteLength < 32 || !contentType) return null;
   return {
     data: Buffer.from(preferred.data),
-    contentType: contentTypeFromPicture(preferred.format),
+    contentType,
   };
 }
 
@@ -84,15 +86,19 @@ async function loadDriveAudioMeta(
     expiresAt: Date.now() + CACHE_TTL_MS,
   };
 
-  if (!GOOGLE_DRIVE_API_KEY) {
+  const driveAccessToken = await getGoogleDriveAccessToken().catch(() => null);
+  if (!driveAccessToken && !GOOGLE_DRIVE_API_KEY) {
     metaCache.set(key, miss);
     return miss;
   }
 
   try {
-    const url = getAudioSourceUrl(fileId);
+    const url = driveAccessToken ? googleDriveMediaUrl(fileId) : getAudioSourceUrl(fileId);
     const res = await fetch(url, {
-      headers: { Range: `bytes=0-${TAG_HEAD_BYTES - 1}` },
+      headers: {
+        Range: `bytes=0-${TAG_HEAD_BYTES - 1}`,
+        ...(driveAccessToken ? { Authorization: `Bearer ${driveAccessToken}` } : {}),
+      },
       next: { revalidate: 3600 },
     });
 

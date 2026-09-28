@@ -5,6 +5,7 @@ import { useProtectedPlayer } from "../../hooks/useProtectedPlayer";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { VIP_MUSIC_PREVIEW_SECONDS } from "../../lib/vip-music-preview";
 import { useMediaSession } from "../lib/media-session";
+import { playerTrackCoverUrl } from "../lib/player-track-cover";
 
 type FolderPlaybackState = {
   tracks: PreviewTrack[];
@@ -413,7 +414,7 @@ export function VipMusicPlayerProvider({
 
   useMediaSession({
     track: currentTrack,
-    coverUrl: currentCoverUrl,
+    coverUrl: currentTrack ? playerTrackCoverUrl(currentTrack) : currentCoverUrl,
     albumTitle: currentAlbumTitle || currentTrack?.album || currentTrack?.pack || null,
     isPlaying: mediaSessionPlaying,
     isActive: mediaActive,
