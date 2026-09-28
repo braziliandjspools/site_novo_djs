@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Disc3, FolderOpen, Music2, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
@@ -29,20 +28,20 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
 
   return (
     <section className="mb-8 w-full min-w-0">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-violet-400/15 pb-4">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-[#1ed760]/20 pb-4">
         <div>
-          <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-violet-300">
+          <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#1ed760]">
             <Disc3 className="h-3.5 w-3.5" /> Brazilian Remix Service
           </span>
           <h2 className="mt-1 text-xl font-black tracking-tight text-white sm:text-2xl">Catálogo de músicas</h2>
-          <p className="mt-1 text-xs text-zinc-500">Escolha uma pasta ou estilo para explorar o conteúdo.</p>
+          <p className="mt-1 text-xs text-zinc-500">Escolha um estilo ou pasta para explorar o conteúdo.</p>
         </div>
         <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono text-[10px] font-bold tabular-nums text-zinc-400">
           {items.length.toString().padStart(2, "0")} categorias
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="overflow-hidden rounded-2xl border border-white/[0.09] bg-[#0b0b0b]">
         {items.map((folder) => {
           const nextSegments = [...slugSegments, slugifyFolderName(folder.name)];
           const href = folderHref(nextSegments);
@@ -55,49 +54,31 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
             : subfolders > 0
               ? `${subfolders.toLocaleString("pt-BR")} ${subfolders === 1 ? "pasta" : "pastas"}`
               : "Explorar conteúdo";
-          const cover = folder.coverUrl?.trim() || null;
 
           return (
             <Link key={folder.id} href={href} prefetch={false}
               onMouseEnter={() => prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)}
               onFocus={() => prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)}
-              className="group relative min-w-0 overflow-hidden rounded-[18px] border border-white/[0.09] bg-[#181321] outline-none transition duration-300 hover:-translate-y-1 hover:border-violet-400/45 hover:bg-[#20172d] hover:shadow-[0_20px_45px_-24px_rgba(139,92,246,0.65)] focus-visible:ring-2 focus-visible:ring-violet-400">
-              <div className="relative aspect-[5/4] overflow-hidden bg-[radial-gradient(circle_at_25%_20%,rgba(167,139,250,0.38),transparent_55%),linear-gradient(145deg,#352153,#120e1d)]">
-                {cover ? (
-                  <Image src={cover} alt="" fill sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 220px"
-                    className="object-cover transition duration-500 group-hover:scale-105" unoptimized={cover.startsWith("/api/")} />
-                ) : (
-                  <>
-                    <Disc3 className="absolute -bottom-6 -right-5 h-32 w-32 text-violet-200/[0.13] transition duration-500 group-hover:rotate-12 group-hover:scale-110 sm:h-40 sm:w-40" strokeWidth={0.8} />
-                    <span className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl border border-violet-300/20 bg-violet-400/10 text-violet-200 backdrop-blur">
-                      {hasTracks ? <Music2 className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
-                    </span>
-                  </>
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#120d1c]/85 via-transparent to-black/5" />
-                <span className="absolute bottom-3 left-3 font-mono text-[10px] font-bold tracking-widest text-white/50">{String(folder.index + 1).padStart(2, "0")}</span>
-                {folder.isNew ? (
-                  <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full border border-fuchsia-300/35 bg-fuchsia-500/85 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-white shadow-lg backdrop-blur">
-                    <Sparkles className="h-2.5 w-2.5" /> Novo
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="relative p-3 sm:p-4">
-                <h3 className="line-clamp-2 min-h-9 text-[13px] font-extrabold leading-snug tracking-tight text-white transition group-hover:text-violet-200 sm:min-h-10 sm:text-[15px]">
+              className="group flex min-h-[74px] w-full min-w-0 items-center gap-3 border-b border-white/[0.07] px-3 py-3 outline-none transition last:border-b-0 hover:bg-[#141914] focus-visible:bg-[#141914] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#1ed760] sm:min-h-[82px] sm:gap-4 sm:px-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1ed760]/20 bg-[#1ed760]/[0.08] text-[#1ed760] sm:h-12 sm:w-12">
+                {hasTracks ? <Music2 className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="mb-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+                  <span className="font-mono">{String(folder.index + 1).padStart(2, "0")}</span>
+                  {folder.isNew ? <span className="inline-flex items-center gap-1 text-[#1ed760]"><Sparkles className="h-2.5 w-2.5" /> Novo</span> : null}
+                </span>
+                <span className="block truncate text-[13px] font-extrabold text-white transition group-hover:text-[#1ed760] sm:text-[15px]">
                   {displayFolderName(folder.name)}
-                </h3>
-                <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/[0.07] pt-3">
-                  <span className="truncate text-[10px] font-semibold text-zinc-500 sm:text-[11px]">{contentLabel}</span>
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-300 transition group-hover:bg-violet-500 group-hover:text-white">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
+                </span>
+                <span className="mt-1 block text-[10px] font-medium text-zinc-500 sm:text-[11px]">{contentLabel}</span>
+              </span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 transition group-hover:border-[#1ed760]/50 group-hover:bg-[#1ed760] group-hover:text-black">
+                <ArrowRight className="h-4 w-4" />
+              </span>
             </Link>
           );
         })}
       </div>
     </section>
-  );
-}
+  );}
