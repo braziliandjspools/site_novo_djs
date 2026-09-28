@@ -1,8 +1,13 @@
 import { getAuthorizedVipDriveTrack } from "../../../lib/vip-drive-view";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Arquivo do Drive | Brazilian Remix Service",
+  robots: { index: false, follow: false, noimageindex: true },
+};
 
 export default async function DriveTrackPage({ params }: { params: Promise<{ fileId: string }> }) {
   const { fileId } = await params;
