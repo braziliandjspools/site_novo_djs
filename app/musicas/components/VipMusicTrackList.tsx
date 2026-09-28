@@ -74,6 +74,8 @@ type VipMusicTrackListProps = {
   groupByDate?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
+  /** Mostra acesso ao Drive somente nas pastas finais/estilos. */
+  showDriveButton?: boolean;
 };
 
 const STREAM_DESKTOP_GRID =
@@ -248,6 +250,7 @@ type StreamingRowProps = {
   onQueueNext: () => void;
   onShare: () => void;
   onCopyLink: () => void;
+  showDriveButton: boolean;
 };
 
 function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
@@ -323,6 +326,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   onQueueNext,
   onShare,
   onCopyLink,
+  showDriveButton,
 }: StreamingRowProps) {
   const display = getTrackDisplayMetadata(track);
   const a11yName = `${display.title} — ${display.artist}`;
@@ -583,7 +587,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               />
             </>
           ) : null}
-          {authenticated && hasVip ? (
+          {showDriveButton && authenticated && hasVip ? (
             gmailDriveAllowed ? (
               <button
                 type="button"
@@ -671,6 +675,38 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               onSend={onSendToDownloader}
               compact
             />
+          ) : null}
+        </div>
+
+        <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
+          {showDriveButton && authenticated && hasVip ? (
+            gmailDriveAllowed ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openDrive();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
+                title={`Abrir ${display.title} no Drive dentro da BRS`}
+                aria-label={`Abrir ${display.title} no Drive`}
+              >
+                <HardDrive className="h-3.5 w-3.5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  explainDriveBlock();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
+                title="Drive indisponível para este e-mail — clique para entender"
+                aria-label="Drive indisponível — saiba por quê"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            )
           ) : null}
         </div>
 
@@ -818,38 +854,6 @@ function DiscographyTrackRow({
         </VipLockedPlayHint>
       )}
       <div className="flex-shrink-0 pr-1 sm:pr-2">
-        <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
-          {authenticated && hasVip ? (
-            gmailDriveAllowed ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  openDrive();
-                }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
-                title={`Abrir ${display.title} no Drive dentro da BRS`}
-                aria-label={`Abrir ${display.title} no Drive`}
-              >
-                <HardDrive className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  explainDriveBlock();
-                }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
-                title="Drive indisponível para este e-mail — clique para entender"
-                aria-label="Drive indisponível — saiba por quê"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </button>
-            )
-          ) : null}
-        </div>
-
         <CollectionContextMenu
           label={`Opções · ${display.title}`}
           buttonClassName="!h-8 !w-8 text-zinc-500 hover:text-white"
@@ -876,6 +880,7 @@ export function VipMusicTrackList({
   groupByDate,
   hasMore = false,
   onLoadMore,
+  showDriveButton = false,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -1248,6 +1253,7 @@ export function VipMusicTrackList({
           }}
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
+          showDriveButton={showDriveButton}
         />
       );
     });
