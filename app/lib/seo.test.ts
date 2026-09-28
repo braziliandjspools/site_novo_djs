@@ -13,8 +13,11 @@ import {
 test("páginas públicas expõem canonical e cartão social da BRS", () => {
   const root = buildRootMetadata();
   assert.equal(root.applicationName, "Brazilian Remix Service");
+  assert.match(String(root.title && typeof root.title === "object" && "default" in root.title ? root.title.default : ""), /Brazilian Remix Service/);
   for (const page of Object.values(SEO_PAGES).filter((item) => !item.noIndex)) {
     const metadata = buildPageMetadata(page.key);
+    assert.equal((metadata.title as { absolute: string }).absolute, page.title);
+    assert.equal(page.title.split("Brazilian Remix Service").length - 1, 1, page.path);
     assert.equal(metadata.alternates?.canonical, page.path);
     assert.equal(metadata.openGraph?.siteName, "Brazilian Remix Service");
     assert.equal(metadata.openGraph?.url, `${SITE_URL}${page.path}`);
@@ -35,6 +38,7 @@ test("áreas privadas não aparecem no sitemap", () => {
 
 test("links de pastas possuem canonical e imagem compartilhável", () => {
   const metadata = buildAtualizacoesFolderMetadata(["atualizacoes", "setembro-2026"], "Setembro 2026");
+  assert.match(metadata.title.absolute, /Setembro 2026.*Brazilian Remix Service$/);
   assert.equal(metadata.alternates.canonical, "/musicas/atualizacoes/atualizacoes/setembro-2026");
   assert.match(String(metadata.openGraph.images[0].url), /\/og\/musicas-atualizacoes$/);
 });

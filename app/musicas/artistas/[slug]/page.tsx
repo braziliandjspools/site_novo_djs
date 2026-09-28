@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const name = known?.name ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const artistSlug = known?.slug ?? slug;
   const path = artistsHref(artistSlug);
-  const title = `${name} – Remixes e faixas para DJs | BRS`;
+  const title = `${name} – Remixes para DJs | ${SITE_NAME}`;
   const description =
     known?.shortBio?.trim() ||
     `Explore o perfil de ${name} no acervo BRS: remixes, edits e faixas organizadas para DJs.`;

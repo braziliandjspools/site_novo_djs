@@ -202,7 +202,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "musicas-atualizacoes": {
     key: "musicas-atualizacoes",
     path: "/musicas/atualizacoes",
-    title: "Atualizações para DJs, Remix Services e DJ Pools | BRS",
+    title: `Atualizações para DJs | ${SITE_NAME}`,
     description:
       "Atualizações para DJs com remix services, DJ pools, packs, extended mixes, intro edits, funk, sertanejo, eletrônico, flashback e muito mais. Explore o acervo BRS.",
     ogImage: "musicas-atualizacoes",
@@ -243,7 +243,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "packs-para-djs": {
     key: "packs-para-djs",
     path: "/packs-para-djs",
-    title: "Packs para DJs – Remixes, Extended e Edits | BRS",
+    title: `Packs para DJs | ${SITE_NAME}`,
     description:
       "Explore packs para DJs com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, flashback e outros estilos organizados para diferentes pistas.",
     ogImage: "home",
@@ -262,7 +262,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "dj-pool-brasil": {
     key: "dj-pool-brasil",
     path: "/dj-pool-brasil",
-    title: "DJ Pool Brasil – Pools, Remixes e Atualizações | BRS",
+    title: `DJ Pool Brasil | ${SITE_NAME}`,
     description:
       "DJ pools para DJs no Brasil: atualizações, remixes, edits e packs organizados no acervo BRS. Conheça o fluxo de pools e acesse as novidades VIP.",
     ogImage: "home",
@@ -275,7 +275,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "remix-service-brasil": {
     key: "remix-service-brasil",
     path: "/remix-service-brasil",
-    title: "Remix Service Brasil – Remixes e Edits para DJs | BRS",
+    title: `Remix Service Brasil | ${SITE_NAME}`,
     description:
       "Remix service para DJs: extended mixes, intro edits, clean/dirty, bootlegs e versões prontas para a pista. Veja como o acervo BRS organiza o repertório.",
     ogImage: "home",
@@ -512,7 +512,7 @@ export function buildRootMetadata(): Metadata {
     manifest: "/site.webmanifest",
     appleWebApp: {
       capable: true,
-      title: "BRS VIP",
+      title: SITE_NAME,
       statusBarStyle: "black-translucent",
     },
     alternates: {
@@ -791,11 +791,11 @@ export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel:
   const isStyleLeaf = segments.length >= 3;
   const title = isPackRoot
     ? yearMatch
-      ? `Packs para DJs ${yearMatch[1]} – Remixes, Extended e Edits | BRS`
-      : `${folderLabel} – Packs e Remixes para DJs | BRS`
+      ? `Packs para DJs ${yearMatch[1]} | ${SITE_NAME}`
+      : `${folderLabel} – Packs e Remixes | ${SITE_NAME}`
     : isStyleLeaf
-      ? `${folderLabel} – ${trailLabels[0] ?? "Atualizações"} | BRS`
-      : `${folderLabel} – Atualizações para DJs | BRS`;
+      ? `${folderLabel} – ${trailLabels[0] ?? "Atualizações"} | ${SITE_NAME}`
+      : `${folderLabel} – Atualizações | ${SITE_NAME}`;
   const description = isPackRoot
     ? yearMatch
       ? `Packs para DJs atualizados em ${yearMatch[1]} com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, open format e muito mais no acervo BRS.`
