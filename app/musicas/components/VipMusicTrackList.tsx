@@ -888,6 +888,7 @@ export function VipMusicTrackList({
   const {
     playingFolderId,
     playingId,
+    isPlaying: playerIsPlaying,
     loadingId,
     currentTime,
     duration,
@@ -1219,7 +1220,7 @@ export function VipMusicTrackList({
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
       const isActive = activeId === track.id;
-      const isPlaying = isThisFolder && playingId === track.id;
+      const isPlaying = playerIsPlaying && isThisFolder && playingId === track.id;
       const displayDuration =
         isActive && isThisFolder && duration > 0 ? duration : durationById[track.id] ?? 0;
       return (
@@ -1340,7 +1341,7 @@ export function VipMusicTrackList({
         <div className="px-1 py-1">
           {tracks.map((track, index) => {
             const isActive = activeId === track.id;
-            const isPlaying = isThisFolder && playingId === track.id;
+            const isPlaying = playerIsPlaying && isThisFolder && playingId === track.id;
             const displayDuration =
               isActive && isThisFolder && duration > 0 ? duration : durationById[track.id] ?? 0;
             const menuActions: CollectionMenuAction[] = [
