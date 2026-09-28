@@ -121,15 +121,15 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-3 text-xs text-zinc-300">
                 <Tags className="h-4 w-4 shrink-0 text-[#1ed760]" />
-                Organização por tags
+                Ferramentas locais
               </div>
               <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-3 text-xs text-zinc-300">
                 <Zap className="h-4 w-4 shrink-0 text-[#1ed760]" />
-                Processamento local e rápido
+                Código pronto para copiar
               </div>
               <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-3 text-xs text-zinc-300">
                 <FolderOpen className="h-4 w-4 shrink-0 text-[#1ed760]" />
-                Pastas organizadas no seu PC
+                Instruções por script
               </div>
             </div>
           </section>
@@ -159,13 +159,13 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
                   <div className="rounded-xl border border-white/[0.07] bg-[#101210] p-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#1ed760]">Como funciona</p>
                     <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                      Procura primeiro o gênero/estilo nas tags. Se não encontrar, verifica os nomes das subpastas, do arquivo e da pasta atual. O que não for identificado vai para <code className="rounded bg-white/[0.07] px-1.5 py-0.5 text-zinc-200">UNDEFINED</code>.
+                      Leia a descrição do script para saber a pasta de origem, os tipos de arquivo aceitos e o resultado esperado. Os requisitos podem variar entre ferramentas.
                     </p>
                   </div>
                   <div className="rounded-xl border border-white/[0.07] bg-[#101210] p-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#1ed760]">Antes de executar</p>
                     <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                      Requer Windows com PowerShell 5.1 ou superior. Abra o PowerShell na pasta que deseja organizar. O script percorre as subpastas e move os áudios para pastas de estilo na raiz; nomes duplicados são preservados com numeração.
+                      Revise o código e confira a pasta selecionada antes de executar. Alguns scripts podem mover ou renomear arquivos e pastas conforme descrito.
                     </p>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
                 </div>
 
                 <p className="text-[11px] leading-relaxed text-zinc-500">
-                  O script move os arquivos encontrados. Revise a pasta selecionada antes de executar; ele não envia nem exclui as músicas.
+                  O comportamento de cada ferramenta está descrito acima. Confira o código e a pasta selecionada antes de executar.
                 </p>
               </div>
             </PortalCard>

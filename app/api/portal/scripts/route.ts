@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { prisma } from "../../../lib/prisma";
 import { getAuthenticatedPortalUser } from "../../../lib/portal";
 import { userHasSubscriptionPlan } from "../../../lib/portal-users";
-import { PORTAL_ADMIN_SCRIPTS } from "../../../lib/portal-scripts";
 
 export const dynamic = "force-dynamic";
 
@@ -19,5 +19,26 @@ export async function GET() {
     });
   }
 
-  return NextResponse.json({ scripts: PORTAL_ADMIN_SCRIPTS }, { headers: privateHeaders });
+  try {
+    const scripts = await prisma.portalAdminScript.findMany({
+      where: { active: true },
+      orderBy: [{ createdAt: "desc" }, { title: "asc" }],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        fileName: true,
+        language: true,
+        script: true,
+      },
+    });
+
+    return NextResponse.json({ scripts }, { headers: privateHeaders });
+  } catch (error) {
+    console.error("Portal scripts list failed:", error);
+    return NextResponse.json(
+      { error: "Não foi possível carregar os scripts agora." },
+      { status: 500, headers: privateHeaders },
+    );
+  }
 }

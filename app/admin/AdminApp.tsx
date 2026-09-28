@@ -5,9 +5,10 @@ import { AdminDashboard } from "./AdminDashboard";
 import { AdminLogin } from "./AdminLogin";
 import { AdminMusicProducerDeliveries } from "./AdminMusicProducerDeliveries";
 import { AdminNotices } from "./AdminNotices";
+import { AdminScripts } from "./AdminScripts";
 import { AdminUsersTable } from "./AdminUsersTable";
 
-type AdminTab = "dashboard" | "users" | "deliveries" | "notices";
+type AdminTab = "dashboard" | "users" | "deliveries" | "notices" | "scripts";
 
 export function AdminApp() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -40,6 +41,7 @@ export function AdminApp() {
     { id: "users", label: "Clientes" },
     { id: "deliveries", label: "Produções musicais" },
     { id: "notices", label: "Avisos" },
+    { id: "scripts", label: "Scripts" },
   ];
 
   return (
@@ -65,8 +67,10 @@ export function AdminApp() {
         <AdminUsersTable onLogout={() => setAuthenticated(false)} />
       ) : activeTab === "deliveries" ? (
         <AdminMusicProducerDeliveries onLogout={() => setAuthenticated(false)} />
-      ) : (
+      ) : activeTab === "notices" ? (
         <AdminNotices onLogout={() => setAuthenticated(false)} />
+      ) : (
+        <AdminScripts onLogout={() => setAuthenticated(false)} />
       )}
     </div>
   );
