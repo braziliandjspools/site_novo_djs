@@ -344,6 +344,31 @@ async function getDriveCatalog(
   // Ao abrir uma pasta de data, reúne as faixas de todas as pastas de estilo
   // diretamente na tabela. Cada faixa preserva o nome da pasta de estilo.
   const folderDate = parseUpdateDateFolder(folderName);
+  if (folderDate && trackLimit == null) {
+    const tracks = (await collectTracksDeep(
+      folderId,
+      folderName,
+      0,
+      new Set<string>(),
+      folderDate.key,
+      null,
+      null,
+      true,
+    )).sort(sortTracksByUploadThenTitle);
+
+    return {
+      configured: true,
+      rootFolderId: rootId,
+      rootFolderName: folderId === rootId ? folderName : "2026",
+      folderId,
+      folderName,
+      level: "tracks",
+      items: [],
+      tracks,
+      coverUrl,
+    };
+  }
+
   if (folderDate) {
     const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
     const state: TrackPageState = {
@@ -389,7 +414,27 @@ async function getDriveCatalog(
     // na tabela da data, sem obrigar a abrir uma página para cada estilo.
     let datedTracks: PreviewTrack[] = [];
     let tracksHasMore = false;
-    if (dateFolders.length > 0) {
+    if (dateFolders.length > 0 && trackLimit == null) {
+      const nested = await mapPool(dateFolders, TRACK_WALK_CONCURRENCY, async (folder) => {
+        const parsed = parseUpdateDateFolder(folder.name);
+        if (!parsed) return [] as PreviewTrack[];
+        try {
+          return await collectTracksDeep(
+            folder.id,
+            folderName,
+            0,
+            new Set<string>(),
+            parsed.key,
+            null,
+            null,
+            true,
+          );
+        } catch {
+          return [] as PreviewTrack[];
+        }
+      });
+      datedTracks = nested.flat();
+    } else if (dateFolders.length > 0) {
       const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
       const state: TrackPageState = {
         skip: Math.max(0, trackOffset),
@@ -437,8 +482,10 @@ async function getDriveCatalog(
         folderName,
         level: "tracks",
         items: [],
-        tracks: tracks.slice(0, Math.max(1, Math.min(trackLimit, 100))),
-        tracksHasMore,
+        tracks: trackLimit == null
+          ? tracks
+          : tracks.slice(0, Math.max(1, Math.min(trackLimit, 100))),
+        ...(trackLimit == null ? {} : { tracksHasMore }),
         coverUrl,
       };
     }
