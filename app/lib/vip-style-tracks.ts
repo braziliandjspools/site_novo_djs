@@ -85,7 +85,7 @@ async function collectStyleLeaves(
   // Uma pasta com MP3 diretamente é um nível final. Só tratamos como
   // "estilo" quando ela não é a própria raiz/pack: isso permite encontrar
   // estilos mesmo em árvores diferentes das atualizações.
-  if (audio.length > 0 && depth >= 2) {
+  if (audio.length > 0 && folders.length === 0 && depth >= 2) {
     const name = children.length > 0 ? context.__currentName ?? "" : "";
     if (name) {
       const slug = slugifyStyleName(name);
