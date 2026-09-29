@@ -225,6 +225,31 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
     driveCoverUrl: coverFile?.coverUrl ?? null,
   });
 
+  // Ao abrir uma pasta de data, reúne as faixas de todas as pastas de estilo
+  // diretamente na tabela. Cada faixa preserva o nome da pasta de estilo.
+  const folderDate = parseUpdateDateFolder(folderName);
+  if (folderDate) {
+    const tracks = (await collectTracksDeep(
+      folderId,
+      folderName,
+      0,
+      new Set<string>(),
+      folderDate.key,
+    )).sort(sortTracksByUploadThenTitle);
+
+    return {
+      configured: true,
+      rootFolderId: rootId,
+      rootFolderName: folderId === rootId ? folderName : "2026",
+      folderId,
+      folderName,
+      level: "tracks",
+      items: [],
+      tracks,
+      coverUrl,
+    };
+  }
+
   // Há subpastas: navega por pastas; se também houver áudio no mesmo nível, inclui as faixas.
   if (subfolders.length > 0) {
     const dateFolders = subfolders.filter((folder) => parseUpdateDateFolder(folder.name));
