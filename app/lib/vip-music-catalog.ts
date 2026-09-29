@@ -170,11 +170,15 @@ async function collectTracksDeep(
   const resolvedPoolName =
     isDateRoot && depth === 1 && currentFolderName
       ? displayFolderName(currentFolderName)
-      : poolName;
+      : !isDateRoot && depth === 1 && subfolders.length > 0 && currentFolderName
+        ? displayFolderName(currentFolderName)
+        : poolName;
   const resolvedStyleName =
     isDateRoot && depth >= 2 && currentFolderName
       ? styleName ?? displayFolderName(currentFolderName)
-      : styleName;
+      : !isDateRoot && audioFiles.length > 0 && subfolders.length === 0 && currentFolderName
+        ? displayFolderName(currentFolderName)
+        : styleName;
   const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, {
     updateDate,
     styleName: resolvedStyleName,
@@ -299,11 +303,15 @@ async function collectTracksPageDeep(
   const resolvedPoolName =
     isDateRoot && depth === 1 && currentFolderName
       ? displayFolderName(currentFolderName)
-      : poolName;
+      : !isDateRoot && depth === 1 && subfolders.length > 0 && currentFolderName
+        ? displayFolderName(currentFolderName)
+        : poolName;
   const resolvedStyleName =
     isDateRoot && depth >= 2 && currentFolderName
       ? styleName ?? displayFolderName(currentFolderName)
-      : styleName;
+      : !isDateRoot && audioFiles.length > 0 && subfolders.length === 0 && currentFolderName
+        ? displayFolderName(currentFolderName)
+        : styleName;
   const result: PreviewTrack[] = [];
 
   for (const file of audioFiles) {
@@ -432,8 +440,50 @@ async function getDriveCatalog(
     };
   }
 
-  // Há subpastas: navega por pastas; se também houver áudio no mesmo nível, inclui as faixas.
+  // Há subpastas. Para qualquer nível navegável abaixo da raiz, se existirem
+  // MP3 em níveis descendentes, este próprio nível vira uma tabela contínua.
+  // Assim um pack como "DANCE HITS COLLECTION 90TH" não fica preso no
+  // catálogo de categorias: suas faixas de todas as subpastas aparecem aqui.
   if (subfolders.length > 0) {
+    if (folderId !== rootId && trackLimit != null) {
+      const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
+      const state: TrackPageState = {
+        skip: Math.max(0, trackOffset),
+        limit: requestedLimit + 1,
+        skipped: 0,
+        collected: 0,
+        hasMore: false,
+      };
+      const tracks = (await collectTracksPageDeep(
+        folderId,
+        folderName,
+        state,
+        0,
+        new Set<string>(),
+        null,
+        null,
+        null,
+        false,
+        null,
+        folderName,
+      )).sort(sortTracksByUploadThenTitle);
+      if (tracks.length > 0) {
+        const pageTracks = tracks.slice(0, requestedLimit);
+        return {
+          configured: true,
+          rootFolderId: rootId,
+          rootFolderName: "2026",
+          folderId,
+          folderName,
+          level: "tracks",
+          items: [],
+          tracks: pageTracks,
+          tracksHasMore: state.hasMore || tracks.length > requestedLimit,
+          coverUrl,
+        };
+      }
+    }
+
     const dateFolders = subfolders
       .filter((folder) => parseUpdateDateFolder(folder.name))
       .sort((a, b) => {
