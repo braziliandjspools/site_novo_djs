@@ -240,7 +240,90 @@ async function getFolderNavStats(
   }
 }
 
-async function getDriveCatalog(folderId: string, folderName: string): Promise<VipMusicCatalogResponse> {
+type TrackPageState = { skip: number; limit: number; skipped: number; hasMore: boolean };
+
+async function collectTracksPageDeep(
+  folderId: string,
+  packName: string,
+  state: TrackPageState,
+  depth = 0,
+  seen = new Set<string>(),
+  updateDate: string | null = null,
+  styleName: string | null = null,
+  poolName: string | null = null,
+  isDateRoot = false,
+  dateChildName: string | null = null,
+): Promise<PreviewTrack[]> {
+  if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore && state.skipped >= state.skip + state.limit) {
+    return [];
+  }
+  seen.add(folderId);
+
+  const children = await listDriveFolderChildren(folderId);
+  const subfolders = children
+    .filter((item) => item.mimeType === FOLDER_MIME)
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+  const audioFiles = children
+    .filter((item) => isDriveAudioFile(item))
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+
+  const dateChildIsPool = Boolean(dateChildName && subfolders.length > 0);
+  const resolvedPoolName = dateChildIsPool ? dateChildName : poolName;
+  const resolvedStyleName = dateChildName
+    ? (dateChildIsPool ? null : dateChildName)
+    : styleName;
+  const result: PreviewTrack[] = [];
+
+  for (const file of audioFiles) {
+    if (state.skipped < state.skip) {
+      state.skipped += 1;
+      continue;
+    }
+    if (result.length >= state.limit) {
+      state.hasMore = true;
+      return result;
+    }
+    result.push(toPreviewTrack(file, packName, {
+      updateDate,
+      styleName: resolvedStyleName,
+      poolName: resolvedPoolName,
+    }));
+  }
+
+  for (const folder of subfolders) {
+    if (result.length >= state.limit) {
+      state.hasMore = true;
+      break;
+    }
+    const parsed = parseUpdateDateFolder(folder.name);
+    const nextPack = parsed ? packName : folder.name;
+    const nextDate = parsed?.key ?? updateDate;
+    const nextStyleName = parsed ? resolvedStyleName : displayFolderName(folder.name);
+    const nextDateChildName = isDateRoot && !parsed ? displayFolderName(folder.name) : null;
+    const nested = await collectTracksPageDeep(
+      folder.id,
+      nextPack,
+      state,
+      depth + 1,
+      seen,
+      nextDate,
+      nextStyleName,
+      resolvedPoolName,
+      parsed !== null,
+      nextDateChildName,
+    );
+    result.push(...nested);
+  }
+
+  return result;
+}
+
+async function getDriveCatalog(
+  folderId: string,
+  folderName: string,
+  trackOffset = 0,
+  trackLimit = VIP_MUSIC_TRACKS_PAGE_SIZE,
+): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
   const children = await listDriveFolderChildren(folderId);
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
@@ -255,9 +338,16 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
   // diretamente na tabela. Cada faixa preserva o nome da pasta de estilo.
   const folderDate = parseUpdateDateFolder(folderName);
   if (folderDate) {
-    const tracks = (await collectTracksDeep(
+    const state: TrackPageState = {
+      skip: Math.max(0, trackOffset),
+      limit: Math.max(1, Math.min(trackLimit, 100)),
+      skipped: 0,
+      hasMore: false,
+    };
+    const tracks = (await collectTracksPageDeep(
       folderId,
       folderName,
+      state,
       0,
       new Set<string>(),
       folderDate.key,
@@ -275,6 +365,7 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       level: "tracks",
       items: [],
       tracks,
+      tracksHasMore: state.hasMore,
       coverUrl,
     };
   }
@@ -287,14 +378,22 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
     // Pastas `17-09-2026`: reúne as faixas de todas as subpastas de estilo
     // na tabela da data, sem obrigar a abrir uma página para cada estilo.
     let datedTracks: PreviewTrack[] = [];
+    let tracksHasMore = false;
     if (dateFolders.length > 0) {
-      const nested = await mapPool(dateFolders, TRACK_WALK_CONCURRENCY, async (folder) => {
+      const state: TrackPageState = {
+        skip: Math.max(0, trackOffset),
+        limit: Math.max(1, Math.min(trackLimit, 100)),
+        skipped: 0,
+        hasMore: false,
+      };
+      for (const folder of dateFolders) {
         const parsed = parseUpdateDateFolder(folder.name);
-        if (!parsed) return [] as PreviewTrack[];
+        if (!parsed || datedTracks.length >= state.limit) break;
         try {
-          return await collectTracksDeep(
+          const nested = await collectTracksPageDeep(
             folder.id,
             folderName,
+            state,
             0,
             new Set<string>(),
             parsed.key,
@@ -302,11 +401,12 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
             null,
             true,
           );
+          datedTracks.push(...nested);
         } catch {
-          return [] as PreviewTrack[];
+          // Continua para a próxima data se uma pasta isolada falhar.
         }
-      });
-      datedTracks = nested.flat();
+      }
+      tracksHasMore = state.hasMore;
     }
 
     const directTracks = audioFiles
@@ -382,7 +482,9 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
 export async function getVipMusicCatalog(
   folderId?: string,
   folderName?: string,
-): Promise<VipMusicCatalogResponse> {
+  trackOffset = 0,
+  trackLimit = VIP_MUSIC_TRACKS_PAGE_SIZE,
+): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
 
   if (!rootId) {
@@ -403,7 +505,7 @@ export async function getVipMusicCatalog(
   const resolvedName = folderName?.trim() || (targetId === rootId ? "2026" : "Pasta");
 
   try {
-    return await getDriveCatalog(targetId, resolvedName);
+    return await getDriveCatalog(targetId, resolvedName, trackOffset, trackLimit);
   } catch {
     return {
       configured: true,
