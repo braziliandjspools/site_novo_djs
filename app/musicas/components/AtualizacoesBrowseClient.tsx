@@ -846,8 +846,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 </p>
               </div>
             ) : (
-              <VipMusicTrackList
-                folderId={data.folderId}
+              <div className="space-y-3">
+                <VipMusicTrackList
+                  folderId={data.folderId}
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
@@ -867,9 +868,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                         styleName: displayFolderName(data.folderName),
                       }
                     : undefined
-                }
-              />
-              {tracksHasMore ? (
+                  }
+                />
+                {tracksHasMore ? (
                 <div className="flex justify-center pt-1">
                   <button
                     type="button"
@@ -881,7 +882,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     {loadingMoreTracks ? "Carregando…" : "Carregar mais músicas"}
                   </button>
                 </div>
-              ) : null}
+                ) : null}
+              </div>
             )}
             {(useSiblingFolderNav || slugSegments.length >= 2) && (
               <AtualizacoesMonthFooterNav
