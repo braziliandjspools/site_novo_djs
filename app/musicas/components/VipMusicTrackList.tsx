@@ -597,7 +597,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
       <ArtistNameLink
         artist={display.artist}
-        className="mt-0.5 block truncate text-[12px] leading-snug text-white/50 lg:hidden"
+        className="mt-0.5 block truncate text-[11px] leading-snug text-white/50"
       />
       <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.08em] md:hidden">
         {track.poolName?.trim() ? (
@@ -719,9 +719,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {progressBlock}
         </div>
 
-        <div className="tablemusic-artist min-w-0">
-          <ArtistNameLink artist={display.artist} className="block truncate text-xs text-zinc-400 hover:text-white" />
-        </div>
         <div className="tablemusic-pool min-w-0">
           <span className="block truncate text-xs font-medium text-sky-200">
             {track.poolName?.trim() || "—"}
