@@ -17,7 +17,7 @@ import {
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const STYLE_SCAN_CONCURRENCY = 10;
-const DEFAULT_TRACK_LIMIT = 200;
+const DEFAULT_TRACK_LIMIT = 5000;
 
 export type VipStyleScanTarget = {
   id: string;
@@ -255,17 +255,26 @@ export async function findTracksByStyleSlug(
 
       for (const file of children) consider(file);
 
-      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 12);
-      if (nestedFolders.length === 0 || tracks.length >= max) return;
-
-      await mapPool(nestedFolders, 4, async (folder) => {
-        if (stop || tracks.length >= max) return;
-        try {
-          const nested = await listDriveFolderChildren(folder.id);
-          for (const file of nested) consider(file);
-        } catch {
-          /* pasta inacessível */
+      const visited = new Set<string>([style.id]);
+      const walk = async (folderId: string, depth: number): Promise<void> => {
+        if (stop || tracks.length >= max || depth > 8) return;
+        const nested = await listDriveFolderChildren(folderId);
+        for (const file of nested) {
+          if (stop || tracks.length >= max) return;
+          if (isDriveAudioFile(file)) consider(file);
         }
+        const folders = nested.filter((item) => item.mimeType === FOLDER_MIME);
+        await mapPool(folders, 4, async (folder) => {
+          if (stop || tracks.length >= max || visited.has(folder.id)) return;
+          visited.add(folder.id);
+          await walk(folder.id, depth + 1);
+        });
+      };
+      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+      await mapPool(nestedFolders, 4, async (folder) => {
+        if (stop || tracks.length >= max || visited.has(folder.id)) return;
+        visited.add(folder.id);
+        await walk(folder.id, 1);
       });
     } catch {
       /* pasta inacessível */

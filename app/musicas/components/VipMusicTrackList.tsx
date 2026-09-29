@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Copy,
@@ -39,7 +40,7 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
+import { folderHref, slugifyFolderName, slugifyStyleName, stylesHref } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
@@ -993,6 +994,7 @@ export function VipMusicTrackList({
   onLoadMore,
   showDriveButton = false,
 }: VipMusicTrackListProps) {
+  const router = useRouter();
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
@@ -1021,13 +1023,13 @@ export function VipMusicTrackList({
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
   const [poolFilterSlug, setPoolFilterSlug] = useState("");
-  const [styleFilterSlug, setStyleFilterSlug] = useState("");
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
   loadMoreRef.current = onLoadMore;
   const isThisFolder = playingFolderId === folderId;
   const isGlobalBusy = loadingId !== null;
-  const shouldGroupByDate = groupByDate ?? true;
+  // A tabela é uma lista contínua: não cria blocos separados por data.
+  const shouldGroupByDate = groupByDate ?? false;
 
   const trackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(tracks) : null),
@@ -1051,18 +1053,16 @@ export function VipMusicTrackList({
     };
   }, [tracks]);
 
+  // Pool continua filtrando a tabela atual. Estilo abre a página global
+  // do estilo, que reúne faixas do mesmo estilo em qualquer pack/pasta.
   const filteredTracks = useMemo(() => {
-    if (!poolFilterSlug && !styleFilterSlug) return tracks;
+    if (!poolFilterSlug) return tracks;
 
     return tracks.filter((track) => {
       const poolSlug = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
-      const styleSlug = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
-      return (
-        (!poolFilterSlug || poolSlug === poolFilterSlug) &&
-        (!styleFilterSlug || styleSlug === styleFilterSlug)
-      );
+      return poolSlug === poolFilterSlug;
     });
-  }, [poolFilterSlug, styleFilterSlug, tracks]);
+  }, [poolFilterSlug, tracks]);
 
   const visibleTrackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
@@ -1405,7 +1405,9 @@ export function VipMusicTrackList({
           onCopyLink={() => copyTrackLink(track)}
           showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
           onPoolFilter={setPoolFilterSlug}
-          onStyleFilter={setStyleFilterSlug}
+          onStyleFilter={(slug) => {
+            if (slug) router.push(stylesHref(slug));
+          }}
         />
       );
     });
@@ -1488,11 +1490,8 @@ export function VipMusicTrackList({
         <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
         <button
           type="button"
-          onClick={() => {
-            setPoolFilterSlug("");
-            setStyleFilterSlug("");
-          }}
-          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug && !styleFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
+          onClick={() => setPoolFilterSlug("")}
+          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
         >
           Todos
         </button>
@@ -1509,16 +1508,19 @@ export function VipMusicTrackList({
         ) : null}
         {filterOptions.styles.length > 0 ? (
           <select
-            value={styleFilterSlug}
-            onChange={(event) => setStyleFilterSlug(event.target.value)}
+            value=""
+            onChange={(event) => {
+              const slug = event.target.value;
+              if (slug) router.push(stylesHref(slug));
+            }}
             className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
-            aria-label="Filtrar por estilo"
+            aria-label="Abrir músicas por estilo"
           >
-            <option value="">Todos os estilos</option>
+            <option value="">Músicas por estilo…</option>
             {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
           </select>
         ) : null}
-        {poolFilterSlug || styleFilterSlug ? (
+        {poolFilterSlug ? (
           <span className="ml-auto text-[10px] font-semibold text-white/45">
             {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
           </span>

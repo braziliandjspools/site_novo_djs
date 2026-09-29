@@ -134,6 +134,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [sendingPack, setSendingPack] = useState(false);
   const [downloadingPack, setDownloadingPack] = useState(false);
   const [loadingMoreTracks, setLoadingMoreTracks] = useState(false);
+  const tracksLoadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -348,6 +349,25 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   }, [data, directTracks.length, loadingMoreTracks, showToast, slugPath, tracksHasMore]);
 
 
+
+  // Carregamento infinito: quando o usuário se aproxima do fim da lista,
+  // busca automaticamente o próximo lote sem exigir um botão.
+  useEffect(() => {
+    const sentinel = tracksLoadMoreSentinelRef.current;
+    if (!sentinel || !showingTracks || !tracksHasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMoreTracks();
+        }
+      },
+      { rootMargin: "900px 0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMoreTracks, showingTracks, tracksHasMore]);
 
   const monthTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
@@ -747,6 +767,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             <div className="mt-4 space-y-4">
               <VipMusicTrackList
                 folderId={data.folderId}
+                groupByDate={false}
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
@@ -849,6 +870,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               <div className="space-y-3">
                 <VipMusicTrackList
                   folderId={data.folderId}
+                  groupByDate={false}
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
@@ -871,17 +893,21 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   }
                 />
                 {tracksHasMore ? (
-                <div className="flex justify-center pt-1">
-                  <button
-                    type="button"
-                    onClick={() => void loadMoreTracks()}
-                    disabled={loadingMoreTracks}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 px-5 text-xs font-bold uppercase tracking-wider text-[#7df5a8] transition hover:bg-[#1ed760]/20 disabled:opacity-60"
+                  <div
+                    ref={tracksLoadMoreSentinelRef}
+                    className="flex min-h-12 items-center justify-center pt-2"
+                    aria-live="polite"
+                    aria-label="Carregando mais músicas"
                   >
-                    {loadingMoreTracks ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {loadingMoreTracks ? "Carregando…" : "Carregar mais músicas"}
-                  </button>
-                </div>
+                    {loadingMoreTracks ? (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[#1ed760]/20 bg-[#1ed760]/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#7df5a8]">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Carregando mais músicas…
+                      </div>
+                    ) : (
+                      <span className="h-1 w-1 rounded-full bg-[#1ed760]/40" aria-hidden />
+                    )}
+                  </div>
                 ) : null}
               </div>
             )}
