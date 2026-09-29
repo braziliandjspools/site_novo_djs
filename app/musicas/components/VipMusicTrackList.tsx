@@ -303,6 +303,8 @@ type StreamingRowProps = {
   onShare: () => void;
   onCopyLink: () => void;
   showDriveButton: boolean;
+  onPoolFilter?: (slug: string) => void;
+  onStyleFilter?: (slug: string) => void;
 };
 
 function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
@@ -379,6 +381,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   onShare,
   onCopyLink,
   showDriveButton,
+  onPoolFilter,
+  onStyleFilter,
 }: StreamingRowProps) {
   const display = getTrackDisplayMetadata(track);
   const artistLabel = display.artist.replace(/^[\s\-–—:]+/, "").trim();
@@ -724,7 +728,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             disabled={!track.poolName?.trim()}
             onClick={(event) => {
               event.stopPropagation();
-              setPoolFilterSlug(track.poolName?.trim() ? slugifyFolderName(track.poolName) : "");
+              onPoolFilter?.(track.poolName?.trim() ? slugifyFolderName(track.poolName) : "");
             }}
             className="block max-w-full truncate text-left text-xs font-medium text-sky-200 transition hover:text-white disabled:cursor-default disabled:opacity-60"
             title={track.poolName?.trim() ? `Filtrar pool: ${track.poolName.trim()}` : "Pool não informado"}
@@ -738,7 +742,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             disabled={!track.styleName?.trim()}
             onClick={(event) => {
               event.stopPropagation();
-              setStyleFilterSlug(track.styleName?.trim() ? slugifyStyleName(track.styleName) : "");
+              onStyleFilter?.(track.styleName?.trim() ? slugifyStyleName(track.styleName) : "");
             }}
             className="block max-w-full truncate text-left text-xs font-medium text-[#86e7a7] transition hover:text-white disabled:cursor-default disabled:opacity-60"
             title={track.styleName?.trim() ? `Filtrar estilo: ${track.styleName.trim()}` : "Estilo não informado"}
@@ -1400,6 +1404,8 @@ export function VipMusicTrackList({
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
           showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
+          onPoolFilter={setPoolFilterSlug}
+          onStyleFilter={setStyleFilterSlug}
         />
       );
     });
