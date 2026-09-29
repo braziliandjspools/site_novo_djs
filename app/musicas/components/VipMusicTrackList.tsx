@@ -104,7 +104,6 @@ function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
         {selectionMode ? <span /> : null}
         <span />
         <span>Música</span>
-        <span className="tablemusic-artist">Artista</span>
         <span className="tablemusic-pool">Pool</span>
         <span className="tablemusic-style">Estilo</span>
         <span className="col-span-4 text-center">Download / ações</span>
@@ -382,7 +381,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   showDriveButton,
 }: StreamingRowProps) {
   const display = getTrackDisplayMetadata(track);
-  const a11yName = `${display.title} — ${display.artist}`;
+  const artistLabel = display.artist.replace(/^(?:[\s]*[-–—])+[\s]*/, "").trim();
+  const a11yName = `${display.title}. ${artistLabel}`;
   const showDuration = displayDuration > 0;
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
   const coverUnoptimized = coverSrc.startsWith("/api/");
@@ -596,8 +596,8 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       </p>
       {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
       <ArtistNameLink
-        artist={display.artist}
-        className="mt-0.5 block truncate text-[11px] leading-snug text-white/50"
+        artist={artistLabel}
+        className="mt-0.5 block whitespace-normal break-words text-[12px] leading-snug text-white/50"
       />
       <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.08em] md:hidden">
         {track.poolName?.trim() ? (
@@ -718,7 +718,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {titleBlock}
           {progressBlock}
         </div>
-
         <div className="tablemusic-pool min-w-0">
           <span className="block truncate text-xs font-medium text-sky-200">
             {track.poolName?.trim() || "—"}
@@ -1305,7 +1304,7 @@ export function VipMusicTrackList({
     trackSections?.some((section) => section.kind === "folder"),
   );
   const panelClass = layout === "table"
-    ? "musicas-track-panel overflow-hidden rounded-2xl border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    ? "musicas-track-panel overflow-hidden rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
@@ -1480,11 +1479,11 @@ export function VipMusicTrackList({
           ) : null}
           {trackSections.map((section) => (
             <div key={section.id} className={panelClass}>
-              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#141414] px-3.5 py-3 sm:px-4">
-                <h3 className="text-[13px] font-bold tabular-nums tracking-[0.14em] text-white">
+              <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
+                <h3 className="inline-flex items-center bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
                   {section.title}
                 </h3>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                   {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
@@ -1502,27 +1501,14 @@ export function VipMusicTrackList({
           ]).map((section) => (
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
-                <header
-                  className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
-                    section.isNew
-                      ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
-                      : "border-white/[0.05] bg-white/[0.02]"
-                  }`}
-                >
-                  {section.isNew ? (
-                    <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
-                      Recente
-                    </span>
-                  ) : null}
-                  <h3
-                    className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                      section.isNew ? "text-[#1ed760]" : "text-white/60"
-                    }`}
-                  >
+                <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
+                  <h3 className="inline-flex items-center bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
                     {section.title}
                   </h3>
                   {section.subtitle ? (
-                    <span className="text-[11px] text-white/35">{section.subtitle}</span>
+                    <span className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                      {section.subtitle}
+                    </span>
                   ) : null}
                 </header>
               ) : null}

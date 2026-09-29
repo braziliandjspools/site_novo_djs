@@ -545,15 +545,15 @@ button {
 
 /* TableMusic: alinhamento fixo, acabamento de painel premium e metadados do catálogo. */
 .tablemusic {
-  --tablemusic-columns: 44px minmax(0, 1fr) minmax(78px, .34fr) minmax(86px, .38fr) minmax(86px, .38fr) repeat(4, 36px);
+  --tablemusic-columns: 44px minmax(0, 1fr) minmax(86px, .42fr) minmax(86px, .42fr) repeat(4, 36px);
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / .09);
-  border-radius: 18px;
+  border-radius: 0;
   background: linear-gradient(145deg, rgb(20 28 23 / .98), rgb(8 12 10 / .98));
   box-shadow: 0 18px 48px rgb(0 0 0 / .22), inset 0 1px 0 rgb(255 255 255 / .035);
 }
 .tablemusic-grid { display: none; }
-.tablemusic-artist, .tablemusic-pool, .tablemusic-style { display: none; }
+.tablemusic-pool, .tablemusic-style { display: none; }
 .tablemusic-row:nth-child(odd) { background-color: rgb(255 255 255 / .018); }
 .tablemusic-row:hover { background: linear-gradient(90deg, rgb(30 215 96 / .1), rgb(255 255 255 / .035)); }
 .tablemusic-row:focus-within { background: linear-gradient(90deg, rgb(30 215 96 / .15), rgb(255 255 255 / .045)); }
@@ -568,6 +568,5 @@ button {
   .tablemusic-pool, .tablemusic-style { display: block; }
 }
 @media (min-width: 1024px) {
-  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(88px, .34fr) minmax(96px, .4fr) minmax(96px, .4fr) repeat(4, 36px); }
-  .tablemusic-artist { display: block; }
+  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(110px, .46fr) minmax(110px, .46fr) repeat(4, 36px); }
 }
