@@ -197,11 +197,20 @@ export function parseUpdateDateFolder(
   name: string,
 ): { day: number; month: number; year: number; key: string; label: string } | null {
   const label = displayFolderName(name).trim();
-  const match = label.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{4})$/);
-  if (!match) return null;
-  const day = Number(match[1]);
-  const month = Number(match[2]);
-  const year = Number(match[3]);
+  const numericMatch = label.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{4})$/);
+  const namedMatch = label.match(/^(\d{1,2})[-./]([A-ZÇ]+)[-./](\d{4})$/);
+  const monthByName: Record<string, number> = {
+    JAN: 1, JANEIRO: 1, FEV: 2, FEVEREIRO: 2, MAR: 3, MARCO: 3, MARÇO: 3,
+    ABR: 4, ABRIL: 4, MAI: 5, MAIO: 5, JUN: 6, JUNHO: 6, JUL: 7, JULHO: 7,
+    AGO: 8, AGOSTO: 8, SET: 9, SETEMBRO: 9, OUT: 10, OUTUBRO: 10,
+    NOV: 11, NOVEMBRO: 11, DEZ: 12, DEZEMBRO: 12,
+  };
+  if (!numericMatch && !namedMatch) return null;
+  const day = Number((numericMatch ?? namedMatch)![1]);
+  const month = numericMatch
+    ? Number(numericMatch[2])
+    : monthByName[namedMatch![2].toLocaleUpperCase("pt-BR")];
+  const year = Number((numericMatch ?? namedMatch)![3]);
   if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return null;
   if (year < 2000 || year > 2100) return null;
   if (month < 1 || month > 12) return null;
@@ -211,7 +220,6 @@ export function parseUpdateDateFolder(
   const display = `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}`;
   return { day, month, year, key, label: display };
 }
-
 export function isUpdateDateFolderName(name: string): boolean {
   return parseUpdateDateFolder(name) != null;
 }
