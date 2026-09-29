@@ -16,10 +16,10 @@ const VARIANT_STYLES: Record<
     button: "border-[#009739]/40 bg-[#009739]/15 text-[#00B347] hover:bg-[#009739]/25",
   },
   purple: {
-    box: "border-purple-500/30 bg-black/30",
+    box: "border-[#1ed760]/30 bg-black/30",
     value: "text-[#00B347]",
     label: "text-gray-500",
-    button: "border-purple-500/40 bg-purple-600/30 text-purple-200 hover:bg-purple-600/45",
+    button: "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20",
   },
   blue: {
     box: "border-[#002776]/40 bg-black/20",

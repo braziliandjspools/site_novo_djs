@@ -445,7 +445,7 @@ async function listVipMusicFeedCandidates(options?: {
   const weekSlug = options?.weekSlug?.trim() || null;
   const scopedMonths = monthSlug
     ? months.filter((month) => slugifyFolderName(month.name) === monthSlug)
-    : months.slice(0, 3);
+    : months;
 
   const candidates: FeedCandidate[] = [];
 
@@ -491,6 +491,38 @@ async function listVipMusicFeedCandidates(options?: {
       }
     }
   }
+
+  // Considera músicas adicionadas em subpastas de packs antigos, com limite de concorrência.
+  const recentTimes = await mapPool(candidates, 4, async (candidate) => {
+    const visited = new Set<string>();
+    async function newestInFolder(id: string, depth: number): Promise<number> {
+      if (depth > 4 || visited.has(id)) return 0;
+      visited.add(id);
+      try {
+        const children = await listDriveFolderChildren(id);
+        let newest = 0;
+        const folders: string[] = [];
+        for (const child of children) {
+          if (child.mimeType === FOLDER_MIME) folders.push(child.id);
+          else if (isDriveAudioFile(child)) {
+            const timestamp = Date.parse(child.modifiedTime ?? child.createdTime ?? "");
+            if (Number.isFinite(timestamp)) newest = Math.max(newest, timestamp);
+          }
+        }
+        if (depth < 4 && folders.length) {
+          const nested = await mapPool(folders, 4, (childId) => newestInFolder(childId, depth + 1));
+          for (const timestamp of nested) newest = Math.max(newest, timestamp);
+        }
+        return newest;
+      } catch {
+        return 0;
+      }
+    }
+    return newestInFolder(candidate.id, 0);
+  });
+  candidates.forEach((candidate, index) => {
+    candidate.modifiedAt = Math.max(candidate.modifiedAt, recentTimes[index] ?? 0);
+  });
 
   const hasTimestamps = candidates.some((item) => item.modifiedAt > 0);
   if (hasTimestamps) {

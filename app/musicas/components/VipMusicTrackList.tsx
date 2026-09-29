@@ -465,6 +465,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     </VipLockedPlayHint>
   );
 
+  const uploadedAt = track.modifiedAt ? Date.parse(track.modifiedAt) : NaN;
+  const isRecentlyAdded = Number.isFinite(uploadedAt) && uploadedAt <= Date.now() && Date.now() - uploadedAt < 7 * 86_400_000;
+
   const titleBlock = (
     <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
@@ -477,6 +480,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {display.title}
         </span>
       </p>
+      {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
       <ArtistNameLink
         artist={display.artist}
         className="mt-0.5 block truncate text-[12px] leading-snug text-white/50"
@@ -542,7 +546,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       className={`group/row relative hover:z-10 focus-within:z-10 border-b border-white/[0.06] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#1ed760]"
-          : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
+          : "hover:shadow-[inset_3px_0_0_0_rgba(167,139,250,0.55)]"
       }`}
     >
       {/* Mobile */}
@@ -1214,8 +1218,9 @@ export function VipMusicTrackList({
   const separateByFolderDate = Boolean(
     trackSections?.some((section) => section.kind === "folder"),
   );
-  const panelClass =
-    "musicas-track-panel rounded-2xl border border-white/10 bg-[#141816] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
+  const panelClass = layout === "table"
+    ? "musicas-track-panel overflow-hidden rounded-2xl border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
@@ -1414,7 +1419,7 @@ export function VipMusicTrackList({
                 <header
                   className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
                     section.isNew
-                      ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
+                      ? "border-[#1ed760]/20 bg-[rgba(167,139,250,0.07)]"
                       : "border-white/[0.05] bg-white/[0.02]"
                   }`}
                 >
