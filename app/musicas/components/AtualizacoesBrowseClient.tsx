@@ -58,6 +58,7 @@ type ResolveResponse = {
   level: "folders" | "tracks";
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
+  tracksHasMore?: boolean;
   coverUrl?: string | null;
   canPlay: boolean;
   canDownload?: boolean;
@@ -72,9 +73,19 @@ type AtualizacoesBrowseClientProps = {
   slugSegments: string[];
 };
 
-function resolveUrl(slugPath: string, forceRefresh = false) {
-  const refresh = forceRefresh ? "&refresh=1" : "";
-  return `/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}${refresh}`;
+function resolveUrl(
+  slugPath: string,
+  forceRefresh = false,
+  trackOffset?: number,
+  trackLimit = 50,
+) {
+  const params = new URLSearchParams({ slug: slugPath });
+  if (forceRefresh) params.set("refresh", "1");
+  if (trackOffset != null && trackOffset > 0) {
+    params.set("trackOffset", String(trackOffset));
+    params.set("trackLimit", String(trackLimit));
+  }
+  return `/api/musicas/resolve?${params.toString()}`;
 }
 
 async function triggerTrackDownload(track: PreviewTrack) {
@@ -122,6 +133,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [playBusy, setPlayBusy] = useState(false);
   const [sendingPack, setSendingPack] = useState(false);
   const [downloadingPack, setDownloadingPack] = useState(false);
+  const [loadingMoreTracks, setLoadingMoreTracks] = useState(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -290,6 +302,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
+  const tracksHasMore = Boolean(data?.tracksHasMore);
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -313,6 +326,28 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
+  const loadMoreTracks = useCallback(async () => {
+    if (!data || data.level !== "tracks" || loadingMoreTracks || !tracksHasMore) return;
+    setLoadingMoreTracks(true);
+    try {
+      const url = resolveUrl(slugPath, false, directTracks.length, 50);
+      const body = await fetchMusicasJson<ResolveResponse>(url);
+      setData((current) => {
+        if (!current) return body;
+        return {
+          ...current,
+          tracks: [...(current.tracks ?? []), ...(body.tracks ?? [])],
+          tracksHasMore: body.tracksHasMore,
+        };
+      });
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Não foi possível carregar mais faixas.", "error");
+    } finally {
+      setLoadingMoreTracks(false);
+    }
+  }, [data, directTracks.length, loadingMoreTracks, showToast, slugPath, tracksHasMore]);
+
+
 
   const monthTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
@@ -834,6 +869,19 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     : undefined
                 }
               />
+              {tracksHasMore ? (
+                <div className="flex justify-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => void loadMoreTracks()}
+                    disabled={loadingMoreTracks}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 px-5 text-xs font-bold uppercase tracking-wider text-[#7df5a8] transition hover:bg-[#1ed760]/20 disabled:opacity-60"
+                  >
+                    {loadingMoreTracks ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    {loadingMoreTracks ? "Carregando…" : "Carregar mais músicas"}
+                  </button>
+                </div>
+              ) : null}
             )}
             {(useSiblingFolderNav || slugSegments.length >= 2) && (
               <AtualizacoesMonthFooterNav
