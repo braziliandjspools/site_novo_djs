@@ -266,12 +266,25 @@ async function collectTracksPageDeep(
   seen.add(folderId);
 
   const children = await listDriveFolderChildren(folderId);
-  const subfolders = children
-    .filter((item) => item.mimeType === FOLDER_MIME)
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+  const rawSubfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+  const orderedSubfolders = sortVipChildFolders(
+    rawSubfolders.map((folder) => ({
+      id: folder.id,
+      name: folder.name,
+      isNew: isNewFolderName(folder.name),
+    })),
+  );
+  const subfolders = orderedSubfolders
+    .map((folder) => rawSubfolders.find((item) => item.id === folder.id))
+    .filter((folder): folder is DriveChild => Boolean(folder));
   const audioFiles = children
     .filter((item) => isDriveAudioFile(item))
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+    .sort((a, b) => {
+      const am = a.modifiedTime ?? a.createdTime ?? "";
+      const bm = b.modifiedTime ?? b.createdTime ?? "";
+      if (am !== bm) return bm.localeCompare(am);
+      return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+    });
 
   const dateChildIsPool = Boolean(dateChildName && subfolders.length > 0);
   const resolvedPoolName = dateChildIsPool ? dateChildName : poolName;
