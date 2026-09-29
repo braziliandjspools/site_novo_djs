@@ -39,7 +39,7 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, slugifyStyleName } from "../../lib/vip-music-slugs";
+import { folderHref, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
@@ -672,6 +672,54 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       </button>
     ) : null;
 
+  const filterBar = useStreaming && (filterOptions.pools.length > 0 || filterOptions.styles.length > 0) ? (
+    <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
+        <button
+          type="button"
+          onClick={() => {
+            setPoolFilterSlug("");
+            setStyleFilterSlug("");
+          }}
+          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug && !styleFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
+        >
+          Todos
+        </button>
+
+        {filterOptions.pools.length > 0 ? (
+          <select
+            value={poolFilterSlug}
+            onChange={(event) => setPoolFilterSlug(event.target.value)}
+            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
+            aria-label="Filtrar por pool"
+          >
+            <option value="">Todos os pools</option>
+            {filterOptions.pools.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+          </select>
+        ) : null}
+
+        {filterOptions.styles.length > 0 ? (
+          <select
+            value={styleFilterSlug}
+            onChange={(event) => setStyleFilterSlug(event.target.value)}
+            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
+            aria-label="Filtrar por estilo"
+          >
+            <option value="">Todos os estilos</option>
+            {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+          </select>
+        ) : null}
+
+        {poolFilterSlug || styleFilterSlug ? (
+          <span className="ml-auto text-[10px] font-semibold text-white/45">
+            {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
@@ -719,14 +767,32 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {progressBlock}
         </div>
         <div className="tablemusic-pool min-w-0">
-          <span className="block truncate text-xs font-medium text-sky-200">
+          <button
+            type="button"
+            disabled={!track.poolName?.trim()}
+            onClick={(event) => {
+              event.stopPropagation();
+              setPoolFilterSlug(track.poolName?.trim() ? slugifyFolderName(track.poolName) : "");
+            }}
+            className="block max-w-full truncate text-left text-xs font-medium text-sky-200 transition hover:text-white disabled:cursor-default disabled:opacity-60"
+            title={track.poolName?.trim() ? `Filtrar pool: ${track.poolName.trim()}` : "Pool não informado"}
+          >
             {track.poolName?.trim() || "—"}
-          </span>
+          </button>
         </div>
         <div className="tablemusic-style min-w-0">
-          <span className="block truncate text-xs font-medium text-[#86e7a7]">
+          <button
+            type="button"
+            disabled={!track.styleName?.trim()}
+            onClick={(event) => {
+              event.stopPropagation();
+              setStyleFilterSlug(track.styleName?.trim() ? slugifyStyleName(track.styleName) : "");
+            }}
+            className="block max-w-full truncate text-left text-xs font-medium text-[#86e7a7] transition hover:text-white disabled:cursor-default disabled:opacity-60"
+            title={track.styleName?.trim() ? `Filtrar estilo: ${track.styleName.trim()}` : "Estilo não informado"}
+          >
             {track.styleName?.trim() || "—"}
-          </span>
+          </button>
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
@@ -998,6 +1064,8 @@ export function VipMusicTrackList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
+  const [poolFilterSlug, setPoolFilterSlug] = useState("");
+  const [styleFilterSlug, setStyleFilterSlug] = useState("");
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
   loadMoreRef.current = onLoadMore;
@@ -1008,6 +1076,41 @@ export function VipMusicTrackList({
   const trackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(tracks) : null),
     [shouldGroupByDate, tracks],
+  );
+
+  const filterOptions = useMemo(() => {
+    const pools = new Map<string, string>();
+    const styles = new Map<string, string>();
+
+    for (const track of tracks) {
+      const pool = track.poolName?.trim();
+      const style = track.styleName?.trim();
+      if (pool) pools.set(slugifyFolderName(pool), pool);
+      if (style) styles.set(slugifyStyleName(style), style);
+    }
+
+    return {
+      pools: [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+      styles: [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+    };
+  }, [tracks]);
+
+  const filteredTracks = useMemo(() => {
+    if (!poolFilterSlug && !styleFilterSlug) return tracks;
+
+    return tracks.filter((track) => {
+      const poolSlug = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
+      const styleSlug = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
+      return (
+        (!poolFilterSlug || poolSlug === poolFilterSlug) &&
+        (!styleFilterSlug || styleSlug === styleFilterSlug)
+      );
+    });
+  }, [poolFilterSlug, styleFilterSlug, tracks]);
+
+  const visibleTrackSections = useMemo(
+    () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
+    [shouldGroupByDate, filteredTracks],
   );
   const orderedTracks = useMemo(
     () => (trackSections ? flattenTrackSections(trackSections) : tracks),
@@ -1301,7 +1404,7 @@ export function VipMusicTrackList({
   const useStreaming = layout === "table" || layout === "default";
   const useDiscography = layout === "discography";
   const separateByFolderDate = Boolean(
-    trackSections?.some((section) => section.kind === "folder"),
+    visibleTrackSections?.some((section) => section.kind === "folder"),
   );
   const panelClass = layout === "table"
     ? "musicas-track-panel overflow-hidden !rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
@@ -1423,6 +1526,7 @@ export function VipMusicTrackList({
 
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
+      {filterBar}
       {error && isThisFolder && (
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
@@ -1477,7 +1581,7 @@ export function VipMusicTrackList({
           {selectionToolbar ? (
             <div className={`${panelClass} !shadow-none`}>{selectionToolbar}</div>
           ) : null}
-          {trackSections.map((section) => (
+          {visibleTrackSections?.map((section) => (
             <div key={section.id} className={panelClass}>
               <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
                 <h3 className="inline-flex items-center bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
@@ -1496,8 +1600,8 @@ export function VipMusicTrackList({
       {useStreaming && !separateByFolderDate ? (
         <div>
           {selectionToolbar}
-          {(trackSections ?? [
-            { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
+          {(visibleTrackSections ?? [
+            { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks: filteredTracks },
           ]).map((section) => (
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
