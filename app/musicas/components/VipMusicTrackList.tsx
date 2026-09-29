@@ -13,7 +13,6 @@ import {
   type ReactNode,
 } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   Check,
   Copy,
@@ -40,7 +39,7 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, slugifyFolderName, slugifyStyleName, stylesHref } from "../../lib/vip-music-slugs";
+import { folderHref, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
@@ -1002,7 +1001,6 @@ export function VipMusicTrackList({
   onLoadMore,
   showDriveButton = false,
 }: VipMusicTrackListProps) {
-  const router = useRouter();
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
