@@ -98,7 +98,7 @@ function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
   return (
     <>
       <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 md:hidden" aria-hidden>
-        <span>Música / artista</span><span>Ações</span>
+        <span>Música</span><span>Ações</span>
       </div>
       <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
         {selectionMode ? <span /> : null}
