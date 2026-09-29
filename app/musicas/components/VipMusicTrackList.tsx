@@ -381,7 +381,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   showDriveButton,
 }: StreamingRowProps) {
   const display = getTrackDisplayMetadata(track);
-  const artistLabel = display.artist.replace(/^(?:[\s]*[-–—])+[\s]*/, "").trim();
+  const artistLabel = display.artist.replace(/^[\s\-–—:]+/, "").trim();
   const a11yName = `${display.title}. ${artistLabel}`;
   const showDuration = displayDuration > 0;
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
@@ -1304,7 +1304,7 @@ export function VipMusicTrackList({
     trackSections?.some((section) => section.kind === "folder"),
   );
   const panelClass = layout === "table"
-    ? "musicas-track-panel overflow-hidden rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    ? "musicas-track-panel overflow-hidden !rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
