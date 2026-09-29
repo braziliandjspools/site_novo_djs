@@ -180,6 +180,7 @@ export function AccountView({ data }: { data: PortalData }) {
         <PortalPlanChangePanel
           plans={data.planChangeCards}
           hasVip={Boolean(user.services.poolsVip)}
+          renewalMode={data.renewables.some((item) => item.key === "poolsVip" && item.urgency === "overdue")}
           currentValueLabel={user.serviceBilling.poolsVip.valueLabel}
           currentDueLabel={formatDateBr(
             subscription?.currentPeriodEnd ?? user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt,

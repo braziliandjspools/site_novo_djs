@@ -17,7 +17,7 @@ import { userHasActiveVipAccess } from "../../../../lib/mercadopago/webhook-poli
 import { getAuthenticatedPortalUser } from "../../../../lib/portal";
 import {
   buildPortalRenewalPlan,
-  hasUsedDriveTestPlan,
+  hasPreviouslyPurchasedDrivePlan,
   isPortalRenewalServiceKey,
   quotePortalPlanChange,
 } from "../../../../lib/portal-renewals";
@@ -202,11 +202,11 @@ export async function POST(request: Request) {
     }
 
     if (plan.isTestPlan) {
-      if (await hasUsedDriveTestPlan(user.id)) {
+      if (await hasPreviouslyPurchasedDrivePlan(user.id)) {
         return NextResponse.json(
           {
             error:
-              "O Plano Teste só pode ser ativado uma vez por conta. Escolha o mensal, trimestral ou semestral para continuar.",
+              "O Plano Teste é exclusivo para a primeira contratação. Escolha o mensal, trimestral ou semestral para continuar.",
             code: "test_plan_already_used",
           },
           { status: 409 },
@@ -219,6 +219,18 @@ export async function POST(request: Request) {
       nextDueAt: user.nextDueAt,
       servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
     });
+
+    if (plan.serviceProduct === "poolsVip" && user.services.poolsVip && !hasActiveVip) {
+      const due = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+      return NextResponse.json(
+        {
+          error: "Seu plano venceu em " + formatDueDate(due) + ". Renove pelo portal para continuar.",
+          code: "vip_renewal_in_portal",
+          portalUrl: "/portal/conta",
+        },
+        { status: 409 },
+      );
+    }
 
     if (plan.serviceProduct === "poolsVip" && hasActiveVip) {
       // VIP ativo: permite trocar/estender só entre planos de assinatura (1/3/6 meses).

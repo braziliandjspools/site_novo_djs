@@ -34,6 +34,7 @@ type PlansSectionProps = {
   title?: string;
   subtitle?: string;
   activeVip?: ActiveServiceInfo | null;
+  expiredVip?: ActiveServiceInfo | null;
   activeDeemix?: ActiveServiceInfo | null;
   activeAllavsoft?: boolean;
   testPlanUsed?: boolean;
@@ -48,6 +49,7 @@ type PreferenceResponse = {
   error?: string;
   code?: string;
   expiresLabel?: string;
+  portalUrl?: string;
 };
 
 function planProduct(plan: PlanCard): "poolsVip" | "deemix" | "allavsoft" {
@@ -64,6 +66,7 @@ export function PlansSection({
   title = "Escolha seu plano",
   subtitle = "Pagamento único por período, com renovação manual no portal. Preço e duração vêm sempre do servidor.",
   activeVip = null,
+  expiredVip = null,
   activeDeemix = null,
   activeAllavsoft = false,
   testPlanUsed = false,
@@ -80,12 +83,20 @@ export function PlansSection({
   const autoStarted = useRef(false);
   const vipToastShown = useRef(false);
 
+  function isTrialUnavailable(plan: PlanCard) {
+    return plan.isTestPlan && (testPlanUsed || Boolean(activeVip) || Boolean(expiredVip));
+  }
+
+  function requiresVipPortal(plan: PlanCard) {
+    return planProduct(plan) === "poolsVip" && !plan.isTestPlan && Boolean(activeVip || expiredVip);
+  }
+
   function isPlanBlocked(plan: PlanCard) {
     const product = planProduct(plan);
     if (product === "deemix") return Boolean(activeDeemix);
     if (product === "allavsoft") return activeAllavsoft;
-    if (plan.isTestPlan && testPlanUsed) return true;
-    return Boolean(activeVip);
+    if (isTrialUnavailable(plan)) return true;
+    return requiresVipPortal(plan);
   }
 
   function blockedLabel(plan: PlanCard) {
@@ -96,9 +107,10 @@ export function PlansSection({
     if (product === "allavsoft") {
       return "Licença Allavsoft já ativa";
     }
-    if (plan.isTestPlan && testPlanUsed) {
-      return "Teste já usado nesta conta";
+    if (isTrialUnavailable(plan)) {
+      return "Teste exclusivo para novas contas";
     }
+    if (expiredVip) return `VIP vencido em ${expiredVip.expiresLabel}`;
     return `VIP ativo até ${activeVip!.expiresLabel}`;
   }
 
@@ -112,24 +124,18 @@ export function PlansSection({
       showToast("Você já tem a licença vitalícia do Allavsoft nesta conta.", "info", 5500);
       return;
     }
-    if (plan.isTestPlan && testPlanUsed) {
+    if (isTrialUnavailable(plan)) {
       showToast(
-        "O Plano Teste só pode ser usado uma vez. Escolha mensal, trimestral ou semestral.",
-        "info",
-        5500,
-      );
-      return;
-    }
-    if (plan.isTestPlan && activeVip) {
-      showToast(
-        `Você já tem VIP ativo até ${activeVip.expiresLabel}. O Plano Teste não está disponível.`,
+        "O Plano Teste é exclusivo para a primeira contratação. Escolha mensal, trimestral ou semestral.",
         "info",
         5500,
       );
       return;
     }
     showToast(
-      `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Para trocar de plano, use /portal/conta.`,
+      expiredVip
+        ? `Seu VIP venceu em ${expiredVip.expiresLabel}. Renove em /portal/conta.`
+        : `Você já tem VIP ativo até ${activeVip!.expiresLabel}. Para trocar de plano, use /portal/conta.`,
       "info",
       5500,
     );
@@ -148,6 +154,10 @@ export function PlansSection({
 
   async function startCheckout(planId: string) {
     const plan = plans.find((item) => item.id === planId);
+    if (plan && requiresVipPortal(plan)) {
+      router.push("/portal/conta");
+      return;
+    }
     if (plan && isPlanBlocked(plan)) {
       notifyBlocked(plan);
       return;
@@ -186,6 +196,7 @@ export function PlansSection({
       if (
         res.status === 409 ||
         data.code === "vip_already_active" ||
+        data.code === "vip_renewal_in_portal" ||
         data.code === "deemix_already_active" ||
         data.code === "test_plan_already_used"
       ) {
@@ -194,7 +205,11 @@ export function PlansSection({
           (data.code === "test_plan_already_used"
             ? "O Plano Teste só pode ser usado uma vez. Escolha mensal, trimestral ou semestral."
             : `Você já tem acesso ativo${data.expiresLabel ? ` até ${data.expiresLabel}` : ""}.`);
-        showToast(message, "info", 6000);
+        if (data.code === "vip_renewal_in_portal") {
+          router.push(data.portalUrl ?? "/portal/conta");
+        } else {
+          showToast(message, "info", 6000);
+        }
         checkoutInFlight.current = false;
         setLoadingPlanId(null);
         return;
@@ -235,6 +250,10 @@ export function PlansSection({
     const resolvedId = resolveCheckoutPlanId(checkout, plans);
     if (!resolvedId) return;
     const plan = plans.find((item) => item.id === resolvedId);
+    if (plan && requiresVipPortal(plan)) {
+      router.replace("/portal/conta");
+      return;
+    }
     if (plan && isPlanBlocked(plan)) {
       notifyBlocked(plan);
       return;
@@ -245,7 +264,7 @@ export function PlansSection({
     }, 0);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-start once after login redirect
-  }, [plans, searchParams, activeVip, activeDeemix, activeAllavsoft]);
+  }, [plans, searchParams, activeVip, expiredVip, activeDeemix, activeAllavsoft]);
 
   const isBusy = loadingPlanId !== null;
   const gridClass =
@@ -264,6 +283,15 @@ export function PlansSection({
             <Link href="/portal/conta" className="font-semibold text-[#1ed760] underline-offset-2 hover:underline">
               Trocar plano no portal
             </Link>
+          </p>
+        ) : null}
+        {expiredVip && plans.some((plan) => planProduct(plan) === "poolsVip") ? (
+          <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-zinc-400">
+            Seu VIP venceu em {expiredVip.expiresLabel}.{" "}
+            <Link href="/portal/conta" className="font-semibold text-[#1ed760] underline-offset-2 hover:underline">
+              Renove no portal
+            </Link>
+            .
           </p>
         ) : null}
 
@@ -288,6 +316,7 @@ export function PlansSection({
           {plans.map((plan) => {
             const isThisLoading = loadingPlanId === plan.id;
             const blocked = isPlanBlocked(plan);
+            const portalOnly = requiresVipPortal(plan);
             const isDeemix = planProduct(plan) === "deemix";
             const nameSep = " — ";
             const nameSepAt = plan.name.indexOf(nameSep);
@@ -352,8 +381,14 @@ export function PlansSection({
                 </ul>
                 <button
                   type="button"
-                  onClick={() => void startCheckout(plan.id)}
-                  disabled={isBusy}
+                  onClick={() => {
+                    if (portalOnly) {
+                      router.push("/portal/conta");
+                      return;
+                    }
+                    void startCheckout(plan.id);
+                  }}
+                  disabled={isBusy || (blocked && !portalOnly)}
                   aria-busy={isThisLoading}
                   className="mt-8 flex w-full min-h-12 cursor-pointer items-center justify-center gap-2 site-btn site-btn-primary rounded-xl px-4 text-sm sm:text-[0.95rem] disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -363,7 +398,11 @@ export function PlansSection({
                       Preparando pagamento...
                     </>
                   ) : blocked ? (
-                    blockedLabel(plan)
+                    portalOnly
+                      ? expiredVip
+                        ? "Renovar no portal"
+                        : "Gerenciar no portal"
+                      : blockedLabel(plan)
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
@@ -385,8 +424,10 @@ export function PlansSection({
                   {blocked
                     ? planProduct(plan) === "allavsoft"
                       ? "Licença vitalícia já liberada nesta conta."
-                      : plan.isTestPlan && testPlanUsed
-                        ? "Só uma ativação por conta — escolha 1, 3 ou 6 meses."
+                      : isTrialUnavailable(plan)
+                        ? "Plano Teste exclusivo para a primeira contratação."
+                        : portalOnly
+                          ? "Use /portal/conta para renovar, trocar ou estender o VIP."
                         : isDeemix
                           ? `Renovação disponível após ${activeDeemix!.expiresLabel}.`
                           : "Troque de plano em /portal/conta (1, 3 ou 6 meses)."

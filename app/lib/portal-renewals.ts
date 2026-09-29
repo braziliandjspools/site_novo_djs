@@ -49,6 +49,18 @@ export async function hasUsedDriveTestPlan(portalUserId: number): Promise<boolea
   return count > 0;
 }
 
+/** Já contratou qualquer período do Drive VIP, incluindo migrações de teste. */
+export async function hasPreviouslyPurchasedDrivePlan(portalUserId: number): Promise<boolean> {
+  const count = await prisma.mercadoPagoOrder.count({
+    where: {
+      portalUserId,
+      status: "APPROVED",
+      planId: { startsWith: "brs-drive" },
+    },
+  });
+  return count > 0;
+}
+
 /** Último pedido VIP aprovado (para crédito na troca de plano). */
 export async function getLastApprovedVipOrder(portalUserId: number) {
   return prisma.mercadoPagoOrder.findFirst({

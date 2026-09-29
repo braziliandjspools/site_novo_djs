@@ -19,7 +19,7 @@ import { formatDueDate } from "../lib/due-queue";
 import { userHasActiveVipAccess } from "../lib/mercadopago/webhook-policy";
 import { SITE_DRIVE_PLANS } from "../lib/plans";
 import { getAuthenticatedPortalUser } from "../lib/portal";
-import { hasUsedDriveTestPlan } from "../lib/portal-renewals";
+import { hasPreviouslyPurchasedDrivePlan } from "../lib/portal-renewals";
 import { SITE_NAME } from "../lib/branding";
 import { whatsappUrl } from "../lib/site";
 import { JsonLd } from "../components/JsonLd";
@@ -147,24 +147,24 @@ export default async function PlansPage() {
 
   // Auth/DB failures must not take down the public plans page.
   let activeVip: { expiresLabel: string } | null = null;
+  let expiredVip: { expiresLabel: string } | null = null;
   let testPlanUsed = false;
   try {
     const user = await getAuthenticatedPortalUser();
-    if (
-      user &&
-      userHasActiveVipAccess({
+    if (user) {
+      const dueAt = user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt;
+      const hasActiveVip = userHasActiveVipAccess({
         servicePoolsVip: user.services.poolsVip,
         nextDueAt: user.nextDueAt,
         servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
-      })
-    ) {
-      activeVip = {
-        expiresLabel: formatDueDate(
-          user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt,
-        ),
-      };
+      });
+      if (hasActiveVip) {
+        activeVip = { expiresLabel: formatDueDate(dueAt) };
+      } else if (user.services.poolsVip) {
+        expiredVip = { expiresLabel: formatDueDate(dueAt) };
+      }
+      testPlanUsed = await hasPreviouslyPurchasedDrivePlan(user.id);
     }
-    testPlanUsed = user ? await hasUsedDriveTestPlan(user.id) : false;
   } catch (error) {
     console.error("[plans] failed to resolve portal session", error);
   }
@@ -188,6 +188,7 @@ export default async function PlansPage() {
           title="Planos BRS Drive"
           subtitle="Acervo VIP, plataforma /musicas e Downloader. Inclui plano teste de 3 dias para validar produção."
           activeVip={activeVip}
+          expiredVip={expiredVip}
           testPlanUsed={testPlanUsed}
           showPixNotice
         />

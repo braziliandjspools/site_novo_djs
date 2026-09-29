@@ -105,9 +105,7 @@ function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
         <span className="text-center">#</span>
         <span>Música</span>
         <span className="tablemusic-artist">Artista</span>
-        <span className="tablemusic-meta text-center">BPM</span>
-        <span className="tablemusic-meta text-center">Tom</span>
-        <span className="text-right">Tempo</span>
+        <span className="tablemusic-style">Estilo</span>
         <span className="col-span-4 text-center">Download / ações</span>
       </div>
     </>
@@ -600,12 +598,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         artist={display.artist}
         className="mt-0.5 block truncate text-[12px] leading-snug text-white/50 lg:hidden"
       />
-      {track.bpm || track.musicalKey ? (
-        <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] font-semibold text-white/50 xl:hidden">
-          {track.bpm ? <span className="rounded border border-white/10 bg-white/[0.04] px-1.5 py-0.5">{track.bpm} BPM</span> : null}
-          {track.musicalKey ? <span className="rounded border border-[#1ed760]/20 bg-[#1ed760]/[0.07] px-1.5 py-0.5 text-[#86e7a7]">{track.musicalKey}</span> : null}
-        </div>
-      ) : null}
     </div>
   );
 
@@ -715,10 +707,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <div className="tablemusic-artist min-w-0">
           <ArtistNameLink artist={display.artist} className="block truncate text-xs text-zinc-400 hover:text-white" />
         </div>
-        <span className="tablemusic-meta text-center font-mono text-xs tabular-nums text-white/60">{track.bpm ?? "—"}</span>
-        <span className="tablemusic-meta text-center font-mono text-xs text-[#86e7a7]">{track.musicalKey ?? "—"}</span>
-        <div className="text-right font-mono text-[12px] tabular-nums text-white/40">
-          {showSideDuration ? formatTime(displayDuration) : "—"}
+        <div className="tablemusic-style min-w-0">
+          <span className="block truncate text-xs font-medium text-[#86e7a7]">
+            {track.styleName?.trim() || "—"}
+          </span>
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">

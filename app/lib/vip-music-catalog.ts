@@ -78,7 +78,7 @@ export function isVipMusicCatalogConfigured() {
 function toPreviewTrack(
   file: DriveChild,
   packName: string,
-  updateDate?: string | null,
+  context: { updateDate?: string | null; styleName?: string | null } = {},
 ): PreviewTrack {
   return {
     id: file.id,
@@ -87,7 +87,8 @@ function toPreviewTrack(
     ...parseTrackMeta(file.name),
     modifiedAt: file.createdTime ?? file.modifiedTime ?? null,
     sizeBytes: parseDriveSizeBytes(file.size),
-    updateDate: updateDate ?? null,
+    updateDate: context.updateDate ?? null,
+    styleName: context.styleName ?? null,
   };
 }
 
@@ -147,6 +148,7 @@ async function collectTracksDeep(
   depth = 0,
   seen = new Set<string>(),
   updateDate: string | null = null,
+  styleName: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH) return [];
   if (seen.has(folderId)) return [];
@@ -156,14 +158,15 @@ async function collectTracksDeep(
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
 
-  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, updateDate));
+  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, { updateDate, styleName }));
 
   if (subfolders.length > 0) {
     const nestedLists = await mapPool(subfolders, TRACK_WALK_CONCURRENCY, (folder) => {
       const parsed = parseUpdateDateFolder(folder.name);
       const nextPack = parsed ? packName : folder.name;
       const nextDate = parsed?.key ?? updateDate;
-      return collectTracksDeep(folder.id, nextPack, depth + 1, seen, nextDate);
+      const nextStyleName = parsed ? styleName : displayFolderName(folder.name);
+      return collectTracksDeep(folder.id, nextPack, depth + 1, seen, nextDate, nextStyleName);
     });
     for (const nested of nestedLists) {
       tracks.push(...nested);
@@ -227,17 +230,21 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
     const dateFolders = subfolders.filter((folder) => parseUpdateDateFolder(folder.name));
     const otherFolders = subfolders.filter((folder) => !parseUpdateDateFolder(folder.name));
 
-    // Pastas `17-09-2026`: achata MP3s na tabela com data fixa (não entram na navegação).
+    // Pastas `17-09-2026`: reúne as faixas de todas as subpastas de estilo
+    // na tabela da data, sem obrigar a abrir uma página para cada estilo.
     let datedTracks: PreviewTrack[] = [];
     if (dateFolders.length > 0) {
       const nested = await mapPool(dateFolders, TRACK_WALK_CONCURRENCY, async (folder) => {
         const parsed = parseUpdateDateFolder(folder.name);
         if (!parsed) return [] as PreviewTrack[];
         try {
-          const nestedChildren = await listDriveFolderChildren(folder.id);
-          return nestedChildren
-            .filter((item) => isDriveAudioFile(item))
-            .map((file) => toPreviewTrack(file, folderName, parsed.key));
+          return await collectTracksDeep(
+            folder.id,
+            folderName,
+            0,
+            new Set<string>(),
+            parsed.key,
+          );
         } catch {
           return [] as PreviewTrack[];
         }
