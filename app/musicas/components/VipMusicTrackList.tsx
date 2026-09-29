@@ -672,54 +672,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       </button>
     ) : null;
 
-  const filterBar = useStreaming && (filterOptions.pools.length > 0 || filterOptions.styles.length > 0) ? (
-    <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
-        <button
-          type="button"
-          onClick={() => {
-            setPoolFilterSlug("");
-            setStyleFilterSlug("");
-          }}
-          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug && !styleFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
-        >
-          Todos
-        </button>
-
-        {filterOptions.pools.length > 0 ? (
-          <select
-            value={poolFilterSlug}
-            onChange={(event) => setPoolFilterSlug(event.target.value)}
-            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
-            aria-label="Filtrar por pool"
-          >
-            <option value="">Todos os pools</option>
-            {filterOptions.pools.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
-          </select>
-        ) : null}
-
-        {filterOptions.styles.length > 0 ? (
-          <select
-            value={styleFilterSlug}
-            onChange={(event) => setStyleFilterSlug(event.target.value)}
-            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
-            aria-label="Filtrar por estilo"
-          >
-            <option value="">Todos os estilos</option>
-            {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
-          </select>
-        ) : null}
-
-        {poolFilterSlug || styleFilterSlug ? (
-          <span className="ml-auto text-[10px] font-semibold text-white/45">
-            {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  ) : null;
-
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
@@ -1523,6 +1475,51 @@ export function VipMusicTrackList({
         )}
       </div>
     ) : null;
+
+  const filterBar = useStreaming && (filterOptions.pools.length > 0 || filterOptions.styles.length > 0) ? (
+    <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
+        <button
+          type="button"
+          onClick={() => {
+            setPoolFilterSlug("");
+            setStyleFilterSlug("");
+          }}
+          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug && !styleFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
+        >
+          Todos
+        </button>
+        {filterOptions.pools.length > 0 ? (
+          <select
+            value={poolFilterSlug}
+            onChange={(event) => setPoolFilterSlug(event.target.value)}
+            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
+            aria-label="Filtrar por pool"
+          >
+            <option value="">Todos os pools</option>
+            {filterOptions.pools.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+          </select>
+        ) : null}
+        {filterOptions.styles.length > 0 ? (
+          <select
+            value={styleFilterSlug}
+            onChange={(event) => setStyleFilterSlug(event.target.value)}
+            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
+            aria-label="Filtrar por estilo"
+          >
+            <option value="">Todos os estilos</option>
+            {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+          </select>
+        ) : null}
+        {poolFilterSlug || styleFilterSlug ? (
+          <span className="ml-auto text-[10px] font-semibold text-white/45">
+            {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
