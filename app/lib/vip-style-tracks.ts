@@ -69,6 +69,7 @@ async function collectStyleLeaves(
     monthName?: string;
     weekSlug?: string;
     weekName?: string;
+    __currentName?: string;
   },
   depth = 0,
   visited = new Set<string>(),
@@ -252,7 +253,7 @@ export async function findTracksByStyleSlug(
       const children = await listDriveFolderChildren(style.id);
       if (stop || tracks.length >= max) return;
 
-      const packName = displayFolderName(style.name);
+      const packName = style.packName || style.monthName || displayFolderName(style.name);
       const consider = (file: (typeof children)[number]) => {
         if (tracks.length >= max) {
           stop = true;
