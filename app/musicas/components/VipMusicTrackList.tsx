@@ -614,9 +614,17 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           <span className="shrink-0 text-white/20" aria-hidden>•</span>
         ) : null}
         {track.styleName?.trim() ? (
-          <span className="min-w-0 max-w-[48%] truncate text-[#86e7a7]" title={track.styleName.trim()}>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onStyleFilter?.(slugifyStyleName(track.styleName!.trim()));
+            }}
+            className="min-w-0 max-w-[48%] truncate text-left text-[#86e7a7] transition hover:text-white"
+            title={`Abrir estilo: ${track.styleName.trim()}`}
+          >
             {track.styleName.trim()}
-          </span>
+          </button>
         ) : null}
       </div>
     </div>
