@@ -13,6 +13,8 @@ export async function GET(request: Request) {
   const slugParam = searchParams.get("slug") ?? "";
   const segments = slugParam.split("/").filter(Boolean);
   const forceRefresh = searchParams.get("refresh") === "1";
+  const trackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
+  const trackLimit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("trackLimit") ?? "50", 10) || 50));
 
   try {
     const rootId = getVipMusicRootFolderId();
@@ -41,6 +43,8 @@ export async function GET(request: Request) {
       const catalog = await getVipMusicCatalog(
         target?.id ?? undefined,
         target?.name ?? "Packs 2026",
+        trackOffset,
+        trackLimit,
       );
 
       return NextResponse.json({
