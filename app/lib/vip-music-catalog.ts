@@ -153,6 +153,7 @@ async function collectTracksDeep(
   poolName: string | null = null,
   isDateRoot = false,
   dateChildName: string | null = null,
+  currentFolderName: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH) return [];
   if (seen.has(folderId)) return [];
@@ -162,13 +163,18 @@ async function collectTracksDeep(
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
 
-  // A primeira pasta de uma data que contém subpastas é o pool; se ela só
-  // contém faixas, ela própria é o estilo (caso de 00'S, 10'S e semelhantes).
-  const dateChildIsPool = Boolean(dateChildName && subfolders.length > 0);
-  const resolvedPoolName = dateChildIsPool ? dateChildName : poolName;
-  const resolvedStyleName = dateChildName
-    ? (dateChildIsPool ? null : dateChildName)
-    : styleName;
+  // Hierarquia da biblioteca de atualizações:
+  // DATA -> POOL (penúltima pasta) -> ESTILO (última pasta) -> arquivos.
+  // A função recebe a profundidade relativa à pasta de data para não
+  // confundir o nome do pool com o nome do estilo.
+  const resolvedPoolName =
+    isDateRoot && depth === 1 && currentFolderName
+      ? displayFolderName(currentFolderName)
+      : poolName;
+  const resolvedStyleName =
+    isDateRoot && depth >= 2 && currentFolderName
+      ? styleName ?? displayFolderName(currentFolderName)
+      : styleName;
   const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, {
     updateDate,
     styleName: resolvedStyleName,
@@ -192,6 +198,7 @@ async function collectTracksDeep(
         resolvedPoolName,
         parsed !== null,
         nextDateChildName,
+        folder.name,
       );
     });
     for (const nested of nestedLists) {
@@ -259,6 +266,7 @@ async function collectTracksPageDeep(
   poolName: string | null = null,
   isDateRoot = false,
   dateChildName: string | null = null,
+  currentFolderName: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore || state.collected >= state.limit) {
     return [];
@@ -286,11 +294,16 @@ async function collectTracksPageDeep(
       return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
     });
 
-  const dateChildIsPool = Boolean(dateChildName && subfolders.length > 0);
-  const resolvedPoolName = dateChildIsPool ? dateChildName : poolName;
-  const resolvedStyleName = dateChildName
-    ? (dateChildIsPool ? null : dateChildName)
-    : styleName;
+  // DATA -> POOL -> ESTILO -> arquivos. Em uma pasta de data, o primeiro
+  // nível abaixo dela é sempre o pool e o segundo é o estilo.
+  const resolvedPoolName =
+    isDateRoot && depth === 1 && currentFolderName
+      ? displayFolderName(currentFolderName)
+      : poolName;
+  const resolvedStyleName =
+    isDateRoot && depth >= 2 && currentFolderName
+      ? styleName ?? displayFolderName(currentFolderName)
+      : styleName;
   const result: PreviewTrack[] = [];
 
   for (const file of audioFiles) {
@@ -331,6 +344,7 @@ async function collectTracksPageDeep(
       resolvedPoolName,
       parsed !== null,
       nextDateChildName,
+      folder.name,
     );
     result.push(...nested);
   }
