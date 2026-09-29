@@ -329,7 +329,7 @@ async function getDriveCatalog(
   folderId: string,
   folderName: string,
   trackOffset = 0,
-  trackLimit = VIP_MUSIC_TRACKS_PAGE_SIZE,
+  trackLimit?: number,
 ): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
   const children = await listDriveFolderChildren(folderId);
@@ -496,7 +496,7 @@ export async function getVipMusicCatalog(
   folderId?: string,
   folderName?: string,
   trackOffset = 0,
-  trackLimit = VIP_MUSIC_TRACKS_PAGE_SIZE,
+  trackLimit?: number,
 ): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
 
