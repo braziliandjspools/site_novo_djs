@@ -338,9 +338,10 @@ async function getDriveCatalog(
   // diretamente na tabela. Cada faixa preserva o nome da pasta de estilo.
   const folderDate = parseUpdateDateFolder(folderName);
   if (folderDate) {
+    const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
     const state: TrackPageState = {
       skip: Math.max(0, trackOffset),
-      limit: Math.max(1, Math.min(trackLimit, 100)),
+      limit: requestedLimit + 1,
       skipped: 0,
       hasMore: false,
     };
@@ -355,6 +356,7 @@ async function getDriveCatalog(
       null,
       true,
     )).sort(sortTracksByUploadThenTitle);
+    const pageTracks = tracks.slice(0, requestedLimit);
 
     return {
       configured: true,
@@ -364,8 +366,8 @@ async function getDriveCatalog(
       folderName,
       level: "tracks",
       items: [],
-      tracks,
-      tracksHasMore: state.hasMore,
+      tracks: pageTracks,
+      tracksHasMore: state.hasMore || tracks.length > requestedLimit,
       coverUrl,
     };
   }
@@ -380,9 +382,10 @@ async function getDriveCatalog(
     let datedTracks: PreviewTrack[] = [];
     let tracksHasMore = false;
     if (dateFolders.length > 0) {
+      const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
       const state: TrackPageState = {
         skip: Math.max(0, trackOffset),
-        limit: Math.max(1, Math.min(trackLimit, 100)),
+        limit: requestedLimit + 1,
         skipped: 0,
         hasMore: false,
       };
@@ -406,7 +409,8 @@ async function getDriveCatalog(
           // Continua para a próxima data se uma pasta isolada falhar.
         }
       }
-      tracksHasMore = state.hasMore;
+      tracksHasMore = state.hasMore || datedTracks.length > requestedLimit;
+      datedTracks = datedTracks.slice(0, requestedLimit);
     }
 
     const directTracks = audioFiles
@@ -425,7 +429,8 @@ async function getDriveCatalog(
         folderName,
         level: "tracks",
         items: [],
-        tracks,
+        tracks: tracks.slice(0, Math.max(1, Math.min(trackLimit, 100))),
+        tracksHasMore,
         coverUrl,
       };
     }
