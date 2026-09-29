@@ -240,7 +240,13 @@ async function getFolderNavStats(
   }
 }
 
-type TrackPageState = { skip: number; limit: number; skipped: number; hasMore: boolean };
+type TrackPageState = {
+  skip: number;
+  limit: number;
+  skipped: number;
+  collected: number;
+  hasMore: boolean;
+};
 
 async function collectTracksPageDeep(
   folderId: string,
@@ -254,7 +260,7 @@ async function collectTracksPageDeep(
   isDateRoot = false,
   dateChildName: string | null = null,
 ): Promise<PreviewTrack[]> {
-  if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore && state.skipped >= state.skip + state.limit) {
+  if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore || state.collected >= state.limit) {
     return [];
   }
   seen.add(folderId);
@@ -279,7 +285,7 @@ async function collectTracksPageDeep(
       state.skipped += 1;
       continue;
     }
-    if (result.length >= state.limit) {
+    if (state.collected >= state.limit) {
       state.hasMore = true;
       return result;
     }
@@ -288,10 +294,11 @@ async function collectTracksPageDeep(
       styleName: resolvedStyleName,
       poolName: resolvedPoolName,
     }));
+    state.collected += 1;
   }
 
   for (const folder of subfolders) {
-    if (result.length >= state.limit) {
+    if (state.collected >= state.limit) {
       state.hasMore = true;
       break;
     }
@@ -343,6 +350,7 @@ async function getDriveCatalog(
       skip: Math.max(0, trackOffset),
       limit: requestedLimit + 1,
       skipped: 0,
+      collected: 0,
       hasMore: false,
     };
     const tracks = (await collectTracksPageDeep(
