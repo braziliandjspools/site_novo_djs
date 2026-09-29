@@ -91,10 +91,28 @@ type VipMusicTrackListProps = {
   showDriveButton?: boolean;
 };
 
-const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_56px_36px_36px_36px_36px] xl:grid-cols-[52px_minmax(0,1fr)_52px_52px_56px_36px_36px_36px_36px] md:items-center md:gap-x-3";
-const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_56px_36px_36px_36px_36px] xl:grid-cols-[28px_52px_minmax(0,1fr)_52px_52px_56px_36px_36px_36px_36px] md:items-center md:gap-x-3";
+const STREAM_DESKTOP_GRID = "tablemusic-grid";
+const STREAM_DESKTOP_GRID_SELECT = "tablemusic-grid tablemusic-grid-select";
+
+function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
+  return (
+    <>
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 md:hidden" aria-hidden>
+        <span>Música / artista</span><span>Ações</span>
+      </div>
+      <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
+        {selectionMode ? <span /> : null}
+        <span className="text-center">#</span>
+        <span>Música</span>
+        <span className="tablemusic-artist">Artista</span>
+        <span className="tablemusic-meta text-center">BPM</span>
+        <span className="tablemusic-meta text-center">Tom</span>
+        <span className="text-right">Tempo</span>
+        <span className="col-span-4 text-center">Download / ações</span>
+      </div>
+    </>
+  );
+}
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -337,7 +355,7 @@ function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
 
 const StreamingTrackRow = memo(function StreamingTrackRow({
   track,
-  index: _index,
+  index,
   canPlay,
   canDownload,
   selectionMode,
@@ -580,7 +598,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
       <ArtistNameLink
         artist={display.artist}
-        className="mt-0.5 block truncate text-[12px] leading-snug text-white/50"
+        className="mt-0.5 block truncate text-[12px] leading-snug text-white/50 lg:hidden"
       />
       {track.bpm || track.musicalKey ? (
         <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] font-semibold text-white/50 xl:hidden">
@@ -649,7 +667,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#1ed760]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
+      className={`tablemusic-row group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#1ed760]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#1ed760]"
           : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
@@ -677,25 +695,30 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
       </div>
 
-      {/* Desktop: capa · faixa · BPM · tom · duração · ações */}
+      {/* Desktop: aligned columns share the same grid as the table header. */}
       <div
         className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} px-3.5 py-2.5`}
       >
         {selectionMode && canDownload ? (
           <div className="flex items-center justify-center">{selectCheckbox}</div>
         ) : null}
-        <div className="flex items-center justify-center">{playButton}</div>
+        <div className="relative flex items-center justify-center">
+          <span className="tablemusic-number absolute -left-2 top-0 z-10 rounded bg-[#101512] px-1 font-mono text-[9px] tabular-nums text-zinc-400">{index + 1}</span>
+          {playButton}
+        </div>
 
         <div className="min-w-0 py-0.5">
           {titleBlock}
           {progressBlock}
         </div>
 
-        <span className="hidden text-center font-mono text-[11px] tabular-nums text-white/60 xl:block">{track.bpm ?? "—"}</span>
-        <span className="hidden text-center font-mono text-[11px] text-[#86e7a7] xl:block">{track.musicalKey ?? "—"}</span>
-
-        <div className="text-center font-mono text-[12px] tabular-nums text-white/40">
-          {showSideDuration ? formatTime(displayDuration) : null}
+        <div className="tablemusic-artist min-w-0">
+          <ArtistNameLink artist={display.artist} className="block truncate text-xs text-zinc-400 hover:text-white" />
+        </div>
+        <span className="tablemusic-meta text-center font-mono text-xs tabular-nums text-white/60">{track.bpm ?? "—"}</span>
+        <span className="tablemusic-meta text-center font-mono text-xs text-[#86e7a7]">{track.musicalKey ?? "—"}</span>
+        <div className="text-right font-mono text-[12px] tabular-nums text-white/40">
+          {showSideDuration ? formatTime(displayDuration) : "—"}
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
@@ -1390,18 +1413,6 @@ export function VipMusicTrackList({
       </div>
     ) : null;
 
-  const streamingHeader = layout === "table" ? (
-    <div className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} border-b border-white/10 bg-[#101611] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45`} aria-hidden="true">
-      {selectionMode && canDownload ? <span /> : null}
-      <span className="text-center">Ouvir</span>
-      <span>Faixa</span>
-      <span className="hidden text-center xl:block">BPM</span>
-      <span className="hidden text-center xl:block">Tom</span>
-      <span className="text-center">Tempo</span>
-      <span className="col-span-4 text-center">Ações</span>
-    </div>
-  ) : null;
-
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
       {error && isThisFolder && (
@@ -1468,8 +1479,7 @@ export function VipMusicTrackList({
                   {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
-              {streamingHeader}
-              <div>{renderStreamingRows(section.tracks)}</div>
+              <div className="tablemusic"><TableMusicHeader selectionMode={selectionMode && canDownload} />{renderStreamingRows(section.tracks)}</div>
             </div>
           ))}
         </>
@@ -1478,7 +1488,6 @@ export function VipMusicTrackList({
       {useStreaming && !separateByFolderDate ? (
         <div>
           {selectionToolbar}
-          {streamingHeader}
           {(trackSections ?? [
             { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
           ]).map((section) => (
@@ -1508,7 +1517,10 @@ export function VipMusicTrackList({
                   ) : null}
                 </header>
               ) : null}
-              {renderStreamingRows(section.tracks)}
+              <div className="tablemusic">
+                <TableMusicHeader selectionMode={selectionMode && canDownload} />
+                {renderStreamingRows(section.tracks)}
+              </div>
             </section>
           ))}
         </div>
