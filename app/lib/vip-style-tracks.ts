@@ -217,7 +217,7 @@ export async function findTracksByStyleSlug(
   limit = DEFAULT_TRACK_LIMIT,
 ): Promise<StyleProfileResult> {
   const slug = slugifyStyleName(rawSlug);
-  const max = Math.min(Math.max(limit, 1), 400);
+  const max = Math.min(Math.max(limit, 1), 5000);
 
   if (!slug) {
     return {
