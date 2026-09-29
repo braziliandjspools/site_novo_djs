@@ -599,6 +599,21 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         artist={display.artist}
         className="mt-0.5 block truncate text-[12px] leading-snug text-white/50 lg:hidden"
       />
+      <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.08em] md:hidden">
+        {track.poolName?.trim() ? (
+          <span className="min-w-0 max-w-[48%] truncate text-sky-200" title={track.poolName.trim()}>
+            {track.poolName.trim()}
+          </span>
+        ) : null}
+        {track.poolName?.trim() && track.styleName?.trim() ? (
+          <span className="shrink-0 text-white/20" aria-hidden>•</span>
+        ) : null}
+        {track.styleName?.trim() ? (
+          <span className="min-w-0 max-w-[48%] truncate text-[#86e7a7]" title={track.styleName.trim()}>
+            {track.styleName.trim()}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 
