@@ -545,7 +545,7 @@ button {
 
 /* TableMusic: alinhamento fixo, acabamento de painel premium e metadados do catálogo. */
 .tablemusic {
-  --tablemusic-columns: 44px minmax(0, 1fr) minmax(78px, .4fr) minmax(78px, .4fr) repeat(4, 36px);
+  --tablemusic-columns: 44px minmax(0, 1fr) minmax(78px, .34fr) minmax(86px, .38fr) minmax(86px, .38fr) repeat(4, 36px);
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / .09);
   border-radius: 18px;
@@ -568,6 +568,6 @@ button {
   .tablemusic-pool, .tablemusic-style { display: block; }
 }
 @media (min-width: 1024px) {
-  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(86px, .38fr) minmax(94px, .42fr) minmax(94px, .42fr) repeat(4, 36px); }
+  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(88px, .34fr) minmax(96px, .4fr) minmax(96px, .4fr) repeat(4, 36px); }
   .tablemusic-artist { display: block; }
 }
