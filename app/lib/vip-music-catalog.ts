@@ -434,7 +434,13 @@ async function getDriveCatalog(
 
   // Há subpastas: navega por pastas; se também houver áudio no mesmo nível, inclui as faixas.
   if (subfolders.length > 0) {
-    const dateFolders = subfolders.filter((folder) => parseUpdateDateFolder(folder.name));
+    const dateFolders = subfolders
+      .filter((folder) => parseUpdateDateFolder(folder.name))
+      .sort((a, b) => {
+        const ad = parseUpdateDateFolder(a.name)?.key ?? "";
+        const bd = parseUpdateDateFolder(b.name)?.key ?? "";
+        return bd.localeCompare(ad);
+      });
     const otherFolders = subfolders.filter((folder) => !parseUpdateDateFolder(folder.name));
 
     // Pastas `17-09-2026`: reúne as faixas de todas as subpastas de estilo
