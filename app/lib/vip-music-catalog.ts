@@ -78,7 +78,7 @@ export function isVipMusicCatalogConfigured() {
 function toPreviewTrack(
   file: DriveChild,
   packName: string,
-  context: { updateDate?: string | null; styleName?: string | null } = {},
+  context: { updateDate?: string | null; styleName?: string | null; poolName?: string | null } = {},
 ): PreviewTrack {
   return {
     id: file.id,
@@ -89,6 +89,7 @@ function toPreviewTrack(
     sizeBytes: parseDriveSizeBytes(file.size),
     updateDate: context.updateDate ?? null,
     styleName: context.styleName ?? null,
+    poolName: context.poolName ?? null,
   };
 }
 
@@ -149,6 +150,9 @@ async function collectTracksDeep(
   seen = new Set<string>(),
   updateDate: string | null = null,
   styleName: string | null = null,
+  poolName: string | null = null,
+  isDateRoot = false,
+  dateChildName: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH) return [];
   if (seen.has(folderId)) return [];
@@ -158,15 +162,37 @@ async function collectTracksDeep(
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
 
-  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, { updateDate, styleName }));
+  // A primeira pasta de uma data que contém subpastas é o pool; se ela só
+  // contém faixas, ela própria é o estilo (caso de 00'S, 10'S e semelhantes).
+  const dateChildIsPool = Boolean(dateChildName && subfolders.length > 0);
+  const resolvedPoolName = dateChildIsPool ? dateChildName : poolName;
+  const resolvedStyleName = dateChildName
+    ? (dateChildIsPool ? null : dateChildName)
+    : styleName;
+  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, {
+    updateDate,
+    styleName: resolvedStyleName,
+    poolName: resolvedPoolName,
+  }));
 
   if (subfolders.length > 0) {
     const nestedLists = await mapPool(subfolders, TRACK_WALK_CONCURRENCY, (folder) => {
       const parsed = parseUpdateDateFolder(folder.name);
       const nextPack = parsed ? packName : folder.name;
       const nextDate = parsed?.key ?? updateDate;
-      const nextStyleName = parsed ? styleName : displayFolderName(folder.name);
-      return collectTracksDeep(folder.id, nextPack, depth + 1, seen, nextDate, nextStyleName);
+      const nextStyleName = parsed ? resolvedStyleName : displayFolderName(folder.name);
+      const nextDateChildName = isDateRoot && !parsed ? displayFolderName(folder.name) : null;
+      return collectTracksDeep(
+        folder.id,
+        nextPack,
+        depth + 1,
+        seen,
+        nextDate,
+        nextStyleName,
+        resolvedPoolName,
+        parsed !== null,
+        nextDateChildName,
+      );
     });
     for (const nested of nestedLists) {
       tracks.push(...nested);
@@ -235,6 +261,9 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
       0,
       new Set<string>(),
       folderDate.key,
+      null,
+      null,
+      true,
     )).sort(sortTracksByUploadThenTitle);
 
     return {
@@ -269,6 +298,9 @@ async function getDriveCatalog(folderId: string, folderName: string): Promise<Vi
             0,
             new Set<string>(),
             parsed.key,
+            null,
+            null,
+            true,
           );
         } catch {
           return [] as PreviewTrack[];

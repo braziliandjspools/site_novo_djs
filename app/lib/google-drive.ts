@@ -31,6 +31,8 @@ export type PreviewTrack = {
   updateDate?: string | null;
   /** Nome da última pasta que contém a faixa (estilo). */
   styleName?: string | null;
+  /** Pool da faixa: a primeira pasta dentro da atualização por data. */
+  poolName?: string | null;
   /** Tamanho do arquivo em bytes (Drive API `size`). */
   sizeBytes?: number | null;
   /** Key Camelot (ex.: 11A, 12B) extraída do nome. */

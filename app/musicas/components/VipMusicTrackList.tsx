@@ -102,9 +102,10 @@ function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
       </div>
       <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
         {selectionMode ? <span /> : null}
-        <span className="text-center">#</span>
+        <span />
         <span>Música</span>
         <span className="tablemusic-artist">Artista</span>
+        <span className="tablemusic-pool">Pool</span>
         <span className="tablemusic-style">Estilo</span>
         <span className="col-span-4 text-center">Download / ações</span>
       </div>
@@ -353,7 +354,7 @@ function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
 
 const StreamingTrackRow = memo(function StreamingTrackRow({
   track,
-  index,
+  index: _index,
   canPlay,
   canDownload,
   selectionMode,
@@ -695,7 +696,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           <div className="flex items-center justify-center">{selectCheckbox}</div>
         ) : null}
         <div className="relative flex items-center justify-center">
-          <span className="tablemusic-number absolute -left-2 top-0 z-10 rounded bg-[#101512] px-1 font-mono text-[9px] tabular-nums text-zinc-400">{index + 1}</span>
           {playButton}
         </div>
 
@@ -706,6 +706,11 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
 
         <div className="tablemusic-artist min-w-0">
           <ArtistNameLink artist={display.artist} className="block truncate text-xs text-zinc-400 hover:text-white" />
+        </div>
+        <div className="tablemusic-pool min-w-0">
+          <span className="block truncate text-xs font-medium text-sky-200">
+            {track.poolName?.trim() || "—"}
+          </span>
         </div>
         <div className="tablemusic-style min-w-0">
           <span className="block truncate text-xs font-medium text-[#86e7a7]">
