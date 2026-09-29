@@ -196,7 +196,7 @@ async function collectTracksDeep(
         nextDate,
         nextStyleName,
         resolvedPoolName,
-        parsed !== null,
+        isDateRoot,
         nextDateChildName,
         folder.name,
       );
@@ -342,7 +342,7 @@ async function collectTracksPageDeep(
       nextDate,
       nextStyleName,
       resolvedPoolName,
-      parsed !== null,
+      isDateRoot,
       nextDateChildName,
       folder.name,
     );
