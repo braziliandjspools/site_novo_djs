@@ -1031,6 +1031,7 @@ export function VipMusicTrackList({
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
   const [poolFilterSlug, setPoolFilterSlug] = useState("");
+  const [styleFilterSlug, setStyleFilterSlug] = useState("");
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
   loadMoreRef.current = onLoadMore;
@@ -1061,16 +1062,20 @@ export function VipMusicTrackList({
     };
   }, [tracks]);
 
-  // Pool continua filtrando a tabela atual. Estilo abre a página global
-  // do estilo, que reúne faixas do mesmo estilo em qualquer pack/pasta.
+  // Os dois filtros atuam somente sobre as faixas já carregadas na tabela.
+  // Não há redirecionamento: Pool + Estilo podem ser combinados.
   const filteredTracks = useMemo(() => {
-    if (!poolFilterSlug) return tracks;
+    if (!poolFilterSlug && !styleFilterSlug) return tracks;
 
     return tracks.filter((track) => {
       const poolSlug = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
-      return poolSlug === poolFilterSlug;
+      const styleSlug = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
+      return (
+        (!poolFilterSlug || poolSlug === poolFilterSlug) &&
+        (!styleFilterSlug || styleSlug === styleFilterSlug)
+      );
     });
-  }, [poolFilterSlug, tracks]);
+  }, [poolFilterSlug, styleFilterSlug, tracks]);
 
   const visibleTrackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
@@ -1368,7 +1373,7 @@ export function VipMusicTrackList({
   const useStreaming = layout === "table" || layout === "default";
   const useDiscography = layout === "discography";
   const separateByFolderDate = Boolean(
-    visibleTrackSections?.some((section) => section.kind === "folder"),
+    visibleTrackSections?.length && shouldGroupByDate,
   );
   const panelClass = layout === "table"
     ? "musicas-track-panel overflow-hidden !rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
@@ -1413,9 +1418,7 @@ export function VipMusicTrackList({
           onCopyLink={() => copyTrackLink(track)}
           showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
           onPoolFilter={setPoolFilterSlug}
-          onStyleFilter={(slug) => {
-            if (slug) router.push(stylesHref(slug));
-          }}
+          onStyleFilter={setStyleFilterSlug}
         />
       );
     });
@@ -1498,7 +1501,10 @@ export function VipMusicTrackList({
         <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
         <button
           type="button"
-          onClick={() => setPoolFilterSlug("")}
+          onClick={() => {
+            setPoolFilterSlug("");
+            setStyleFilterSlug("");
+          }}
           className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
         >
           Todos
@@ -1516,19 +1522,16 @@ export function VipMusicTrackList({
         ) : null}
         {filterOptions.styles.length > 0 ? (
           <select
-            value=""
-            onChange={(event) => {
-              const slug = event.target.value;
-              if (slug) router.push(stylesHref(slug));
-            }}
+            value={styleFilterSlug}
+            onChange={(event) => setStyleFilterSlug(event.target.value)}
             className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
-            aria-label="Abrir músicas por estilo"
+            aria-label="Filtrar por estilo"
           >
-            <option value="">Músicas por estilo…</option>
+            <option value="">Todos os estilos</option>
             {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
           </select>
         ) : null}
-        {poolFilterSlug ? (
+        {poolFilterSlug || styleFilterSlug ? (
           <span className="ml-auto text-[10px] font-semibold text-white/45">
             {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
           </span>
@@ -1619,7 +1622,12 @@ export function VipMusicTrackList({
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
                 <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
-                  <h3 className="inline-flex items-center bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
+                  <h3 className="inline-flex items-center gap-2 bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
+                    {section.isNew ? (
+                      <span className="rounded-full bg-black px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-[#1ed760]">
+                        NEW
+                      </span>
+                    ) : null}
                     {section.title}
                   </h3>
                   {section.subtitle ? (
