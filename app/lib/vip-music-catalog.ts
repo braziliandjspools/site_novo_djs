@@ -445,8 +445,8 @@ async function getDriveCatalog(
   // Assim um pack como "DANCE HITS COLLECTION 90TH" não fica preso no
   // catálogo de categorias: suas faixas de todas as subpastas aparecem aqui.
   if (subfolders.length > 0) {
-    if (folderId !== rootId && trackLimit != null) {
-      const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
+    if (folderId !== rootId) {
+      const requestedLimit = Math.max(1, Math.min(trackLimit ?? 50, 100));
       const state: TrackPageState = {
         skip: Math.max(0, trackOffset),
         limit: requestedLimit + 1,
