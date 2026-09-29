@@ -448,11 +448,12 @@ async function getDriveCatalog(
       });
       datedTracks = nested.flat();
     } else if (dateFolders.length > 0) {
-      const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
+      const requestedLimit = Math.max(1, Math.min(trackLimit ?? 100, 100));
       const state: TrackPageState = {
         skip: Math.max(0, trackOffset),
         limit: requestedLimit + 1,
         skipped: 0,
+        collected: 0,
         hasMore: false,
       };
       for (const folder of dateFolders) {
