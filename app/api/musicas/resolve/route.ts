@@ -57,12 +57,12 @@ export async function GET(request: Request) {
         ...track,
         styleName:
           track.styleName?.trim() ||
-          (catalog.level === "tracks" && currentFolderName && resolvedPath.length >= 2
+          (catalog.tracks.length > 0 && currentFolderName && resolvedPath.length >= 2
             ? currentFolderName
             : null),
         poolName:
           track.poolName?.trim() ||
-          (catalog.level === "tracks" && parentFolderName && resolvedPath.length >= 3
+          (catalog.tracks.length > 0 && parentFolderName && resolvedPath.length >= 3
             ? parentFolderName
             : null),
       }));
