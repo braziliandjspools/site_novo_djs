@@ -870,7 +870,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               <div className="space-y-3">
                 <VipMusicTrackList
                   folderId={data.folderId}
-                  groupByDate={false}
+                  groupByDate={true}
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
