@@ -78,7 +78,7 @@ export function isVipMusicCatalogConfigured() {
 function toPreviewTrack(
   file: DriveChild,
   packName: string,
-  context: { updateDate?: string | null; styleName?: string | null; poolName?: string | null } = {},
+  context: { updateDate?: string | null; styleName?: string | null; poolName?: string | null; poolFolderId?: string | null } = {},
 ): PreviewTrack {
   return {
     id: file.id,
@@ -90,6 +90,7 @@ function toPreviewTrack(
     updateDate: context.updateDate ?? null,
     styleName: context.styleName ?? null,
     poolName: context.poolName ?? null,
+    poolFolderId: context.poolFolderId ?? null,
   };
 }
 
@@ -154,6 +155,7 @@ async function collectTracksDeep(
   isDateRoot = false,
   dateChildName: string | null = null,
   currentFolderName: string | null = null,
+  poolFolderId: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH) return [];
   if (seen.has(folderId)) return [];
@@ -179,10 +181,17 @@ async function collectTracksDeep(
       : !isDateRoot && audioFiles.length > 0 && subfolders.length === 0 && currentFolderName
         ? displayFolderName(currentFolderName)
         : styleName;
+  const resolvedPoolFolderId =
+    isDateRoot && depth === 1 && currentFolderName
+      ? folderId
+      : !isDateRoot && depth === 1 && subfolders.length > 0 && currentFolderName
+        ? folderId
+        : poolFolderId;
   const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, {
     updateDate,
     styleName: resolvedStyleName,
     poolName: resolvedPoolName,
+    poolFolderId: resolvedPoolFolderId,
   }));
 
   if (subfolders.length > 0) {
@@ -203,6 +212,7 @@ async function collectTracksDeep(
         isDateRoot,
         nextDateChildName,
         folder.name,
+        resolvedPoolFolderId,
       );
     });
     for (const nested of nestedLists) {
@@ -271,6 +281,7 @@ async function collectTracksPageDeep(
   isDateRoot = false,
   dateChildName: string | null = null,
   currentFolderName: string | null = null,
+  poolFolderId: string | null = null,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore || state.collected >= state.limit) {
     return [];
@@ -312,6 +323,12 @@ async function collectTracksPageDeep(
       : !isDateRoot && audioFiles.length > 0 && subfolders.length === 0 && currentFolderName
         ? displayFolderName(currentFolderName)
         : styleName;
+  const resolvedPoolFolderId =
+    isDateRoot && depth === 1 && currentFolderName
+      ? folderId
+      : !isDateRoot && depth === 1 && subfolders.length > 0 && currentFolderName
+        ? folderId
+        : poolFolderId;
   const result: PreviewTrack[] = [];
 
   for (const file of audioFiles) {
@@ -327,6 +344,7 @@ async function collectTracksPageDeep(
       updateDate,
       styleName: resolvedStyleName,
       poolName: resolvedPoolName,
+      poolFolderId: resolvedPoolFolderId,
     }));
     state.collected += 1;
   }
@@ -353,6 +371,7 @@ async function collectTracksPageDeep(
       isDateRoot,
       nextDateChildName,
       folder.name,
+      resolvedPoolFolderId,
     );
     result.push(...nested);
   }
