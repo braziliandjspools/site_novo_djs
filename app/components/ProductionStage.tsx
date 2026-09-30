@@ -95,7 +95,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             type="button"
             onClick={play}
             aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
-            className="absolute inset-[16%] overflow-hidden rounded-full border-4 border-[#102033] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
+            className="group absolute inset-[16%] overflow-hidden rounded-full border-4 border-[#102033] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
           >
             <Image
               src={production.coverUrl}
@@ -105,7 +105,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               sizes="360px"
               className={`object-cover ${playing ? "animate-[spin_8s_linear_infinite]" : ""}`}
             />
-            <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/70 text-[#7eb6ff]">
+            <span className={`absolute inset-0 m-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/70 text-[#7eb6ff] transition ${playing ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
               {playing ? <Pause className="h-6 w-6" fill="currentColor" /> : <Play className="ml-1 h-6 w-6" fill="currentColor" />}
             </span>
           </button>

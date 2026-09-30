@@ -100,10 +100,10 @@ function ProductionCard({
         <button
           type="button"
           onClick={play}
-          className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/35 via-transparent to-transparent transition group-hover:bg-black/35"
-          aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
+          className={`absolute inset-0 flex items-center justify-center transition ${playing ? "bg-black/35" : "bg-gradient-to-t from-black/35 via-transparent to-transparent group-hover:bg-black/35"}`}
+          aria-label={playing ? `Pausar ${production.title}` : access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
         >
-          <span className="flex h-14 w-14 scale-90 items-center justify-center rounded-full bg-[#1db954] text-black opacity-0 shadow-[0_12px_35px_rgba(29,185,84,0.38)] transition duration-300 group-hover:scale-100 group-hover:opacity-100">
+          <span className={`flex h-14 w-14 items-center justify-center rounded-full bg-[#1db954] text-black shadow-[0_12px_35px_rgba(29,185,84,0.38)] transition duration-300 ${playing ? "scale-100 opacity-100" : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"}`}>
             {playing ? <Pause className="h-5 w-5" fill="currentColor" /> : <Play className="ml-0.5 h-5 w-5" fill="currentColor" />}
           </span>
         </button>
@@ -192,7 +192,17 @@ export function ProductionRail({
   }
 
   const rail = (
-    <div className="relative">
+    <div>
+      {layout === "carousel" && productions.length > 1 ? (
+        <div className="mb-4 flex justify-end gap-2">
+          <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760]">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button type="button" aria-label="Próximas produções" onClick={() => scrollByCard(1)} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760]">
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      ) : null}
       <div
         ref={scroller}
         className={layout === "grid"
@@ -203,16 +213,6 @@ export function ProductionRail({
           <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
         ))}
       </div>
-      {layout === "carousel" && productions.length > 1 ? (
-        <>
-          <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="absolute -left-5 top-[34%] hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760] lg:flex">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button type="button" aria-label="Próximas produções" onClick={() => scrollByCard(1)} className="absolute -right-5 top-[34%] hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760] lg:flex">
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </>
-      ) : null}
     </div>
   );
 
