@@ -554,7 +554,7 @@ async function getDriveCatalog(
 
   // Um Pool com subpastas mostra os Estilos. Só o nível final, que contém
   // diretamente os arquivos, vira uma lista de músicas.
-  if (!dateFolder && subfolders.length > 0 && folderId !== rootId) {
+  if (!folderDate && subfolders.length > 0 && folderId !== rootId) {
     const sortedChildren = sortVipChildFolders(
       subfolders.map((folder) => ({
         id: folder.id,
