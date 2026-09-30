@@ -91,13 +91,47 @@ export async function uploadCatalogImage(file: File, folder: "capas" | "perfis")
     throw new Error("A imagem passa de 8 MB.");
   }
   const safeExt = ext === "jpeg" || ext === "jpg" ? "jpg" : ext === "png" || ext === "webp" ? ext : "jpg";
-  const key = `${folder}/${randomBytes(12).toString("hex")}.${safeExt}`;
   const bytes = Buffer.from(await file.arrayBuffer());
-  await putObjectR2(key, bytes, file.type || "image/jpeg");
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  const key = `${folder}/${hash}.${safeExt}`;
+  if (!(await catalogObjectExists(key))) {
+    await putObjectR2(key, bytes, file.type || "image/jpeg");
+  }
   return { key, url: `/api/r2/${key.split("/").map((part) => encodeURIComponent(part)).join("/")}` };
 }
 
 const EMPTY_PAYLOAD_HASH = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
+async function catalogObjectExists(key: string) {
+  const accountId = process.env.R2_ACCOUNT_ID!;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID!;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY!;
+  const bucket = process.env.R2_BUCKET_NAME!;
+  const region = process.env.R2_REGION || "auto";
+  const host = `${accountId}.r2.cloudflarestorage.com`;
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${EMPTY_PAYLOAD_HASH}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+  const canonicalRequest = ["HEAD", `/${bucket}/${key}`, "", canonicalHeaders, signedHeaders, EMPTY_PAYLOAD_HASH].join("\n");
+  const credentialScope = `${dateStamp}/${region}/s3/aws4_request`;
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, createHash("sha256").update(canonicalRequest).digest("hex")].join("\n");
+  const kDate = createHmac("sha256", `AWS4${secretAccessKey}`).update(dateStamp).digest();
+  const kRegion = createHmac("sha256", kDate).update(region).digest();
+  const kService = createHmac("sha256", kRegion).update("s3").digest();
+  const kSigning = createHmac("sha256", kService).update("aws4_request").digest();
+  const signature = createHmac("sha256", kSigning).update(stringToSign).digest("hex");
+  const res = await fetch(`https://${host}/${bucket}/${key}`, {
+    method: "HEAD",
+    headers: {
+      Authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+      "x-amz-content-sha256": EMPTY_PAYLOAD_HASH,
+      "x-amz-date": amzDate,
+    },
+  });
+  return res.ok;
+}
 
 export async function readCatalogImage(key: string) {
   if (!r2Configured()) throw new Error("R2 não configurado.");

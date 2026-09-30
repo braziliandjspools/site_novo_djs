@@ -140,7 +140,7 @@ function ProductionCard({
           <span className={`truncate rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.13em] ${tone.chip}`}>
             {production.categoryLabel}
           </span>
-          <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-zinc-500">{dateLabel}</span>
+          <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-white">{dateLabel}</span>
         </div>
         <div className="mt-auto flex gap-2 border-t border-white/[0.07] pt-3.5">
           <button type="button" onClick={play} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.035] text-[10px] font-bold text-white transition hover:border-[#1db954]/45 hover:bg-[#1db954]/[0.06]">
@@ -247,15 +247,9 @@ export function HomeProductions({
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
       <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.24em] text-[#72e89c]">
-              <span className="h-px w-8 bg-[#1db954]" />
-              Catálogo público
-            </p>
-            <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
-          </div>
-          <p className="max-w-xl text-base leading-relaxed text-gray-300 sm:text-right sm:text-lg">
+        <div className="border-b border-white/[0.08] pb-8">
+          <h2 className="font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg">
             Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.
           </p>
         </div>
