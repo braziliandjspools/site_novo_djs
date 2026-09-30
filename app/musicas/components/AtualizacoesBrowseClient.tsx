@@ -628,7 +628,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         {data ? (
           <AtualizacoesDriveSyncButton
             compact
-            onSynced={() => loadBrowse({ forceRefresh: true })}
+            onSynced={async () => {
+              await loadBrowse({ forceRefresh: true });
+            }}
           />
         ) : null}
       </div>
