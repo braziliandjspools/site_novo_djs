@@ -29,6 +29,7 @@ import {
   sortFoldersByWeek,
   sortVipChildFolders,
 } from "../../lib/vip-music-slugs";
+import { MusicasCenterLoading } from "./MusicasSkeletons";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
@@ -343,11 +344,7 @@ export function AtualizacoesBrowseNavSidebar({
     (currentSlug ? currentSlug.replace(/-/g, " ") : "Acervo");
 
   if (loading && packs.length === 0 && months.length === 0 && weeks.length === 0) {
-    return (
-      <aside className="flex h-full max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-[#1ed760]/20 bg-[#17191d] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
-        <SidebarSkeleton />
-      </aside>
-    );
+    return <MusicasCenterLoading label="Carregando acervos…" />;
   }
 
   return (

@@ -37,7 +37,7 @@ export function DesktopRequiredNotice({ variant = "full" }: DesktopRequiredNotic
           <Terminal className="h-3.5 w-3.5" />
           {t("desktopTerminalLabel")}
         </p>
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-black px-4 py-3 text-sm text-[#1db954]">
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-black px-4 py-3 text-sm text-[#ff2ea6]">
           cd D:\Downloads\brazilian-packs-landing{"\n"}npm run downloader:dev
         </pre>
       </div>

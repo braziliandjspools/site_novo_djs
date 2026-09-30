@@ -69,10 +69,10 @@ function statusLabelKey(status: string): MessageKey | null {
 
 function StatusIcon({ status, isActive }: { status: string; isActive: boolean }) {
   if (isActive || status === "DOWNLOADING") {
-    return <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />;
+    return <Loader2 className="h-3.5 w-3.5 animate-spin text-[#ff2ea6]" />;
   }
   if (status === "COMPLETED") {
-    return <CheckCircle2 className="h-3.5 w-3.5 text-[#1ed760]" />;
+    return <CheckCircle2 className="h-3.5 w-3.5 text-[#ff2ea6]" />;
   }
   if (status === "FAILED") {
     return <XCircle className="h-3.5 w-3.5 text-red-400" />;
@@ -146,7 +146,7 @@ export const JobRow = memo(function JobRow({
               type="checkbox"
               checked={selected}
               onChange={() => onToggleSelect?.()}
-              className="h-3.5 w-3.5 rounded border-zinc-600 bg-[#121212] accent-[#1ed760]"
+              className="h-3.5 w-3.5 rounded border-zinc-600 bg-[#121212] accent-[#ff2ea6]"
               aria-label={t("jobsSelectAria", { name: job.fileName })}
             />
           </label>
@@ -172,13 +172,13 @@ export const JobRow = memo(function JobRow({
             <span
               className={`rounded-full px-2 py-0.5 text-[0.68rem] font-extrabold tracking-wide uppercase ${
                 job.status === "COMPLETED"
-                  ? "bg-[#1ed760]/15 text-[#1ed760]"
+                  ? "bg-[#ff2ea6]/15 text-[#ff2ea6]"
                   : job.status === "FAILED"
                     ? "bg-red-500/15 text-red-400"
                     : job.status === "PAUSED"
                       ? "bg-amber-500/15 text-amber-300"
                       : downloading
-                        ? "bg-[#1ed760]/10 text-[#1ed760]"
+                        ? "bg-[#ff2ea6]/10 text-[#ff2ea6]"
                         : "bg-white/5 text-zinc-400"
               }`}
             >
@@ -219,7 +219,7 @@ export const JobRow = memo(function JobRow({
               >
                 {!indeterminate && (
                   <div
-                    className="h-full rounded-full bg-[#1db954] transition-[width] duration-300 ease-out"
+                    className="h-full rounded-full bg-[#ff2ea6] transition-[width] duration-300 ease-out"
                     style={{ width: `${Math.max(progress, paused ? 0 : 1)}%` }}
                   />
                 )}

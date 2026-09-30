@@ -43,7 +43,7 @@ export function UpdateAvailableModal() {
       aria-labelledby="update-modal-title"
     >
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/[0.08] bg-[#181818] shadow-2xl shadow-black/50">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/60 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff2ea6]/60 to-transparent" />
 
         <button
           type="button"
@@ -55,7 +55,7 @@ export function UpdateAvailableModal() {
         </button>
 
         <div className="px-6 pb-6 pt-8">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1db954]/15 text-[#1db954] ring-1 ring-[#1db954]/30">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#ff2ea6]/15 text-[#ff2ea6] ring-1 ring-[#ff2ea6]/30">
             <RefreshCw className="h-7 w-7" />
           </div>
 

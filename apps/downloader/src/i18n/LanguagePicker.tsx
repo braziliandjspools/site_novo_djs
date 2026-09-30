@@ -52,7 +52,7 @@ export function LanguagePicker({
         onChange={(event) => {
           if (isAppLocale(event.target.value)) onChange(event.target.value);
         }}
-        className={`rounded-lg border border-white/[0.08] bg-[#121212] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#1db954]/50 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+        className={`rounded-lg border border-white/[0.08] bg-[#121212] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#ff2ea6]/50 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       >
         {APP_LOCALES.map((option) => (
           <option key={option} value={option}>
@@ -82,7 +82,7 @@ export function LanguagePicker({
               onClick={() => onChange(option)}
               className={`rounded-md px-2.5 py-1 text-[11px] font-bold tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                 active
-                  ? "bg-[#1db954]/15 text-[#1db954] ring-1 ring-[#1db954]/35"
+                  ? "bg-[#ff2ea6]/15 text-[#ff2ea6] ring-1 ring-[#ff2ea6]/35"
                   : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
               }`}
             >
@@ -112,7 +112,7 @@ export function LanguagePicker({
             onClick={() => onChange(option)}
             className={`flex flex-col items-center gap-2 rounded-2xl border px-4 py-5 text-center transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
               active
-                ? "border-[#1db954]/55 bg-[#1db954]/12 shadow-[0_12px_36px_rgba(29,185,84,0.12)] scale-[1.02]"
+                ? "border-[#ff2ea6]/55 bg-[#ff2ea6]/12 shadow-[0_12px_36px_rgba(29,185,84,0.12)] scale-[1.02]"
                 : "border-white/[0.08] bg-[#181818]/80 hover:border-white/20 hover:bg-[#1f1f1f] hover:-translate-y-0.5"
             }`}
           >
@@ -123,7 +123,7 @@ export function LanguagePicker({
               {LOCALE_LABELS[option]}
             </span>
             <span className="text-[11px] text-zinc-500">{t(NAME_KEYS[option])}</span>
-            <span className={`mt-1 h-4 ${active ? "text-[#1db954]" : "text-transparent"}`}>
+            <span className={`mt-1 h-4 ${active ? "text-[#ff2ea6]" : "text-transparent"}`}>
               <Check className="h-4 w-4" strokeWidth={2.5} />
             </span>
           </button>

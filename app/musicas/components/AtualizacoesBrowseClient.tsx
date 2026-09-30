@@ -47,11 +47,7 @@ import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
-import {
-  MusicasBrowseFoldersSkeleton,
-  MusicasListSkeleton,
-  MusicasTracksSkeleton,
-} from "./MusicasSkeletons";
+import { MusicasCenterLoading } from "./MusicasSkeletons";
 
 type ResolveResponse = {
   folderId: string;
@@ -675,12 +671,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         )}
       </nav>
 
-      {showInitialSkeleton &&
-        (slugSegments.length >= 3 ? (
-          <MusicasTracksSkeleton rows={8} />
-        ) : (
-          <MusicasBrowseFoldersSkeleton rows={12} />
-        ))}
+      {showInitialSkeleton && (
+        <MusicasCenterLoading
+          label={slugSegments.length >= 2 ? "Carregando a tabela…" : "Carregando acervos…"}
+        />
+      )}
 
 
 
@@ -864,10 +859,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               </div>
             ) : null}
             {directTracks.length === 0 && loading ? (
-              <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
-                <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
-                <MusicasTracksSkeleton />
-              </div>
+              <MusicasCenterLoading label="Carregando a tabela…" />
             ) : directTracks.length === 0 ? (
               <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
                 <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
@@ -928,7 +920,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         </MusicLibraryBrowseShell>
       )}
 
-      {!error && !data && !loading && <MusicasListSkeleton rows={6} />}
+      {!error && !data && !loading && <MusicasCenterLoading label="Carregando acervos…" />}
 
       {bulkLimitNotice ? (
         <div className="fixed inset-0 z-[10070] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="presentation" onClick={() => setBulkLimitNotice(null)}>

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, X } from "lucide-react";
 import { browsePackDay, type PackDateOption, type PackDayContents, type PackImportTarget } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
 import { useLocale } from "../i18n/LocaleContext";
@@ -39,7 +39,9 @@ export function ImportDayPicker({
   const [contents, setContents] = useState<Record<string, PackDayContents>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, true>>({});
+  const [pos, setPos] = useState({ x: 48, y: 64 });
   const [error, setError] = useState<string | null>(null);
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
 
   async function loadDay(date: PackDateOption) {
     setActiveKey(date.key);
@@ -63,6 +65,15 @@ export function ImportDayPicker({
       setLoading(null);
     }
   }
+
+  useEffect(() => {
+    const width = Math.min(920, window.innerWidth - 32);
+    const height = Math.min(680, window.innerHeight - 32);
+    setPos({
+      x: Math.max(8, Math.round((window.innerWidth - width) / 2)),
+      y: Math.max(8, Math.round((window.innerHeight - height) / 2)),
+    });
+  }, []);
 
   useEffect(() => {
     const first = dates[0];
@@ -129,20 +140,50 @@ export function ImportDayPicker({
   const trackCount = day?.trackCount ?? 0;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-16 z-40 bg-black/80" role="presentation">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="import-pick-title"
-        className="mx-auto flex h-full max-w-5xl overflow-hidden border-x border-[#ff2ea6]/40 bg-black text-white shadow-[0_0_0_1px_rgba(255,46,166,0.35)]"
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="import-pick-title"
+      style={{ left: pos.x, top: pos.y }}
+      className="fixed z-[80] flex h-[min(680px,calc(100vh-2rem))] w-[min(920px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#ff2ea6]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+    >
+      <header
+        className="flex cursor-grab items-center gap-3 border-b border-[#ff2ea6]/30 bg-[#070707] px-4 py-3 active:cursor-grabbing"
+        onPointerDown={(event) => {
+          if ((event.target as HTMLElement).closest("button")) return;
+          dragRef.current = { dx: event.clientX - pos.x, dy: event.clientY - pos.y };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (!dragRef.current) return;
+          const nextX = event.clientX - dragRef.current.dx;
+          const nextY = event.clientY - dragRef.current.dy;
+          setPos({
+            x: Math.max(8, Math.min(window.innerWidth - 280, nextX)),
+            y: Math.max(8, Math.min(window.innerHeight - 80, nextY)),
+          });
+        }}
+        onPointerUp={() => {
+          dragRef.current = null;
+        }}
       >
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff2ea6]">Dias</p>
+          <h2 id="import-pick-title" className="truncate text-sm font-bold text-white">
+            {t("importPickTitle")}
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("importPickCancel")}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-300 hover:bg-[#ff2ea6] hover:text-black"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </header>
+      <div className="flex min-h-0 flex-1">
         <aside className="flex w-[220px] flex-shrink-0 flex-col border-r border-[#ff2ea6]/30 bg-[#070707]">
-          <div className="border-b border-[#ff2ea6]/30 px-4 py-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff2ea6]">Dias</p>
-            <h2 id="import-pick-title" className="mt-1 text-sm font-bold text-white">
-              {t("importPickTitle")}
-            </h2>
-          </div>
           <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
             {dates.map((date) => {
               const on = date.key === active?.key;

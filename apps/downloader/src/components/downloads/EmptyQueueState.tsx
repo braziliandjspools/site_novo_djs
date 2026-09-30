@@ -12,7 +12,7 @@ export function EmptyQueueState({ offline = false }: EmptyQueueStateProps) {
 
   return (
     <div className="flex min-h-[380px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-[#1a1a1a] px-6 py-14 text-center">
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1db954]/12 text-[#1db954]">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#ff2ea6]/12 text-[#ff2ea6]">
         <MonitorDown className="h-8 w-8" strokeWidth={1.75} />
       </div>
       <h2 className="text-xl font-bold text-white">

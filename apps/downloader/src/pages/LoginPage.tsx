@@ -15,7 +15,7 @@ import { LanguagePicker } from "../i18n/LanguagePicker";
 const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 
 const inputClassName =
-  "w-full rounded-2xl border border-white/[0.08] bg-black/45 px-3.5 py-2.5 text-[0.8rem] font-semibold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1ed760]/55 focus:bg-black/60 focus:ring-2 focus:ring-[#1ed760]/15";
+  "w-full rounded-2xl border border-white/[0.08] bg-black/45 px-3.5 py-2.5 text-[0.8rem] font-semibold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#ff2ea6]/55 focus:bg-black/60 focus:ring-2 focus:ring-[#ff2ea6]/15";
 
 const labelClassName = "mb-1.5 block text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-zinc-500";
 
@@ -170,7 +170,7 @@ export function LoginPage() {
         >
           <div className="br-stripe-thin" />
           <div className="p-5">
-          <p className="mb-1 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-[#1ed760]">
+          <p className="mb-1 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-[#ff2ea6]">
             {t("loginVipAccount")}
           </p>
           <h1 className="font-display text-[1.2rem] font-extrabold tracking-tight text-white">
@@ -181,7 +181,7 @@ export function LoginPage() {
           </p>
 
           {sessionToken && (
-            <div className="mt-3 rounded-2xl border border-[#1ed760]/25 bg-[#1ed760]/10 px-3 py-2.5">
+            <div className="mt-3 rounded-2xl border border-[#ff2ea6]/25 bg-[#ff2ea6]/10 px-3 py-2.5">
               <p className="text-[0.75rem] text-zinc-200">
                 {reconnecting ? t("loginRestoringSession") : t("loginSavedSessionHint")}
               </p>
@@ -284,7 +284,7 @@ export function LoginPage() {
                   {t("loginTestConnection")}
                 </Button>
                 {serverStatus && (
-                  <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[#1db954]" : "text-zinc-400"}`}>
+                  <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[#ff2ea6]" : "text-zinc-400"}`}>
                     {serverStatus}
                   </p>
                 )}
@@ -307,7 +307,7 @@ export function LoginPage() {
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}
-            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#ff2ea6] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
           >
             {t("loginPrivacy")}
           </button>
@@ -317,7 +317,7 @@ export function LoginPage() {
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}
-            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#ff2ea6] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
           >
             {t("loginCookies")}
           </button>
@@ -327,7 +327,7 @@ export function LoginPage() {
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}
-            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#1db954] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
+            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#ff2ea6] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
           >
             {t("loginConduct")}
           </button>

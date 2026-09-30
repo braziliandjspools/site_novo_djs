@@ -6,6 +6,31 @@ function SkeletonPulse({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-xl bg-white/10 ${className}`} />;
 }
 
+/** Carregamento central, no lugar do skeleton, para pastas e tabelas lentas. */
+export function MusicasCenterLoading({
+  label = "Carregando…",
+}: {
+  label?: string;
+}) {
+  return (
+    <div
+      className="flex min-h-[46vh] w-full items-center justify-center px-4"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="flex flex-col items-center gap-4 text-center">
+        <span className="relative flex h-16 w-16 items-center justify-center" aria-hidden>
+          <span className="absolute inset-0 animate-spin rounded-full border-2 border-[#1ed760]/15 border-t-[#1ed760]" />
+          <span className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-b-[#1ed760]/70 [animation-duration:1.4s]" />
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#1ed760]" />
+        </span>
+        <p className="text-sm font-semibold tracking-wide text-white">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 /** Skeleton da home de biblioteca (header + shelves + tiles). */
 export function MusicasPageSkeleton() {
   return (

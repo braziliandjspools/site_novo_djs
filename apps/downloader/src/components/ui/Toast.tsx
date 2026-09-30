@@ -23,7 +23,7 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const TONE_STYLES: Record<ToastTone, string> = {
-  success: "border-[#1ed760]/35 bg-[#12161c]/95 text-[#d7ffe6]",
+  success: "border-[#ff2ea6]/35 bg-[#12161c]/95 text-[#d7ffe6]",
   error: "border-red-500/35 bg-[#1a1012]/95 text-red-100",
   info: "border-sky-500/35 bg-[#10151c]/95 text-sky-100",
   warning: "border-amber-500/35 bg-[#1a160e]/95 text-amber-100",

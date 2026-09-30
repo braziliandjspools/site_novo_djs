@@ -30,7 +30,7 @@ import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 import { autoSyncDriveOnEnter, readLastAutoSync } from "../lib/auto-drive-sync";
 import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
-import { MusicasListSkeleton } from "./MusicasSkeletons";
+import { MusicasCenterLoading } from "./MusicasSkeletons";
 import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -292,7 +292,7 @@ export function AtualizacoesRootClient() {
         </div>
 
         {loading && folders.length === 0 ? (
-          <MusicasListSkeleton rows={8} />
+          <MusicasCenterLoading label="Carregando acervos…" />
         ) : (
           <div className={catalogView === "grid" ? "grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" : "grid grid-cols-1 gap-3 md:grid-cols-2"}>
             {visibleFolders.map((folder, index) => (

@@ -71,7 +71,7 @@ export function QueueJobList({
       {jobs.map((job) => (
         <div
           key={job.id}
-          className={dragOverId === job.id ? "rounded-2xl ring-1 ring-[#1db954]/40" : undefined}
+          className={dragOverId === job.id ? "rounded-2xl ring-1 ring-[#ff2ea6]/40" : undefined}
         >
           <JobRow
             job={job}

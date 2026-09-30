@@ -131,7 +131,7 @@ export function HistoryPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">
             {t("historyTitle")}
           </p>
           <p className="mt-1 text-sm text-zinc-500">{t("historySubtitle")}</p>
@@ -198,7 +198,7 @@ export function HistoryPage() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#ff2ea6]" />
         </div>
       ) : filteredJobs.length === 0 ? (
         <p className="rounded-lg border border-zinc-800 bg-[#181818]/80 px-4 py-8 text-center text-sm text-zinc-500">

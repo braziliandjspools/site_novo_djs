@@ -19,7 +19,7 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
       className={`rounded-2xl border px-3 py-2.5 ${
         isOffline || error
           ? "border-red-500/20 bg-red-500/[0.06]"
-          : "border-[#1ed760]/20 bg-[#1ed760]/[0.06]"
+          : "border-[#ff2ea6]/20 bg-[#ff2ea6]/[0.06]"
       }`}
     >
       <p className="text-[0.6rem] font-extrabold tracking-[0.14em] text-zinc-500 uppercase">
@@ -27,7 +27,7 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
       </p>
       <p
         className={`mt-1.5 flex items-center gap-1.5 text-[0.72rem] font-extrabold ${
-          isOffline ? "text-red-400" : isConnecting ? "text-zinc-400" : "text-[#1ed760]"
+          isOffline ? "text-red-400" : isConnecting ? "text-zinc-400" : "text-[#ff2ea6]"
         }`}
       >
         <span
@@ -36,7 +36,7 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
               ? "bg-red-400"
               : isConnecting
                 ? "animate-soft-pulse bg-zinc-500"
-                : "bg-[#1ed760] shadow-[0_0_0_3px_rgba(30,215,96,0.18)]"
+                : "bg-[#ff2ea6] shadow-[0_0_0_3px_rgba(30,215,96,0.18)]"
           }`}
           aria-hidden
         />

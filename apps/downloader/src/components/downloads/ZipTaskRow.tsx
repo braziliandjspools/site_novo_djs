@@ -46,11 +46,11 @@ export function ZipTaskRow({
   return (
     <article className="rounded-2xl border border-white/[0.06] bg-[#1f1f1f] px-4 py-3.5">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#1db954]/10">
+        <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#ff2ea6]/10">
           {active ? (
-            <Loader2 className="h-4 w-4 animate-spin text-[#1db954]" />
+            <Loader2 className="h-4 w-4 animate-spin text-[#ff2ea6]" />
           ) : task.status === "completed" ? (
-            <CheckCircle2 className="h-4 w-4 text-[#1db954]" />
+            <CheckCircle2 className="h-4 w-4 text-[#ff2ea6]" />
           ) : task.status === "failed" ? (
             <XCircle className="h-4 w-4 text-red-400" />
           ) : (
@@ -64,11 +64,11 @@ export function ZipTaskRow({
             <span
               className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
                 task.status === "completed"
-                  ? "bg-[#1db954]/15 text-[#1db954]"
+                  ? "bg-[#ff2ea6]/15 text-[#ff2ea6]"
                   : task.status === "failed"
                     ? "bg-red-500/15 text-red-400"
                     : active
-                      ? "bg-[#1db954]/10 text-[#1db954]"
+                      ? "bg-[#ff2ea6]/10 text-[#ff2ea6]"
                       : "bg-white/5 text-zinc-400"
               }`}
             >
@@ -84,7 +84,7 @@ export function ZipTaskRow({
             <div className="mt-3 space-y-2">
               <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-[#1db954] transition-[width] duration-300 ease-out"
+                  className="h-full rounded-full bg-[#ff2ea6] transition-[width] duration-300 ease-out"
                   style={{ width: `${Math.max(progress, 1)}%` }}
                 />
               </div>

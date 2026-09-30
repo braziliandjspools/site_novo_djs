@@ -9,7 +9,7 @@ import { MusicasTopNav } from "./MusicasSidebar";
 import { MusicasMobileNav } from "./components/MusicasMobileNav";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
-import { MusicasAuthShellSkeleton } from "./components/MusicasSkeletons";
+import { MusicasAuthShellSkeleton, MusicasCenterLoading } from "./components/MusicasSkeletons";
 import { DownloaderConfirmProvider } from "./components/DownloaderBulkConfirm";
 
 type MusicasAuthLayoutProps = {
@@ -85,6 +85,13 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   }
 
   if (loading) {
+    if (pathname.startsWith("/musicas/atualizacoes")) {
+      return (
+        <div className="flex min-h-screen items-center bg-[#101412]">
+          <MusicasCenterLoading label="Carregando atualizações…" />
+        </div>
+      );
+    }
     return <MusicasAuthShellSkeleton />;
   }
 

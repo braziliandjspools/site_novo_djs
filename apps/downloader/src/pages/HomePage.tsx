@@ -69,9 +69,9 @@ const QUICK_LINKS: {
     labelKey: "navCompleted",
     descriptionKey: "homeQuickCompletedDesc",
     icon: CheckCircle2,
-    accent: "text-[#1ed760]",
-    iconBg: "bg-[#1ed760]/15 text-[#1ed760]",
-    borderHover: "hover:border-[#1ed760]/40 hover:bg-[#1ed760]/5",
+    accent: "text-[#ff2ea6]",
+    iconBg: "bg-[#ff2ea6]/15 text-[#ff2ea6]",
+    borderHover: "hover:border-[#ff2ea6]/40 hover:bg-[#ff2ea6]/5",
   },
   {
     route: "history",
@@ -209,7 +209,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <section>
         <div className="mb-3.5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#1db954]">{t("navMenu")}</p>
+            <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">{t("navMenu")}</p>
             <h2 className="text-xl font-bold text-white">{t("homeQuickAccess")}</h2>
           </div>
         </div>
@@ -236,7 +236,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     <Icon className="h-5 w-5" />
                   </div>
                   {badge > 0 && (
-                    <span className="rounded-md bg-[#1db954] px-2.5 py-1 text-xs font-bold text-black">
+                    <span className="rounded-md bg-[#ff2ea6] px-2.5 py-1 text-xs font-bold text-black">
                       {badge}
                     </span>
                   )}
@@ -272,9 +272,9 @@ const STAT_TONES = {
     value: "text-teal-200",
   },
   green: {
-    card: "border-[#1ed760]/25 bg-gradient-to-br from-[#1ed760]/15 to-[var(--bg-card)]",
-    label: "text-[#1ed760]/80",
-    value: "text-[#1ed760]",
+    card: "border-[#ff2ea6]/25 bg-gradient-to-br from-[#ff2ea6]/15 to-[var(--bg-card)]",
+    label: "text-[#ff2ea6]/80",
+    value: "text-[#ff2ea6]",
   },
   emerald: {
     card: "border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 to-[var(--bg-card)]",
