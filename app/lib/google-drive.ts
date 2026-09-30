@@ -852,9 +852,12 @@ export async function listDriveFolderChildren(folderId: string): Promise<DriveFi
     throw error;
   });
 
+  // O infinite scroll pode consultar o mesmo conjunto de pastas várias vezes
+  // (offset 50, 100, 150...). Mantemos a listagem em memória por alguns minutos
+  // para não refazer dezenas de chamadas ao Drive a cada página.
   childrenMemo.set(folderId, {
     promise,
-    expiresAt: Date.now() + 45_000,
+    expiresAt: Date.now() + 300_000,
   });
 
   return promise;
