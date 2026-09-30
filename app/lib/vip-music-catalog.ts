@@ -76,6 +76,37 @@ export function isVipMusicCatalogConfigured() {
   return Boolean(getVipMusicRootFolderId());
 }
 
+/**
+ * Percorre novamente toda a árvore do acervo para atualizar as listagens do Drive.
+ * A leitura é limitada por concorrência para evitar rajadas de requisições.
+ */
+export async function refreshVipMusicCatalog(): Promise<{ folderCount: number; trackCount: number }> {
+  const rootId = getVipMusicRootFolderId();
+  if (!rootId) return { folderCount: 0, trackCount: 0 };
+
+  const visited = new Set<string>();
+  let folderCount = 0;
+  let trackCount = 0;
+
+  async function walk(folderId: string, depth: number): Promise<void> {
+    if (depth > MAX_TRACK_WALK_DEPTH || visited.has(folderId)) return;
+    visited.add(folderId);
+
+    try {
+      const children = await listDriveFolderChildren(folderId);
+      folderCount += 1;
+      trackCount += children.filter((item) => isDriveAudioFile(item)).length;
+      const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
+      await mapPool(folders, 4, (folder) => walk(folder.id, depth + 1));
+    } catch {
+      // Uma pasta indisponível não impede a sincronização do restante do acervo.
+    }
+  }
+
+  await walk(rootId, 0);
+  return { folderCount, trackCount };
+}
+
 function toPreviewTrack(
   file: DriveChild,
   packName: string,
