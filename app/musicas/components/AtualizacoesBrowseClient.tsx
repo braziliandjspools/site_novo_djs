@@ -135,6 +135,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [downloadingPack, setDownloadingPack] = useState(false);
   const [loadingMoreTracks, setLoadingMoreTracks] = useState(false);
   const tracksLoadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingMoreTracksRef = useRef(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -328,7 +329,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
   const loadMoreTracks = useCallback(async () => {
-    if (!data || data.level !== "tracks" || loadingMoreTracks || !tracksHasMore) return;
+    if (!data || data.level !== "tracks" || loadingMoreTracksRef.current || !tracksHasMore) return;
+    loadingMoreTracksRef.current = true;
     setLoadingMoreTracks(true);
     try {
       const url = resolveUrl(slugPath, false, directTracks.length, 50);
@@ -344,9 +346,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Não foi possível carregar mais faixas.", "error");
     } finally {
+      loadingMoreTracksRef.current = false;
       setLoadingMoreTracks(false);
     }
-  }, [data, directTracks.length, loadingMoreTracks, showToast, slugPath, tracksHasMore]);
+  }, [data, directTracks.length, showToast, slugPath, tracksHasMore]);
 
 
 
@@ -895,19 +898,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 {tracksHasMore ? (
                   <div
                     ref={tracksLoadMoreSentinelRef}
-                    className="flex min-h-12 items-center justify-center pt-2"
-                    aria-live="polite"
-                    aria-label="Carregando mais músicas"
-                  >
-                    {loadingMoreTracks ? (
-                      <div className="inline-flex items-center gap-2 rounded-full border border-[#1ed760]/20 bg-[#1ed760]/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#7df5a8]">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Carregando mais músicas…
-                      </div>
-                    ) : (
-                      <span className="h-1 w-1 rounded-full bg-[#1ed760]/40" aria-hidden />
-                    )}
-                  </div>
+                    className="h-px w-full"
+                    aria-hidden="true"
+                  />
                 ) : null}
               </div>
             )}
