@@ -401,21 +401,31 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     if (!gmailDriveAllowed || copyingDrive) return;
     setCopyingDrive(true);
     try {
-      const suffix = format === "direct" ? "?format=direct" : "";
-      const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link${suffix}`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-      const result = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !result.url) throw new Error(result.error || "Link de download indisponível.");
-      await copyToClipboard(result.url);
-      showToast(format === "direct" ? "Link direto copiado. Válido por 2 horas." : "Link do Google Drive copiado");
+      let url = "";
+      if (format === "drive") {
+        if (!track.poolFolderId) {
+          throw new Error("Esta faixa não possui uma Pool vinculada à data.");
+        }
+        // O ícone do Drive representa a Pool inteira daquela data, não a faixa individual.
+        url = `https://drive.google.com/drive/folders/${encodeURIComponent(track.poolFolderId)}`;
+        await copyToClipboard(url);
+        showToast("Link da Pool no Google Drive copiado");
+      } else {
+        const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link?format=direct`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const result = (await response.json()) as { url?: string; error?: string };
+        if (!response.ok || !result.url) throw new Error(result.error || "Link de download indisponível.");
+        await copyToClipboard(result.url);
+        showToast("Link direto copiado. Válido por 2 horas.");
+      }
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Não foi possível copiar o link do Drive.", "error");
     } finally {
       setCopyingDrive(false);
     }
-  }, [copyingDrive, gmailDriveAllowed, showToast, track.id]);
+  }, [copyingDrive, gmailDriveAllowed, showToast, track.id, track.poolFolderId]);
 
   const explainDriveBlock = useCallback(() => {
     setDriveHelpOpen(true);
@@ -488,7 +498,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         onClick: onDownload,
       });
     }
-    if (showDriveButton && authenticated && hasVip) {
+    if (showDriveButton && track.poolFolderId && authenticated && hasVip) {
       extras.push(gmailDriveAllowed
         ? { id: "drive", label: "Copiar link do Google Drive", renderIcon: <GoogleDriveIcon />, disabled: copyingDrive, onClick: () => void copyDriveLink("drive") }
         : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
@@ -796,7 +806,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
-          {showDriveButton && authenticated && hasVip ? (
+          {showDriveButton && track.poolFolderId && authenticated && hasVip ? (
             gmailDriveAllowed ? (
               <button
                 type="button"
@@ -1050,7 +1060,11 @@ export function VipMusicTrackList({
     for (const track of tracks) {
       const pool = track.poolName?.trim();
       const style = track.styleName?.trim();
-      if (pool) pools.set(slugifyFolderName(pool), pool);
+      // Sem ID de pasta de Pool, não há Pool real para filtrar.
+      // Isso evita que um estilo de uma estrutura sem Pool apareça como Pool.
+      if (pool && track.poolFolderId && slugifyFolderName(pool) !== slugifyStyleName(style ?? "")) {
+        pools.set(slugifyFolderName(pool), pool);
+      }
       if (style) styles.set(slugifyStyleName(style), style);
     }
 
