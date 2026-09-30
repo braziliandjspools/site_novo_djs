@@ -17,7 +17,6 @@ import { SITE_NAME } from "../lib/site";
 import type { AppRoute } from "../components/layout/Sidebar";
 import type { DownloadJob } from "../lib/api/jobs";
 import { HomeActivity } from "../components/downloads/HomeActivity";
-import { WEBUI_VERSION } from "../lib/app-info";
 import { formatSpeed } from "../lib/download/progress-tracker";
 import { ImportPackPanel } from "../components/ImportPackPanel";
 import { useLocale, type MessageKey } from "../i18n/LocaleContext";
@@ -94,11 +93,10 @@ const QUICK_LINKS: {
   },
 ];
 
-export function HomePage({ userName, onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate }: HomePageProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
   const { jobs, connectionState, activeJobIds, pendingCount, syncNow, workerError, jobMetrics } = useDownloadManager();
-  const firstName = userName.split(" ")[0] ?? userName;
   const counts = countByStatus(jobs, activeJobIds);
   const isOffline = connectionState === "offline";
   const speed = activeJobIds.reduce((sum, id) => sum + (jobMetrics[id]?.speedBytesPerSec ?? 0), 0);
@@ -153,18 +151,8 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/25" aria-hidden />
         <div className="br-stripe-thin absolute inset-x-0 top-0 z-10" />
 
-        <div className="relative z-10 flex min-h-[220px] flex-col justify-end gap-5 p-6 sm:min-h-[260px] sm:flex-row sm:items-end sm:justify-between sm:p-8 lg:min-h-[280px]">
-          <div className="max-w-2xl min-w-0">
-            <p className="text-eyebrow text-[#1ed760] drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">
-              <span className="studio-edition">BRS / {WEBUI_VERSION}</span><span className="ml-3">{t("homeWelcomeEyebrow")}</span>
-            </p>
-            <h1 className="text-page-title mt-2 text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.75)]">
-              {t("homeWelcome", { name: firstName })}
-            </h1>
-            <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-zinc-200/90 drop-shadow-[0_1px_10px_rgba(0,0,0,0.7)]">
-              {t("homeIntro", { site: SITE_NAME })}
-            </p>
-          </div>
+        <div className="relative z-10 flex min-h-[280px] flex-col justify-end gap-4 p-5 sm:p-6">
+          <ImportPackPanel embedded />
           <div className="flex flex-shrink-0 flex-wrap gap-2">
             <Button onClick={() => void openPlatform()}>
               <ExternalLink className="h-4 w-4" />
@@ -217,8 +205,6 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
       </div>
 
       <HomeActivity />
-
-      <ImportPackPanel />
 
       <section>
         <div className="mb-3.5 flex items-center justify-between gap-3">

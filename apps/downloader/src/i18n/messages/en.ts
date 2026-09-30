@@ -459,6 +459,15 @@ export const messagesEn = {
   importTrackPlural: "tracks",
   importAndMore: "and {count} more…",
   importDownloadAll: "Download all",
+  importBatchProgress: "{queued} tracks are already in the queue, in blocks of 200.",
+  importCooldownBody:
+    "8-minute pause. This limit is required so Google does not block the API.",
+  importMarkOnSite:
+    "Mark the tracks on the site and download only what you need. Backing up the catalog from the site is not allowed.",
+  importBackupHelp: "About catalog backup",
+  importBackupTitle: "Catalog backup",
+  importBackupBody:
+    "Backing up music through the site is not allowed. If you want a backup, use Google Drive and request the link directly on WhatsApp.",
 
   // history (extras)
   historySubtitle: "Completed downloads and recent failures — updated in real time.",

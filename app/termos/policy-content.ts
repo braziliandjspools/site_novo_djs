@@ -262,6 +262,14 @@ export const termsOfServiceDocument: LegalDocument = {
         },
         {
           type: "p",
+          text: "O usuário deve marcar no site somente as músicas de que precisar e baixar apenas essas faixas. O backup das músicas pelo site é proibido.",
+        },
+        {
+          type: "p",
+          text: "Quem precisar de um backup do acervo deve usar o Google Drive e solicitar o link diretamente pelo WhatsApp +55 51 93505-2274.",
+        },
+        {
+          type: "p",
           text: "A plataforma poderá limitar temporariamente requisições excessivas que prejudiquem a segurança ou a disponibilidade do serviço.",
         },
         {

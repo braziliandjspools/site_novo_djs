@@ -169,7 +169,7 @@ export async function previewPackBySlug(slug: string, options?: { root?: PackRoo
 export async function importPackJobsBySlug(
   portalUserId: number,
   slug: string,
-  options?: { targetDeviceId?: string | null; root?: PackRoot },
+  options?: { targetDeviceId?: string | null; root?: PackRoot; offset?: number; limit?: number },
 ) {
   const folder = await resolvePackFolderBySlug(slug, { root: options?.root });
   if (!folder) {
@@ -190,8 +190,26 @@ export async function importPackJobsBySlug(
     return { error: "Esta pasta não possui faixas para baixar." as const };
   }
 
+  const offset = Math.max(0, Math.floor(options?.offset ?? 0));
+  const limit =
+    options?.limit != null && Number.isFinite(options.limit)
+      ? Math.max(1, Math.min(200, Math.floor(options.limit)))
+      : tracks.length;
+  const slice = tracks.slice(offset, offset + limit);
+  if (slice.length === 0) {
+    return {
+      ok: true as const,
+      folder,
+      trackCount: tracks.length,
+      count: 0,
+      hasMore: false,
+      nextOffset: offset,
+      jobs: [],
+    };
+  }
+
   const targetDeviceId = options?.targetDeviceId?.trim() || null;
-  const inputs: DownloadJobInput[] = tracks.map((track) => ({
+  const inputs: DownloadJobInput[] = slice.map((track) => ({
     fileId: track.fileId,
     fileName: track.fileName,
     relativePath: track.relativePath,
@@ -200,11 +218,14 @@ export async function importPackJobsBySlug(
   }));
 
   const jobs = await createDownloadJobsBatch(portalUserId, inputs);
+  const nextOffset = offset + slice.length;
   return {
     ok: true as const,
     folder,
     trackCount: tracks.length,
     count: jobs.length,
+    hasMore: nextOffset < tracks.length,
+    nextOffset,
     jobs,
   };
 }
@@ -260,7 +281,7 @@ export async function previewArtistBySlug(slug: string) {
 export async function importArtistJobsBySlug(
   portalUserId: number,
   slug: string,
-  options?: { targetDeviceId?: string | null },
+  options?: { targetDeviceId?: string | null; offset?: number; limit?: number },
 ) {
   const profile = await findTracksByArtistSlug(slug);
   if (!profile.slug) {
@@ -270,9 +291,15 @@ export async function importArtistJobsBySlug(
     return { error: "Nenhuma faixa encontrada para este artista." as const };
   }
 
+  const offset = Math.max(0, Math.floor(options?.offset ?? 0));
+  const limit =
+    options?.limit != null && Number.isFinite(options.limit)
+      ? Math.max(1, Math.min(200, Math.floor(options.limit)))
+      : profile.tracks.length;
+  const slice = profile.tracks.slice(offset, offset + limit);
   const artistFolder = `Artistas/${profile.name}`;
   const targetDeviceId = options?.targetDeviceId?.trim() || null;
-  const inputs: DownloadJobInput[] = profile.tracks.map((track) => {
+  const inputs: DownloadJobInput[] = slice.map((track) => {
     const rawName = track.fileName ?? track.title;
     const fileName = ensureAudioExtension(rawName);
     const relativePath = track.relativePath?.trim()
@@ -287,7 +314,8 @@ export async function importArtistJobsBySlug(
     };
   });
 
-  const jobs = await createDownloadJobsBatch(portalUserId, inputs);
+  const jobs = inputs.length > 0 ? await createDownloadJobsBatch(portalUserId, inputs) : [];
+  const nextOffset = offset + slice.length;
   return {
     ok: true as const,
     kind: "artist" as const,
@@ -303,6 +331,8 @@ export async function importArtistJobsBySlug(
     },
     trackCount: profile.tracks.length,
     count: jobs.length,
+    hasMore: nextOffset < profile.tracks.length,
+    nextOffset,
     jobs,
   };
 }

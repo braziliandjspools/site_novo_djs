@@ -31,7 +31,8 @@ export async function POST(request: Request) {
     url?: unknown;
     targetDeviceId?: unknown;
     root?: unknown;
-    kind?: unknown;
+    offset?: unknown;
+    limit?: unknown;
   };
   const raw =
     (typeof data.url === "string" && data.url.trim()) ||
@@ -57,11 +58,17 @@ export async function POST(request: Request) {
     typeof data.targetDeviceId === "string" && data.targetDeviceId.trim()
       ? data.targetDeviceId.trim()
       : null;
+  const offset = typeof data.offset === "number" && Number.isFinite(data.offset) ? data.offset : 0;
+  const limit = typeof data.limit === "number" && Number.isFinite(data.limit) ? data.limit : undefined;
   const isArtist = parsed.kind === "artist" || kindHint === "artist";
 
   try {
     if (isArtist) {
-      const result = await importArtistJobsBySlug(access.user.id, parsed.slug, { targetDeviceId });
+      const result = await importArtistJobsBySlug(access.user.id, parsed.slug, {
+        targetDeviceId,
+        offset,
+        limit,
+      });
       if ("error" in result) {
         return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });
       }
@@ -72,6 +79,8 @@ export async function POST(request: Request) {
           kind: "artist",
           count: result.count,
           trackCount: result.trackCount,
+          hasMore: result.hasMore,
+          nextOffset: result.nextOffset,
           folderName: result.folder.displayName,
           relativePath: result.folder.relativePath,
           slug: result.folder.slug,
@@ -88,6 +97,8 @@ export async function POST(request: Request) {
     const result = await importPackJobsBySlug(access.user.id, parsed.slug, {
       targetDeviceId,
       root,
+      offset,
+      limit,
     });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });
@@ -99,6 +110,8 @@ export async function POST(request: Request) {
         kind: "pack",
         count: result.count,
         trackCount: result.trackCount,
+        hasMore: result.hasMore,
+        nextOffset: result.nextOffset,
         folderName: result.folder.displayName,
         relativePath: result.folder.relativePath,
         slug: result.folder.slug,

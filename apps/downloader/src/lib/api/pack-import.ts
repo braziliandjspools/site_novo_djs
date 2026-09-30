@@ -22,6 +22,8 @@ export type PackImportResult = {
   kind?: "pack" | "artist";
   count: number;
   trackCount: number;
+  hasMore?: boolean;
+  nextOffset?: number;
   folderName: string;
   relativePath: string;
   slug: string;
@@ -227,7 +229,12 @@ export async function previewPackLink(token: string, urlOrSlug: string) {
 export async function importPackLink(
   token: string,
   urlOrSlug: string,
-  options?: { root?: "vip" | "colecoes"; kind?: "pack" | "artist" },
+  options?: {
+    root?: "vip" | "colecoes";
+    kind?: "pack" | "artist";
+    offset?: number;
+    limit?: number;
+  },
 ) {
   const parsed = parsePackLinkInput(urlOrSlug);
   const slug = parsed?.slug ?? urlOrSlug.trim();
@@ -237,6 +244,13 @@ export async function importPackLink(
   return apiFetch<PackImportResult>("/api/downloader/pack/import", {
     method: "POST",
     token,
-    body: JSON.stringify({ slug, root, kind, url: urlOrSlug.trim() }),
+    body: JSON.stringify({
+      slug,
+      root,
+      kind,
+      url: urlOrSlug.trim(),
+      offset: options?.offset ?? 0,
+      limit: options?.limit,
+    }),
   });
 }

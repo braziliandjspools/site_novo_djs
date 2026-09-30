@@ -466,6 +466,15 @@ export const messagesPtBR = {
   importTrackPlural: "faixas",
   importAndMore: "e mais {count}…",
   importDownloadAll: "Baixar todas",
+  importBatchProgress: "{queued} faixas já foram para a fila, em blocos de 200.",
+  importCooldownBody:
+    "Pausa de 8 minutos. Essa limitação é necessária para não haver bloqueio da API pelo Google.",
+  importMarkOnSite:
+    "Marque as músicas no site e baixe somente as que você precisar. Backup das músicas pelo site é proibido.",
+  importBackupHelp: "Sobre backup do acervo",
+  importBackupTitle: "Backup do acervo",
+  importBackupBody:
+    "Backup das músicas pelo site é proibido. Se você quiser um backup, use o Google Drive e solicite o link diretamente no WhatsApp.",
 
   // history (extras)
   historySubtitle: "Downloads concluídos e falhas recentes — atualiza em tempo real.",

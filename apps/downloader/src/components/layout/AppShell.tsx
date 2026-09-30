@@ -1,4 +1,3 @@
-import { WEBUI_VERSION } from "../../lib/app-info";
 import type { ReactNode } from "react";
 import { MessageCircle } from "lucide-react";
 import type { AppRoute } from "./Sidebar";
@@ -66,7 +65,6 @@ export function AppShell({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="relative z-50 flex flex-shrink-0 items-center justify-between gap-4 border-b border-white/[0.06] bg-[var(--bg-sidebar)] px-6 py-4">
           <div className="min-w-0">
-            <p className="text-eyebrow text-[var(--accent)]">BRS <span className="ml-2 rounded-md border border-white/10 px-1.5 py-0.5 text-[0.6rem] text-zinc-400">{WEBUI_VERSION}</span></p>
             <h1 className="truncate text-[1.2rem] font-semibold tracking-[-0.03em] text-white">{title}</h1>
             {subtitle && (
               <p className="mt-0.5 max-w-2xl truncate text-[0.82rem] leading-snug text-[var(--text-muted)]">

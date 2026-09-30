@@ -461,6 +461,15 @@ export const messagesEs = {
   importTrackPlural: "canciones",
   importAndMore: "y {count} más…",
   importDownloadAll: "Descargar todas",
+  importBatchProgress: "{queued} canciones ya entraron en la cola, en bloques de 200.",
+  importCooldownBody:
+    "Pausa de 8 minutos. Esta limitación es necesaria para que Google no bloquee la API.",
+  importMarkOnSite:
+    "Marca las canciones en el sitio y descarga solo las que necesites. Hacer backup de las músicas por el sitio está prohibido.",
+  importBackupHelp: "Sobre el backup del catálogo",
+  importBackupTitle: "Backup del catálogo",
+  importBackupBody:
+    "El backup de las músicas por el sitio está prohibido. Si quieres un backup, usa Google Drive y pide el enlace directamente por WhatsApp.",
 
   // history (extras)
   historySubtitle: "Descargas completadas y fallos recientes — se actualiza en tiempo real.",

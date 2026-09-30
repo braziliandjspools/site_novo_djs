@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CheckCircle2, Link2, Loader2, Download } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, CircleHelp, Link2, Loader2, Download } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Panel } from "./ui/Panel";
 import { useAuth } from "../context/AuthContext";
@@ -8,7 +8,17 @@ import { importPackLink, previewPackLink, stripForcedFolderTreePrefix, type Pack
 import { formatApiError } from "../lib/errors";
 import { useLocale } from "../i18n/LocaleContext";
 
-export function ImportPackPanel() {
+const IMPORT_BLOCK = 200;
+const IMPORT_BURST = 600;
+const IMPORT_PAUSE_MS = 8 * 60 * 1000;
+
+function formatCountdown(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
   const { t } = useLocale();
   const { sessionToken } = useAuth();
   const { syncNow } = useDownloadManager();
@@ -16,6 +26,11 @@ export function ImportPackPanel() {
   const [preview, setPreview] = useState<PackPreview | null>(null);
   const [validating, setValidating] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [queued, setQueued] = useState(0);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [helpOpen, setHelpOpen] = useState(false);
+  const cancelRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -50,31 +65,67 @@ export function ImportPackPanel() {
     }
   }
 
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownUntil]);
+
+  async function waitCooldown(until: number) {
+    setCooldownUntil(until);
+    while (!cancelRef.current && Date.now() < until) {
+      await new Promise((resolve) => window.setTimeout(resolve, 500));
+    }
+    setCooldownUntil(null);
+  }
+
   async function handleImport() {
-    if (!sessionToken || !preview) return;
+    if (!sessionToken || !preview || importing) return;
+    cancelRef.current = false;
     setImporting(true);
     setError(null);
     setSuccess(null);
+    setQueued(0);
     try {
-      const result = await importPackLink(sessionToken, url.trim() || preview.slug, {
-        root: preview.root === "colecoes" ? "colecoes" : "vip",
-        kind: preview.kind === "artist" ? "artist" : "pack",
-      });
-      setSuccess(
-        result.count === 1
-          ? t("importAddedOne")
-          : t("importAddedMany", { count: result.count }),
-      );
-      syncNow();
+      let offset = 0;
+      let totalQueued = 0;
+      let total = preview.trackCount;
+      while (!cancelRef.current) {
+        const result = await importPackLink(sessionToken, url.trim() || preview.slug, {
+          root: preview.root === "colecoes" ? "colecoes" : "vip",
+          kind: preview.kind === "artist" ? "artist" : "pack",
+          offset,
+          limit: IMPORT_BLOCK,
+        });
+        total = result.trackCount || total;
+        totalQueued += result.count;
+        offset = result.nextOffset ?? offset + result.count;
+        setQueued(totalQueued);
+        syncNow();
+        if (!result.hasMore || result.count === 0) break;
+        if (totalQueued > 0 && totalQueued % IMPORT_BURST === 0) {
+          await waitCooldown(Date.now() + IMPORT_PAUSE_MS);
+        }
+      }
+      if (!cancelRef.current) {
+        setSuccess(
+          totalQueued === 1
+            ? t("importAddedOne")
+            : t("importAddedMany", { count: totalQueued }),
+        );
+      }
     } catch (err) {
       setError(formatApiError(err));
     } finally {
       setImporting(false);
+      setCooldownUntil(null);
     }
   }
 
-  return (
-    <Panel title={t("importTitle")} description={t("importPanelDesc")}>
+  const cooldownLeft = cooldownUntil ? Math.max(0, Math.ceil((cooldownUntil - now) / 1000)) : 0;
+
+  const form = (
+    <>
       <div className="space-y-3">
         <label htmlFor="pack-link" className="mb-1 block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
           {t("importFolderLink")}
@@ -132,7 +183,8 @@ export function ImportPackPanel() {
                 ? t("importArtistLabel")
                 : stripForcedFolderTreePrefix(preview.relativePath) || preview.relativePath}
             </p>
-            <p className="mt-3 text-lg font-black tabular-nums text-[#1db954]">
+            <p className="mt-3 flex items-center gap-2 text-lg font-black tabular-nums text-[#1db954]">
+              <span>
               {preview.trackCountIsEstimate || preview.hasSubfolders ? (
                 <>
                   {preview.subfolderCount && preview.subfolderCount > 0
@@ -150,6 +202,16 @@ export function ImportPackPanel() {
                   </span>
                 </>
               )}
+              </span>
+              <button
+                type="button"
+                onClick={() => setHelpOpen(true)}
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/15 text-zinc-300 hover:border-[#1ed760]/50 hover:text-[#1ed760]"
+                aria-label={t("importBackupHelp")}
+                title={t("importBackupHelp")}
+              >
+                <CircleHelp className="h-3.5 w-3.5" />
+              </button>
             </p>
             {(preview.trackCountIsEstimate || preview.hasSubfolders) && (
               <p className="mt-1 text-[11px] text-zinc-500">{t("importTracksCountedOnImport")}</p>
@@ -172,6 +234,16 @@ export function ImportPackPanel() {
                 )}
               </ul>
             )}
+            {cooldownLeft > 0 && (
+              <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100">
+                <p className="font-mono text-base font-bold tabular-nums text-amber-200">{formatCountdown(cooldownLeft)}</p>
+                <p className="mt-1">{t("importCooldownBody")}</p>
+                <p className="mt-1 text-amber-100/80">{t("importMarkOnSite")}</p>
+              </div>
+            )}
+            {importing && queued > 0 && cooldownLeft === 0 && (
+              <p className="mt-3 text-xs text-zinc-400">{t("importBatchProgress", { queued })}</p>
+            )}
             <Button
               className="mt-4 w-full"
               disabled={importing || (preview.trackCount === 0 && !preview.hasSubfolders)}
@@ -183,6 +255,46 @@ export function ImportPackPanel() {
           </div>
         )}
       </div>
+      {helpOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" role="presentation" onClick={() => setHelpOpen(false)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#121212] p-5 text-sm leading-relaxed text-zinc-300 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 className="text-base font-bold text-white">{t("importBackupTitle")}</h2>
+            <p className="mt-3">{t("importBackupBody")}</p>
+            <a
+              href="https://wa.me/5551935052274"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex font-semibold text-[#1ed760] hover:underline"
+            >
+              WhatsApp +55 51 93505-2274
+            </a>
+            <button type="button" onClick={() => setHelpOpen(false)} className="mt-4 w-full rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold uppercase tracking-wider text-black">
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="rounded-2xl border border-white/15 bg-black/55 p-4 backdrop-blur-md">
+        <p className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-[#1ed760]">{t("importTitle")}</p>
+        <p className="mt-1 text-xs text-zinc-300">{t("importPanelDesc")}</p>
+        <div className="mt-3">{form}</div>
+      </div>
+    );
+  }
+
+  return (
+    <Panel title={t("importTitle")} description={t("importPanelDesc")}>
+      {form}
     </Panel>
   );
 }
