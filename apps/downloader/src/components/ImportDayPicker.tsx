@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { browsePackDay, type PackDateOption, type PackDayContents, type PackImportTarget } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
@@ -24,7 +24,6 @@ function joinPath(...parts: Array<string | null | undefined>) {
 export function ImportDayPicker({
   token,
   dates,
-  rootIsDate,
   onClose,
   onConfirm,
 }: {
@@ -39,9 +38,7 @@ export function ImportDayPicker({
   const [contents, setContents] = useState<Record<string, PackDayContents>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, true>>({});
-  const [pos, setPos] = useState({ x: 48, y: 64 });
   const [error, setError] = useState<string | null>(null);
-  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
 
   async function loadDay(date: PackDateOption) {
     setActiveKey(date.key);
@@ -67,15 +64,6 @@ export function ImportDayPicker({
   }
 
   useEffect(() => {
-    const width = Math.min(920, window.innerWidth - 32);
-    const height = Math.min(680, window.innerHeight - 32);
-    setPos({
-      x: Math.max(8, Math.round((window.innerWidth - width) / 2)),
-      y: Math.max(8, Math.round((window.innerHeight - height) / 2)),
-    });
-  }, []);
-
-  useEffect(() => {
     const first = dates[0];
     if (!first) return;
     void loadDay(first);
@@ -98,7 +86,6 @@ export function ImportDayPicker({
     for (const date of dates) {
       const day = contents[date.key];
       if (!day) continue;
-      const dayPrefix = rootIsDate ? "" : date.name;
       for (const pool of day.pools) {
         const marked = pool.styles.filter((style) => selected[style.folderId]);
         if (marked.length === 0) continue;
@@ -106,7 +93,7 @@ export function ImportDayPicker({
           targets.push({
             folderId: pool.folderId,
             folderName: pool.name,
-            relativePath: joinPath(dayPrefix, pool.name),
+            relativePath: pool.name,
           });
           continue;
         }
@@ -114,7 +101,7 @@ export function ImportDayPicker({
           targets.push({
             folderId: style.folderId,
             folderName: style.name,
-            relativePath: joinPath(dayPrefix, pool.name, style.name),
+            relativePath: joinPath(pool.name, style.name),
           });
         }
       }
@@ -123,7 +110,7 @@ export function ImportDayPicker({
         targets.push({
           folderId: style.folderId,
           folderName: style.name,
-          relativePath: joinPath(dayPrefix, style.name),
+          relativePath: style.name,
         });
       }
     }
@@ -140,33 +127,14 @@ export function ImportDayPicker({
   const trackCount = day?.trackCount ?? 0;
 
   return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4">
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="import-pick-title"
-      style={{ left: pos.x, top: pos.y }}
-      className="fixed z-[80] flex h-[min(680px,calc(100vh-2rem))] w-[min(920px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#ff2ea6]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+      className="flex h-[min(720px,calc(100vh-2rem))] w-[min(960px,100%)] flex-col overflow-hidden rounded-2xl border border-[#ff2ea6]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
     >
-      <header
-        className="flex cursor-grab items-center gap-3 border-b border-[#ff2ea6]/30 bg-[#070707] px-4 py-3 active:cursor-grabbing"
-        onPointerDown={(event) => {
-          if ((event.target as HTMLElement).closest("button")) return;
-          dragRef.current = { dx: event.clientX - pos.x, dy: event.clientY - pos.y };
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          if (!dragRef.current) return;
-          const nextX = event.clientX - dragRef.current.dx;
-          const nextY = event.clientY - dragRef.current.dy;
-          setPos({
-            x: Math.max(8, Math.min(window.innerWidth - 280, nextX)),
-            y: Math.max(8, Math.min(window.innerHeight - 80, nextY)),
-          });
-        }}
-        onPointerUp={() => {
-          dragRef.current = null;
-        }}
-      >
+      <header className="flex shrink-0 items-center gap-3 border-b border-[#ff2ea6]/30 bg-[#070707] px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff2ea6]">Dias</p>
           <h2 id="import-pick-title" className="truncate text-sm font-bold text-white">
@@ -303,7 +271,7 @@ export function ImportDayPicker({
             {error && <p className="rounded-lg bg-[#ff2ea6]/10 px-3 py-2 text-xs text-[#ff8ac8]">{error}</p>}
           </div>
 
-          <div className="flex gap-2 border-t border-[#ff2ea6]/30 px-5 py-4">
+          <div className="flex shrink-0 gap-2 border-t border-[#ff2ea6]/30 px-5 py-4">
             <button
               type="button"
               onClick={onClose}
@@ -321,6 +289,7 @@ export function ImportDayPicker({
           </div>
         </section>
       </div>
+    </div>
     </div>
   );
 }

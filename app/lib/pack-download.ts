@@ -212,15 +212,16 @@ export async function importPackJobsBySlug(
   }
 
   const selected = options?.targets?.filter((target) => target.folderId?.trim()) ?? [];
+  const basePath = parseUpdateDateFolder(folder.folderName)
+    ? folder.pathLabels.slice(0, -1).join("/")
+    : folder.relativePath;
   const tracks = selected.length
     ? (
         await mapPool(selected, 4, (target) =>
           collectTracksRecursive(
             target.folderId,
             target.folderName,
-            target.relativePath
-              ? `${folder.relativePath}/${target.relativePath}`
-              : folder.relativePath,
+            target.relativePath ? `${basePath}/${target.relativePath}` : basePath,
           ),
         )
       ).flat()

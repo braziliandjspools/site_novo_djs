@@ -818,6 +818,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           packMonths={packMonths}
           monthWeeks={siblingWeeks}
           updateDays={data.updateDays}
+          poolOptions={data.filterPools}
           catalogTracks={directTracks}
           newChildIds={newChildIds}
         >
@@ -857,6 +858,26 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   ) : null}
                 </div>
               </div>
+            ) : null}
+            {directTracks.length > 0 ? (
+              <section className="overflow-hidden rounded-2xl border border-[#ff2ea6]/35 bg-black">
+                <div className="h-1 w-full bg-[#ff2ea6]" />
+                <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">BRS Downloader</p>
+                    <h2 className="mt-1 text-base font-bold text-white">Baixe organizado por pool e por dia</h2>
+                    <p className="mt-1 max-w-xl text-sm leading-relaxed text-zinc-400">
+                      Copie o link desta pasta e cole no BRS Downloader. O app pergunta o dia, a pool e os estilos, e grava as músicas nas pastas certas.
+                    </p>
+                  </div>
+                  <CopyPackLinkButton
+                    slugSegments={slugSegments}
+                    label="Copiar link"
+                    showLabel
+                    className="!h-11 !w-auto !gap-2 !rounded-full !border-0 !bg-[#ff2ea6] !px-4 !text-black hover:!bg-[#ff67c2] hover:!text-black"
+                  />
+                </div>
+              </section>
             ) : null}
             {directTracks.length === 0 && loading ? (
               <MusicasCenterLoading label="Carregando a tabela…" />

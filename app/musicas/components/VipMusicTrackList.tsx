@@ -25,8 +25,10 @@ import {
   MonitorDown,
   Pause,
   Play,
+  Search,
   Share2,
   Square,
+  X,
 } from "lucide-react";
 import { type PreviewTrack } from "../../lib/google-drive";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
@@ -101,6 +103,10 @@ function trackCatalogSlugs(track: PreviewTrack) {
   const pool = track.poolName?.trim() && track.poolFolderId ? slugifyFolderName(track.poolName) : "";
   const style = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
   return { pool, style };
+}
+
+function foldSearch(value: string) {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR");
 }
 
 function matchesCatalogFilter(track: PreviewTrack, poolSlug: string, styleSlug: string) {
@@ -1068,19 +1074,41 @@ export function VipMusicTrackList({
   const searchParams = useSearchParams();
   const poolFilterSlug = searchParams.get("pool") ?? "";
   const styleFilterSlug = searchParams.get("estilo") ?? "";
+  const searchQuery = searchParams.get("busca") ?? "";
+  const [searchDraft, setSearchDraft] = useState(searchQuery);
 
-  const writeCatalogFilters = useCallback(
-    (pool: string, style: string) => {
+  const writeCatalogQuery = useCallback(
+    (next: { pool?: string; style?: string; busca?: string }) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (pool) params.set("pool", pool);
-      else params.delete("pool");
-      if (style) params.set("estilo", style);
-      else params.delete("estilo");
+      if (next.pool !== undefined) {
+        if (next.pool) params.set("pool", next.pool);
+        else params.delete("pool");
+      }
+      if (next.style !== undefined) {
+        if (next.style) params.set("estilo", next.style);
+        else params.delete("estilo");
+      }
+      if (next.busca !== undefined) {
+        const value = next.busca.trim();
+        if (value) params.set("busca", value);
+        else params.delete("busca");
+      }
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
     [pathname, router, searchParams],
   );
+
+  const writeCatalogFilters = useCallback(
+    (pool: string, style: string) => {
+      writeCatalogQuery({ pool, style });
+    },
+    [writeCatalogQuery],
+  );
+
+  useEffect(() => {
+    setSearchDraft(new URLSearchParams(window.location.search).get("busca") ?? "");
+  }, [folderId]);
 
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
@@ -1126,10 +1154,19 @@ export function VipMusicTrackList({
 
   // Pool e estilo viram slug na URL (?pool=&estilo=), inclusive juntos.
   const filteredTracks = useMemo(() => {
-    if (!poolFilterSlug && !styleFilterSlug) return tracks;
-
-    return tracks.filter((track) => matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug));
-  }, [poolFilterSlug, styleFilterSlug, tracks]);
+    const query = foldSearch(searchDraft.trim());
+    return tracks.filter((track) => {
+      if (!matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug)) return false;
+      if (!query) return true;
+      const display = getTrackDisplayMetadata(track);
+      const haystack = foldSearch(
+        [display.title, display.artist, track.poolName, track.styleName, track.fileName, track.title]
+          .filter(Boolean)
+          .join(" "),
+      );
+      return haystack.includes(query);
+    });
+  }, [poolFilterSlug, searchDraft, styleFilterSlug, tracks]);
 
   const visibleTrackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
@@ -1431,7 +1468,7 @@ export function VipMusicTrackList({
 
   const drainLengthRef = useRef<number | null>(null);
   useEffect(() => {
-    const shouldDrain = markPickerOpen || markRule !== null || Boolean(poolFilterSlug || styleFilterSlug);
+    const shouldDrain = markPickerOpen || markRule !== null || Boolean(poolFilterSlug || styleFilterSlug || searchDraft.trim());
     if (!shouldDrain) {
       drainLengthRef.current = null;
       return;
@@ -1439,7 +1476,7 @@ export function VipMusicTrackList({
     if (!hasMore || !onLoadMore || drainLengthRef.current === tracks.length) return;
     drainLengthRef.current = tracks.length;
     void onLoadMore();
-  }, [hasMore, markPickerOpen, markRule, onLoadMore, poolFilterSlug, styleFilterSlug, tracks.length]);
+  }, [hasMore, markPickerOpen, markRule, onLoadMore, poolFilterSlug, searchDraft, styleFilterSlug, tracks.length]);
 
   const copyTrackLink = useCallback(
     (track: PreviewTrack) => {
@@ -1604,6 +1641,43 @@ export function VipMusicTrackList({
 
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
+      {useStreaming ? (
+        <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1ed760]" aria-hidden />
+            <input
+              type="text"
+              value={searchDraft}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSearchDraft(value);
+                writeCatalogQuery({ busca: value });
+              }}
+              placeholder="Buscar nesta tabela"
+              aria-label="Buscar nesta tabela"
+              className="w-full rounded-xl border border-white/10 bg-black py-2.5 pl-10 pr-10 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#1ed760]/60"
+            />
+            {searchDraft ? (
+              <button
+                type="button"
+                aria-label="Limpar busca"
+                onClick={() => {
+                  setSearchDraft("");
+                  writeCatalogQuery({ busca: "" });
+                }}
+                className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-400 hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </label>
+        </div>
+      ) : null}
+      {useStreaming && searchDraft.trim() && filteredTracks.length === 0 ? (
+        <p className="px-4 py-10 text-center text-sm text-zinc-400">
+          Nenhuma música encontrada para “{searchDraft.trim()}”.
+        </p>
+      ) : null}
       {error && isThisFolder && (
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
@@ -1653,7 +1727,7 @@ export function VipMusicTrackList({
         </div>
       ) : null}
 
-      {useStreaming && separateByFolderDate && trackSections ? (
+      {useStreaming && separateByFolderDate && filteredTracks.length > 0 && trackSections ? (
         <>
           {selectionToolbar ? (
             <div className={`${panelClass} !shadow-none`}>{selectionToolbar}</div>
@@ -1674,7 +1748,7 @@ export function VipMusicTrackList({
         </>
       ) : null}
 
-      {useStreaming && !separateByFolderDate ? (
+      {useStreaming && !separateByFolderDate && filteredTracks.length > 0 ? (
         <div>
           {selectionToolbar}
           {(visibleTrackSections ?? [

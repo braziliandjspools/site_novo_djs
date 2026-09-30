@@ -62,6 +62,8 @@ export type AtualizacoesBrowseNavSidebarProps = {
   monthWeeks?: VipMusicFolder[];
   /** Dias do mês, quando a tabela já juntou as pastas de data. */
   updateDays?: { slug: string; label: string }[];
+  /** Pools de todas as datas da pasta, sem esperar a paginação da tabela. */
+  poolOptions?: { slug: string; name: string }[];
   /** Faixas já carregadas, para filtrar pool e estilo na sidebar. */
   catalogTracks?: { poolName?: string | null; poolFolderId?: string | null; styleName?: string | null }[];
   newChildIds?: Set<string>;
@@ -205,6 +207,7 @@ export function AtualizacoesBrowseNavSidebar({
   packMonths = [],
   monthWeeks = [],
   updateDays = [],
+  poolOptions = [],
   catalogTracks = [],
   newChildIds,
   loading = false,
@@ -304,12 +307,15 @@ export function AtualizacoesBrowseNavSidebar({
   }, [dayFolders, updateDays]);
   const poolFilters = useMemo(() => {
     const pools = new Map<string, string>();
+    for (const option of poolOptions) {
+      if (option.slug && option.name) pools.set(option.slug, option.name);
+    }
     for (const track of catalogTracks) {
       const pool = track.poolName?.trim();
       if (pool && track.poolFolderId) pools.set(slugifyFolderName(pool), pool);
     }
     return [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
-  }, [catalogTracks]);
+  }, [catalogTracks, poolOptions]);
   const styleFilters = useMemo(() => {
     const styles = new Map<string, string>();
     for (const track of catalogTracks) {

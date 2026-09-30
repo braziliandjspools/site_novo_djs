@@ -8,12 +8,14 @@ import { useMusicasToast } from "./MusicasToast";
 type CopyPackLinkButtonProps = {
   slugSegments: string[];
   label?: string;
+  showLabel?: boolean;
   className?: string;
 };
 
 export function CopyPackLinkButton({
   slugSegments,
   label = "Copiar link para o Downloader",
+  showLabel = false,
   className = "",
 }: CopyPackLinkButtonProps) {
   const { showToast } = useMusicasToast();
@@ -55,6 +57,7 @@ export function CopyPackLinkButton({
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
+      {showLabel ? <span className="text-xs font-bold">{label}</span> : null}
     </button>
   );
 }
