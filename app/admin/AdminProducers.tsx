@@ -167,7 +167,7 @@ export function AdminProducers() {
                     spotify: item.spotify ?? "",
                     website: item.website ?? "",
                   })}>Editar</button>
-                  <a className="mr-3 text-xs text-white/70" href={`/produtores/${item.slug}`} target="_blank" rel="noreferrer">Ver página</a>
+                  <a className="mr-3 text-xs text-white/70" href={`/p/${item.slug}`} target="_blank" rel="noreferrer">Ver página</a>
                   <button type="button" className="text-xs text-red-300" onClick={() => void remove(item.id)}>Excluir</button>
                 </td>
               </tr>

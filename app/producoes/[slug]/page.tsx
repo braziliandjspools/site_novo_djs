@@ -49,7 +49,7 @@ export default async function ProducaoPage({ params }: PageProps) {
       <h1 className="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">{production.title}</h1>
       <p className="mt-2 text-sm text-zinc-400">
         {production.producerSlug ? (
-          <Link href={`/produtores/${production.producerSlug}`} className="hover:text-white">{production.producer}</Link>
+          <Link href={`/p/${production.producerSlug}`} className="hover:text-white">{production.producer}</Link>
         ) : production.producer}
         {" · "}{production.versionType}
       </p>
@@ -73,7 +73,7 @@ export default async function ProducaoPage({ params }: PageProps) {
         <section className="mt-10">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-sm font-semibold tracking-[0.16em] text-white/70">MAIS PRODUÇÕES</h2>
-            <Link href={`/produtores/${production.producerSlug}`} className="text-xs text-[#1db954]">Ver perfil</Link>
+            <Link href={`/p/${production.producerSlug}`} className="text-xs text-[#1db954]">Ver perfil</Link>
           </div>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {more.map((item) => (

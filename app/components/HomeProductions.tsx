@@ -123,7 +123,7 @@ function ProductionCard({
         <p className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-zinc-400">
           <span className="truncate">
             {production.producerSlug ? (
-              <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#1ed760]">
+              <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
                 {production.producer}
               </Link>
             ) : (

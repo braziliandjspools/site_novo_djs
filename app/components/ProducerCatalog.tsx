@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,6 @@ import {
   Pause,
   Play,
   Share2,
-  Sparkles,
 } from "lucide-react";
 import type { PublicBrsProduction } from "../lib/brs-productions";
 import { productionDownloadTrack, productionToPreviewTrack } from "../lib/brs-productions";
@@ -71,7 +70,7 @@ function ReleaseCard({
 
   function download() {
     if (!access.authenticated) {
-      router.push(loginHref(`/produtores/${production.producerSlug ?? ""}#lancamentos`));
+      router.push(loginHref(`/p/${production.producerSlug ?? ""}#lancamentos`));
       return;
     }
     if (!access.canDownload) {
@@ -166,7 +165,6 @@ function Catalog({
     canPlay: false,
     canDownload: false,
   });
-  const [copied, setCopied] = useState(false);
   const latest = productions[0];
 
   useEffect(() => {
@@ -183,13 +181,6 @@ function Catalog({
       .catch(() => undefined);
   }, []);
 
-  const years = useMemo(() => {
-    const values = productions
-      .map((item) => new Date(item.publishedAt).getFullYear())
-      .filter((year) => Number.isFinite(year));
-    return values.length ? [...new Set(values)].sort((a, b) => a - b) : [];
-  }, [productions]);
-
   async function shareProfile() {
     const url = typeof window !== "undefined" ? window.location.href : "";
     try {
@@ -202,8 +193,6 @@ function Catalog({
         return;
       }
       await navigator.clipboard.writeText(url);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
     } catch {
       // compartilhamento cancelado
     }
@@ -212,7 +201,7 @@ function Catalog({
   function playLatest() {
     if (!latest) return;
     if (!access.canPlay) {
-      router.push(loginHref(`/produtores/${producer.slug}#lancamentos`));
+      router.push(loginHref(`/p/${producer.slug}#lancamentos`));
       return;
     }
     const tracks = productions.map(productionToPreviewTrack);
@@ -228,123 +217,72 @@ function Catalog({
     void player.toggleTrack(FOLDER_ID, track.id);
   }
 
-  const profilePath = `/produtores/${producer.slug}`;
+  const profilePath = `/p/${producer.slug}`;
+  const initials = producer.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "P";
 
   return (
-    <div className="min-h-screen bg-[#080909] text-white">
-      <div className="mx-auto w-full max-w-7xl px-3 pb-16 pt-4 sm:px-6 lg:px-8">
-        <section className="relative isolate overflow-hidden rounded-[28px] border border-white/10 bg-[#101211] shadow-[0_30px_90px_rgba(0,0,0,0.5)]">
-          {producer.photoUrl ? (
-            <div className="absolute inset-0 -z-20">
-              <Image
-                src={producer.photoUrl}
-                alt=""
-                fill
-                unoptimized
-                sizes="100vw"
-                className="scale-110 object-cover opacity-20 blur-2xl"
-              />
-            </div>
-          ) : null}
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_72%_18%,rgba(30,215,96,0.2),transparent_35%),linear-gradient(110deg,rgba(8,9,9,0.98),rgba(8,9,9,0.82),rgba(8,9,9,0.96))]" />
-
-          <div className="relative flex min-h-[430px] flex-col justify-end p-5 sm:min-h-[480px] sm:p-8 lg:p-12">
-            <div className="flex flex-col gap-7 sm:flex-row sm:items-end">
-              <div className="relative h-36 w-36 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-black shadow-2xl sm:h-48 sm:w-48 lg:h-56 lg:w-56">
-                {producer.photoUrl ? (
-                  <Image
-                    src={producer.photoUrl}
-                    alt={producer.name}
-                    fill
-                    unoptimized
-                    sizes="224px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-[#121514] text-6xl font-black text-[#1ed760]">
-                    {producer.name.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
+    <div className="relative min-h-screen overflow-hidden bg-[#070807] text-white">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+        }}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(29,185,84,0.16),transparent_42%)]" />
+      <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-black/35 px-5 py-8 shadow-[0_30px_90px_rgba(0,0,0,0.45)] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#1ed760]">
+            Perfil público · Produtor
+            <span className="ml-2 rounded-full border border-[#1ed760]/40 px-2 py-0.5 text-[9px] tracking-[0.16em]">Pro</span>
+          </p>
+          <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0 max-w-3xl">
+              <h1 className="font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
+              {producer.bio ? (
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">{producer.bio}</p>
+              ) : (
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Catálogo oficial de produções no Brazilian Remix Service.</p>
+              )}
+              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-400">
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#1db954]" />
+                  {total} {total === 1 ? "faixa publicada" : "faixas publicadas"}
+                </span>
+                <span>{producer.place || "Catálogo BRS"}</span>
               </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-black">
-                    <Sparkles className="h-3 w-3" />
-                    Produtor BRS
-                  </span>
-                  {producer.place ? (
-                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55">
-                      {producer.place}
-                    </span>
-                  ) : null}
-                </div>
-
-                <h1 className="mt-3 max-w-4xl font-display text-4xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">
-                  {producer.name}
-                </h1>
-                {producer.fullName ? (
-                  <p className="mt-1 text-sm text-white/45 sm:text-base">{producer.fullName}</p>
-                ) : null}
-
-                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/60">
-                  <span><strong className="text-white">{total}</strong> {total === 1 ? "lançamento" : "lançamentos"}</span>
-                  {years.length ? (
-                    <span><strong className="text-white">{years[0]}{years.length > 1 ? `–${years[years.length - 1]}` : ""}</strong> no catálogo</span>
-                  ) : null}
-                  <span><strong className="text-white">BRS</strong> catálogo oficial</span>
-                </div>
-
-                {producer.bio ? (
-                  <p className="mt-5 max-w-3xl text-sm leading-7 text-white/55 sm:text-base">
-                    {producer.bio}
-                  </p>
-                ) : null}
-
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {latest ? (
-                    <button
-                      type="button"
-                      onClick={playLatest}
-                      className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1ed760] px-5 text-sm font-black text-black transition hover:brightness-110"
-                    >
-                      <Play className="h-4 w-4" fill="currentColor" />
-                      {access.canPlay ? "Ouvir lançamentos" : "Entrar para ouvir"}
-                    </button>
-                  ) : null}
-                  <a
-                    href="#lancamentos"
-                    className="inline-flex h-11 items-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-sm font-bold text-white transition hover:bg-white/[0.08]"
-                  >
-                    Ver catálogo
-                  </a>
-                  <button
-                    type="button"
-                    onClick={shareProfile}
-                    className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm font-bold text-white/70 transition hover:text-white"
-                  >
-                    <Share2 className="h-4 w-4" />
-                    {copied ? "Link copiado" : "Compartilhar"}
+              <div className="mt-6 flex flex-wrap items-center gap-2">
+                {latest ? (
+                  <button type="button" onClick={playLatest} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1db954] px-5 text-sm font-bold text-black">
+                    <Play className="h-4 w-4" fill="currentColor" />
+                    Ouvir lançamento mais recente
                   </button>
-                </div>
-
-                {producer.links.length > 0 ? (
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    {producer.links.map((link) => (
-                      <a
-                        key={link.href}
-                        href={link.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/45 transition hover:text-[#1ed760]"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        {link.label}
-                      </a>
-                    ))}
-                  </div>
+                ) : null}
+                <a href="#lancamentos" className="inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white">
+                  Ver lançamentos
+                </a>
+                <button type="button" onClick={() => void shareProfile()} aria-label="Compartilhar perfil" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
+                  <Share2 className="h-4 w-4" />
+                </button>
+                {producer.links[0] ? (
+                  <a href={producer.links[0].href} target="_blank" rel="noreferrer" aria-label={producer.links[0].label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
                 ) : null}
               </div>
+            </div>
+            <div className="relative mx-auto h-36 w-36 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#102216] shadow-[0_0_80px_rgba(29,185,84,0.18)] sm:h-44 sm:w-44 lg:mx-0">
+              {producer.photoUrl ? (
+                <Image src={producer.photoUrl} alt="" fill unoptimized className="object-cover" sizes="176px" />
+              ) : (
+                <span className="flex h-full items-center justify-center text-4xl font-semibold tracking-tight text-[#9ef7c0]">{initials}</span>
+              )}
             </div>
           </div>
         </section>
@@ -352,8 +290,8 @@ function Catalog({
         <section id="lancamentos" className="scroll-mt-24 pt-12 sm:pt-16">
           <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1ed760]">Discografia</p>
-              <h2 className="mt-2 font-display text-3xl font-black tracking-tight sm:text-4xl">Últimos lançamentos</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1ed760]">Catálogo público</p>
+              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Lançamentos</h2>
               <p className="mt-1 text-sm text-zinc-500">Produções de {producer.name} disponíveis no catálogo BRS.</p>
             </div>
             {latest ? (
