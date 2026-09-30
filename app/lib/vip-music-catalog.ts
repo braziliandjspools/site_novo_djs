@@ -12,6 +12,7 @@ import {
   parseMonthFolderDate,
   parseUpdateDateFolder,
   slugifyFolderName,
+  slugifyStyleName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
 import { isDriveAudioFile, pickCoverFromChildren } from "./folder-cover";
@@ -41,6 +42,11 @@ export type VipMusicCatalogItem = VipMusicFolder & {
   modifiedAt?: string | null;
 };
 
+export type CatalogFilterOption = {
+  slug: string;
+  name: string;
+};
+
 export type VipMusicCatalogResponse = {
   configured: boolean;
   rootFolderId: string;
@@ -51,6 +57,10 @@ export type VipMusicCatalogResponse = {
   items: VipMusicCatalogItem[];
   tracks: PreviewTrack[];
   coverUrl?: string | null;
+  /** Todos os pools da pasta, independente da página de faixas carregada. */
+  filterPools?: CatalogFilterOption[];
+  /** Todos os estilos da pasta, independente da página de faixas carregada. */
+  filterStyles?: CatalogFilterOption[];
 };
 
 type DriveChild = {
@@ -66,6 +76,61 @@ function parseDriveSizeBytes(size?: string | number | null): number | null {
   if (size == null || size === "") return null;
   const n = typeof size === "number" ? size : Number(size);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function rememberFilterOption(
+  options: Map<string, string>,
+  name: string,
+  slugify: (value: string) => string,
+) {
+  const label = displayFolderName(name);
+  const slug = slugify(label);
+  if (!label || !slug) return;
+  options.set(slug, label);
+}
+
+function sortedFilterOptions(options: Map<string, string>): CatalogFilterOption[] {
+  return [...options.entries()]
+    .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"))
+    .map(([slug, name]) => ({ slug, name }));
+}
+
+/** Lista pools e estilos da árvore sem baixar as faixas. */
+async function listCatalogFilterOptions(folderId: string): Promise<{
+  pools: CatalogFilterOption[];
+  styles: CatalogFilterOption[];
+}> {
+  const pools = new Map<string, string>();
+  const styles = new Map<string, string>();
+  const top = (await listDriveFolderChildren(folderId)).filter((item) => item.mimeType === FOLDER_MIME);
+  const dates = top.filter((folder) => parseUpdateDateFolder(folder.name));
+  const poolFolders = dates.length
+    ? (
+        await mapPool(dates, TRACK_WALK_CONCURRENCY, async (date) =>
+          (await listDriveFolderChildren(date.id)).filter((item) => item.mimeType === FOLDER_MIME),
+        )
+      ).flat()
+    : top;
+
+  await mapPool(poolFolders, TRACK_WALK_CONCURRENCY, async (folder) => {
+    const children = await listDriveFolderChildren(folder.id);
+    const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+    if (subfolders.length > 0) {
+      rememberFilterOption(pools, folder.name, slugifyFolderName);
+      for (const style of subfolders) {
+        rememberFilterOption(styles, style.name, slugifyStyleName);
+      }
+      return;
+    }
+    if (children.some((item) => isDriveAudioFile(item))) {
+      rememberFilterOption(styles, folder.name, slugifyStyleName);
+    }
+  });
+
+  return {
+    pools: sortedFilterOptions(pools),
+    styles: sortedFilterOptions(styles),
+  };
 }
 
 export function getVipMusicRootFolderId() {
@@ -866,7 +931,14 @@ export async function getVipMusicCatalog(
   const resolvedName = folderName?.trim() || (targetId === rootId ? "2026" : "Pasta");
 
   try {
-    return await getDriveCatalog(targetId, resolvedName, trackOffset, trackLimit);
+    const catalog = await getDriveCatalog(targetId, resolvedName, trackOffset, trackLimit);
+    if (trackOffset > 0 || catalog.level !== "tracks") return catalog;
+    try {
+      const filters = await listCatalogFilterOptions(targetId);
+      return { ...catalog, filterPools: filters.pools, filterStyles: filters.styles };
+    } catch {
+      return catalog;
+    }
   } catch {
     return {
       configured: true,

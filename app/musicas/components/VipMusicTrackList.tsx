@@ -89,6 +89,10 @@ type VipMusicTrackListProps = {
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
   /** Mostra acesso ao Drive somente nas pastas finais/estilos. */
   showDriveButton?: boolean;
+  /** Pools da pasta inteira, mesmo os que ainda não têm faixa carregada. */
+  filterPools?: { slug: string; name: string }[];
+  /** Estilos da pasta inteira, mesmo os que ainda não têm faixa carregada. */
+  filterStyles?: { slug: string; name: string }[];
 };
 
 const STREAM_DESKTOP_GRID = "tablemusic-grid";
@@ -1010,6 +1014,8 @@ export function VipMusicTrackList({
   hasMore = false,
   onLoadMore,
   showDriveButton = false,
+  filterPools,
+  filterStyles,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -1057,6 +1063,12 @@ export function VipMusicTrackList({
     const pools = new Map<string, string>();
     const styles = new Map<string, string>();
 
+    for (const option of filterPools ?? []) {
+      if (option.slug && option.name) pools.set(option.slug, option.name);
+    }
+    for (const option of filterStyles ?? []) {
+      if (option.slug && option.name) styles.set(option.slug, option.name);
+    }
     for (const track of tracks) {
       const pool = track.poolName?.trim();
       const style = track.styleName?.trim();
@@ -1072,7 +1084,7 @@ export function VipMusicTrackList({
       pools: [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
       styles: [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
     };
-  }, [tracks]);
+  }, [filterPools, filterStyles, tracks]);
 
   // Os dois filtros atuam somente sobre as faixas já carregadas na tabela.
   // Não há redirecionamento: Pool + Estilo podem ser combinados.
@@ -1517,7 +1529,7 @@ export function VipMusicTrackList({
             setPoolFilterSlug("");
             setStyleFilterSlug("");
           }}
-          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
+          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug && !styleFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
         >
           Todos
         </button>

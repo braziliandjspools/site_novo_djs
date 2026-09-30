@@ -60,6 +60,8 @@ type ResolveResponse = {
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
   tracksHasMore?: boolean;
+  filterPools?: { slug: string; name: string }[];
+  filterStyles?: { slug: string; name: string }[];
   coverUrl?: string | null;
   canPlay: boolean;
   canDownload?: boolean;
@@ -767,6 +769,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 relativePath={relativeStyleBase}
                 coverUrl={data.coverUrl}
                 layout="table"
+                filterPools={data.filterPools}
+                filterStyles={data.filterStyles}
                 continueContext={
                   monthSlug
                     ? {
@@ -881,6 +885,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 highlightTrackId={faixaId ?? undefined}
                 autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
                 layout="table"
+                filterPools={data.filterPools}
+                filterStyles={data.filterStyles}
                 continueContext={
                   monthSlug
                     ? {
