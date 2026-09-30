@@ -3,11 +3,14 @@
  * O restante do acervo continua no Google Drive.
  *
  * SEND_NOW_API_KEY — chave da conta (parâmetro `key`)
- * SEND_NOW_FOLDER_ID — `fld_id` numérico da pasta
- * SEND_NOW_FOLDER_NAME — nome opcional no site (padrão SEND.NOW)
+ * SEND_NOW_FOLDER_ID — `fld_id` numérico; se vazio, usa a pasta
+ *   https://send.now/s/A1ML/ATUALIZAÇOES (fld_id 468669)
+ * SEND_NOW_FOLDER_NAME — nome opcional no site
  */
 
 const API_BASE = "https://send.now/api";
+const DEFAULT_FOLDER_ID = "468669";
+const DEFAULT_FOLDER_NAME = "ATUALIZAÇOES";
 export const SEND_NOW_FILE_PREFIX = "sn-";
 export const SEND_NOW_FOLDER_PREFIX = "sendnow-";
 
@@ -45,11 +48,12 @@ export function sendNowApiKey() {
 }
 
 export function sendNowFolderId() {
-  return process.env.SEND_NOW_FOLDER_ID?.trim() || "";
+  const configured = process.env.SEND_NOW_FOLDER_ID?.trim() || "";
+  return /^\d+$/.test(configured) ? configured : DEFAULT_FOLDER_ID;
 }
 
 export function isSendNowConfigured() {
-  return Boolean(sendNowApiKey() && /^\d+$/.test(sendNowFolderId()));
+  return Boolean(sendNowApiKey());
 }
 
 export function sendNowFolderStorageId(fldId = sendNowFolderId()) {
@@ -77,7 +81,7 @@ export function sendNowFileCode(fileId: string) {
 }
 
 export function sendNowFolderLabel() {
-  return process.env.SEND_NOW_FOLDER_NAME?.trim() || "SEND.NOW";
+  return process.env.SEND_NOW_FOLDER_NAME?.trim() || DEFAULT_FOLDER_NAME;
 }
 
 function apiUrl(path: string, params: Record<string, string>) {
