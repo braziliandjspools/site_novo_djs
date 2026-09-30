@@ -18,6 +18,15 @@ import {
 import { isDriveAudioFile, pickCoverFromChildren } from "./folder-cover";
 import { resolveFolderCoverUrl } from "./local-folder-covers";
 import { mapPool } from "./map-pool";
+import {
+  isSendNowConfigured,
+  isSendNowFolderStorageId,
+  listSendNowFolder,
+  sendNowFileStorageId,
+  sendNowFldIdFromStorageId,
+  sendNowFolderLabel,
+  sendNowFolderStorageId,
+} from "./send-now";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
@@ -228,6 +237,16 @@ function isUpdatesWrapperFolder(name: string): boolean {
 }
 
 export async function listVipMusicFolders(parentFolderId?: string): Promise<VipMusicFolder[]> {
+  if (parentFolderId && isSendNowFolderStorageId(parentFolderId)) {
+    if (!isSendNowConfigured()) return [];
+    const listed = await listSendNowFolder(sendNowFldIdFromStorageId(parentFolderId));
+    return listed.folders.map((folder) => ({
+      id: sendNowFolderStorageId(String(folder.fld_id)),
+      name: folder.name ?? "Pasta",
+      isNew: false,
+    }));
+  }
+
   const rootId = getVipMusicRootFolderId();
   if (!rootId) return [];
 
@@ -248,7 +267,7 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
     subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   }
 
-  return sortVipChildFolders(
+  const folders = sortVipChildFolders(
     subfolders.map((folder) => ({
       id: folder.id,
       name: folder.name,
@@ -256,6 +275,15 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
       modifiedAt: folder.modifiedTime ?? folder.createdTime ?? null,
     })),
   );
+  if ((!parentFolderId || parentFolderId === "root" || parentFolderId === rootId) && isSendNowConfigured()) {
+    folders.push({
+      id: sendNowFolderStorageId(),
+      name: sendNowFolderLabel(),
+      isNew: true,
+      modifiedAt: null,
+    });
+  }
+  return folders;
 }
 
 /** Pastas da raiz/pai com contagens para navegação de biblioteca. */
@@ -368,6 +396,14 @@ async function getFolderNavStats(
   coverUrl: string | null;
 }> {
   try {
+    if (isSendNowFolderStorageId(folderId)) {
+      const listed = await listSendNowFolder(sendNowFldIdFromStorageId(folderId));
+      return {
+        folderCount: listed.folders.length,
+        trackCount: listed.files.length,
+        coverUrl: null,
+      };
+    }
     const children = await listDriveFolderChildren(folderId);
     const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
     const tracks = children.filter((item) => isDriveAudioFile(item));
@@ -905,6 +941,57 @@ async function getDriveCatalog(
   };
 }
 
+async function getSendNowCatalog(
+  folderStorageId: string,
+  folderName: string,
+  trackOffset = 0,
+  trackLimit?: number,
+): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
+  const rootId = getVipMusicRootFolderId();
+  const fldId = sendNowFldIdFromStorageId(folderStorageId);
+  const listed = await listSendNowFolder(fldId);
+  const items: VipMusicCatalogItem[] = listed.folders.map((folder) => ({
+    id: sendNowFolderStorageId(String(folder.fld_id)),
+    name: folder.name ?? "Pasta",
+    type: "folder",
+    isNew: false,
+  }));
+  const allTracks: PreviewTrack[] = listed.files.map((file) => {
+    const fileName = file.name ?? "faixa.mp3";
+    const meta = parseTrackMeta(fileName);
+    const uploaded = file.uploaded?.trim();
+    const modifiedAt = uploaded ? uploaded.replace(" ", "T") + "Z" : null;
+    const size = file.size == null || file.size === "" ? null : Number(file.size);
+    return {
+      id: sendNowFileStorageId(file.file_code!),
+      pack: folderName,
+      fileName,
+      ...meta,
+      title: meta.title || fileName,
+      modifiedAt,
+      sizeBytes: Number.isFinite(size) && size && size > 0 ? size : null,
+    };
+  });
+  const limit = trackLimit == null ? allTracks.length : Math.max(1, Math.min(trackLimit, 100));
+  const offset = Math.max(0, trackOffset);
+  const tracks = allTracks.slice(offset, offset + limit);
+  const hasFolders = items.length > 0;
+  const level = hasFolders ? "folders" : "tracks";
+
+  return {
+    configured: true,
+    rootFolderId: rootId,
+    rootFolderName: "2026",
+    folderId: folderStorageId,
+    folderName,
+    level,
+    items: hasFolders ? items : [],
+    tracks,
+    tracksHasMore: offset + tracks.length < allTracks.length,
+    coverUrl: null,
+  };
+}
+
 export async function getVipMusicCatalog(
   folderId?: string,
   folderName?: string,
@@ -929,6 +1016,10 @@ export async function getVipMusicCatalog(
 
   const targetId = folderId && folderId !== "root" ? folderId : rootId;
   const resolvedName = folderName?.trim() || (targetId === rootId ? "2026" : "Pasta");
+
+  if (isSendNowFolderStorageId(targetId)) {
+    return getSendNowCatalog(targetId, resolvedName, trackOffset, trackLimit);
+  }
 
   try {
     const catalog = await getDriveCatalog(targetId, resolvedName, trackOffset, trackLimit);

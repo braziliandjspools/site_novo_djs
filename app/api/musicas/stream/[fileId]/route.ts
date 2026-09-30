@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../../../lib/drive-audio-stream";
 import { resolveVipMusicStreamAccess } from "../../../../lib/vip-music-access";
+import { getSendNowDirectUrl, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
 
 export const dynamic = "force-dynamic";
 /** Streams longos no Dokploy/Node (faixas VIP). */
@@ -19,6 +20,15 @@ export async function GET(request: Request, context: RouteContext) {
   const fileId = (await context.params).fileId;
   if (!fileId || !/^[a-zA-Z0-9_-]+$/.test(fileId)) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
+
+  if (isSendNowFileId(fileId)) {
+    try {
+      return NextResponse.redirect(await getSendNowDirectUrl(sendNowFileCode(fileId)), 302);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha no send.now.";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
   }
 
   try {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAudioSourceUrl } from "../../../../../lib/google-drive";
 import { getDriveUserContentDownloadUrl } from "../../../../../lib/drive-audio-stream";
 import { requireVipMusicAccess } from "../../../../../lib/vip-music-access";
+import { getSendNowDirectUrl, isSendNowFileId, sendNowFileCode } from "../../../../../lib/send-now";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,16 @@ export async function GET(request: Request, context: RouteContext) {
   const fileId = (await context.params).fileId;
   if (!fileId || !/^[a-zA-Z0-9_-]+$/.test(fileId)) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+  }
+
+  if (isSendNowFileId(fileId)) {
+    try {
+      const url = await getSendNowDirectUrl(sendNowFileCode(fileId));
+      return NextResponse.json({ ok: true, url });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha no send.now.";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
   }
 
   const url = isDownloader
