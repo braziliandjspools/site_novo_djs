@@ -495,21 +495,44 @@ async function getDriveCatalog(
     });
 
   if (monthFolder && dateFoldersAtMonth.length > 0) {
-    const dateTracks = await mapPool(dateFoldersAtMonth, 6, async (dateFolder) => {
+    // O mês é uma tabela contínua: as pastas 29-SET, 28-SET, 27-SET...
+    // fornecem apenas a data de cada faixa. Nunca carregamos o mês inteiro
+    // de uma vez; a API devolve lotes pequenos para o infinite scroll.
+    const requestedLimit = Math.max(1, Math.min(trackLimit ?? 50, 50));
+    const state: TrackPageState = {
+      skip: Math.max(0, trackOffset),
+      limit: requestedLimit + 1,
+      skipped: 0,
+      collected: 0,
+      hasMore: false,
+    };
+    const datedTracks: PreviewTrack[] = [];
+
+    for (const dateFolder of dateFoldersAtMonth) {
+      if (datedTracks.length >= state.limit) break;
       const parsed = parseUpdateDateFolder(dateFolder.name);
-      if (!parsed) return [];
-      return collectTracksDeep(
-        dateFolder.id,
-        dateFolder.name,
-        0,
-        new Set<string>(),
-        parsed.key,
-        null,
-        null,
-        true,
-      );
-    });
-    const tracks = dateTracks.flat().sort(sortTracksByUploadThenTitle);
+      if (!parsed) continue;
+      try {
+        const nested = await collectTracksPageDeep(
+          dateFolder.id,
+          dateFolder.name,
+          state,
+          0,
+          new Set<string>(),
+          parsed.key,
+          null,
+          null,
+          true,
+        );
+        datedTracks.push(...nested);
+      } catch {
+        // Uma data com falha não impede as demais datas do mês de carregar.
+      }
+    }
+
+    const tracks = datedTracks
+      .sort(sortTracksByUploadThenTitle)
+      .slice(0, requestedLimit);
 
     return {
       configured: true,
@@ -520,6 +543,7 @@ async function getDriveCatalog(
       level: "tracks",
       items: [],
       tracks,
+      tracksHasMore: state.hasMore || datedTracks.length > requestedLimit,
       coverUrl,
     };
   }
