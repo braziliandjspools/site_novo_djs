@@ -511,3 +511,61 @@ model MusicGenerationUsage {
   @@index([songId])
   @@map("music_generation_usages")
 }
+
+/** Produtor das produções BRS. Separado do catálogo de Atualizações. */
+model BrsProducer {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  fullName    String?         @map("full_name")
+  bio         String?         @db.Text
+  photoFileId String?         @map("photo_file_id")
+  city        String?
+  country     String?
+  instagram   String?
+  facebook    String?
+  youtube     String?
+  soundcloud  String?
+  spotify     String?
+  website     String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  productions BrsProduction[]
+
+  @@map("brs_producers")
+}
+
+/** Produções próprias do BRS e de DJs parceiros. Separado do acervo de Atualizações. */
+model BrsProduction {
+  id             String       @id @default(cuid())
+  slug           String       @unique
+  title          String
+  artist         String
+  producer       String
+  producerId     String?      @map("producer_id")
+  producerRef    BrsProducer? @relation(fields: [producerId], references: [id], onDelete: Restrict)
+  versionType    String       @map("version_type")
+  versionLabel   String?      @map("version_label")
+  category       String       @default("BRS_ORIGINAL")
+  genre          String?
+  duration       String?
+  bpm            String?
+  format         String?
+  bitrate        String?
+  coverUrl       String?      @map("cover_url")
+  coverFileId    String?      @map("cover_file_id")
+  audioFileId    String       @map("audio_file_id")
+  downloadFileId String?      @map("download_file_id")
+  fileName       String       @map("file_name")
+  description    String?      @db.Text
+  publishedAt    DateTime     @map("published_at")
+  isPublished    Boolean      @default(false) @map("is_published")
+  isFeatured     Boolean      @default(false) @map("is_featured")
+  isNew          Boolean      @default(false) @map("is_new")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@index([isPublished, publishedAt])
+  @@index([producerId, publishedAt])
+  @@map("brs_productions")
+}

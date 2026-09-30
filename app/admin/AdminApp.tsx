@@ -74,8 +74,14 @@ export function AdminApp() {
 
       <div className="border-t border-white/10 pt-4">
         <Link
+          href="/admin/producoes"
+          className="mr-3 inline-flex min-h-10 items-center rounded-lg border border-white/15 px-4 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/5"
+        >
+          Produções BRS
+        </Link>
+        <Link
           href="/admin/scripts"
-          className="inline-flex min-h-10 items-center rounded-lg border border-[#1ed760]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#1ed760] transition hover:bg-[#1ed760]/10"
+          className="inline-flex min-h-10 items-center rounded-lg border border-[#ff2ea6]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#ff2ea6] transition hover:bg-[#ff2ea6]/10"
         >
           Gerenciar scripts do portal
         </Link>

@@ -11,7 +11,6 @@ import {
   Layers,
   ListMusic,
   Monitor,
-  Music2,
   RefreshCw,
   Smartphone,
   Sparkles,
@@ -21,6 +20,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Hero } from "./components/Hero";
+import { HomeProductions } from "./components/HomeProductions";
+import { listPublishedProductions } from "./lib/brs-productions";
 import { HomeLatestPacks } from "./components/HomeLatestPacks";
 import { IconBox } from "./components/IconBox";
 import { SectionHeading } from "./components/SectionHeading";
@@ -165,6 +166,7 @@ export default async function Home() {
   // The database and catalog services are available in the running app, not the build container.
   await connection();
   const topDownloads = await getMostDownloadedTracks(12).catch(() => []);
+  const productions = await listPublishedProductions(12).catch(() => []);
   const downloaderRelease = getDownloaderReleaseManifest();
   const downloaderUrl =
     downloaderRelease?.downloadUrl ??
@@ -195,6 +197,8 @@ export default async function Home() {
         </div>
       </section>
 
+      <HomeProductions productions={productions} />
+
       <section id="pools" className="px-4 pb-12 pt-4 br-pattern sm:px-6 md:pb-20">
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto grid max-w-md gap-4 sm:max-w-none sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
@@ -211,12 +215,12 @@ export default async function Home() {
       <section id="curadoria" className="border-y border-white/5 site-section-blue py-12 md:py-20">
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-10 xl:px-16">
           <div className="mb-2 flex items-center justify-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#009739]/40 bg-[#009739]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#00B347]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#c2186a]/40 bg-[#c2186a]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#00B347]">
               Curadoria
             </span>
           </div>
           <div className="mb-5 flex justify-center gap-1">
-            <span className="h-1 w-8 rounded-full bg-[#009739]" />
+            <span className="h-1 w-8 rounded-full bg-[#c2186a]" />
             <span className="h-1 w-8 rounded-full bg-[#FFDF00]" />
             <span className="h-1 w-8 rounded-full bg-[#002776]" />
           </div>
@@ -286,7 +290,7 @@ export default async function Home() {
                 <div
                   className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl ${
                     method.accent === "green"
-                      ? "bg-[#009739]/15 text-[#00B347]"
+                      ? "bg-[#c2186a]/15 text-[#00B347]"
                       : "bg-[#FFDF00]/15 text-[#FFDF00]"
                   }`}
                 >
@@ -299,7 +303,7 @@ export default async function Home() {
                     href={method.href}
                     className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all ${
                       method.accent === "green"
-                        ? "bg-[#009739] text-white hover:bg-[#00B347]"
+                        ? "bg-[#c2186a] text-white hover:bg-[#00B347]"
                         : "border border-[#FFDF00]/50 text-[#FFDF00] hover:bg-[#FFDF00]/10"
                     }`}
                   >
@@ -310,7 +314,7 @@ export default async function Home() {
                     href={method.href}
                     className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all ${
                       method.accent === "green"
-                        ? "bg-[#009739] text-white hover:bg-[#00B347]"
+                        ? "bg-[#c2186a] text-white hover:bg-[#00B347]"
                         : "border border-[#FFDF00]/50 text-[#FFDF00] hover:bg-[#FFDF00]/10"
                     }`}
                   >
@@ -590,7 +594,7 @@ export default async function Home() {
           />
           <div className="mt-12 space-y-3">
             {SITE_FAQS.map((faq) => (
-              <details key={faq.q} className="group rounded-xl border border-white/10 bg-[#282828] p-4 open:border-[#009739]/50">
+              <details key={faq.q} className="group rounded-xl border border-white/10 bg-[#282828] p-4 open:border-[#c2186a]/50">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
                   {faq.q}
                   <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform group-open:rotate-180" />

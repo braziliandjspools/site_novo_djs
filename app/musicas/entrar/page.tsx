@@ -11,6 +11,7 @@ function getSafeReturnPath(value: string | null) {
   if (value.startsWith("/musicas") || value === "/plans" || value.startsWith("/plans?")) {
     return value;
   }
+  if (value === "/" || value.startsWith("/producoes/") || value === "/producoes") return value;
   if (value.startsWith("/checkout/")) return value;
   return "/musicas";
 }
@@ -25,7 +26,7 @@ function MusicasEntrarContent() {
     <div className="relative min-h-screen bg-[#0a0a0a]">
       <Link
         href="/musicas"
-        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-semibold text-zinc-300 backdrop-blur-md transition-colors hover:border-[#1ed760]/40 hover:text-[#1ed760] sm:left-6 sm:top-6"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-semibold text-zinc-300 backdrop-blur-md transition-colors hover:border-[#ff2ea6]/40 hover:text-[#ff2ea6] sm:left-6 sm:top-6"
       >
         <ArrowLeft className="h-4 w-4" />
         Voltar ao catálogo
@@ -50,7 +51,7 @@ export default function MusicasEntrarPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1ed760]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#ff2ea6]" />
         </div>
       }
     >
