@@ -31,6 +31,7 @@ export async function POST(request: Request) {
     url?: unknown;
     targetDeviceId?: unknown;
     root?: unknown;
+    kind?: unknown;
     offset?: unknown;
     limit?: unknown;
   };
