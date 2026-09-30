@@ -16,6 +16,7 @@ import { ensureAudioExtension, type PreviewTrack } from "./google-drive";
 import { createDownloadJobsBatch, type DownloadJobInput } from "./downloader";
 import { withForcedFolderTree } from "./force-folder-tree";
 import { parsePackDownloadInput } from "./pack-download-link";
+import { isDriveAudioFile } from "./folder-cover";
 import { mapPool } from "./map-pool";
 import { findTracksByArtistSlug } from "./vip-artist-tracks";
 
@@ -278,17 +279,21 @@ export type PackDateOption = {
 export type PackStyleOption = {
   folderId: string;
   name: string;
+  trackCount: number;
 };
 
 export type PackPoolOption = {
   folderId: string;
   name: string;
+  trackCount: number;
   styles: PackStyleOption[];
 };
 
 export type PackDayContents = {
   pools: PackPoolOption[];
   styles: PackStyleOption[];
+  poolCount: number;
+  trackCount: number;
 };
 
 const DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
@@ -309,32 +314,49 @@ export async function listPackDates(folderId: string, folderName: string): Promi
     .sort((a, b) => b.key.localeCompare(a.key));
 }
 
+async function countAudioInFolder(folderId: string): Promise<number> {
+  const children = await listDriveFolderChildren(folderId);
+  return children.filter((child) => isDriveAudioFile(child)).length;
+}
+
 export async function listPackDayContents(dateFolderId: string): Promise<PackDayContents> {
   const children = await listDriveFolderChildren(dateFolderId);
   const folders = children.filter((child) => child.mimeType === DRIVE_FOLDER_MIME);
   const pools: PackPoolOption[] = [];
   const styles: PackStyleOption[] = [];
 
-  const details = await mapPool(folders, 6, async (folder) => {
+  await mapPool(folders, 6, async (folder) => {
     const nested = await listDriveFolderChildren(folder.id);
     const subfolders = nested.filter((child) => child.mimeType === DRIVE_FOLDER_MIME);
+    const directTracks = nested.filter((child) => isDriveAudioFile(child)).length;
     if (subfolders.length > 0) {
+      const styleOptions = await mapPool(subfolders, 4, async (style) => ({
+        folderId: style.id,
+        name: displayFolderName(style.name),
+        trackCount: await countAudioInFolder(style.id),
+      }));
+      styleOptions.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
       pools.push({
         folderId: folder.id,
         name: displayFolderName(folder.name),
-        styles: subfolders
-          .map((style) => ({ folderId: style.id, name: displayFolderName(style.name) }))
-          .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+        trackCount: directTracks + styleOptions.reduce((sum, style) => sum + style.trackCount, 0),
+        styles: styleOptions,
       });
       return;
     }
-    styles.push({ folderId: folder.id, name: displayFolderName(folder.name) });
+    styles.push({
+      folderId: folder.id,
+      name: displayFolderName(folder.name),
+      trackCount: directTracks,
+    });
   });
-  void details;
 
   pools.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   styles.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-  return { pools, styles };
+  const trackCount =
+    pools.reduce((sum, pool) => sum + pool.trackCount, 0) +
+    styles.reduce((sum, style) => sum + style.trackCount, 0);
+  return { pools, styles, poolCount: pools.length, trackCount };
 }
 
 /** Prévia de perfil de artista (`/musicas/artistas/[slug]`). */

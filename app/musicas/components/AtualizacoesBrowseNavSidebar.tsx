@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -19,7 +20,9 @@ import {
   displayFolderName,
   folderHref,
   isMonthFolderName,
+  isUpdateDateFolderName,
   isWeekFolderName,
+  parseUpdateDateFolder,
   slugifyFolderName,
   slugifyStyleName,
   sortFoldersByMonthDate,
@@ -56,6 +59,10 @@ export type AtualizacoesBrowseNavSidebarProps = {
   packMonths?: VipMusicFolder[];
   /** Semanas do mês atual. */
   monthWeeks?: VipMusicFolder[];
+  /** Dias do mês, quando a tabela já juntou as pastas de data. */
+  updateDays?: { slug: string; label: string }[];
+  /** Faixas já carregadas, para filtrar pool e estilo na sidebar. */
+  catalogTracks?: { poolName?: string | null; poolFolderId?: string | null; styleName?: string | null }[];
   newChildIds?: Set<string>;
   loading?: boolean;
 };
@@ -196,9 +203,15 @@ export function AtualizacoesBrowseNavSidebar({
   siblings = [],
   packMonths = [],
   monthWeeks = [],
+  updateDays = [],
+  catalogTracks = [],
   newChildIds,
   loading = false,
 }: AtualizacoesBrowseNavSidebarProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activePool = searchParams.get("pool") ?? "";
+  const activeStyle = searchParams.get("estilo") ?? "";
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recentFolders, setRecentFolders] = useState<RecentFolder[]>([]);
 
@@ -269,6 +282,61 @@ export function AtualizacoesBrowseNavSidebar({
     );
   }, [currentChildren, siblings]);
 
+  const dayFolders = useMemo(
+    () => styleFolders.filter((folder) => isUpdateDateFolderName(folder.name)),
+    [styleFolders],
+  );
+  const styleOnlyFolders = useMemo(
+    () => styleFolders.filter((folder) => !isUpdateDateFolderName(folder.name)),
+    [styleFolders],
+  );
+  const days = useMemo(() => {
+    if (updateDays.length > 0) return updateDays;
+    return dayFolders
+      .map((folder) => {
+        const parsed = parseUpdateDateFolder(folder.name);
+        return parsed
+          ? { slug: slugifyFolderName(folder.name), label: parsed.label }
+          : null;
+      })
+      .filter((day): day is { slug: string; label: string } => Boolean(day));
+  }, [dayFolders, updateDays]);
+  const poolFilters = useMemo(() => {
+    const pools = new Map<string, string>();
+    for (const track of catalogTracks) {
+      const pool = track.poolName?.trim();
+      if (pool && track.poolFolderId) pools.set(slugifyFolderName(pool), pool);
+    }
+    return [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  }, [catalogTracks]);
+  const styleFilters = useMemo(() => {
+    const styles = new Map<string, string>();
+    for (const track of catalogTracks) {
+      const style = track.styleName?.trim();
+      if (!style) continue;
+      const poolSlug = track.poolName?.trim() && track.poolFolderId ? slugifyFolderName(track.poolName) : "";
+      if (activePool && poolSlug !== activePool) continue;
+      styles.set(slugifyStyleName(style), style);
+    }
+    return [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  }, [activePool, catalogTracks]);
+
+  function filterHref(pool: string, style: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (pool) params.set("pool", pool);
+    else params.delete("pool");
+    if (style) params.set("estilo", style);
+    else params.delete("estilo");
+    const qs = params.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  }
+
+  function dayHref(slug: string) {
+    const currentName = resolvedPath[resolvedPath.length - 1]?.name ?? "";
+    const base = isUpdateDateFolderName(currentName) ? slugSegments.slice(0, -1) : slugSegments;
+    return folderHref([...base, slug]);
+  }
+
   const continueDisplay = continueItem ? getTrackDisplayMetadata(continueItem) : null;
   const currentTitle =
     resolvedPath[resolvedPath.length - 1]?.name ??
@@ -292,7 +360,7 @@ export function AtualizacoesBrowseNavSidebar({
           {displayFolderName(currentTitle)}
         </h2>
         <p className="mt-1 text-[11px] leading-relaxed text-white/50">
-          Pack → Mês → Estilo → Músicas. Atualizam após sincronizar.
+          Pack → Mês → Dia → Músicas. O dia vira link.
         </p>
         <Link
           href="/musicas/atualizacoes"
@@ -404,55 +472,99 @@ export function AtualizacoesBrowseNavSidebar({
           </SidebarSection>
         ) : null}
 
-        {(monthSlug || styleFolders.length > 0) && packSlug ? (
-          <SidebarSection title="Estilos" icon={FolderOpen} count={styleFolders.length} defaultOpen>
-            {styleFolders.length > 0 ? (
-              styleFolders.map((folder) => {
-                const slug = slugifyStyleName(folder.name);
-                const hrefSegments =
-                  weekSlug && monthSlug && weeks.length > 0
-                    ? [packSlug, monthSlug, weekSlug, slug]
-                    : monthSlug
-                      ? [packSlug, monthSlug, slug]
-                      : [packSlug, slug];
-                const styleSlugPath = hrefSegments.join("/");
-                const catalog = folder as VipMusicCatalogItem;
-                const meta =
-                  typeof catalog.trackCount === "number" && catalog.trackCount > 0
-                    ? String(catalog.trackCount)
-                    : typeof catalog.folderCount === "number" && catalog.folderCount > 0
-                      ? String(catalog.folderCount)
-                      : undefined;
-                return (
-                  <div key={folder.id} className="flex items-center gap-1">
-                    <div className="min-w-0 flex-1">
-                      <NavLink
-                        href={folderHref(hrefSegments)}
-                        title={formatStyleNameForDisplay(displayFolderName(folder.name))}
-                        active={
-                          slugSegments.join("/") === styleSlugPath ||
-                          slugSegments[slugSegments.length - 1] === slug
-                        }
-                        isNew={newChildIds?.has(folder.id)}
-                        meta={meta}
-                      />
-                    </div>
-                    {canSendFolderToDownloader(catalog, hrefSegments.slice(0, -1)) ? (
-                      <SendPackToDownloaderButton
-                        slug={styleSlugPath}
-                        label={`Enviar ${displayFolderName(folder.name)} ao Downloader`}
-                        compact
-                        className="!h-9 !w-9 !rounded-full"
-                      />
-                    ) : null}
+        {days.length > 0 ? (
+          <SidebarSection title="Dias" icon={CalendarDays} count={days.length} defaultOpen>
+            <NavLink
+              href={
+                isUpdateDateFolderName(resolvedPath[resolvedPath.length - 1]?.name ?? "")
+                  ? folderHref(slugSegments.slice(0, -1))
+                  : folderHref(slugSegments)
+              }
+              title="Mês inteiro"
+              active={!isUpdateDateFolderName(resolvedPath[resolvedPath.length - 1]?.name ?? "")}
+            />
+            {days.map((day) => (
+              <NavLink
+                key={day.slug}
+                href={dayHref(day.slug)}
+                title={day.label}
+                active={slugSegments[slugSegments.length - 1] === day.slug}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+
+        {poolFilters.length > 0 || styleFilters.length > 0 ? (
+          <SidebarSection title="Pools" icon={Layers3} count={poolFilters.length} defaultOpen>
+            <NavLink href={filterHref("", "")} title="Todas" active={!activePool && !activeStyle} />
+            {poolFilters.map(([slug, name]) => (
+              <NavLink
+                key={slug}
+                href={filterHref(slug, activePool === slug ? activeStyle : "")}
+                title={name}
+                active={activePool === slug}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+
+        {styleFilters.length > 0 ? (
+          <SidebarSection title="Estilos" icon={FolderOpen} count={styleFilters.length} defaultOpen>
+            <NavLink href={filterHref(activePool, "")} title="Todos os estilos" active={!activeStyle} />
+            {styleFilters.map(([slug, name]) => (
+              <NavLink
+                key={slug}
+                href={filterHref(activePool, slug)}
+                title={formatStyleNameForDisplay(name)}
+                active={activeStyle === slug}
+              />
+            ))}
+          </SidebarSection>
+        ) : null}
+
+        {styleOnlyFolders.length > 0 && packSlug ? (
+          <SidebarSection title="Pastas" icon={FolderOpen} count={styleOnlyFolders.length}>
+            {styleOnlyFolders.map((folder) => {
+              const slug = slugifyStyleName(folder.name);
+              const hrefSegments =
+                weekSlug && monthSlug && weeks.length > 0
+                  ? [packSlug, monthSlug, weekSlug, slug]
+                  : monthSlug
+                    ? [packSlug, monthSlug, slug]
+                    : [packSlug, slug];
+              const styleSlugPath = hrefSegments.join("/");
+              const catalog = folder as VipMusicCatalogItem;
+              const meta =
+                typeof catalog.trackCount === "number" && catalog.trackCount > 0
+                  ? String(catalog.trackCount)
+                  : typeof catalog.folderCount === "number" && catalog.folderCount > 0
+                    ? String(catalog.folderCount)
+                    : undefined;
+              return (
+                <div key={folder.id} className="flex items-center gap-1">
+                  <div className="min-w-0 flex-1">
+                    <NavLink
+                      href={folderHref(hrefSegments)}
+                      title={formatStyleNameForDisplay(displayFolderName(folder.name))}
+                      active={
+                        slugSegments.join("/") === styleSlugPath ||
+                        slugSegments[slugSegments.length - 1] === slug
+                      }
+                      isNew={newChildIds?.has(folder.id)}
+                      meta={meta}
+                    />
                   </div>
-                );
-              })
-            ) : (
-              <p className="px-2 py-2 text-[12px] text-white/35">
-                Estilos do mês aparecem aqui após a sync.
-              </p>
-            )}
+                  {canSendFolderToDownloader(catalog, hrefSegments.slice(0, -1)) ? (
+                    <SendPackToDownloaderButton
+                      slug={styleSlugPath}
+                      label={`Enviar ${displayFolderName(folder.name)} ao Downloader`}
+                      compact
+                      className="!h-9 !w-9 !rounded-full"
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
           </SidebarSection>
         ) : null}
 

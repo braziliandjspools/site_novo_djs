@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
   Copy,
@@ -94,6 +95,17 @@ type VipMusicTrackListProps = {
   filterPools?: { slug: string; name: string }[];
   /** Estilos da pasta inteira, mesmo os que ainda não têm faixa carregada. */
   filterStyles?: { slug: string; name: string }[];
+}
+
+function trackCatalogSlugs(track: PreviewTrack) {
+  const pool = track.poolName?.trim() && track.poolFolderId ? slugifyFolderName(track.poolName) : "";
+  const style = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
+  return { pool, style };
+}
+
+function matchesCatalogFilter(track: PreviewTrack, poolSlug: string, styleSlug: string) {
+  const slugs = trackCatalogSlugs(track);
+  return (!poolSlug || slugs.pool === poolSlug) && (!styleSlug || slugs.style === styleSlug);
 };
 
 const STREAM_DESKTOP_GRID = "tablemusic-grid";
@@ -1045,8 +1057,31 @@ export function VipMusicTrackList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
-  const [poolFilterSlug, setPoolFilterSlug] = useState("");
-  const [styleFilterSlug, setStyleFilterSlug] = useState("");
+  const [markPickerOpen, setMarkPickerOpen] = useState(false);
+  const [pickerPool, setPickerPool] = useState("");
+  const [pickerStyle, setPickerStyle] = useState("");
+  const [markRule, setMarkRule] = useState<{ pool: string; style: string } | null>(null);
+  const skippedMarkIds = useRef(new Set<string>());
+  const appliedMarkIds = useRef(new Set<string>());
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const poolFilterSlug = searchParams.get("pool") ?? "";
+  const styleFilterSlug = searchParams.get("estilo") ?? "";
+
+  const writeCatalogFilters = useCallback(
+    (pool: string, style: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (pool) params.set("pool", pool);
+      else params.delete("pool");
+      if (style) params.set("estilo", style);
+      else params.delete("estilo");
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
   loadMoreRef.current = onLoadMore;
@@ -1080,26 +1115,20 @@ export function VipMusicTrackList({
       }
       if (style) styles.set(slugifyStyleName(style), style);
     }
+    if (poolFilterSlug && !pools.has(poolFilterSlug)) pools.set(poolFilterSlug, poolFilterSlug);
+    if (styleFilterSlug && !styles.has(styleFilterSlug)) styles.set(styleFilterSlug, styleFilterSlug);
 
     return {
       pools: [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
       styles: [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
     };
-  }, [filterPools, filterStyles, tracks]);
+  }, [filterPools, filterStyles, poolFilterSlug, styleFilterSlug, tracks]);
 
-  // Os dois filtros atuam somente sobre as faixas já carregadas na tabela.
-  // Não há redirecionamento: Pool + Estilo podem ser combinados.
+  // Pool e estilo viram slug na URL (?pool=&estilo=), inclusive juntos.
   const filteredTracks = useMemo(() => {
     if (!poolFilterSlug && !styleFilterSlug) return tracks;
 
-    return tracks.filter((track) => {
-      const poolSlug = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
-      const styleSlug = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
-      return (
-        (!poolFilterSlug || poolSlug === poolFilterSlug) &&
-        (!styleFilterSlug || styleSlug === styleFilterSlug)
-      );
-    });
+    return tracks.filter((track) => matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug));
   }, [poolFilterSlug, styleFilterSlug, tracks]);
 
   const visibleTrackSections = useMemo(
@@ -1323,8 +1352,13 @@ export function VipMusicTrackList({
   const toggleTrackSelected = useCallback((trackId: string) => {
     setSelectedIds((current) => {
       const next = new Set(current);
-      if (next.has(trackId)) next.delete(trackId);
-      else next.add(trackId);
+      if (next.has(trackId)) {
+        next.delete(trackId);
+        skippedMarkIds.current.add(trackId);
+      } else {
+        next.add(trackId);
+        skippedMarkIds.current.delete(trackId);
+      }
       return next;
     });
   }, []);
@@ -1332,11 +1366,28 @@ export function VipMusicTrackList({
   const exitSelectionMode = useCallback(() => {
     setSelectionMode(false);
     setSelectedIds(new Set());
+    setMarkRule(null);
+    skippedMarkIds.current = new Set();
+    appliedMarkIds.current = new Set();
   }, []);
 
-  const selectAllTracks = useCallback(() => {
-    setSelectedIds(new Set(tracks.map((track) => track.id)));
-  }, [tracks]);
+  const openMarkPicker = useCallback(() => {
+    setPickerPool(poolFilterSlug);
+    setPickerStyle(styleFilterSlug);
+    setMarkPickerOpen(true);
+    setSelectionMode(true);
+  }, [poolFilterSlug, styleFilterSlug]);
+
+  const confirmMarkPicker = useCallback(() => {
+    skippedMarkIds.current = new Set();
+    appliedMarkIds.current = new Set();
+    setMarkRule({ pool: pickerPool, style: pickerStyle });
+    setSelectionMode(true);
+    setMarkPickerOpen(false);
+    if (pickerPool !== poolFilterSlug || pickerStyle !== styleFilterSlug) {
+      writeCatalogFilters(pickerPool, pickerStyle);
+    }
+  }, [pickerPool, pickerStyle, poolFilterSlug, styleFilterSlug, writeCatalogFilters]);
 
   useEffect(() => {
     if (highlightTrackId) setFocusedTrackId(highlightTrackId);
@@ -1358,27 +1409,58 @@ export function VipMusicTrackList({
     });
   }, [tracks]);
 
+  useEffect(() => {
+    if (!markRule) return;
+    const pending = tracks.filter((track) => !appliedMarkIds.current.has(track.id));
+    if (pending.length === 0) return;
+    for (const track of pending) appliedMarkIds.current.add(track.id);
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      let changed = false;
+      for (const track of pending) {
+        if (skippedMarkIds.current.has(track.id)) continue;
+        if (!matchesCatalogFilter(track, markRule.pool, markRule.style)) continue;
+        if (!next.has(track.id)) {
+          next.add(track.id);
+          changed = true;
+        }
+      }
+      return changed ? next : current;
+    });
+  }, [markRule, tracks]);
+
+  const drainLengthRef = useRef<number | null>(null);
+  useEffect(() => {
+    const shouldDrain = markPickerOpen || markRule !== null || Boolean(poolFilterSlug || styleFilterSlug);
+    if (!shouldDrain) {
+      drainLengthRef.current = null;
+      return;
+    }
+    if (!hasMore || !onLoadMore || drainLengthRef.current === tracks.length) return;
+    drainLengthRef.current = tracks.length;
+    void onLoadMore();
+  }, [hasMore, markPickerOpen, markRule, onLoadMore, poolFilterSlug, styleFilterSlug, tracks.length]);
+
   const copyTrackLink = useCallback(
     (track: PreviewTrack) => {
-      const url =
-        typeof window !== "undefined"
-          ? `${window.location.origin}${window.location.pathname}?faixa=${encodeURIComponent(track.id)}`
-          : "";
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("faixa", track.id);
+      const qs = params.toString();
+      const url = typeof window !== "undefined" ? `${window.location.origin}${pathname}?${qs}` : "";
       void navigator.clipboard
         .writeText(url)
         .then(() => showToast("Link copiado"))
         .catch(() => showToast("Não foi possível copiar o link.", "error"));
     },
-    [showToast],
+    [pathname, searchParams, showToast],
   );
 
   const shareTrack = useCallback(
     async (track: PreviewTrack) => {
       const display = getTrackDisplayMetadata(track);
-      const url =
-        typeof window !== "undefined"
-          ? `${window.location.origin}${window.location.pathname}?faixa=${encodeURIComponent(track.id)}`
-          : "";
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("faixa", track.id);
+      const url = typeof window !== "undefined" ? `${window.location.origin}${pathname}?${params.toString()}` : "";
       try {
         if (navigator.share) {
           await navigator.share({ title: display.title, text: `${display.title} — ${display.artist}`, url });
@@ -1390,7 +1472,7 @@ export function VipMusicTrackList({
         /* user cancelled share */
       }
     },
-    [showToast],
+    [pathname, searchParams, showToast],
   );
 
   if (tracks.length === 0) return null;
@@ -1442,8 +1524,8 @@ export function VipMusicTrackList({
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
           showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
-          onPoolFilter={setPoolFilterSlug}
-          onStyleFilter={setStyleFilterSlug}
+          onPoolFilter={(slug) => writeCatalogFilters(slug, styleFilterSlug)}
+          onStyleFilter={(slug) => writeCatalogFilters(poolFilterSlug, slug)}
         />
       );
     });
@@ -1486,10 +1568,10 @@ export function VipMusicTrackList({
             <span className="mx-0.5 hidden h-4 w-px bg-white/10 sm:block" aria-hidden />
             <button
               type="button"
-              onClick={selectAllTracks}
+              onClick={openMarkPicker}
               className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
             >
-              Todas
+              Marcar pool/estilo
             </button>
             <button
               type="button"
@@ -1510,7 +1592,7 @@ export function VipMusicTrackList({
         ) : (
           <button
             type="button"
-            onClick={() => setSelectionMode(true)}
+            onClick={openMarkPicker}
             className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
           >
             <Check className="h-3 w-3" />
@@ -1520,56 +1602,8 @@ export function VipMusicTrackList({
       </div>
     ) : null;
 
-  const filterBar = useStreaming && (filterOptions.pools.length > 0 || filterOptions.styles.length > 0) ? (
-    <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
-        <button
-          type="button"
-          onClick={() => {
-            setPoolFilterSlug("");
-            setStyleFilterSlug("");
-          }}
-          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug && !styleFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
-        >
-          Todos
-        </button>
-        {filterOptions.pools.length > 0 ? (
-          <select
-            value={poolFilterSlug}
-            onChange={(event) => setPoolFilterSlug(event.target.value)}
-            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
-            aria-label="Filtrar por pool"
-          >
-            <option value="">Todos os pools</option>
-            {filterOptions.pools.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
-          </select>
-        ) : null}
-        {filterOptions.styles.length > 0 ? (
-          <select
-            value={styleFilterSlug}
-            onChange={(event) => setStyleFilterSlug(event.target.value)}
-            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
-            aria-label="Filtrar por estilo"
-          >
-            <option value="">Todos os estilos</option>
-            {filterOptions.styles.map(([slug, name]) => (
-              <option key={slug} value={slug}>{formatStyleNameForDisplay(name)}</option>
-            ))}
-          </select>
-        ) : null}
-        {poolFilterSlug || styleFilterSlug ? (
-          <span className="ml-auto text-[10px] font-semibold text-white/45">
-            {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  ) : null;
-
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
-      {filterBar}
       {error && isThisFolder && (
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
@@ -1712,6 +1746,77 @@ export function VipMusicTrackList({
             <Square className="h-3 w-3" />
             Cancelar
           </button>
+        </div>
+      ) : null}
+
+      {markPickerOpen ? (
+        <div className="fixed inset-0 z-[10080] flex items-center justify-center bg-black/75 p-4" role="presentation" onClick={() => setMarkPickerOpen(false)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mark-pool-style-title"
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#121212] p-5 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="mark-pool-style-title" className="text-base font-bold text-white">Marcar faixas</h2>
+            <p className="mt-2 text-xs leading-relaxed text-zinc-400">
+              Escolha a pool, o estilo ou os dois. As faixas dessa escolha são marcadas conforme a tabela carrega.
+            </p>
+            <label className="mt-4 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+              Pool
+              <select
+                value={pickerPool}
+                onChange={(event) => {
+                  const pool = event.target.value;
+                  setPickerPool(pool);
+                  if (pickerStyle && pool && !tracks.some((track) => {
+                    const slugs = trackCatalogSlugs(track);
+                    return slugs.pool === pool && slugs.style === pickerStyle;
+                  })) {
+                    setPickerStyle("");
+                  }
+                }}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm font-semibold normal-case tracking-normal text-white outline-none"
+              >
+                <option value="">Todas as pools</option>
+                {filterOptions.pools.map(([slug, name]) => (
+                  <option key={slug} value={slug}>{name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="mt-3 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+              Estilo
+              <select
+                value={pickerStyle}
+                onChange={(event) => setPickerStyle(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-sm font-semibold normal-case tracking-normal text-white outline-none"
+              >
+                <option value="">Todos os estilos</option>
+                {(pickerPool
+                  ? filterOptions.styles.filter(([slug]) =>
+                      tracks.some((track) => {
+                        const slugs = trackCatalogSlugs(track);
+                        return slugs.pool === pickerPool && slugs.style === slug;
+                      }) || slug === pickerStyle,
+                    )
+                  : filterOptions.styles
+                ).map(([slug, name]) => (
+                  <option key={slug} value={slug}>{formatStyleNameForDisplay(name)}</option>
+                ))}
+              </select>
+            </label>
+            {hasMore ? (
+              <p className="mt-3 text-[11px] text-zinc-500">Carregando mais faixas para completar pools e estilos…</p>
+            ) : null}
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={() => setMarkPickerOpen(false)} className="flex-1 rounded-full border border-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-300">
+                Cancelar
+              </button>
+              <button type="button" onClick={confirmMarkPicker} className="flex-1 rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold uppercase tracking-wider text-black">
+                Marcar
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 

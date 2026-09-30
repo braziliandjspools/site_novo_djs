@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { browsePackDay, type PackDateOption, type PackDayContents, type PackImportTarget } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
@@ -35,18 +35,14 @@ export function ImportDayPicker({
   onConfirm: (targets: PackImportTarget[]) => void;
 }) {
   const { t } = useLocale();
-  const [openDays, setOpenDays] = useState<string[]>([]);
+  const [activeKey, setActiveKey] = useState(dates[0]?.key ?? "");
   const [contents, setContents] = useState<Record<string, PackDayContents>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, true>>({});
   const [error, setError] = useState<string | null>(null);
 
-  async function toggleDay(date: PackDateOption) {
-    if (openDays.includes(date.key)) {
-      setOpenDays((current) => current.filter((key) => key !== date.key));
-      return;
-    }
-    setOpenDays((current) => [...current, date.key]);
+  async function loadDay(date: PackDateOption) {
+    setActiveKey(date.key);
     if (contents[date.key]) return;
     setLoading(date.key);
     setError(null);
@@ -54,7 +50,12 @@ export function ImportDayPicker({
       const result = await browsePackDay(token, date.folderId);
       setContents((current) => ({
         ...current,
-        [date.key]: { pools: result.pools ?? [], styles: result.styles ?? [] },
+        [date.key]: {
+          pools: result.pools ?? [],
+          styles: result.styles ?? [],
+          poolCount: result.poolCount ?? result.pools?.length ?? 0,
+          trackCount: result.trackCount ?? 0,
+        },
       }));
     } catch (err) {
       setError(formatApiError(err));
@@ -62,6 +63,13 @@ export function ImportDayPicker({
       setLoading(null);
     }
   }
+
+  useEffect(() => {
+    const first = dates[0];
+    if (!first) return;
+    void loadDay(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function mark(ids: string[], on: boolean) {
     setSelected((current) => {
@@ -115,128 +123,162 @@ export function ImportDayPicker({
     onConfirm(targets);
   }
 
+  const active = dates.find((date) => date.key === activeKey) ?? dates[0];
+  const day = active ? contents[active.key] : undefined;
+  const poolCount = day?.poolCount ?? day?.pools.length ?? 0;
+  const trackCount = day?.trackCount ?? 0;
+
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-4" role="presentation" onClick={onClose}>
+    <div className="fixed inset-x-0 bottom-0 top-16 z-40 bg-black/80" role="presentation">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-pick-title"
-        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border border-white/10 bg-[#121212] shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
+        className="mx-auto flex h-full max-w-5xl overflow-hidden border-x border-[#ff2ea6]/40 bg-black text-white shadow-[0_0_0_1px_rgba(255,46,166,0.35)]"
       >
-        <div className="border-b border-white/10 px-5 py-4">
-          <h2 id="import-pick-title" className="text-base font-bold text-white">
-            {t("importPickTitle")}
-          </h2>
-          <p className="mt-1 text-xs leading-relaxed text-zinc-400">{t("importPickHint")}</p>
-        </div>
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
-          {dates.map((date) => {
-            const open = openDays.includes(date.key);
-            const day = contents[date.key];
-            return (
-              <section key={date.key} className="rounded-xl border border-white/10 bg-black/30">
+        <aside className="flex w-[220px] flex-shrink-0 flex-col border-r border-[#ff2ea6]/30 bg-[#070707]">
+          <div className="border-b border-[#ff2ea6]/30 px-4 py-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff2ea6]">Dias</p>
+            <h2 id="import-pick-title" className="mt-1 text-sm font-bold text-white">
+              {t("importPickTitle")}
+            </h2>
+          </div>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
+            {dates.map((date) => {
+              const on = date.key === active?.key;
+              return (
                 <button
+                  key={date.key}
                   type="button"
-                  onClick={() => void toggleDay(date)}
-                  className="flex w-full items-center justify-between px-3 py-2.5 text-left"
+                  onClick={() => void loadDay(date)}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left font-mono text-sm ${
+                    on ? "bg-[#ff2ea6] font-bold text-black" : "text-zinc-300 hover:bg-[#ff2ea6]/15"
+                  }`}
                 >
-                  <span className="font-mono text-sm font-bold text-[#1ed760]">{date.label}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-zinc-500">{open ? "–" : "+"}</span>
+                  {date.label}
                 </button>
-                {open && (
-                  <div className="space-y-3 border-t border-white/10 px-3 py-3">
-                    {loading === date.key && (
-                      <p className="flex items-center gap-2 text-xs text-zinc-400">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        {t("importPickLoadingDay")}
-                      </p>
-                    )}
-                    {day && (
-                      <button
-                        type="button"
-                        className="text-[11px] font-semibold uppercase tracking-wider text-[#1ed760]"
-                        onClick={() => {
-                          const ids = [
-                            ...day.pools.flatMap((pool) => pool.styles.map((style) => style.folderId)),
-                            ...day.styles.map((style) => style.folderId),
-                          ];
-                          const allOn = ids.length > 0 && ids.every((id) => selected[id]);
-                          mark(ids, !allOn);
-                        }}
-                      >
-                        {t("importPickDayAll")}
-                      </button>
-                    )}
-                    {day?.pools.map((pool) => {
-                      const ids = pool.styles.map((style) => style.folderId);
-                      const allOn = ids.length > 0 && ids.every((id) => selected[id]);
-                      return (
-                        <div key={pool.folderId}>
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs font-bold uppercase tracking-wider text-zinc-300">{styleLabel(pool.name)}</p>
-                            <button
-                              type="button"
-                              className="text-[11px] font-semibold text-[#1ed760]"
-                              onClick={() => mark(ids, !allOn)}
-                            >
-                              {t("importPickAllStyles")}
-                            </button>
-                          </div>
-                          <div className="mt-1.5 space-y-1">
-                            {pool.styles.map((style) => (
-                              <label key={style.folderId} className="flex items-start gap-2 text-xs text-zinc-200">
-                                <input
-                                  type="checkbox"
-                                  className="mt-0.5 accent-[#1ed760]"
-                                  checked={Boolean(selected[style.folderId])}
-                                  onChange={(event) => mark([style.folderId], event.target.checked)}
-                                />
-                                <span>{styleLabel(style.name)}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {day && day.styles.length > 0 && (
-                      <div className="space-y-1">
-                        {day.styles.map((style) => (
-                          <label key={style.folderId} className="flex items-start gap-2 text-xs text-zinc-200">
-                            <input
-                              type="checkbox"
-                              className="mt-0.5 accent-[#1ed760]"
-                              checked={Boolean(selected[style.folderId])}
-                              onChange={(event) => mark([style.folderId], event.target.checked)}
-                            />
-                            <span>{styleLabel(style.name)}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+              );
+            })}
+          </div>
+        </aside>
+
+        <section className="flex min-w-0 flex-1 flex-col bg-black">
+          <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[#ff2ea6]/30 px-5 py-4">
+            <div>
+              <p className="font-mono text-2xl font-black tracking-tight text-[#ff2ea6]">{active?.label}</p>
+              <p className="mt-1 text-sm text-zinc-300">
+                {loading === active?.key ? (
+                  "Contando faixas e pools…"
+                ) : (
+                  <>
+                    <span className="font-bold text-white">{trackCount}</span> tracks ·{" "}
+                    <span className="font-bold text-white">{poolCount}</span> pools
+                  </>
                 )}
-              </section>
-            );
-          })}
-          {error && <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">{error}</p>}
-        </div>
-        <div className="flex gap-2 border-t border-white/10 px-5 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-full border border-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-300"
-          >
-            {t("importPickCancel")}
-          </button>
-          <button
-            type="button"
-            onClick={confirm}
-            className="flex-1 rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold uppercase tracking-wider text-black"
-          >
-            {t("importPickConfirm")}
-          </button>
-        </div>
+              </p>
+            </div>
+            <p className="max-w-xs text-xs leading-relaxed text-zinc-500">{t("importPickHint")}</p>
+          </header>
+
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+            {loading === active?.key && (
+              <p className="flex items-center gap-2 text-sm text-[#ff2ea6]">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t("importPickLoadingDay")}
+              </p>
+            )}
+            {day && (
+              <button
+                type="button"
+                className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]"
+                onClick={() => {
+                  const ids = [
+                    ...day.pools.flatMap((pool) => pool.styles.map((style) => style.folderId)),
+                    ...day.styles.map((style) => style.folderId),
+                  ];
+                  mark(ids, !(ids.length > 0 && ids.every((id) => selected[id])));
+                }}
+              >
+                {t("importPickDayAll")}
+              </button>
+            )}
+            {day?.pools.map((pool) => {
+              const ids = pool.styles.map((style) => style.folderId);
+              const allOn = ids.length > 0 && ids.every((id) => selected[id]);
+              return (
+                <div key={pool.folderId} className="rounded-xl border border-white/10 bg-[#0c0c0c] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-white">
+                      {styleLabel(pool.name)}
+                      <span className="ml-2 font-mono text-[10px] font-semibold text-[#ff2ea6]">
+                        {pool.trackCount ?? 0} tracks
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      className="text-[11px] font-bold uppercase tracking-wider text-[#ff2ea6]"
+                      onClick={() => mark(ids, !allOn)}
+                    >
+                      {t("importPickAllStyles")}
+                    </button>
+                  </div>
+                  <div className="mt-2 grid gap-1 sm:grid-cols-2">
+                    {pool.styles.map((style) => (
+                      <label key={style.folderId} className="flex items-start gap-2 text-xs text-zinc-200">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5 accent-[#ff2ea6]"
+                          checked={Boolean(selected[style.folderId])}
+                          onChange={(event) => mark([style.folderId], event.target.checked)}
+                        />
+                        <span>
+                          {styleLabel(style.name)}
+                          <span className="ml-1 text-zinc-500">{style.trackCount ?? 0}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {day && day.styles.length > 0 && (
+              <div className="space-y-1">
+                {day.styles.map((style) => (
+                  <label key={style.folderId} className="flex items-start gap-2 text-xs text-zinc-200">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 accent-[#ff2ea6]"
+                      checked={Boolean(selected[style.folderId])}
+                      onChange={(event) => mark([style.folderId], event.target.checked)}
+                    />
+                    <span>
+                      {styleLabel(style.name)}
+                      <span className="ml-1 text-zinc-500">{style.trackCount ?? 0}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {error && <p className="rounded-lg bg-[#ff2ea6]/10 px-3 py-2 text-xs text-[#ff8ac8]">{error}</p>}
+          </div>
+
+          <div className="flex gap-2 border-t border-[#ff2ea6]/30 px-5 py-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-full border border-white/20 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-300"
+            >
+              {t("importPickCancel")}
+            </button>
+            <button
+              type="button"
+              onClick={confirm}
+              className="flex-1 rounded-full bg-[#ff2ea6] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-black"
+            >
+              {t("importPickConfirm")}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );

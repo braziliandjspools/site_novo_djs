@@ -60,6 +60,7 @@ type ResolveResponse = {
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
   tracksHasMore?: boolean;
+  updateDays?: { slug: string; label: string }[];
   filterPools?: { slug: string; name: string }[];
   filterStyles?: { slug: string; name: string }[];
   coverUrl?: string | null;
@@ -771,6 +772,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 layout="table"
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
+                hasMore={tracksHasMore}
+                onLoadMore={loadMoreTracks}
                 continueContext={
                   monthSlug
                     ? {
@@ -819,6 +822,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           siblings={siblingFolders}
           packMonths={packMonths}
           monthWeeks={siblingWeeks}
+          updateDays={data.updateDays}
+          catalogTracks={directTracks}
           newChildIds={newChildIds}
         >
           <div className="min-w-0 space-y-4">
@@ -887,6 +892,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 layout="table"
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
+                hasMore={tracksHasMore}
+                onLoadMore={loadMoreTracks}
                 continueContext={
                   monthSlug
                     ? {

@@ -26,6 +26,13 @@ import {
   sendNowFolderStorageId,
 } from "./send-now";
 
+function updateDayLinks(folders: { name: string }[]) {
+  return folders.flatMap((folder) => {
+    const parsed = parseUpdateDateFolder(folder.name);
+    if (!parsed) return [];
+    return [{ slug: slugifyFolderName(folder.name), label: parsed.label, name: folder.name }];
+  });
+}
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
 /** Pastas irmãs no deep-walk — paraleliza sem saturar a Drive API. */
@@ -67,7 +74,8 @@ export type VipMusicCatalogResponse = {
   /** Todos os pools da pasta, independente da página de faixas carregada. */
   filterPools?: CatalogFilterOption[];
   /** Todos os estilos da pasta, independente da página de faixas carregada. */
-  filterStyles?: CatalogFilterOption[];
+  /** Dias de atualização do mês (30.09.2026), para a sidebar. */
+  updateDays?: { slug: string; label: string; name: string }[];
 };
 
 type DriveChild = {
@@ -609,6 +617,7 @@ async function getDriveCatalog(
         items: [],
         tracks,
         tracksHasMore: false,
+        updateDays: updateDayLinks(dateFoldersAtMonth),
         coverUrl,
       };
     }
@@ -664,6 +673,7 @@ async function getDriveCatalog(
       items: [],
       tracks,
       tracksHasMore: state.hasMore || datedTracks.length > requestedLimit,
+      updateDays: updateDayLinks(dateFoldersAtMonth),
       coverUrl,
     };
   }

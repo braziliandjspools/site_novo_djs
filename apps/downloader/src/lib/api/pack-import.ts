@@ -25,9 +25,9 @@ export type PackPreview = {
   dates?: PackDateOption[];
 };
 
-export type PackStyleOption = { folderId: string; name: string };
-export type PackPoolOption = { folderId: string; name: string; styles: PackStyleOption[] };
-export type PackDayContents = { pools: PackPoolOption[]; styles: PackStyleOption[] };
+export type PackStyleOption = { folderId: string; name: string; trackCount?: number };
+export type PackPoolOption = { folderId: string; name: string; trackCount?: number; styles: PackStyleOption[] };
+export type PackDayContents = { pools: PackPoolOption[]; styles: PackStyleOption[]; poolCount?: number; trackCount?: number };
 export type PackImportTarget = { folderId: string; folderName: string; relativePath: string };
 
 export type PackImportResult = {
