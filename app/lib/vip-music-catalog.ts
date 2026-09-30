@@ -578,10 +578,45 @@ async function getDriveCatalog(
     });
 
   if (monthFolder && dateFoldersAtMonth.length > 0) {
+    // O Downloader pede o mês sem paginação. A tabela do site continua em lotes.
+    if (trackLimit == null) {
+      const nested = await mapPool(dateFoldersAtMonth, TRACK_WALK_CONCURRENCY, async (dateFolder) => {
+        const parsed = parseUpdateDateFolder(dateFolder.name);
+        if (!parsed) return [] as PreviewTrack[];
+        try {
+          return await collectTracksDeep(
+            dateFolder.id,
+            dateFolder.name,
+            0,
+            new Set<string>(),
+            parsed.key,
+            null,
+            null,
+            true,
+          );
+        } catch {
+          return [] as PreviewTrack[];
+        }
+      });
+      const tracks = nested.flat().sort(sortTracksByUploadThenTitle);
+      return {
+        configured: true,
+        rootFolderId: rootId,
+        rootFolderName: folderId === rootId ? folderName : "2026",
+        folderId,
+        folderName,
+        level: "tracks",
+        items: [],
+        tracks,
+        tracksHasMore: false,
+        coverUrl,
+      };
+    }
+
     // O mês é uma tabela contínua: as pastas 29-SET, 28-SET, 27-SET...
     // fornecem apenas a data de cada faixa. Nunca carregamos o mês inteiro
     // de uma vez; a API devolve lotes pequenos para o infinite scroll.
-    const requestedLimit = Math.max(1, Math.min(trackLimit ?? 50, 50));
+    const requestedLimit = Math.max(1, Math.min(trackLimit, 50));
     const state: TrackPageState = {
       skip: Math.max(0, trackOffset),
       limit: requestedLimit + 1,
