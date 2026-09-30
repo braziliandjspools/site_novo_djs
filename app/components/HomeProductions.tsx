@@ -61,8 +61,8 @@ function ProductionCard({
   }
 
   return (
-    <article className="w-[78%] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-4rem)/5)]">
-      <div className="group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-[#222]">
+    <article className="w-[78%] shrink-0 snap-start rounded-xl border border-white/[0.09] bg-[#0d0f0e] p-2 transition-colors hover:border-[#1db954]/35 sm:w-[46%] lg:w-[calc((100%-4rem)/5)]">
+      <div className="group relative aspect-square overflow-hidden rounded-lg bg-[#161816]">
         <Image
           src={production.coverUrl}
           alt=""
@@ -87,40 +87,43 @@ function ProductionCard({
           </span>
         ) : null}
       </div>
-      <Link href={`/producoes/${production.slug}`} className="mt-3 block truncate text-sm font-bold uppercase tracking-wide text-white hover:text-[#1ed760]">
-        {production.title}
-      </Link>
-      <p className="truncate text-xs text-zinc-400">
-        {production.producerSlug ? (
-          <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#1ed760]">
-            {production.producer}
-          </Link>
-        ) : (
-          production.producer
-        )}
-      </p>
-      <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-zinc-500">{production.versionType}</p>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#1ed760]">
-          {production.categoryLabel}
-        </span>
-        <span className="text-[10px] uppercase tracking-wider text-zinc-500">{dateLabel}</span>
-      </div>
-      <div className="mt-3 flex gap-2">
-        <button type="button" onClick={play} className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-full border border-white/15 text-[10px] font-bold uppercase tracking-wider text-white">
-          <Play className="h-3 w-3" fill="currentColor" />
-          {access.canPlay ? "Reproduzir" : "Entrar para ouvir"}
-        </button>
-        {access.canDownload ? (
-          <button type="button" onClick={download} className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-full bg-[#1db954] text-[10px] font-bold uppercase tracking-wider text-black">
-            <Download className="h-3 w-3" /> Baixar
+      <div className="px-1 pb-1 pt-3">
+        <Link href={`/producoes/${production.slug}`} className="block truncate text-sm font-semibold text-white hover:text-[#1ed760]">
+          {production.title}
+        </Link>
+        <p className="mt-1 truncate text-xs text-zinc-500">
+          {production.producerSlug ? (
+            <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#1ed760]">
+              {production.producer}
+            </Link>
+          ) : (
+            production.producer
+          )}
+          <span className="mx-1.5 text-zinc-700">·</span>
+          {production.versionType}
+        </p>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="truncate text-[9px] font-bold uppercase tracking-[0.12em] text-[#1db954]">
+            {production.categoryLabel}
+          </span>
+          <span className="shrink-0 text-[9px] uppercase tracking-wider text-zinc-600">{dateLabel}</span>
+        </div>
+        <div className="mt-3 flex gap-2 border-t border-white/[0.07] pt-3">
+          <button type="button" onClick={play} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.025] text-[10px] font-bold text-white transition hover:border-[#1db954]/40">
+            <Play className="h-3 w-3" fill="currentColor" />
+            {access.canPlay ? "Ouvir" : "Entrar"}
           </button>
-        ) : (
-          <button type="button" onClick={download} className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-full border border-white/15 text-[10px] font-bold uppercase tracking-wider text-zinc-300">
-            <Lock className="h-3 w-3" />
-            {access.authenticated ? "Disponível para membros" : "Entrar para baixar"}
-          </button>
-        )}
+          {access.canDownload ? (
+            <button type="button" onClick={download} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#1db954] text-[10px] font-bold text-black hover:bg-[#1ed760]">
+              <Download className="h-3 w-3" /> Baixar
+            </button>
+          ) : (
+            <button type="button" onClick={download} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.025] text-[10px] font-bold text-zinc-400">
+              <Lock className="h-3 w-3" />
+              {access.authenticated ? "Membros" : "Entrar"}
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -196,14 +199,16 @@ export function HomeProductions({
 }) {
   if (productions.length === 0) return null;
   return (
-    <section id="producoes-brs" className="border-y border-white/5 bg-[#1a1a1a] px-4 py-12 sm:px-6 md:py-16">
+    <section id="producoes-brs" className="border-y border-white/[0.07] bg-[#090b0a] px-4 py-12 sm:px-6 md:py-16">
       <div className="mx-auto max-w-6xl">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Catálogo</p>
-        <h2 className="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">{heading}</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base">
-          Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.
-        </p>
-        <div className="mt-8">
+        <div className="border-b border-white/[0.08] pb-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#1db954]">Catálogo público</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">{heading}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500 sm:text-base">
+            Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.
+          </p>
+        </div>
+        <div className="mt-6">
           <Rail productions={productions} embedded={embedded} />
         </div>
       </div>
