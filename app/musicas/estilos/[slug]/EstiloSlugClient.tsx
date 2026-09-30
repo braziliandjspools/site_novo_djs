@@ -108,7 +108,7 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
                 <Image src={cover} alt={title} fill sizes="112px" className="object-cover" unoptimized={cover.startsWith("/api/")} />
               </div>
               <div className="min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">
+                <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">
                   <Music2 className="h-3.5 w-3.5" />
                   Estilo
                 </p>
@@ -122,7 +122,7 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
                     {profile?.folderCount ?? 0} {profile?.folderCount === 1 ? "pasta" : "pastas"}
                   </span>
                   {hasVip ? (
-                    <span className="rounded-full border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 py-1.5 text-[#1ed760]">Premium ativo</span>
+                    <span className="rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 py-1.5 text-[#ff2ea6]">Premium ativo</span>
                   ) : (
                     <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/50">Só navegação</span>
                   )}
@@ -139,7 +139,7 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
               Todas as faixas deste estilo
             </h2>
             {tracks.length === 0 ? (
-              <p className="rounded-2xl border border-white/10 bg-[#141816] px-4 py-10 text-center text-sm text-white/50">
+              <p className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-10 text-center text-sm text-white/50">
                 Nenhuma faixa encontrada para este estilo.
               </p>
             ) : (

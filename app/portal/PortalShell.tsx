@@ -66,7 +66,7 @@ function NavLink({
         sub ? "px-3 py-2 text-[11px]" : "px-3 py-2.5 text-xs"
       } ${
         active
-          ? "bg-[#009739]/20 text-[#00ff9d] shadow-[inset_3px_0_0_0_#00ff9d]"
+          ? "bg-[#c2186a]/20 text-[#00ff9d] shadow-[inset_3px_0_0_0_#00ff9d]"
           : "text-zinc-400 hover:bg-white/5 hover:text-white"
       }`}
     >
@@ -190,7 +190,7 @@ export function PortalShell({
               </button>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold tracking-[-0.01em] text-white">
-                  Olá, <span className="text-[#1ed760]">{firstName}</span>
+                  Olá, <span className="text-[#ff2ea6]">{firstName}</span>
                 </p>
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                   Área do cliente
@@ -199,7 +199,7 @@ export function PortalShell({
             </div>
             <div className="app-no-drag flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
               <SiteNotificationBell />
-              <span className="hidden rounded-full border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1ed760] sm:inline">
+              <span className="hidden rounded-full border border-[#c2186a]/40 bg-[#c2186a]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#ff2ea6] sm:inline">
                 Online
               </span>
               <MusicasUserMenu userName={userName} hasVip={vipActive} onLogout={() => void onLogout()} />
@@ -248,7 +248,7 @@ export function PortalPageHeader({ title, subtitle }: { title: string; subtitle?
     <div className="mb-6">
       <h1 className="font-display text-3xl tracking-wide text-white">{title}</h1>
       {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
-      <div className="mt-3 h-0.5 w-16 rounded-full bg-gradient-to-r from-[#009739] to-[#FFDF00]" />
+      <div className="mt-3 h-0.5 w-16 rounded-full bg-gradient-to-r from-[#c2186a] to-[#FFDF00]" />
     </div>
   );
 }
@@ -261,7 +261,7 @@ export function PortalBadge({
   variant?: "green" | "amber" | "red";
 }) {
   const styles = {
-    green: "border-[#009739]/40 bg-[#009739]/15 text-[#00ff9d]",
+    green: "border-[#c2186a]/40 bg-[#c2186a]/15 text-[#00ff9d]",
     amber: "border-amber-500/40 bg-amber-500/10 text-amber-400",
     red: "border-red-500/40 bg-red-500/10 text-red-400",
   };
@@ -286,7 +286,7 @@ export function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="group rounded-2xl border border-zinc-800 bg-[#1a1a1a] p-5 transition-colors hover:border-[#009739]/40 hover:bg-[#222] lg:min-h-[148px] lg:p-7">
+    <div className="group rounded-2xl border border-zinc-800 bg-[#1a1a1a] p-5 transition-colors hover:border-[#c2186a]/40 hover:bg-[#222] lg:min-h-[148px] lg:p-7">
       <div className="flex h-full items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 lg:text-xs lg:tracking-[0.12em]">
@@ -297,7 +297,7 @@ export function StatCard({
           </p>
           {hint && <p className="mt-1.5 text-xs leading-snug text-zinc-500 lg:mt-2 lg:text-sm">{hint}</p>}
         </div>
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#009739]/15 ring-1 ring-[#009739]/30 transition-all group-hover:bg-[#009739]/25 lg:h-14 lg:w-14">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#c2186a]/15 ring-1 ring-[#c2186a]/30 transition-all group-hover:bg-[#c2186a]/25 lg:h-14 lg:w-14">
           <Icon className="h-6 w-6 text-[#00ff9d] lg:h-7 lg:w-7" strokeWidth={2} />
         </div>
       </div>
@@ -320,7 +320,7 @@ export function PortalButton({
     primary:
       "inline-flex items-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#00e68a]",
     accent:
-      "inline-flex items-center gap-2 rounded-lg bg-[#009739] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#00B347]",
+      "inline-flex items-center gap-2 rounded-lg bg-[#c2186a] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#00B347]",
     ghost:
       "inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-300 hover:border-zinc-600 hover:text-white",
   }[variant];

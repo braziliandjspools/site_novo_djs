@@ -50,7 +50,7 @@ export default function ComoBaixarPage() {
         <span className="text-white">Como baixar</span>
       </nav>
 
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">Tutorial</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">Tutorial</p>
       <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
         Como baixar no site
       </h1>
@@ -62,7 +62,7 @@ export default function ComoBaixarPage() {
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/musicas/atualizacoes"
-          className="inline-flex h-11 items-center rounded-full bg-[#1ed760] px-5 text-sm font-bold text-black"
+          className="inline-flex h-11 items-center rounded-full bg-[#ff2ea6] px-5 text-sm font-bold text-black"
         >
           Abrir Atualizações
         </Link>
@@ -78,11 +78,11 @@ export default function ComoBaixarPage() {
         {STEPS.map((step) => (
           <li key={step.n} className="grid gap-5">
             <div>
-              <p className="font-mono text-sm font-bold text-[#1ed760]">{step.n}</p>
+              <p className="font-mono text-sm font-bold text-[#ff2ea6]">{step.n}</p>
               <h2 className="mt-1 text-2xl font-bold text-white">{step.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-zinc-300 sm:text-base">{step.body}</p>
             </div>
-            <figure className="overflow-hidden rounded-2xl border border-white/10 bg-[#101412]">
+            <figure className="overflow-hidden rounded-2xl border border-white/10 bg-[#141414]">
               <Image
                 src={step.image}
                 alt={step.alt}

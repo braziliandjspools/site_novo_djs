@@ -20,9 +20,9 @@ type ToolPromoSectionProps = {
 };
 const accentStyles = {
   green: {
-    badge: "border-[#009739]/40 bg-[#009739]/15 text-[#00B347]",
-    button: "bg-[#009739] text-white hover:bg-[#00B347] shadow-[#009739]/30",
-    ring: "border-[#009739]/30",
+    badge: "border-[#c2186a]/40 bg-[#c2186a]/15 text-[#00B347]",
+    button: "bg-[#c2186a] text-white hover:bg-[#00B347] shadow-[#c2186a]/30",
+    ring: "border-[#c2186a]/30",
   },
   yellow: {
     badge: "border-[#FFDF00]/40 bg-[#FFDF00]/10 text-[#FFDF00]",
@@ -72,7 +72,7 @@ export function ToolPromoSection({
           </span>
 
           <div className="mb-4 flex justify-center gap-1">
-            <span className="h-1 w-8 rounded-full bg-[#009739]" />
+            <span className="h-1 w-8 rounded-full bg-[#c2186a]" />
             <span className="h-1 w-8 rounded-full bg-[#FFDF00]" />
             <span className="h-1 w-8 rounded-full bg-[#002776]" />
           </div>

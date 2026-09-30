@@ -62,7 +62,7 @@ function TrackPlaylistPanel({
         }
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#009739]/20">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#c2186a]/20">
             <FolderOpen className="h-5 w-5 text-[#00B347]" />
           </div>
           <div>
@@ -70,7 +70,7 @@ function TrackPlaylistPanel({
             <p className="text-xs text-gray-500">{trackCountLabel(playlist.tracks.length)}</p>
           </div>
         </div>
-        <span className="text-eyebrow text-[#1ed760]">{allowPlayback ? "VIP" : "Acervo"}</span>
+        <span className="text-eyebrow text-[#ff2ea6]">{allowPlayback ? "VIP" : "Acervo"}</span>
       </div>
 
       <div className={isPreviewList ? "max-h-[420px] space-y-px overflow-y-auto" : "max-h-[420px] space-y-2 overflow-y-auto p-3 sm:p-4"}>
@@ -132,14 +132,14 @@ function TrackRow({
       <div
         className={`relative overflow-hidden rounded-xl border transition-all duration-200 ${
           isPlaying
-            ? "border-[#009739]/50 bg-[#009739]/10 shadow-md shadow-[#009739]/10"
-            : "border-white/[0.08] bg-white/[0.03] hover:border-[#009739]/30 hover:bg-white/[0.05]"
+            ? "border-[#c2186a]/50 bg-[#c2186a]/10 shadow-md shadow-[#c2186a]/10"
+            : "border-white/[0.08] bg-white/[0.03] hover:border-[#c2186a]/30 hover:bg-white/[0.05]"
         }`}
       >
         {isPlaying && (
-          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#009739]/30" aria-hidden>
+          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#c2186a]/30" aria-hidden>
             <div
-              className="h-full bg-gradient-to-r from-[#009739] to-[#FFDF00] transition-all"
+              className="h-full bg-gradient-to-r from-[#c2186a] to-[#FFDF00] transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -160,7 +160,7 @@ function TrackRow({
                 disabled={isBusy}
                 aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
                 className={`absolute inset-0 flex items-center justify-center rounded-lg transition-all ${
-                  isPlaying ? "bg-[#009739]/80" : "bg-black/40 hover:bg-[#009739]/70"
+                  isPlaying ? "bg-[#c2186a]/80" : "bg-black/40 hover:bg-[#c2186a]/70"
                 }`}
               >
                 {isLoading ? (
@@ -206,7 +206,7 @@ function TrackRow({
             aria-label={isPlaying ? `Pausar ${display.title}` : `Reproduzir ${display.title}`}
             className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
               isPlaying
-                ? "bg-[#1ed760] text-black"
+                ? "bg-[#ff2ea6] text-black"
                 : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
@@ -293,7 +293,7 @@ export function TrackShowcase({
   if (loading) {
     return (
       <div className="flex items-center justify-center gap-3 player-shell py-20 font-[family-name:var(--font-player)] text-sm text-gray-400">
-        <Loader2 className="h-5 w-5 animate-spin text-[#009739]" />
+        <Loader2 className="h-5 w-5 animate-spin text-[#c2186a]" />
         {loadingLabel}
       </div>
     );
@@ -347,7 +347,7 @@ export function TrackShowcase({
       ))}
 
       {activeTrack && (
-        <div className="sticky bottom-4 overflow-hidden rounded-2xl border border-[#009739]/30 bg-[#001530]/95 shadow-2xl shadow-black/40 backdrop-blur-md">
+        <div className="sticky bottom-4 overflow-hidden rounded-2xl border border-[#c2186a]/30 bg-[#001530]/95 shadow-2xl shadow-black/40 backdrop-blur-md">
           <div className="br-stripe-thin" />
           <div className="px-4 py-4 sm:px-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -357,11 +357,11 @@ export function TrackShowcase({
                     src={PLACEHOLDER.trackCover}
                     alt=""
                     fill
-                    className="rounded-lg object-cover ring-2 ring-[#009739]/50"
+                    className="rounded-lg object-cover ring-2 ring-[#c2186a]/50"
                     sizes="48px"
                   />
-                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#009739]">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#1ed760]" />
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#c2186a]">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff2ea6]" />
                   </span>
                 </div>
                 <div className="min-w-0">
@@ -390,7 +390,7 @@ export function TrackShowcase({
               <button
                 type="button"
                 onClick={() => void player.toggle(activeTrack.id)}
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#009739] text-white shadow-lg shadow-[#009739]/30 transition-transform hover:scale-105 sm:order-first"
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#c2186a] text-white shadow-lg shadow-[#c2186a]/30 transition-transform hover:scale-105 sm:order-first"
               >
                 <Pause className="h-4 w-4" fill="currentColor" />
               </button>
@@ -412,7 +412,7 @@ export function TrackShowcase({
                   }}
                 >
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#009739] via-[#00B347] to-[#FFDF00] transition-all"
+                    className="h-full rounded-full bg-gradient-to-r from-[#c2186a] via-[#00B347] to-[#FFDF00] transition-all"
                     style={{ width: `${player.progress}%` }}
                   />
                 </div>

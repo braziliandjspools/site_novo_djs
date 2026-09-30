@@ -24,7 +24,7 @@ function toastClass(variant: ToastVariant) {
       return "bg-[#1a1a1a] text-white border border-white/15";
     case "success":
     default:
-      return "bg-[#1ed760] text-black";
+      return "bg-[#ff2ea6] text-black";
   }
 }
 

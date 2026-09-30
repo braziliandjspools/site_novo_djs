@@ -99,7 +99,7 @@ function FolderDownloadButton({
       type="button"
       onClick={(event) => void handleClick(event)}
       disabled={sending}
-      className="inline-flex h-8 min-w-[32px] flex-shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#1ed760]/35 bg-[#1ed760]/12 px-2.5 text-[11px] font-bold uppercase tracking-wide text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
+      className="inline-flex h-8 min-w-[32px] flex-shrink-0 items-center justify-center gap-1.5 rounded-full border border-[#ff2ea6]/35 bg-[#ff2ea6]/12 px-2.5 text-[11px] font-bold uppercase tracking-wide text-[#ff2ea6] transition hover:bg-[#ff2ea6]/20 disabled:opacity-50"
       aria-label={`Baixar pasta ${label}`}
     >
       {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
@@ -159,7 +159,7 @@ function AccordionLoadMoreButton({
         type="button"
         disabled={loading}
         onClick={() => void handleClick()}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-colors hover:border-[#1ed760]/50 hover:bg-[#1ed760]/10 hover:text-[#1ed760] disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-colors hover:border-[#ff2ea6]/50 hover:bg-[#ff2ea6]/10 hover:text-[#ff2ea6] disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
         Carregar mais
@@ -393,7 +393,7 @@ function GenreAccordion({
         : null;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#141816] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+    <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#1a1a1a] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
       <div className="flex flex-col gap-1.5 p-1.5 sm:flex-row sm:items-stretch sm:gap-1.5 sm:p-2">
         <button
           type="button"
@@ -401,7 +401,7 @@ function GenreAccordion({
           aria-expanded={open}
           className="flex min-h-[34px] min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/[0.04]"
         >
-          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1ed760]/25 to-white/5 text-[#1ed760] ring-1 ring-[#1ed760]/25">
+          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#ff2ea6]/25 to-white/5 text-[#ff2ea6] ring-1 ring-[#ff2ea6]/25">
             <Music2 className="h-3 w-3" aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
@@ -410,7 +410,7 @@ function GenreAccordion({
                 {title}
               </span>
               {isNew ? (
-                <span className="flex-shrink-0 rounded-md bg-[#1ed760]/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-black">
+                <span className="flex-shrink-0 rounded-md bg-[#ff2ea6]/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-black">
                   Novo
                 </span>
               ) : null}
@@ -541,7 +541,7 @@ export function AtualizacoesAcervoAccordion({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar música, artista ou estilo neste acervo…"
-          className="h-12 w-full rounded-2xl border border-white/10 bg-black/35 py-3 pl-11 pr-11 text-[14px] text-white outline-none placeholder:text-white/35 focus:border-[#1ed760]/40 focus:ring-2 focus:ring-[#1ed760]/15"
+          className="h-12 w-full rounded-2xl border border-white/10 bg-black/35 py-3 pl-11 pr-11 text-[14px] text-white outline-none placeholder:text-white/35 focus:border-[#ff2ea6]/40 focus:ring-2 focus:ring-[#ff2ea6]/15"
         />
         {query ? (
           <button

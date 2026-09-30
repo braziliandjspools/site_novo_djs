@@ -58,13 +58,13 @@ export function MusicasHeaderDownloader() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label="BRS Downloader"
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#1ed760]/25 bg-[#1ed760]/10 px-2.5 py-1.5 text-xs font-semibold text-[#1ed760] transition-colors hover:border-[#1ed760]/45 hover:bg-[#1ed760]/20 hover:text-[#7dffb0]"
+        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#ff2ea6]/25 bg-[#ff2ea6]/10 px-2.5 py-1.5 text-xs font-semibold text-[#ff2ea6] transition-colors hover:border-[#ff2ea6]/45 hover:bg-[#ff2ea6]/20 hover:text-[#ffb3df]"
       >
         <span className="relative">
-          <MonitorDown className="h-4 w-4 text-[#1ed760]" />
+          <MonitorDown className="h-4 w-4 text-[#ff2ea6]" />
           <span
             className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ring-2 ring-[#0a0a0a] ${
-              isOnline ? "bg-[#1ed760]" : "bg-zinc-500"
+              isOnline ? "bg-[#ff2ea6]" : "bg-zinc-500"
             }`}
           />
         </span>

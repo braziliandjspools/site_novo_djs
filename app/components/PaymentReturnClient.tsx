@@ -243,7 +243,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
         <div
           className={`mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full ${
             copy.icon === "success"
-              ? "bg-[#009739]/20 text-[#00B347]"
+              ? "bg-[#c2186a]/20 text-[#00B347]"
               : copy.icon === "pending" || copy.icon === "loading"
                 ? "bg-amber-500/15 text-amber-300"
                 : "bg-red-500/15 text-red-300"
@@ -296,7 +296,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
         <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:flex-wrap">
           <Link
             href="/portal/conta"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#009739] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-all hover:scale-[1.02] hover:bg-[#00B347]"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#c2186a] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-all hover:scale-[1.02] hover:bg-[#00B347]"
           >
             <User className="h-4 w-4" />
             Voltar ao portal
@@ -304,7 +304,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
           {downloaderUrl ? (
             <a
               href={downloaderUrl}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#1ed760]/50 bg-[#1ed760]/10 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#1ed760] transition-all hover:bg-[#1ed760]/20"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#ff2ea6]/50 bg-[#ff2ea6]/10 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#ff2ea6] transition-all hover:bg-[#ff2ea6]/20"
             >
               <MonitorDown className="h-4 w-4" />
               Baixar Downloader
@@ -313,7 +313,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
           {(phase === "rejected" || phase === "cancelled" || variant === "erro") && phase !== "approved" ? (
             <Link
               href="/plans"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#009739]/60 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#00B347] transition-all hover:bg-[#009739]/10"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#c2186a]/60 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#00B347] transition-all hover:bg-[#c2186a]/10"
             >
               <RotateCcw className="h-4 w-4" />
               Tentar novamente
@@ -324,7 +324,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
         {phase === "approved" ? (
           <p className="mt-4 text-sm text-zinc-400">
             Também disponível em{" "}
-            <Link href="/musicas" className="font-semibold text-[#1ed760] underline-offset-2 hover:underline">
+            <Link href="/musicas" className="font-semibold text-[#ff2ea6] underline-offset-2 hover:underline">
               /musicas
             </Link>
             .

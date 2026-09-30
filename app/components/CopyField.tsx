@@ -13,13 +13,13 @@ const VARIANT_STYLES: Record<
     box: "border-white/10 bg-black/20",
     value: "text-gray-200",
     label: "text-gray-500",
-    button: "border-[#009739]/40 bg-[#009739]/15 text-[#00B347] hover:bg-[#009739]/25",
+    button: "border-[#c2186a]/40 bg-[#c2186a]/15 text-[#00B347] hover:bg-[#c2186a]/25",
   },
   purple: {
-    box: "border-[#1ed760]/30 bg-black/30",
+    box: "border-[#ff2ea6]/30 bg-black/30",
     value: "text-[#00B347]",
     label: "text-gray-500",
-    button: "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20",
+    button: "border-[#ff2ea6]/40 bg-[#ff2ea6]/10 text-[#ff2ea6] hover:bg-[#ff2ea6]/20",
   },
   blue: {
     box: "border-[#002776]/40 bg-black/20",

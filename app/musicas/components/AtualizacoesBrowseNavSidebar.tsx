@@ -88,14 +88,14 @@ function SidebarSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section className="overflow-hidden rounded-xl border border-white/10 bg-[#171b19]">
+    <section className="overflow-hidden rounded-xl border border-white/10 bg-[#1c1c1c]">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-[#1ed760]/30 bg-[#1ed760]/12 text-[#1ed760]">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/12 text-[#ff2ea6]">
           <Icon className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
         </span>
         <h3 className="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
@@ -136,13 +136,13 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       className={`group flex items-center gap-2.5 rounded-full border px-3.5 py-2.5 transition-all ${
         active
-          ? "border-[#1ed760] bg-[#1ed760] text-black shadow-[0_8px_20px_rgba(30,215,96,0.25)]"
-          : "border-white/10 bg-[#1a1e1c] text-white hover:border-[#1ed760]/45 hover:bg-[#1ed760]/10"
+          ? "border-[#ff2ea6] bg-[#ff2ea6] text-black shadow-[0_8px_20px_rgba(255,46,166,0.25)]"
+          : "border-white/10 bg-[#222222] text-white hover:border-[#ff2ea6]/45 hover:bg-[#ff2ea6]/10"
       }`}
     >
       <span
         className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-          active ? "bg-black" : "bg-[#1ed760]"
+          active ? "bg-black" : "bg-[#ff2ea6]"
         }`}
       />
       <span className="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-[0.08em]">
@@ -151,7 +151,7 @@ function NavLink({
       {isNew ? (
         <span
           className={`flex-shrink-0 text-[9px] font-bold uppercase tracking-[0.1em] ${
-            active ? "text-black/70" : "text-[#1ed760]"
+            active ? "text-black/70" : "text-[#ff2ea6]"
           }`}
         >
           Novo
@@ -218,6 +218,7 @@ export function AtualizacoesBrowseNavSidebar({
   const searchParams = useSearchParams();
   const activePool = searchParams.get("pool") ?? "";
   const activeStyle = searchParams.get("estilo") ?? "";
+  const activeDay = searchParams.get("dia") ?? "";
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recentFolders, setRecentFolders] = useState<RecentFolder[]>([]);
 
@@ -332,7 +333,7 @@ export function AtualizacoesBrowseNavSidebar({
     }
     for (const track of catalogTracks) {
       const pool = track.poolName?.trim();
-      if (pool && track.poolFolderId) pools.set(slugifyFolderName(pool), pool);
+      if (pool && track.poolName) pools.set(slugifyFolderName(pool), pool);
     }
     return [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
   }, [catalogTracks, poolOptions]);
@@ -341,27 +342,35 @@ export function AtualizacoesBrowseNavSidebar({
     for (const track of catalogTracks) {
       const style = track.styleName?.trim();
       if (!style) continue;
-      const poolSlug = track.poolName?.trim() && track.poolFolderId ? slugifyFolderName(track.poolName) : "";
+      const poolSlug = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
       if (activePool && poolSlug !== activePool) continue;
       styles.set(slugifyStyleName(style), style);
     }
     return [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
   }, [activePool, catalogTracks]);
 
-  function filterHref(pool: string, style: string) {
+  function filterHref(next: { pool?: string; style?: string; dia?: string } = {}) {
     const params = new URLSearchParams(searchParams.toString());
-    if (pool) params.set("pool", pool);
-    else params.delete("pool");
-    if (style) params.set("estilo", style);
-    else params.delete("estilo");
+    const currentName = resolvedPath[resolvedPath.length - 1]?.name ?? "";
+    const path = isUpdateDateFolderName(currentName) ? folderHref(slugSegments.slice(0, -1)) : pathname;
+    if (next.pool !== undefined) {
+      if (next.pool) params.set("pool", next.pool);
+      else params.delete("pool");
+    }
+    if (next.style !== undefined) {
+      if (next.style) params.set("estilo", next.style);
+      else params.delete("estilo");
+    }
+    if (next.dia !== undefined) {
+      if (next.dia) params.set("dia", next.dia);
+      else params.delete("dia");
+    }
     const qs = params.toString();
-    return qs ? `${pathname}?${qs}` : pathname;
+    return qs ? `${path}?${qs}` : path;
   }
 
-  function dayHref(slug: string) {
-    const currentName = resolvedPath[resolvedPath.length - 1]?.name ?? "";
-    const base = isUpdateDateFolderName(currentName) ? slugSegments.slice(0, -1) : slugSegments;
-    return folderHref([...base, slug]);
+  function dayKeyOf(day: { slug: string; label: string }) {
+    return parseUpdateDateFolder(day.label)?.key || parseUpdateDateFolder(day.slug)?.key || day.slug;
   }
 
   const continueDisplay = continueItem ? getTrackDisplayMetadata(continueItem) : null;
@@ -375,8 +384,8 @@ export function AtualizacoesBrowseNavSidebar({
 
   return (
     <aside className="musicas-side-nav flex h-full max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#121614] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
-      <div className="mb-3.5 flex-shrink-0 rounded-xl border border-[#1ed760]/25 bg-gradient-to-br from-[#1ed760]/15 via-transparent to-transparent px-3.5 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1ed760]">
+      <div className="mb-3.5 flex-shrink-0 rounded-xl border border-[#ff2ea6]/25 bg-gradient-to-br from-[#ff2ea6]/15 via-transparent to-transparent px-3.5 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
           Biblioteca
         </p>
         <h2 className="mt-1 text-[15px] font-bold tracking-tight text-white">
@@ -388,7 +397,7 @@ export function AtualizacoesBrowseNavSidebar({
         <Link
           href="/musicas/atualizacoes"
           prefetch={false}
-          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#2dff7a]"
+          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#ff2ea6] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#2dff7a]"
         >
           <Home className="h-3.5 w-3.5" aria-hidden />
           Acervo (raiz)
@@ -407,7 +416,7 @@ export function AtualizacoesBrowseNavSidebar({
                 prefetch={false}
                 className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] ${
                   last
-                    ? "bg-[#1ed760]/15 text-[#1ed760]"
+                    ? "bg-[#ff2ea6]/15 text-[#ff2ea6]"
                     : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -515,32 +524,31 @@ export function AtualizacoesBrowseNavSidebar({
         {days.length > 0 ? (
           <SidebarSection title="Dias" icon={CalendarDays} count={days.length} defaultOpen>
             <NavLink
-              href={
-                isUpdateDateFolderName(resolvedPath[resolvedPath.length - 1]?.name ?? "")
-                  ? folderHref(slugSegments.slice(0, -1))
-                  : folderHref(slugSegments)
-              }
+              href={filterHref({ dia: "", pool: "", style: "" })}
               title="Mês inteiro"
-              active={!isUpdateDateFolderName(resolvedPath[resolvedPath.length - 1]?.name ?? "")}
+              active={!activeDay}
             />
-            {days.map((day) => (
-              <NavLink
-                key={day.slug}
-                href={dayHref(day.slug)}
-                title={day.label}
-                active={slugSegments[slugSegments.length - 1] === day.slug}
-              />
-            ))}
+            {days.map((day) => {
+              const key = dayKeyOf(day);
+              return (
+                <NavLink
+                  key={day.slug}
+                  href={filterHref({ dia: key, pool: "", style: "" })}
+                  title={day.label}
+                  active={activeDay === key}
+                />
+              );
+            })}
           </SidebarSection>
         ) : null}
 
         {poolFilters.length > 0 || styleFilters.length > 0 ? (
           <SidebarSection title="Pools" icon={Layers3} count={poolFilters.length} defaultOpen>
-            <NavLink href={filterHref("", "")} title="Todas" active={!activePool && !activeStyle} />
+            <NavLink href={filterHref({ pool: "", style: "" })} title="Todas" active={!activePool && !activeStyle} />
             {poolFilters.map(([slug, name]) => (
               <NavLink
                 key={slug}
-                href={filterHref(slug, activePool === slug ? activeStyle : "")}
+                href={filterHref({ pool: slug, style: activePool === slug ? activeStyle : "" })}
                 title={name}
                 active={activePool === slug}
               />
@@ -550,11 +558,11 @@ export function AtualizacoesBrowseNavSidebar({
 
         {styleFilters.length > 0 ? (
           <SidebarSection title="Estilos" icon={FolderOpen} count={styleFilters.length} defaultOpen>
-            <NavLink href={filterHref(activePool, "")} title="Todos os estilos" active={!activeStyle} />
+            <NavLink href={filterHref({ style: "" })} title="Todos os estilos" active={!activeStyle} />
             {styleFilters.map(([slug, name]) => (
               <NavLink
                 key={slug}
-                href={filterHref(activePool, slug)}
+                href={filterHref({ style: slug })}
                 title={formatStyleNameForDisplay(name)}
                 active={activeStyle === slug}
               />

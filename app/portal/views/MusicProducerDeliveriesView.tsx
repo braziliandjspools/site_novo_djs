@@ -32,8 +32,8 @@ function EmptyDeliveriesState({ enabled }: { enabled: boolean }) {
   return (
     <PortalCard>
       <div className="flex flex-col items-center py-6 text-center sm:py-10">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1DB954]/15">
-          <Music2 className="h-8 w-8 text-[#1DB954]" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#ff2ea6]/15">
+          <Music2 className="h-8 w-8 text-[#ff2ea6]" />
         </div>
         <h3 className="mt-5 font-display text-2xl tracking-wide text-white">Nenhuma produção disponível ainda</h3>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
@@ -47,7 +47,7 @@ function EmptyDeliveriesState({ enabled }: { enabled: boolean }) {
         )}
         <Link
           href="/musicproducer#conte-sua-ideia"
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#1ed760]"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#ff2ea6] px-6 py-3 text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#ff2ea6]"
         >
           <Sparkles className="h-4 w-4" />
           Produzir minha música
@@ -110,7 +110,7 @@ function BriefingCard({
           <h3 className="mt-1 font-semibold text-white">{briefing.servicePlan}</h3>
           <p className="mt-1 text-xs text-zinc-500">{briefing.createdAtLabel}</p>
         </div>
-        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1DB954]">
+        <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#ff2ea6]">
           {briefing.statusLabel}
         </span>
       </div>
@@ -154,7 +154,7 @@ function BriefingCard({
             type="button"
             disabled={busy}
             onClick={() => void resubmit()}
-            className="inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-4 py-2 text-xs font-bold text-black disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-[#ff2ea6] px-4 py-2 text-xs font-bold text-black disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
             Corrigir e reenviar

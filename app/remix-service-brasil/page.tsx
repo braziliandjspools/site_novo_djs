@@ -68,7 +68,7 @@ export default function RemixServiceBrasilPage() {
       <section className="mt-10 flex flex-wrap gap-3">
         <Link
           href="/musicas/atualizacoes"
-          className="inline-flex h-11 items-center rounded-full bg-[#1ed760] px-5 text-sm font-bold text-black"
+          className="inline-flex h-11 items-center rounded-full bg-[#ff2ea6] px-5 text-sm font-bold text-black"
         >
           Abrir atualizações
         </Link>

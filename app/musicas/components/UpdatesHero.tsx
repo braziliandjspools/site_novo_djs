@@ -109,7 +109,7 @@ export function UpdatesHero({
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/25" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/10" />
       </div>
-      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1ed760] via-[#1ed760]/40 to-transparent" />
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#ff2ea6] via-[#ff2ea6]/40 to-transparent" />
 
       <div className="relative z-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:gap-7 sm:p-7 lg:p-8">
         <div className="mx-auto w-full max-w-[160px] flex-shrink-0 sm:mx-0 sm:max-w-[200px] lg:max-w-[220px]">
@@ -149,7 +149,7 @@ export function UpdatesHero({
                   key={stat.label}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                     stat.accent
-                      ? "border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760]"
+                      ? "border-[#ff2ea6]/30 bg-[#ff2ea6]/10 text-[#ff2ea6]"
                       : "border-white/10 bg-black/35 text-white/75"
                   }`}
                 >
@@ -181,7 +181,7 @@ export function UpdatesHero({
             <button
               type="button"
               onClick={explore}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-[#1fdf67] sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-[#1fdf67] sm:w-auto"
             >
               Explorar agora
             </button>

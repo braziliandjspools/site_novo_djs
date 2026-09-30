@@ -39,12 +39,12 @@ export function MusicasUserMenu({ userName, hasVip, onLogout }: MusicasUserMenuP
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-2 rounded-full border border-zinc-700/80 bg-zinc-900/80 p-1 pr-2.5 transition-colors hover:border-[#009739]/40 sm:pr-3"
+        className="flex items-center gap-2 rounded-full border border-zinc-700/80 bg-zinc-900/80 p-1 pr-2.5 transition-colors hover:border-[#c2186a]/40 sm:pr-3"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Menu da conta"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#009739] to-[#00ff9d] text-sm font-black text-black">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#c2186a] to-[#00ff9d] text-sm font-black text-black">
           {initial}
         </div>
         <ChevronDown className={`hidden h-4 w-4 text-zinc-400 transition-transform sm:block ${open ? "rotate-180" : ""}`} />

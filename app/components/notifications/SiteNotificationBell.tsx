@@ -44,7 +44,7 @@ function severityClass(severity: SiteNotificationDto["severity"]) {
     case "warning":
       return "border-amber-500/20 bg-amber-500/10 text-amber-200";
     case "success":
-      return "border-[#1db954]/20 bg-[#1db954]/10 text-[#1db954]";
+      return "border-[#ff2ea6]/20 bg-[#ff2ea6]/10 text-[#ff2ea6]";
     default:
       return "border-white/[0.06] bg-white/[0.03] text-zinc-300";
   }
@@ -263,7 +263,7 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-white">
-                  <Bell className="h-3.5 w-3.5 text-[#1ed760]" />
+                  <Bell className="h-3.5 w-3.5 text-[#ff2ea6]" />
                   Push no navegador
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
@@ -302,7 +302,7 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-white">
-                  <MonitorSmartphone className="h-3.5 w-3.5 text-[#1ed760]" />
+                  <MonitorSmartphone className="h-3.5 w-3.5 text-[#ff2ea6]" />
                   App no PC
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
@@ -315,7 +315,7 @@ export function SiteNotificationBell({ className = "", compact = false }: SiteNo
                 <button
                   type="button"
                   disabled={installBusy}
-                  className="inline-flex h-8 flex-shrink-0 items-center gap-1 rounded-lg bg-[#1ed760] px-2.5 text-[10px] font-bold uppercase tracking-wider text-black disabled:opacity-50 hover:opacity-90"
+                  className="inline-flex h-8 flex-shrink-0 items-center gap-1 rounded-lg bg-[#ff2ea6] px-2.5 text-[10px] font-bold uppercase tracking-wider text-black disabled:opacity-50 hover:opacity-90"
                   onClick={() => {
                     setInstallBusy(true);
                     void installPwa().finally(() => setInstallBusy(false));

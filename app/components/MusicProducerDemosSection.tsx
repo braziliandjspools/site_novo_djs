@@ -35,7 +35,7 @@ export function MusicProducerDemosSection({ initialPlaylists = [] }: MusicProduc
           <button
             type="button"
             onClick={scrollToBriefing}
-            className="mt-8 rounded-full bg-gradient-to-r from-[#009739] to-[#1DB954] px-8 py-3.5 text-sm font-bold text-white transition-all hover:scale-105 hover:from-[#00B347] hover:to-[#1ED760]"
+            className="mt-8 rounded-full bg-gradient-to-r from-[#c2186a] to-[#ff2ea6] px-8 py-3.5 text-sm font-bold text-white transition-all hover:scale-105 hover:from-[#00B347] hover:to-[#ff2ea6]"
           >
             Quero criar minha música
           </button>

@@ -142,12 +142,12 @@ export function CollectionContextMenu({
             type="button"
             disabled={action.disabled}
             onClick={() => runAction(action)}
-            className={`group/item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium tracking-wide text-white/80 transition-all duration-200 hover:bg-[#1ed760]/12 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent md:py-2.5 ${
+            className={`group/item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-medium tracking-wide text-white/80 transition-all duration-200 hover:bg-[#ff2ea6]/12 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent md:py-2.5 ${
               index > 0 ? "" : ""
             }`}
           >
             {Icon || action.renderIcon ? (
-              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/55 transition-colors group-hover/item:border-[#1ed760]/30 group-hover/item:bg-[#1ed760]/10 group-hover/item:text-[#1ed760]">
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/55 transition-colors group-hover/item:border-[#ff2ea6]/30 group-hover/item:bg-[#ff2ea6]/10 group-hover/item:text-[#ff2ea6]">
                 {Icon ? <Icon className="h-3.5 w-3.5" strokeWidth={2} /> : action.renderIcon}
               </span>
             ) : null}

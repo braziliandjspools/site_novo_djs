@@ -108,7 +108,7 @@ type AdminMusicProducerDeliveriesProps = {
 };
 
 const inputClass =
-  "w-full min-w-0 rounded-md border border-white/10 bg-black/20 px-2 py-1.5 text-xs text-white outline-none focus:border-[#009739]/50";
+  "w-full min-w-0 rounded-md border border-white/10 bg-black/20 px-2 py-1.5 text-xs text-white outline-none focus:border-[#c2186a]/50";
 
 const emptyDraft = (): DeliveryDraft => ({
   title: "",
@@ -648,7 +648,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                                 <div className="flex flex-wrap items-center gap-2">
                                   <span className="font-medium text-white">{briefing.servicePlan}</span>
                                   {briefing.estimatedQuote && (
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#1DB954]">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#ff2ea6]">
                                       {briefing.estimatedQuote}
                                     </span>
                                   )}
@@ -889,7 +889,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                                     type="button"
                                     disabled={savingId === delivery.id}
                                     onClick={() => void saveDelivery(delivery.id)}
-                                    className="rounded-md border border-[#009739]/40 bg-[#009739]/15 p-2 text-[#00B347] hover:bg-[#009739]/25 disabled:opacity-50"
+                                    className="rounded-md border border-[#c2186a]/40 bg-[#c2186a]/15 p-2 text-[#00B347] hover:bg-[#c2186a]/25 disabled:opacity-50"
                                     title="Salvar"
                                   >
                                     {savingId === delivery.id ? (
@@ -987,7 +987,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                                 type="checkbox"
                                 checked={draft.visible}
                                 onChange={(e) => updateEditDraft(delivery.id, { visible: e.target.checked })}
-                                className="h-4 w-4 accent-[#009739]"
+                                className="h-4 w-4 accent-[#c2186a]"
                               />
                               Visível no portal
                             </label>
@@ -1000,7 +1000,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                     </div>
                   )}
 
-                  <div className="rounded-lg border border-[#009739]/30 bg-[#009739]/10 p-4">
+                  <div className="rounded-lg border border-[#c2186a]/30 bg-[#c2186a]/10 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-[#00B347]">Nova entrega</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       <label className="block text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
@@ -1068,7 +1068,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                           type="checkbox"
                           checked={newDraft.visible}
                           onChange={(e) => updateNewDraft(user.id, { visible: e.target.checked })}
-                          className="h-4 w-4 accent-[#009739]"
+                          className="h-4 w-4 accent-[#c2186a]"
                         />
                         Visível no portal
                       </label>

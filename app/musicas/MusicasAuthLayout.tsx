@@ -87,7 +87,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   if (loading) {
     if (pathname.startsWith("/musicas/atualizacoes")) {
       return (
-        <div className="flex min-h-screen items-center bg-[#101412]">
+        <div className="flex min-h-screen items-center bg-[#141414]">
           <MusicasCenterLoading label="Carregando atualizações…" />
         </div>
       );
@@ -101,7 +101,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
         <DownloaderConfirmProvider>
           <MusicasToastProvider>
             <VipMusicPlayerProvider canPlayFull={hasVip}>
-              <div className="musicas-theme flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#101412] text-white">
+              <div className="musicas-theme flex min-h-screen w-full max-w-[100vw] flex-col overflow-x-clip bg-[#141414] text-white">
                 <MusicasTopNav
                   authenticated={authenticated}
                   userName={userName}

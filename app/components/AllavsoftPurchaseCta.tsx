@@ -137,7 +137,7 @@ function AllavsoftCheckoutInner({ plans, alreadyOwned = false }: AllavsoftPurcha
           <ul className="mt-5 space-y-2.5">
             {plan.features.map((feature) => (
               <li key={feature} className="flex items-start gap-2 text-sm text-zinc-300">
-                <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#1ed760]" />
+                <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ff2ea6]" />
                 <span className="min-w-0 break-words">{feature}</span>
               </li>
             ))}
@@ -164,7 +164,7 @@ function AllavsoftCheckoutInner({ plans, alreadyOwned = false }: AllavsoftPurcha
           <p className="mt-1 text-sm text-zinc-400">pagamento único · vitalícia</p>
 
           {alreadyOwned ? (
-            <p className="mt-6 rounded-xl border border-[#1ed760]/35 bg-[#1ed760]/10 px-4 py-3 text-sm font-semibold text-[#1ed760]">
+            <p className="mt-6 rounded-xl border border-[#ff2ea6]/35 bg-[#ff2ea6]/10 px-4 py-3 text-sm font-semibold text-[#ff2ea6]">
               Licença já ativa nesta conta. Consulte o portal do cliente.
             </p>
           ) : (

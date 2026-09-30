@@ -147,7 +147,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl font-bold text-white">
-            <Code2 className="h-6 w-6 text-[#1ed760]" /> Scripts do portal
+            <Code2 className="h-6 w-6 text-[#ff2ea6]" /> Scripts do portal
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-400">
             Cadastre e publique scripts PowerShell no banco. Os scripts ativos aparecem para clientes logados com plano ativo.
@@ -172,7 +172,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
           <button
             type="button"
             onClick={startNew}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#1ed760] px-3 text-xs font-black uppercase tracking-wider text-black hover:bg-[#55e986]"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#ff2ea6] px-3 text-xs font-black uppercase tracking-wider text-black hover:bg-[#55e986]"
           >
             <Plus className="h-4 w-4" /> Novo script
           </button>
@@ -190,12 +190,12 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
       </header>
 
       {error ? <p role="alert" className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">{error}</p> : null}
-      {success ? <p role="status" className="rounded-xl border border-[#1ed760]/20 bg-[#1ed760]/10 px-4 py-3 text-sm text-[#a5f3bf]">{success}</p> : null}
+      {success ? <p role="status" className="rounded-xl border border-[#ff2ea6]/20 bg-[#ff2ea6]/10 px-4 py-3 text-sm text-[#a5f3bf]">{success}</p> : null}
 
-      <form onSubmit={(event) => void save(event)} className="rounded-2xl border border-[#1ed760]/20 bg-[#111411] p-4 shadow-[0_16px_45px_rgba(0,0,0,0.22)] sm:p-6">
+      <form onSubmit={(event) => void save(event)} className="rounded-2xl border border-[#ff2ea6]/20 bg-[#111411] p-4 shadow-[0_16px_45px_rgba(0,0,0,0.22)] sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#1ed760]">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff2ea6]">
               {editingId ? "Editar script" : "Novo cadastro"}
             </p>
             <h2 className="mt-1 text-lg font-bold text-white">Conteúdo do script</h2>
@@ -214,7 +214,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
               required maxLength={120} value={form.title}
               onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
               placeholder="Ex.: Organizar músicas por estilo"
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-[#1ed760]/50"
+              className="mt-1.5 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-normal text-white outline-none focus:border-[#ff2ea6]/50"
             />
           </label>
           <label className="block text-xs font-bold text-zinc-300">
@@ -223,7 +223,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
               required maxLength={180} value={form.fileName}
               onChange={(event) => setForm((current) => ({ ...current, fileName: event.target.value }))}
               placeholder="organizar-musicas.ps1"
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-mono font-normal text-white outline-none focus:border-[#1ed760]/50"
+              className="mt-1.5 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-mono font-normal text-white outline-none focus:border-[#ff2ea6]/50"
             />
           </label>
           <label className="block text-xs font-bold text-zinc-300 sm:col-span-2">
@@ -232,7 +232,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
               required maxLength={4000} rows={3} value={form.description}
               onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
               placeholder="Explique o que o script faz e como ele organiza os arquivos."
-              className="mt-1.5 w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-normal leading-relaxed text-white outline-none focus:border-[#1ed760]/50"
+              className="mt-1.5 w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-normal leading-relaxed text-white outline-none focus:border-[#ff2ea6]/50"
             />
           </label>
           <label className="block text-xs font-bold text-zinc-300 sm:col-span-2">
@@ -241,7 +241,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
               required maxLength={500000} rows={18} spellCheck={false} value={form.script}
               onChange={(event) => setForm((current) => ({ ...current, script: event.target.value }))}
               placeholder="# Cole o script PowerShell completo aqui"
-              className="mt-1.5 w-full resize-y rounded-xl border border-[#1ed760]/20 bg-[#080b09] p-4 font-mono text-[11px] leading-[1.7] text-emerald-50/90 outline-none focus:border-[#1ed760]/50 sm:text-xs"
+              className="mt-1.5 w-full resize-y rounded-xl border border-[#ff2ea6]/20 bg-[#080b09] p-4 font-mono text-[11px] leading-[1.7] text-emerald-50/90 outline-none focus:border-[#ff2ea6]/50 sm:text-xs"
             />
             <span className="mt-1 block font-normal text-zinc-500">Até 500 mil caracteres. O conteúdo é armazenado no banco e copiado no portal exatamente como foi salvo.</span>
           </label>
@@ -249,12 +249,12 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-4">
           <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-300">
-            <input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} className="h-4 w-4 accent-[#1ed760]" />
+            <input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} className="h-4 w-4 accent-[#ff2ea6]" />
             Publicar para clientes com plano ativo
           </label>
           <button
             type="submit" disabled={saving}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1ed760] px-5 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#55e986] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#ff2ea6] px-5 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#55e986] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {editingId ? "Salvar alterações" : "Cadastrar script"}
@@ -279,7 +279,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="break-words font-bold text-white">{script.title}</h3>
-                      <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${script.active ? "border-[#1ed760]/25 bg-[#1ed760]/10 text-[#1ed760]" : "border-white/10 bg-white/5 text-zinc-500"}`}>
+                      <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${script.active ? "border-[#ff2ea6]/25 bg-[#ff2ea6]/10 text-[#ff2ea6]" : "border-white/10 bg-white/5 text-zinc-500"}`}>
                         {script.active ? "Publicado" : "Oculto"}
                       </span>
                     </div>
@@ -291,7 +291,7 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
                     aria-label={script.active ? "Ocultar script" : "Publicar script"}
                     title={script.active ? "Ocultar do portal" : "Publicar no portal"}
                   >
-                    {script.active ? <ToggleRight className="h-6 w-6 text-[#1ed760]" /> : <ToggleLeft className="h-6 w-6" />}
+                    {script.active ? <ToggleRight className="h-6 w-6 text-[#ff2ea6]" /> : <ToggleLeft className="h-6 w-6" />}
                   </button>
                 </div>
                 <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-xs leading-relaxed text-zinc-400">{script.description}</p>

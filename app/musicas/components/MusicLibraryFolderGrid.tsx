@@ -70,7 +70,7 @@ export function MusicLibraryFolderGrid({
             <h2 className="text-xl font-extrabold uppercase tracking-[0.08em] text-white sm:text-2xl">
               {sectionTitle}
             </h2>
-            <div className="mx-auto mt-2 h-0.5 w-16 rounded-full bg-[#1ed760]/50" aria-hidden />
+            <div className="mx-auto mt-2 h-0.5 w-16 rounded-full bg-[#ff2ea6]/50" aria-hidden />
             {sectionDescription ? (
               <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/50 sm:text-[15px]">
                 {sectionDescription}

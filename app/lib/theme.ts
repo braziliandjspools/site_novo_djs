@@ -1,6 +1,6 @@
 /** Paleta inspirada na bandeira do Brasil */
 export const BR = {
-  green: "#009739",
+  green: "#c2186a",
   yellow: "#FFDF00",
   blue: "#002776",
   greenLight: "#00B347",
@@ -15,8 +15,8 @@ export const SITE = {
   card: "#282828",
   hover: "#333333",
   muted: "#b3b3b3",
-  accent: "#1DB954",
-  accentHover: "#1ED760",
+  accent: "#ff2ea6",
+  accentHover: "#ff2ea6",
 } as const;
 
 export const PLACEHOLDER = {
@@ -40,11 +40,11 @@ export const PREVIEW_PLAYLIST = {
 
 export const CARD_COLORS = {
   green: {
-    bg: "bg-[#009739]/15",
+    bg: "bg-[#c2186a]/15",
     text: "text-[#00B347]",
-    border: "border-[#009739]/40",
-    iconBg: "bg-[#009739]/25",
-    hoverBorder: "hover:border-[#009739]/70",
+    border: "border-[#c2186a]/40",
+    iconBg: "bg-[#c2186a]/25",
+    hoverBorder: "hover:border-[#c2186a]/70",
   },
   yellow: {
     bg: "bg-[#FFDF00]/10",

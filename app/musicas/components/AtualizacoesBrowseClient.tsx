@@ -637,7 +637,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         <Link
           href={homeParentHref}
           prefetch={false}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white/70 transition hover:border-[#1ed760]/40 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white/70 transition hover:border-[#ff2ea6]/40 hover:bg-[#ff2ea6]/10 hover:text-[#ff2ea6]"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
           Voltar
@@ -653,14 +653,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       <nav
         ref={breadcrumbNavRef}
         aria-label="Caminho das pastas"
-        className="mb-5 flex w-full max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#1ed760]/15 bg-[#0d130f] p-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mb-5 flex w-full max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#ff2ea6]/15 bg-[#0d130f] p-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <Link
           href="/musicas/atualizacoes"
           title="Voltar aos acervos"
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/70 transition hover:border-[#1ed760]/40 hover:text-[#1ed760]"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/70 transition hover:border-[#ff2ea6]/40 hover:text-[#ff2ea6]"
         >
-          <Home className="h-3.5 w-3.5 text-[#1ed760]" aria-hidden />
+          <Home className="h-3.5 w-3.5 text-[#ff2ea6]" aria-hidden />
           Acervos
         </Link>
         {(data?.resolvedPath ?? []).map((part, index, all) => {
@@ -669,12 +669,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           const label = displayFolderName(part.name);
           return (
             <span key={`${part.id}-${part.slug}`} className="inline-flex shrink-0 items-center gap-1.5">
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#1ed760]/45" aria-hidden />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#ff2ea6]/45" aria-hidden />
               {isLast ? (
                 <span
                   aria-current="page"
                   title={label}
-                  className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/15 px-3 font-bold text-[#6af69b] shadow-[0_0_18px_rgba(30,215,96,0.12)]"
+                  className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#ff2ea6]/40 bg-[#ff2ea6]/15 px-3 font-bold text-[#ff8ac8] shadow-[0_0_18px_rgba(255,46,166,0.12)]"
                 >
                   <span className="truncate">{label}</span>
                 </span>
@@ -682,7 +682,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 <Link
                   href={folderHref(hrefParts)}
                   title={label}
-                  className="inline-flex h-9 max-w-[min(42vw,14rem)] items-center rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/65 transition hover:border-[#1ed760]/30 hover:bg-[#1ed760]/10 hover:text-white"
+                  className="inline-flex h-9 max-w-[min(42vw,14rem)] items-center rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/65 transition hover:border-[#ff2ea6]/30 hover:bg-[#ff2ea6]/10 hover:text-white"
                 >
                   <span className="truncate">{label}</span>
                 </Link>
@@ -692,8 +692,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         })}
         {!data && (
           <span className="inline-flex shrink-0 items-center gap-1.5">
-            <ChevronRight className="h-3.5 w-3.5 text-[#1ed760]/45" aria-hidden />
-            <span aria-current="page" className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/15 px-3 font-bold text-[#6af69b]">
+            <ChevronRight className="h-3.5 w-3.5 text-[#ff2ea6]/45" aria-hidden />
+            <span aria-current="page" className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#ff2ea6]/40 bg-[#ff2ea6]/15 px-3 font-bold text-[#ff8ac8]">
               <span className="truncate">{currentTitle}</span>
             </span>
           </span>
@@ -853,9 +853,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         >
           <div className="min-w-0 space-y-4">
             {directTracks.length > 0 ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1ed760]/20 bg-[#0c120e] px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#ff2ea6]/20 bg-[#161616] px-4 py-3">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Faixas da pasta</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">Faixas da pasta</p>
                   <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
                   <p className="text-[11px] text-white/45">{directTracks.length}{tracksHasMore ? "+" : ""} {directTracks.length === 1 ? "faixa" : "faixas"}</p>
                 </div>
@@ -868,14 +868,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     }}
                   />
                   {playbackEnabled ? (
-                    <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1ed760] px-3 text-xs font-bold text-black transition hover:bg-[#4bf082] disabled:opacity-50">
+                    <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#ff2ea6] px-3 text-xs font-bold text-black transition hover:bg-[#ff67c2] disabled:opacity-50">
                       {playBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : packPlaying ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="h-3.5 w-3.5" fill="currentColor" />}
                       {packPlaying ? "Pausar" : "Reproduzir"}
                     </button>
                   ) : null}
                   {downloadEnabled ? (
                     <>
-                      <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50">
+                      <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 text-xs font-semibold text-[#ff8ac8] transition hover:bg-[#ff2ea6]/20 disabled:opacity-50">
                         {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
                         Downloader
                       </button>
@@ -911,8 +911,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             {directTracks.length === 0 && loading ? (
               <MusicasCenterLoading label="Carregando a tabela…" />
             ) : directTracks.length === 0 ? (
-              <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
-                <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
+              <div className="overflow-hidden rounded-md border border-[#ff2ea6]/20 bg-[#0d0d0d]">
+                <div className="h-px w-full bg-gradient-to-r from-[#ff2ea6]/80 via-[#ff2ea6]/25 to-transparent" />
                 <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
                   Nenhuma faixa nesta pasta.
                 </p>
@@ -994,7 +994,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 </p>
               </div>
             </div>
-            <button type="button" onClick={() => setBulkLimitNotice(null)} className="mt-5 w-full rounded-full bg-[#1ed760] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black">
+            <button type="button" onClick={() => setBulkLimitNotice(null)} className="mt-5 w-full rounded-full bg-[#ff2ea6] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black">
               Entendi
             </button>
           </div>

@@ -21,9 +21,9 @@ export function MusicasCenterLoading({
     >
       <div className="flex flex-col items-center gap-4 text-center">
         <span className="relative flex h-16 w-16 items-center justify-center" aria-hidden>
-          <span className="absolute inset-0 animate-spin rounded-full border-2 border-[#1ed760]/15 border-t-[#1ed760]" />
-          <span className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-b-[#1ed760]/70 [animation-duration:1.4s]" />
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#1ed760]" />
+          <span className="absolute inset-0 animate-spin rounded-full border-2 border-[#ff2ea6]/15 border-t-[#ff2ea6]" />
+          <span className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-b-[#ff2ea6]/70 [animation-duration:1.4s]" />
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#ff2ea6]" />
         </span>
         <p className="text-sm font-semibold tracking-wide text-white">{label}</p>
       </div>
@@ -138,7 +138,7 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
   return (
     <div className="space-y-3" aria-busy="true" aria-live="polite" aria-label="Carregando músicas">
       <div className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12141a] to-[#0f1012] px-4 py-3.5">
-        <Loader2 className="mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-[#1ed760]" aria-hidden />
+        <Loader2 className="mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-[#ff2ea6]" aria-hidden />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-zinc-100">As músicas estão carregando…</p>
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">
@@ -187,8 +187,8 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
 
 export function MusicasAuthShellSkeleton() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#101412]" aria-busy="true" aria-label="Carregando">
-      <div className="border-b border-white/5 bg-[#0e1110]">
+    <div className="flex min-h-screen flex-col bg-[#141414]" aria-busy="true" aria-label="Carregando">
+      <div className="border-b border-white/5 bg-[#161616]">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-3 sm:h-[4.25rem] sm:px-5 lg:px-8">
           <SkeletonPulse className="h-8 w-36" />
           <div className="ml-4 hidden gap-2 md:flex">

@@ -166,7 +166,7 @@ export function CaseConverterTool() {
         <div className="border-b border-white/10 px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">Ferramenta</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">Ferramenta</p>
               <h2 className="mt-1 font-display text-xl font-bold text-white sm:text-2xl">
                 Caixa de texto
               </h2>
@@ -196,7 +196,7 @@ export function CaseConverterTool() {
             onChange={(event) => setText(event.target.value)}
             placeholder="Digite ou cole sua frase aqui…"
             rows={10}
-            className="w-full resize-y rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-base leading-relaxed text-white outline-none transition placeholder:text-zinc-600 focus:border-[#1ed760]/50 focus:ring-2 focus:ring-[#1ed760]/20"
+            className="w-full resize-y rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-base leading-relaxed text-white outline-none transition placeholder:text-zinc-600 focus:border-[#ff2ea6]/50 focus:ring-2 focus:ring-[#ff2ea6]/20"
           />
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -204,7 +204,7 @@ export function CaseConverterTool() {
               type="button"
               onClick={() => void copyResult()}
               disabled={!text}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#1ed760]/40 hover:text-[#1ed760] disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#ff2ea6]/40 hover:text-[#ff2ea6] disabled:opacity-40"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? "Copiado" : "Copiar"}
@@ -223,7 +223,7 @@ export function CaseConverterTool() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-[#141414] p-4 sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">Opções de gerador</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">Opções de gerador</p>
         <h3 className="mt-1 text-lg font-bold text-white">Converter com um clique</h3>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {ACTIONS.map(({ id, label, hint, icon: Icon }) => (
@@ -233,11 +233,11 @@ export function CaseConverterTool() {
               onClick={() => apply(id)}
               className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
                 activeAction === id
-                  ? "border-[#1ed760]/50 bg-[#1ed760]/10"
+                  ? "border-[#ff2ea6]/50 bg-[#ff2ea6]/10"
                   : "border-white/10 bg-black/30 hover:border-white/25 hover:bg-white/[0.04]"
               }`}
             >
-              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#1ed760]/15 text-[#1ed760]">
+              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#ff2ea6]/15 text-[#ff2ea6]">
                 <Icon className="h-4 w-4" />
               </span>
               <span className="min-w-0">
@@ -250,7 +250,7 @@ export function CaseConverterTool() {
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-[#141414] p-4 sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">
           Opções · Primeira Letra Palavra
         </p>
         <h3 className="mt-1 text-lg font-bold text-white">Regras de title case</h3>
@@ -262,7 +262,7 @@ export function CaseConverterTool() {
           <div>
             <label htmlFor="min-letters" className="text-sm font-semibold text-white">
               1. Ignorar palavras menores que{" "}
-              <span className="tabular-nums text-[#1ed760]">{minLetters}</span> letra(s)
+              <span className="tabular-nums text-[#ff2ea6]">{minLetters}</span> letra(s)
             </label>
             <div className="mt-3 flex items-center gap-4">
               <input
@@ -272,7 +272,7 @@ export function CaseConverterTool() {
                 max={8}
                 value={minLetters}
                 onChange={(event) => setMinLetters(Number(event.target.value))}
-                className="h-2 w-full accent-[#1ed760]"
+                className="h-2 w-full accent-[#ff2ea6]"
               />
               <input
                 type="number"
@@ -284,7 +284,7 @@ export function CaseConverterTool() {
                   if (!Number.isFinite(value)) return;
                   setMinLetters(Math.max(1, Math.min(20, Math.round(value))));
                 }}
-                className="w-16 rounded-lg border border-white/10 bg-black/40 px-2 py-1.5 text-center text-sm font-bold tabular-nums text-white outline-none focus:border-[#1ed760]/50"
+                className="w-16 rounded-lg border border-white/10 bg-black/40 px-2 py-1.5 text-center text-sm font-bold tabular-nums text-white outline-none focus:border-[#ff2ea6]/50"
               />
             </div>
           </div>
@@ -299,12 +299,12 @@ export function CaseConverterTool() {
               value={ignoreWords}
               onChange={(event) => setIgnoreWords(event.target.value)}
               rows={3}
-              className="mt-3 w-full resize-y rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm leading-relaxed text-zinc-200 outline-none focus:border-[#1ed760]/50 focus:ring-2 focus:ring-[#1ed760]/15"
+              className="mt-3 w-full resize-y rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm leading-relaxed text-zinc-200 outline-none focus:border-[#ff2ea6]/50 focus:ring-2 focus:ring-[#ff2ea6]/15"
             />
             <button
               type="button"
               onClick={() => setIgnoreWords(DEFAULT_IGNORE)}
-              className="mt-2 text-xs font-semibold text-[#1ed760] hover:underline"
+              className="mt-2 text-xs font-semibold text-[#ff2ea6] hover:underline"
             >
               Restaurar lista padrão
             </button>

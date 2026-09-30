@@ -43,7 +43,7 @@ export function FavoriteTracksShelf({ tracks }: { tracks: FavoriteTrack[] }) {
             type="button"
             onClick={(event) => handleRemove(event, track)}
             aria-label="Remover dos favoritos"
-            className="absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-[#1ed760] backdrop-blur-sm transition hover:bg-black/60"
+            className="absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-[#ff2ea6] backdrop-blur-sm transition hover:bg-black/60"
           >
             <Heart className="h-3.5 w-3.5" fill="currentColor" aria-hidden />
           </button>

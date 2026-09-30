@@ -115,7 +115,7 @@ export default function ArtistasPage() {
             <span
               className={`rounded-lg px-2.5 py-1 text-[12px] font-semibold ring-1 ${
                 hasVip
-                  ? "bg-[#1ed760]/15 text-[#1ed760] ring-[#1ed760]/25"
+                  ? "bg-[#ff2ea6]/15 text-[#ff2ea6] ring-[#ff2ea6]/25"
                   : "bg-black/35 text-white/55 ring-white/10"
               }`}
             >

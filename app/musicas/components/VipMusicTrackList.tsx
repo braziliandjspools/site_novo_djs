@@ -42,7 +42,7 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
+import { folderHref, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
@@ -100,7 +100,7 @@ type VipMusicTrackListProps = {
 }
 
 function trackCatalogSlugs(track: PreviewTrack) {
-  const pool = track.poolName?.trim() && track.poolFolderId ? slugifyFolderName(track.poolName) : "";
+  const pool = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
   const style = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
   return { pool, style };
 }
@@ -109,9 +109,17 @@ function foldSearch(value: string) {
   return value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR");
 }
 
-function matchesCatalogFilter(track: PreviewTrack, poolSlug: string, styleSlug: string) {
+function matchesCatalogFilter(
+  track: PreviewTrack,
+  poolSlug: string,
+  styleSlug: string,
+  dayKey: string,
+) {
+  if (dayKey && track.updateDate !== dayKey) return false;
   const slugs = trackCatalogSlugs(track);
-  return (!poolSlug || slugs.pool === poolSlug) && (!styleSlug || slugs.style === styleSlug);
+  if (poolSlug && slugs.pool !== poolSlug) return false;
+  if (styleSlug && slugs.style !== styleSlug) return false;
+  return true;
 };
 
 const STREAM_DESKTOP_GRID = "tablemusic-grid";
@@ -180,7 +188,7 @@ function PlayingBars() {
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}
-          className="brs-eq-bar w-[2px] rounded-full bg-[#1ed760]"
+          className="brs-eq-bar w-[2px] rounded-full bg-[#ff2ea6]"
           style={{ animationDelay: `${i * 0.12}s` }}
         />
       ))}
@@ -227,12 +235,12 @@ function TrackDownloaderButton({
   }
 
   const toneClass = isDone
-    ? "border-[#1ed760]/50 bg-[#1ed760]/20 text-[#1ed760]"
+    ? "border-[#ff2ea6]/50 bg-[#ff2ea6]/20 text-[#ff2ea6]"
     : isError
       ? "border-red-500/40 bg-red-500/10 text-red-400"
       : isBusyState
-        ? "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760]"
-        : "border-[#1ed760]/40 bg-[#1ed760]/10 text-[#1ed760] hover:bg-[#1ed760]/20";
+        ? "border-[#ff2ea6]/40 bg-[#ff2ea6]/10 text-[#ff2ea6]"
+        : "border-[#ff2ea6]/40 bg-[#ff2ea6]/10 text-[#ff2ea6] hover:bg-[#ff2ea6]/20";
 
   const tooltip = label ?? `Enviar ${title} ao Downloader`;
 
@@ -286,7 +294,7 @@ function MobilePlayingTitle({ title, active }: { title: string; active: boolean 
       <span
         style={{ "--brs-marquee-distance": `${motion.distance}px`, "--brs-marquee-duration": `${motion.duration}s` } as CSSProperties}
         className={`flex w-max max-w-none items-center whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
-          active ? "text-[#1ed760]" : "text-white"
+          active ? "text-[#ff2ea6]" : "text-white"
         } ${active && motion.overflowing ? "brs-mobile-track-marquee" : ""}`}
       >
         <span ref={textRef}>{title}</span>
@@ -581,7 +589,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       />
       <span className="relative z-10 flex h-full w-full items-center justify-center text-white">
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-[#1ed760]" />
+          <Loader2 className="h-4 w-4 animate-spin text-[#ff2ea6]" />
         ) : isPlaying ? (
           <>
             <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden [@media(hover:hover)]:group-focus-visible/play:hidden">
@@ -609,7 +617,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           className="object-cover opacity-75"
           unoptimized={coverUnoptimized}
         />
-        <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#1ed760] transition-colors group-hover/locked:bg-black/70">
+        <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#ff2ea6] transition-colors group-hover/locked:bg-black/70">
           <Lock className="h-3.5 w-3.5" />
         </span>
       </button>
@@ -625,13 +633,13 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <MobilePlayingTitle title={display.title} active={isPlaying} />
         <span
           className={`hidden truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] md:block ${
-            isActive || isPlaying ? "text-[#1ed760]" : "text-white"
+            isActive || isPlaying ? "text-[#ff2ea6]" : "text-white"
           }`}
         >
           {display.title}
         </span>
       </p>
-      {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
+      {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-[#ff2ea6]/40 bg-[#ff2ea6]/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[#ffb3df]">Nova</span> : null}
       <ArtistNameLink
         artist={artistLabel}
         className="mt-0.5 block whitespace-normal break-words text-[12px] leading-snug text-white/50"
@@ -682,10 +690,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         >
           <div className="relative h-1.5 w-full rounded-sm bg-[#344038] sm:h-1">
             <div
-              className="relative h-full rounded-sm bg-[#1ed760]"
+              className="relative h-full rounded-sm bg-[#ff2ea6]"
               style={{ width: `${Math.min(100, progress)}%` }}
             >
-              <span className="absolute -right-1 top-1/2 h-3 w-2 -translate-y-1/2 rounded-sm bg-[#a7ffc6] shadow-[0_0_8px_rgba(30,215,96,0.6)] sm:h-2.5" />
+              <span className="absolute -right-1 top-1/2 h-3 w-2 -translate-y-1/2 rounded-sm bg-[#a7ffc6] shadow-[0_0_8px_rgba(255,46,166,0.6)] sm:h-2.5" />
             </div>
             <span className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent_0,transparent_calc(10%_-_1px),rgba(8,14,9,0.5)_calc(10%_-_1px),rgba(8,14,9,0.5)_10%)]" aria-hidden />
           </div>
@@ -709,7 +717,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         aria-label={isSelected ? `Remover ${display.title} da seleção` : `Selecionar ${display.title}`}
         className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border transition-colors md:h-5 md:w-5 ${
           isSelected
-            ? "border-[#1ed760] bg-[#1ed760] text-black"
+            ? "border-[#ff2ea6] bg-[#ff2ea6] text-black"
             : "border-white/25 bg-black/20 text-transparent hover:border-white/45"
         }`}
       >
@@ -720,10 +728,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`tablemusic-row group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#1ed760]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
+      className={`tablemusic-row group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#ff2ea6]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
-          ? "shadow-[inset_3px_0_0_0_#1ed760]"
-          : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
+          ? "shadow-[inset_3px_0_0_0_#ff2ea6]"
+          : "hover:shadow-[inset_3px_0_0_0_rgba(255,46,166,0.55)]"
       }`}
     >
       {/* Mobile */}
@@ -801,7 +809,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 onDownload();
               }}
               disabled={isDownloading}
-              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60"
+              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#ff2ea6]/40 hover:text-white disabled:opacity-60"
               title={`Baixar ${display.title}`}
               aria-label={`Baixar ${display.title}`}
             >
@@ -838,7 +846,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                   void copyDriveLink("drive");
                 }}
                 disabled={copyingDrive}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 text-[#ff2ea6] transition hover:bg-[#ff2ea6]/20 disabled:opacity-50"
                 title={`Copiar link do Google Drive de ${display.title}`}
                 aria-label={`Copiar link do Google Drive de ${display.title}`}
               >
@@ -941,7 +949,7 @@ function DiscographyTrackRow({
             />
             <span className="relative z-10 flex h-full w-full items-center justify-center text-white">
               {isLoading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#1ed760]" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#ff2ea6]" />
               ) : isPlaying ? (
                 <>
                   <span className="flex items-center justify-center [@media(hover:hover)]:group-hover/row:hidden">
@@ -959,7 +967,7 @@ function DiscographyTrackRow({
               className="block w-full truncate text-left text-[12px] font-semibold tracking-[-0.02em] text-white sm:text-[13px]"
               title={`${display.title} — ${display.artist}`}
             >
-              <span className={isPlaying || isActive ? "text-[#1ed760]" : "text-white"}>
+              <span className={isPlaying || isActive ? "text-[#ff2ea6]" : "text-white"}>
                 {display.title}
               </span>
             </p>
@@ -988,7 +996,7 @@ function DiscographyTrackRow({
                 className="object-cover opacity-75"
                 unoptimized={coverUnoptimized}
               />
-              <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#1ed760] transition-colors group-hover/locked:bg-black/70">
+              <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-[#ff2ea6] transition-colors group-hover/locked:bg-black/70">
                 <Lock className="h-3.5 w-3.5" />
               </span>
             </button>
@@ -1074,11 +1082,12 @@ export function VipMusicTrackList({
   const searchParams = useSearchParams();
   const poolFilterSlug = searchParams.get("pool") ?? "";
   const styleFilterSlug = searchParams.get("estilo") ?? "";
+  const dayFilterKey = searchParams.get("dia") ?? "";
   const searchQuery = searchParams.get("busca") ?? "";
   const [searchDraft, setSearchDraft] = useState(searchQuery);
 
   const writeCatalogQuery = useCallback(
-    (next: { pool?: string; style?: string; busca?: string }) => {
+    (next: { pool?: string; style?: string; busca?: string; dia?: string }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (next.pool !== undefined) {
         if (next.pool) params.set("pool", next.pool);
@@ -1092,6 +1101,10 @@ export function VipMusicTrackList({
         const value = next.busca.trim();
         if (value) params.set("busca", value);
         else params.delete("busca");
+      }
+      if (next.dia !== undefined) {
+        if (next.dia) params.set("dia", next.dia);
+        else params.delete("dia");
       }
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -1138,9 +1151,7 @@ export function VipMusicTrackList({
       const style = track.styleName?.trim();
       // Sem ID de pasta de Pool, não há Pool real para filtrar.
       // Isso evita que um estilo de uma estrutura sem Pool apareça como Pool.
-      if (pool && track.poolFolderId) {
-        pools.set(slugifyFolderName(pool), pool);
-      }
+      if (pool) pools.set(slugifyFolderName(pool), pool);
       if (style) styles.set(slugifyStyleName(style), style);
     }
     if (poolFilterSlug && !pools.has(poolFilterSlug)) pools.set(poolFilterSlug, poolFilterSlug);
@@ -1156,7 +1167,7 @@ export function VipMusicTrackList({
   const filteredTracks = useMemo(() => {
     const query = foldSearch(searchDraft.trim());
     return tracks.filter((track) => {
-      if (!matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug)) return false;
+      if (!matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug, dayFilterKey)) return false;
       if (!query) return true;
       const display = getTrackDisplayMetadata(track);
       const haystack = foldSearch(
@@ -1166,7 +1177,7 @@ export function VipMusicTrackList({
       );
       return haystack.includes(query);
     });
-  }, [poolFilterSlug, searchDraft, styleFilterSlug, tracks]);
+  }, [dayFilterKey, poolFilterSlug, searchDraft, styleFilterSlug, tracks]);
 
   const visibleTrackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
@@ -1456,7 +1467,7 @@ export function VipMusicTrackList({
       let changed = false;
       for (const track of pending) {
         if (skippedMarkIds.current.has(track.id)) continue;
-        if (!matchesCatalogFilter(track, markRule.pool, markRule.style)) continue;
+        if (!matchesCatalogFilter(track, markRule.pool, markRule.style, dayFilterKey)) continue;
         if (!next.has(track.id)) {
           next.add(track.id);
           changed = true;
@@ -1464,7 +1475,7 @@ export function VipMusicTrackList({
       }
       return changed ? next : current;
     });
-  }, [markRule, tracks]);
+  }, [dayFilterKey, markRule, tracks]);
 
   const drainLengthRef = useRef<number | null>(null);
   useEffect(() => {
@@ -1520,7 +1531,7 @@ export function VipMusicTrackList({
     visibleTrackSections?.length && shouldGroupByDate,
   );
   const panelClass = layout === "table"
-    ? "musicas-track-panel overflow-hidden !rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    ? "musicas-track-panel overflow-hidden !rounded-none border border-[#ff2ea6]/15 bg-[#141414] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
@@ -1561,8 +1572,8 @@ export function VipMusicTrackList({
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
           showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
-          onPoolFilter={(slug) => writeCatalogFilters(slug, styleFilterSlug)}
-          onStyleFilter={(slug) => writeCatalogFilters(poolFilterSlug, slug)}
+          onPoolFilter={(slug) => writeCatalogQuery({ pool: slug, style: "" })}
+          onStyleFilter={(slug) => writeCatalogQuery({ style: slug })}
         />
       );
     });
@@ -1580,7 +1591,7 @@ export function VipMusicTrackList({
               type="button"
               onClick={() => handleSendSelectedToDownloader()}
               disabled={batchSending || batchDownloading || selectedCount === 0}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#ff2ea6] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               {batchSending ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -1606,7 +1617,7 @@ export function VipMusicTrackList({
             <button
               type="button"
               onClick={openMarkPicker}
-              className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+              className="rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#ff2ea6]/35 hover:bg-[#ff2ea6]/10 hover:text-[#ff2ea6]"
             >
               Marcar pool/estilo
             </button>
@@ -1630,7 +1641,7 @@ export function VipMusicTrackList({
           <button
             type="button"
             onClick={openMarkPicker}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55 transition-colors hover:border-[#ff2ea6]/35 hover:bg-[#ff2ea6]/10 hover:text-[#ff2ea6]"
           >
             <Check className="h-3 w-3" />
             Selecionar faixas
@@ -1642,9 +1653,9 @@ export function VipMusicTrackList({
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
       {useStreaming ? (
-        <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
+        <div className="border-b border-white/10 bg-[#141414] px-3 py-3 sm:px-4">
           <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1ed760]" aria-hidden />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#ff2ea6]" aria-hidden />
             <input
               type="text"
               value={searchDraft}
@@ -1655,7 +1666,7 @@ export function VipMusicTrackList({
               }}
               placeholder="Buscar nesta tabela"
               aria-label="Buscar nesta tabela"
-              className="w-full rounded-xl border border-white/10 bg-black py-2.5 pl-10 pr-10 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#1ed760]/60"
+              className="w-full rounded-xl border border-white/10 bg-black py-2.5 pl-10 pr-10 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#ff2ea6]/60"
             />
             {searchDraft ? (
               <button
@@ -1673,9 +1684,11 @@ export function VipMusicTrackList({
           </label>
         </div>
       ) : null}
-      {useStreaming && searchDraft.trim() && filteredTracks.length === 0 ? (
+      {useStreaming && (searchDraft.trim() || poolFilterSlug || styleFilterSlug || dayFilterKey) && filteredTracks.length === 0 ? (
         <p className="px-4 py-10 text-center text-sm text-zinc-400">
-          Nenhuma música encontrada para “{searchDraft.trim()}”.
+          {searchDraft.trim()
+            ? `Nenhuma música encontrada para “${searchDraft.trim()}”.`
+            : "Nenhuma música neste filtro."}
         </p>
       ) : null}
       {error && isThisFolder && (
@@ -1734,8 +1747,8 @@ export function VipMusicTrackList({
           ) : null}
           {visibleTrackSections?.map((section) => (
             <div key={section.id} className={panelClass}>
-              <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
-                <h3 className="inline-flex items-center bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
+              <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
+                <h3 className="inline-flex items-center bg-[#ff2ea6] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
                   {section.title}
                 </h3>
                 <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
@@ -1756,10 +1769,10 @@ export function VipMusicTrackList({
           ]).map((section) => (
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
-                <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
-                  <h3 className="inline-flex items-center gap-2 bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
+                <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
+                  <h3 className="inline-flex items-center gap-2 bg-[#ff2ea6] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
                     {section.isNew ? (
-                      <span className="rounded-full bg-black px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-[#1ed760]">
+                      <span className="rounded-full bg-black px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-[#ff2ea6]">
                         NEW
                       </span>
                     ) : null}
@@ -1790,7 +1803,7 @@ export function VipMusicTrackList({
             type="button"
             onClick={() => handleSendSelectedToDownloader()}
             disabled={batchSending || batchDownloading}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#1ed760] px-3.5 py-2 text-xs font-bold text-black disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#ff2ea6] px-3.5 py-2 text-xs font-bold text-black disabled:opacity-50"
           >
             {batchSending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1886,7 +1899,7 @@ export function VipMusicTrackList({
               <button type="button" onClick={() => setMarkPickerOpen(false)} className="flex-1 rounded-full border border-white/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-300">
                 Cancelar
               </button>
-              <button type="button" onClick={confirmMarkPicker} className="flex-1 rounded-full bg-[#1ed760] px-4 py-2 text-xs font-bold uppercase tracking-wider text-black">
+              <button type="button" onClick={confirmMarkPicker} className="flex-1 rounded-full bg-[#ff2ea6] px-4 py-2 text-xs font-bold uppercase tracking-wider text-black">
                 Marcar
               </button>
             </div>

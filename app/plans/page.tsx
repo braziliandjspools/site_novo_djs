@@ -240,7 +240,7 @@ export default async function PlansPage() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {benefits.map((item) => (
               <div key={item.title} className="site-panel p-5 md:p-6">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#009739]/15 text-[#00B347]">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#c2186a]/15 text-[#00B347]">
                   <item.icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-white">{item.title}</h3>
@@ -251,7 +251,7 @@ export default async function PlansPage() {
           <ul className="mt-10 grid gap-3 sm:grid-cols-2">
             {advantages.map((point) => (
               <li key={point} className="flex items-start gap-3 text-sm leading-relaxed text-zinc-300">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#009739]" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#c2186a]" />
                 <span>{point}</span>
               </li>
             ))}
@@ -293,7 +293,7 @@ export default async function PlansPage() {
             {faqs.map((item) => (
               <div key={item.q} className="site-panel p-5 md:p-6">
                 <div className="mb-3 flex items-start gap-2">
-                  <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#009739]" />
+                  <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#c2186a]" />
                   <h3 className="font-display text-base font-semibold text-white">{item.q}</h3>
                 </div>
                 <p className="text-sm leading-relaxed text-zinc-400">{item.a}</p>

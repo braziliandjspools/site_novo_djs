@@ -6,7 +6,7 @@ import { MusicProducerSectionHeading } from "./MusicProducerSectionHeading";
 
 const platforms = [
   { name: "Beatport", accent: "text-[#94E400]" },
-  { name: "Spotify", accent: "text-[#1DB954]" },
+  { name: "Spotify", accent: "text-[#ff2ea6]" },
   { name: "Apple Music", accent: "text-[#FA586A]" },
   { name: "Deezer", accent: "text-[#A238FF]" },
   { name: "Amazon Music", accent: "text-[#25D1DA]" },

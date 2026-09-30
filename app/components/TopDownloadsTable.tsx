@@ -67,7 +67,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
     return (
       <div className="rounded-2xl border border-white/10 bg-[#141414] px-6 py-14 text-center text-sm text-zinc-500">
         Nenhuma faixa ranqueada ainda. Explore as{" "}
-        <Link href="/musicas/atualizacoes" className="font-semibold text-[#1ed760] hover:underline">
+        <Link href="/musicas/atualizacoes" className="font-semibold text-[#ff2ea6] hover:underline">
           atualizações
         </Link>
         .
@@ -84,7 +84,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
           <p className="mt-0.5 text-[11px] text-zinc-500">Sem login · ranking ao vivo conforme os downloads</p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-zinc-300">
-          <Radio className={`h-3.5 w-3.5 ${live ? "text-[#1ed760]" : "text-zinc-500"}`} />
+          <Radio className={`h-3.5 w-3.5 ${live ? "text-[#ff2ea6]" : "text-zinc-500"}`} />
           {live ? "Ao vivo" : "Reconectando…"}
         </div>
       </div>
@@ -117,7 +117,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                 <tr
                   key={track.id}
                   className={`group border-b border-white/[0.04] transition-colors last:border-b-0 ${
-                    isPlaying ? "bg-[#1ed760]/10" : "hover:bg-white/[0.03]"
+                    isPlaying ? "bg-[#ff2ea6]/10" : "hover:bg-white/[0.03]"
                   }`}
                 >
                   <td className="px-3 py-2.5 text-center align-middle sm:px-4">
@@ -136,7 +136,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                         onClick={() => void player.toggle(track.id)}
                         disabled={isBusy}
                         aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
-                        className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-900 ring-1 ring-white/10 transition hover:ring-[#1ed760]/50 disabled:opacity-40 sm:h-14 sm:w-14"
+                        className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-900 ring-1 ring-white/10 transition hover:ring-[#ff2ea6]/50 disabled:opacity-40 sm:h-14 sm:w-14"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -151,7 +151,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                         />
                         <span
                           className={`absolute inset-0 flex items-center justify-center transition ${
-                            isPlaying ? "bg-[#1ed760]/85" : "bg-black/45 group-hover:bg-black/55"
+                            isPlaying ? "bg-[#ff2ea6]/85" : "bg-black/45 group-hover:bg-black/55"
                           }`}
                         >
                           {isLoading ? (
@@ -167,7 +167,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                         <Link
                           href={track.href}
                           className={`block truncate text-sm font-medium transition hover:underline ${
-                            isPlaying ? "text-[#1ed760]" : "text-white"
+                            isPlaying ? "text-[#ff2ea6]" : "text-white"
                           }`}
                         >
                           {display.title}
@@ -203,7 +203,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
             <button
               type="button"
               onClick={() => void player.toggle(active.id)}
-              className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1ed760] text-black"
+              className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#ff2ea6] text-black"
               aria-label="Play/Pause"
             >
               {player.loadingId === active.id ? (
@@ -219,7 +219,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
               </p>
               <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#009739] to-[#1ed760] transition-[width] duration-200"
+                  className="h-full rounded-full bg-gradient-to-r from-[#c2186a] to-[#ff2ea6] transition-[width] duration-200"
                   style={{ width: `${player.progress}%` }}
                 />
               </div>
@@ -229,7 +229,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
             ) : (
               <Link
                 href="/musicas/atualizacoes"
-                className="hidden text-[11px] font-bold uppercase tracking-[0.12em] text-[#1ed760] hover:underline sm:inline"
+                className="hidden text-[11px] font-bold uppercase tracking-[0.12em] text-[#ff2ea6] hover:underline sm:inline"
               >
                 Ver atualizações
               </Link>

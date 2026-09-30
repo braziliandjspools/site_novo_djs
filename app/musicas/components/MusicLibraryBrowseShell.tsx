@@ -46,7 +46,7 @@ export function MusicLibraryBrowseShell({
             onClick={() => setOpen(true)}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
           >
-            <FolderTree className="h-4 w-4 text-[#1ed760]" aria-hidden />
+            <FolderTree className="h-4 w-4 text-[#ff2ea6]" aria-hidden />
             Explorar pastas
           </button>
         </div>
@@ -61,7 +61,7 @@ export function MusicLibraryBrowseShell({
             aria-label="Fechar"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden rounded-t-3xl border border-white/10 bg-[#0e1110] shadow-[0_-20px_60px_rgba(0,0,0,0.55)]">
+          <div className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden rounded-t-3xl border border-white/10 bg-[#161616] shadow-[0_-20px_60px_rgba(0,0,0,0.55)]">
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
               <p className="text-[15px] font-bold text-white">Explorar</p>
               <button

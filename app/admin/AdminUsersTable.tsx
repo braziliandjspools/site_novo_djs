@@ -186,7 +186,7 @@ function formatDateBr(isoOrDate: string) {
 }
 
 const formInputClass =
-  "w-full min-w-0 rounded-lg border border-white/10 bg-[#0a0a0a]/70 px-2.5 py-2 text-xs text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#009739]/55 focus:bg-black/40";
+  "w-full min-w-0 rounded-lg border border-white/10 bg-[#0a0a0a]/70 px-2.5 py-2 text-xs text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#c2186a]/55 focus:bg-black/40";
 
 const sheetCell = "border-b border-r border-white/[0.08] px-3 py-2.5 align-middle";
 
@@ -405,7 +405,7 @@ function UserAccountModal({
                         type="checkbox"
                         checked={enabled}
                         onChange={(e) => toggleService(key, e.target.checked)}
-                        className="h-4 w-4 accent-[#009739]"
+                        className="h-4 w-4 accent-[#c2186a]"
                       />
                       <span className="font-medium">{label}</span>
                       {!enabled && (
@@ -471,7 +471,7 @@ function UserAccountModal({
                   type="checkbox"
                   checked={draft.active}
                   onChange={(e) => onChange({ active: e.target.checked })}
-                  className="h-4 w-4 accent-[#009739]"
+                  className="h-4 w-4 accent-[#c2186a]"
                 />
                 Conta ativa
               </label>
@@ -480,7 +480,7 @@ function UserAccountModal({
                   type="checkbox"
                   checked={draft.musicProducerDeliveriesEnabled}
                   onChange={(e) => onChange({ musicProducerDeliveriesEnabled: e.target.checked })}
-                  className="h-4 w-4 accent-[#009739]"
+                  className="h-4 w-4 accent-[#c2186a]"
                 />
                 Entregas Music Producer
               </label>
@@ -548,7 +548,7 @@ function UserAccountModal({
               type="button"
               onClick={onSave}
               disabled={isSaving}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#009739] px-5 py-2 text-sm font-semibold text-white hover:bg-[#00B347] disabled:opacity-60"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#c2186a] px-5 py-2 text-sm font-semibold text-white hover:bg-[#00B347] disabled:opacity-60"
             >
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar alterações
@@ -881,7 +881,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <button
             type="button"
             onClick={() => void loadUsers()}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-[#009739]/40 hover:text-white sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-[#c2186a]/40 hover:text-white sm:w-auto"
           >
             <RefreshCw className="h-4 w-4" />
             Atualizar
@@ -889,7 +889,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           <button
             type="button"
             onClick={() => setShowCreate((value) => !value)}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#009739] px-4 py-2 text-sm font-semibold text-white hover:bg-[#00B347] sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#c2186a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#00B347] sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Novo cliente
@@ -909,7 +909,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
         <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
       )}
       {success && (
-        <p className="rounded-xl border border-[#009739]/35 bg-[#009739]/10 px-4 py-3 text-sm text-[#1ed760]" role="status">
+        <p className="rounded-xl border border-[#c2186a]/35 bg-[#c2186a]/10 px-4 py-3 text-sm text-[#ff2ea6]" role="status">
           {success}
         </p>
       )}
@@ -928,7 +928,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
       {showCreate && (
         <form
           onSubmit={(e) => void createUser(e)}
-          className="min-w-0 rounded-2xl border border-[#009739]/40 bg-[#009739]/10 p-4 sm:p-6"
+          className="min-w-0 rounded-2xl border border-[#c2186a]/40 bg-[#c2186a]/10 p-4 sm:p-6"
         >
           <h2 className="font-display text-xl text-white">Cadastrar cliente</h2>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -1070,7 +1070,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                             <span
                               className={`inline-flex w-fit rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                                 draft.active
-                                  ? "bg-[#009739]/20 text-[#1ed760]"
+                                  ? "bg-[#c2186a]/20 text-[#ff2ea6]"
                                   : "bg-zinc-700/40 text-zinc-400"
                               }`}
                             >
@@ -1111,7 +1111,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
               <button
                 type="button"
                 onClick={exportWhatsappsTxt}
-                className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#1ed760]/40 bg-[#1ed760]/10 px-4 py-2 text-sm font-semibold text-[#1ed760] hover:bg-[#1ed760]/20 sm:w-auto"
+                className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#ff2ea6]/40 bg-[#ff2ea6]/10 px-4 py-2 text-sm font-semibold text-[#ff2ea6] hover:bg-[#ff2ea6]/20 sm:w-auto"
               >
                 <Download className="h-4 w-4" />
                 Extrair WhatsApp

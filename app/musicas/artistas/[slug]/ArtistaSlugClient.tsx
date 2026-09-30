@@ -153,7 +153,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#1ed760]">
+                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
                   <Mic2 className="h-3.5 w-3.5" />
                   {profile?.known ? "Artista conhecido" : "Perfil"}
                 </p>
@@ -192,7 +192,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                     {(profile?.trackCount ?? 0) === 1 ? "faixa" : "faixas"}
                   </span>
                   {hasVip ? (
-                    <span className="rounded-full border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 py-1.5 text-xs font-semibold text-[#1ed760]">
+                    <span className="rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 py-1.5 text-xs font-semibold text-[#ff2ea6]">
                       Premium ativo
                     </span>
                   ) : (
@@ -213,7 +213,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                       href={profile.spotifyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-[#1ed760]/35 hover:text-[#1ed760]"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-[#ff2ea6]/35 hover:text-[#ff2ea6]"
                     >
                       Spotify
                       <ExternalLink className="h-3 w-3" />
@@ -227,8 +227,8 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
           {profile?.known && (bioParagraphs.length > 0 || notableWorks.length > 0) ? (
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
               {bioParagraphs.length > 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-[#141816] px-5 py-5">
-                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1ed760]">
+                <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-5 py-5">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#ff2ea6]">
                     Sobre
                   </h2>
                   <div className="mt-3 space-y-3 text-sm leading-relaxed text-white/70">
@@ -239,8 +239,8 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                 </div>
               ) : null}
               {notableWorks.length > 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-[#141816] px-5 py-5">
-                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1ed760]">
+                <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-5 py-5">
+                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#ff2ea6]">
                     <Music2 className="h-3.5 w-3.5" />
                     Obras de referência
                   </h2>
@@ -258,7 +258,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
               ) : null}
             </section>
           ) : !profile?.known ? (
-            <p className="rounded-2xl border border-white/10 bg-[#141816] px-4 py-4 text-sm leading-relaxed text-white/55">
+            <p className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-4 text-sm leading-relaxed text-white/55">
               Faixas do acervo cujo crédito de artista bate com{" "}
               <span className="font-semibold text-white/80">{slug}</span>.
             </p>
@@ -272,7 +272,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
               No acervo
             </h2>
             {tracks.length === 0 ? (
-              <p className="rounded-2xl border border-white/10 bg-[#141816] px-4 py-10 text-center text-sm text-white/50">
+              <p className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-10 text-center text-sm text-white/50">
                 Nenhuma faixa encontrada com este artista no acervo varrido.
               </p>
             ) : (

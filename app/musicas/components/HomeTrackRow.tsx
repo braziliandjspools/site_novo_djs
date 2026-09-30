@@ -70,7 +70,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
         <Link
           href={track.href}
           prefetch={false}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-white transition-colors hover:bg-[#1ed760] hover:text-black"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-white transition-colors hover:bg-[#ff2ea6] hover:text-black"
           aria-label={`Abrir ${display.title}`}
         >
           <Play className="h-4 w-4 pl-0.5" />
@@ -112,7 +112,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
               type="button"
               onClick={(event) => void handleSend(event)}
               disabled={sending}
-              className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-[#1ed760]/35 bg-[#1ed760]/10 p-2 text-[#1ed760] hover:text-[#1ed760] disabled:opacity-40 sm:border-transparent sm:bg-transparent sm:text-zinc-500"
+              className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-[#ff2ea6]/35 bg-[#ff2ea6]/10 p-2 text-[#ff2ea6] hover:text-[#ff2ea6] disabled:opacity-40 sm:border-transparent sm:bg-transparent sm:text-zinc-500"
               aria-label="Enviar para Downloader"
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MonitorDown className="h-4 w-4" />}
