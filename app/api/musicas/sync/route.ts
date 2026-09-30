@@ -2,7 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { GOOGLE_DRIVE_CACHE_TAG, withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
-import { listVipMusicFolders } from "../../../lib/vip-music-catalog";
+import { refreshVipMusicCatalog } from "../../../lib/vip-music-catalog";
 import { clearVipMusicInventoryCache } from "../../../lib/vip-music-inventory";
 
 export const dynamic = "force-dynamic";
@@ -16,13 +16,14 @@ export async function POST() {
     revalidateTag(GOOGLE_DRIVE_CACHE_TAG, { expire: 0 });
     clearVipMusicInventoryCache();
 
-    const folders = await withDriveForceRefresh(() => listVipMusicFolders());
+    const snapshot = await withDriveForceRefresh(() => refreshVipMusicCatalog());
     const syncedAt = new Date().toISOString();
 
     return NextResponse.json({
       ok: true,
       syncedAt,
-      folderCount: folders.length,
+      folderCount: snapshot.folderCount,
+      trackCount: snapshot.trackCount,
       ...access,
     });
   } catch (error) {
