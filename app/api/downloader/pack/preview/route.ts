@@ -92,6 +92,7 @@ export async function GET(request: Request) {
       subfolderCount: result.subfolderCount ?? 0,
       root: result.folder.root,
       downloadUrl,
+      dates: result.dates ?? [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao validar a pasta.";

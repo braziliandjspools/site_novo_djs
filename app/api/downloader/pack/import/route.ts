@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     kind?: unknown;
     offset?: unknown;
     limit?: unknown;
+    targets?: unknown;
   };
   const raw =
     (typeof data.url === "string" && data.url.trim()) ||
@@ -61,6 +62,20 @@ export async function POST(request: Request) {
       : null;
   const offset = typeof data.offset === "number" && Number.isFinite(data.offset) ? data.offset : 0;
   const limit = typeof data.limit === "number" && Number.isFinite(data.limit) ? data.limit : undefined;
+  const targets = Array.isArray(data.targets)
+    ? data.targets.flatMap((item) => {
+        if (!item || typeof item !== "object") return [];
+        const row = item as { folderId?: unknown; folderName?: unknown; relativePath?: unknown };
+        if (typeof row.folderId !== "string" || !row.folderId.trim()) return [];
+        return [
+          {
+            folderId: row.folderId.trim(),
+            folderName: typeof row.folderName === "string" && row.folderName.trim() ? row.folderName.trim() : "Pasta",
+            relativePath: typeof row.relativePath === "string" ? row.relativePath.trim() : "",
+          },
+        ];
+      }).slice(0, 400)
+    : [];
   const isArtist = parsed.kind === "artist" || kindHint === "artist";
 
   try {
@@ -100,6 +115,7 @@ export async function POST(request: Request) {
       root,
       offset,
       limit,
+      targets,
     });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });

@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.18";
-export const APP_CORE_VERSION = "1.0.18";
+export const WEBUI_VERSION = "1.0.19";
+export const APP_CORE_VERSION = "1.0.19";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,15 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.19",
+    date: "2026-09-30",
+    items: [
+      "Ao colar o link de um mês, o app pergunta qual dia baixar",
+      "Dentro do dia dá para marcar a pool inteira ou só os estilos",
+      "Só o que foi marcado entra na fila, ainda em blocos de 200",
+    ],
+  },
   {
     version: "1.0.18",
     date: "2026-09-30",

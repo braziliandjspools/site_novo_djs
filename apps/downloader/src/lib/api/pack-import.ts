@@ -1,5 +1,12 @@
 import { apiFetch } from "./client";
 
+export type PackDateOption = {
+  key: string;
+  label: string;
+  folderId: string;
+  name: string;
+};
+
 export type PackPreview = {
   ok: true;
   kind?: "pack" | "artist";
@@ -15,7 +22,13 @@ export type PackPreview = {
   hasSubfolders?: boolean;
   trackCountIsEstimate?: boolean;
   subfolderCount?: number;
+  dates?: PackDateOption[];
 };
+
+export type PackStyleOption = { folderId: string; name: string };
+export type PackPoolOption = { folderId: string; name: string; styles: PackStyleOption[] };
+export type PackDayContents = { pools: PackPoolOption[]; styles: PackStyleOption[] };
+export type PackImportTarget = { folderId: string; folderName: string; relativePath: string };
 
 export type PackImportResult = {
   ok: true;
@@ -207,6 +220,14 @@ export function parsePackLinkInput(input: string): ParsedDownloadLink | null {
   return null;
 }
 
+export async function browsePackDay(token: string, folderId: string) {
+  const params = new URLSearchParams({ folderId });
+  return apiFetch<PackDayContents & { ok: true }>(`/api/downloader/pack/browse?${params.toString()}`, {
+    method: "GET",
+    token,
+  });
+}
+
 export async function previewPackLink(token: string, urlOrSlug: string) {
   const parsed = parsePackLinkInput(urlOrSlug);
   const slug = parsed?.slug ?? urlOrSlug.trim();
@@ -234,6 +255,7 @@ export async function importPackLink(
     kind?: "pack" | "artist";
     offset?: number;
     limit?: number;
+    targets?: PackImportTarget[];
   },
 ) {
   const parsed = parsePackLinkInput(urlOrSlug);
@@ -251,6 +273,7 @@ export async function importPackLink(
       url: urlOrSlug.trim(),
       offset: options?.offset ?? 0,
       limit: options?.limit,
+      ...(options?.targets?.length ? { targets: options.targets } : {}),
     }),
   });
 }

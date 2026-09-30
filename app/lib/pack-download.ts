@@ -1,7 +1,10 @@
 import {
   displayFolderName,
   findFolderBySlug,
+  formatUpdateDateLabel,
+  parseUpdateDateFolder,
 } from "./vip-music-slugs";
+import { listDriveFolderChildren } from "./google-drive";
 import {
   getVipMusicCatalog,
   getVipMusicRootFolderId,
@@ -137,6 +140,20 @@ export async function previewPackBySlug(slug: string, options?: { root?: PackRoo
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
   }
 
+  const dates = await listPackDates(folder.folderId, folder.folderName);
+  if (dates.length > 0) {
+    return {
+      ok: true as const,
+      folder,
+      trackCount: 0,
+      sampleTitles: dates.slice(0, 8).map((date) => date.label),
+      hasSubfolders: true,
+      trackCountIsEstimate: true,
+      subfolderCount: dates.length,
+      dates,
+    };
+  }
+
   const catalog = await getVipMusicCatalog(folder.folderId, folder.folderName);
   if (catalog.level === "tracks") {
     const tracks = catalog.tracks.filter((track) => {
@@ -150,6 +167,7 @@ export async function previewPackBySlug(slug: string, options?: { root?: PackRoo
       sampleTitles: tracks.slice(0, 8).map((track) => track.title),
       hasSubfolders: false,
       trackCountIsEstimate: false,
+      dates: [] as PackDateOption[],
     };
   }
 
@@ -163,13 +181,20 @@ export async function previewPackBySlug(slug: string, options?: { root?: PackRoo
     hasSubfolders: subfolderCount > 0,
     trackCountIsEstimate: true,
     subfolderCount,
+    dates,
   };
 }
 
 export async function importPackJobsBySlug(
   portalUserId: number,
   slug: string,
-  options?: { targetDeviceId?: string | null; root?: PackRoot; offset?: number; limit?: number },
+  options?: {
+    targetDeviceId?: string | null;
+    root?: PackRoot;
+    offset?: number;
+    limit?: number;
+    targets?: { folderId: string; folderName: string; relativePath: string }[];
+  },
 ) {
   const folder = await resolvePackFolderBySlug(slug, { root: options?.root });
   if (!folder) {
@@ -185,7 +210,20 @@ export async function importPackJobsBySlug(
     };
   }
 
-  const tracks = await collectTracksRecursive(folder.folderId, folder.folderName, folder.relativePath);
+  const selected = options?.targets?.filter((target) => target.folderId?.trim()) ?? [];
+  const tracks = selected.length
+    ? (
+        await mapPool(selected, 4, (target) =>
+          collectTracksRecursive(
+            target.folderId,
+            target.folderName,
+            target.relativePath
+              ? `${folder.relativePath}/${target.relativePath}`
+              : folder.relativePath,
+          ),
+        )
+      ).flat()
+    : await collectTracksRecursive(folder.folderId, folder.folderName, folder.relativePath);
   if (tracks.length === 0) {
     return { error: "Esta pasta não possui faixas para baixar." as const };
   }
@@ -228,6 +266,75 @@ export async function importPackJobsBySlug(
     nextOffset,
     jobs,
   };
+}
+
+export type PackDateOption = {
+  key: string;
+  label: string;
+  folderId: string;
+  name: string;
+};
+
+export type PackStyleOption = {
+  folderId: string;
+  name: string;
+};
+
+export type PackPoolOption = {
+  folderId: string;
+  name: string;
+  styles: PackStyleOption[];
+};
+
+export type PackDayContents = {
+  pools: PackPoolOption[];
+  styles: PackStyleOption[];
+};
+
+const DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
+
+export async function listPackDates(folderId: string, folderName: string): Promise<PackDateOption[]> {
+  const own = parseUpdateDateFolder(folderName);
+  if (own) {
+    return [{ key: own.key, label: own.label, folderId, name: folderName }];
+  }
+
+  const children = await listDriveFolderChildren(folderId);
+  return children
+    .filter((child) => child.mimeType === DRIVE_FOLDER_MIME && parseUpdateDateFolder(child.name))
+    .map((child) => {
+      const parsed = parseUpdateDateFolder(child.name)!;
+      return { key: parsed.key, label: parsed.label || formatUpdateDateLabel(parsed.key), folderId: child.id, name: child.name };
+    })
+    .sort((a, b) => b.key.localeCompare(a.key));
+}
+
+export async function listPackDayContents(dateFolderId: string): Promise<PackDayContents> {
+  const children = await listDriveFolderChildren(dateFolderId);
+  const folders = children.filter((child) => child.mimeType === DRIVE_FOLDER_MIME);
+  const pools: PackPoolOption[] = [];
+  const styles: PackStyleOption[] = [];
+
+  const details = await mapPool(folders, 6, async (folder) => {
+    const nested = await listDriveFolderChildren(folder.id);
+    const subfolders = nested.filter((child) => child.mimeType === DRIVE_FOLDER_MIME);
+    if (subfolders.length > 0) {
+      pools.push({
+        folderId: folder.id,
+        name: displayFolderName(folder.name),
+        styles: subfolders
+          .map((style) => ({ folderId: style.id, name: displayFolderName(style.name) }))
+          .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+      });
+      return;
+    }
+    styles.push({ folderId: folder.id, name: displayFolderName(folder.name) });
+  });
+  void details;
+
+  pools.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  styles.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  return { pools, styles };
 }
 
 /** Prévia de perfil de artista (`/musicas/artistas/[slug]`). */

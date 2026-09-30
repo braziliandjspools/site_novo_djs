@@ -4,7 +4,8 @@ import { Button } from "./ui/Button";
 import { Panel } from "./ui/Panel";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
-import { importPackLink, previewPackLink, stripForcedFolderTreePrefix, type PackPreview } from "../lib/api/pack-import";
+import { importPackLink, previewPackLink, stripForcedFolderTreePrefix, type PackImportTarget, type PackPreview } from "../lib/api/pack-import";
+import { ImportDayPicker } from "./ImportDayPicker";
 import { formatApiError } from "../lib/errors";
 import { useLocale } from "../i18n/LocaleContext";
 
@@ -30,6 +31,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [helpOpen, setHelpOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const cancelRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -52,10 +54,13 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
     setError(null);
     setSuccess(null);
     setPreview(null);
+    setPickerOpen(false);
     try {
       const result = await previewPackLink(sessionToken, trimmed);
       setPreview(result);
-      if (result.trackCount === 0 && !result.hasSubfolders) {
+      if ((result.dates?.length ?? 0) > 0) {
+        setPickerOpen(true);
+      } else if (result.trackCount === 0 && !result.hasSubfolders) {
         setError(t("importNoTracks"));
       }
     } catch (err) {
@@ -79,10 +84,11 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
     setCooldownUntil(null);
   }
 
-  async function handleImport() {
+  async function handleImport(targets?: PackImportTarget[]) {
     if (!sessionToken || !preview || importing) return;
     cancelRef.current = false;
     setImporting(true);
+    setPickerOpen(false);
     setError(null);
     setSuccess(null);
     setQueued(0);
@@ -96,6 +102,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
           kind: preview.kind === "artist" ? "artist" : "pack",
           offset,
           limit: IMPORT_BLOCK,
+          targets,
         });
         total = result.trackCount || total;
         totalQueued += result.count;
@@ -185,7 +192,12 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
             </p>
             <p className="mt-3 flex items-center gap-2 text-lg font-black tabular-nums text-[#1db954]">
               <span>
-              {preview.trackCountIsEstimate || preview.hasSubfolders ? (
+              {(preview.dates?.length ?? 0) > 0 ? (
+                <>
+                  {preview.dates?.length}{" "}
+                  <span className="text-sm font-semibold text-zinc-400">{t("importDaysLabel")}</span>
+                </>
+              ) : preview.trackCountIsEstimate || preview.hasSubfolders ? (
                 <>
                   {preview.subfolderCount && preview.subfolderCount > 0
                     ? preview.subfolderCount
@@ -246,15 +258,30 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
             )}
             <Button
               className="mt-4 w-full"
-              disabled={importing || (preview.trackCount === 0 && !preview.hasSubfolders)}
-              onClick={() => void handleImport()}
+              disabled={importing || ((preview.dates?.length ?? 0) === 0 && preview.trackCount === 0 && !preview.hasSubfolders)}
+              onClick={() => {
+                if ((preview.dates?.length ?? 0) > 0) {
+                  setPickerOpen(true);
+                  return;
+                }
+                void handleImport();
+              }}
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              {t("importDownloadAll")}
+              {(preview.dates?.length ?? 0) > 0 ? t("importChooseWhat") : t("importDownloadAll")}
             </Button>
           </div>
         )}
       </div>
+      {pickerOpen && preview?.dates && preview.dates.length > 0 && sessionToken && (
+        <ImportDayPicker
+          token={sessionToken}
+          dates={preview.dates}
+          rootIsDate={preview.dates.length === 1 && preview.dates[0]?.folderId === preview.folderId}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={(targets) => void handleImport(targets)}
+        />
+      )}
       {helpOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" role="presentation" onClick={() => setHelpOpen(false)}>
           <div
