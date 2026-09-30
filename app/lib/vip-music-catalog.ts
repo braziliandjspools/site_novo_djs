@@ -519,40 +519,6 @@ async function getDriveCatalog(
     };
   }
 
-  // Uma pasta de data mostra os Pools daquele dia.
-  // Não achata a árvore em músicas aqui: o usuário deve seguir
-  // DATA -> POOL -> ESTILO antes de chegar aos arquivos.
-  const dateFolder = parseUpdateDateFolder(folderName);
-  if (dateFolder && subfolders.length > 0) {
-    const sortedPools = sortVipChildFolders(
-      subfolders.map((folder) => ({
-        id: folder.id,
-        name: folder.name,
-        isNew: isNewFolderName(folder.name),
-      })),
-    );
-    const stats = await mapPool(sortedPools, 8, (folder) => getFolderNavStats(folder.id));
-    const items: VipMusicCatalogItem[] = sortedPools.map((folder, index) => ({
-      ...folder,
-      type: "folder" as const,
-      coverUrl: stats[index]?.coverUrl ?? null,
-      folderCount: stats[index]?.folderCount ?? 0,
-      trackCount: stats[index]?.trackCount ?? 0,
-    }));
-
-    return {
-      configured: true,
-      rootFolderId: rootId,
-      rootFolderName: folderId === rootId ? folderName : "2026",
-      folderId,
-      folderName,
-      level: "folders",
-      items,
-      tracks: [],
-      coverUrl,
-    };
-  }
-
   // Um Pool com subpastas mostra os Estilos. Só o nível final, que contém
   // diretamente os arquivos, vira uma lista de músicas.
   if (!dateFolder && subfolders.length > 0 && folderId !== rootId) {
