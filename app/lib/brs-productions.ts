@@ -2,6 +2,7 @@ import type { PreviewTrack } from "./google-drive";
 import { prisma } from "./prisma";
 import { PLACEHOLDER } from "./theme";
 import { catalogMediaUrl } from "./catalog-media";
+import { slugifyFolderName } from "./vip-music-slugs";
 
 export const BRS_PRODUCTION_CATEGORIES = [
   { id: "BRS_ORIGINAL", label: "BRS ORIGINAL" },
