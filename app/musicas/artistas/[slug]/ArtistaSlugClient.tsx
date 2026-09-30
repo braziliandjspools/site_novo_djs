@@ -125,7 +125,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
         </p>
       ) : (
         <>
-          <section className="relative mb-2 overflow-hidden rounded-xl">
+          <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(ellipse_at_80%_0%,rgba(29,185,84,0.22),transparent_46%),linear-gradient(180deg,#121212,#0c0c0c)]">
             <div className="pointer-events-none absolute inset-0" aria-hidden>
               <Image
                 src={cover}
@@ -155,7 +155,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
               <div className="min-w-0 flex-1 text-center sm:text-left">
                 <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
                   <Mic2 className="h-3.5 w-3.5" />
-                  {profile?.known ? "Artista conhecido" : "Perfil"}
+                  Perfil público · Artista
                 </p>
                 <h1 className="mt-2 font-[family-name:var(--font-player)] text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
                   {title}
@@ -267,10 +267,9 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
           {!hasVip && authenticated && <VipUpgradeBanner />}
           {!authenticated && <VipUpgradeBanner />}
 
-          <div>
-            <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">
-              No acervo
-            </h2>
+          <div id="lancamentos" className="scroll-mt-24">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1db954]">Catálogo público</p>
+            <h2 className="mt-2 mb-4 font-display text-3xl font-semibold text-white">Lançamentos</h2>
             {tracks.length === 0 ? (
               <p className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-10 text-center text-sm text-white/50">
                 Nenhuma faixa encontrada com este artista no acervo varrido.
