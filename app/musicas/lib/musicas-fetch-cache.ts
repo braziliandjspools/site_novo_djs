@@ -51,7 +51,19 @@ export async function fetchMusicasJson<T>(url: string, options: FetchOptions = {
   const res = await fetch(url, {
     cache: options.forceRefresh ? "no-store" : "default",
   });
-  const body = (await res.json()) as T & { error?: string };
+  const contentType = res.headers.get("content-type") ?? "";
+  let body: T & { error?: string };
+  if (contentType.includes("application/json")) {
+    body = (await res.json()) as T & { error?: string };
+  } else {
+    const text = await res.text();
+    const status = res.status ? `Erro ${res.status}` : "Resposta inválida";
+    throw new Error(
+      res.ok
+        ? `${status}: a API retornou conteúdo não-JSON.`
+        : `${status}: a API retornou uma página HTML em vez de JSON.`,
+    );
+  }
   if (!res.ok) {
     throw new Error((body as { error?: string }).error ?? `Erro ${res.status}`);
   }
