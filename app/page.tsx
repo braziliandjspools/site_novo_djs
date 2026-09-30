@@ -113,8 +113,8 @@ const accessMethods = [
     icon: Smartphone,
     title: "Site — download direto",
     text: "No celular ou no navegador: abra a plataforma VIP, navegue pelas atualizações e baixe as faixas na hora. Ideal para dispositivos móveis e acesso rápido sem instalar nada.",
-    href: "/musicas/atualizacoes",
-    cta: "Abrir plataforma",
+    href: "/como-baixar",
+    cta: "Ver o tutorial",
     accent: "green" as const,
   },
   {

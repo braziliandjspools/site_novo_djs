@@ -44,6 +44,7 @@ export type SeoPageKey =
   | "remix-service-brasil"
   | "privacidade"
   | "termos"
+  | "como-baixar"
   | "privacy-downloader"
   | "privacy-cookies"
   | "privacy-conduct"
@@ -307,6 +308,18 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.3,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  "como-baixar": {
+    key: "como-baixar",
+    path: "/como-baixar",
+    title: `Como baixar no site | ${SITE_NAME}`,
+    description:
+      "Tutorial para baixar músicas no site BRS: entrar com o VIP, escolher o dia, a pool e o estilo, e enviar as faixas para o BRS Downloader no Windows.",
+    ogImage: "home",
+    sitemap: true,
+    changeFrequency: "monthly",
+    priority: 0.6,
     lastModified: SEO_STATIC_LASTMOD,
   },
   "privacy-downloader": {
