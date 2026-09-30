@@ -481,6 +481,110 @@ async function getDriveCatalog(
     };
   }
 
+  // ATUALIZAÇÕES usa a hierarquia:
+  // MÊS -> DATA -> POOL -> ESTILO -> MÚSICAS.
+  // Esses níveis precisam permanecer navegáveis. O deep-walk abaixo é usado
+  // somente quando chegamos a um nível que realmente deve exibir faixas.
+  const monthFolder = parseMonthFolderDate(folderName);
+  const dateFoldersAtMonth = subfolders
+    .filter((folder) => parseUpdateDateFolder(folder.name))
+    .sort((a, b) => {
+      const ad = parseUpdateDateFolder(a.name)?.key ?? "";
+      const bd = parseUpdateDateFolder(b.name)?.key ?? "";
+      return bd.localeCompare(ad);
+    });
+
+  if (monthFolder && dateFoldersAtMonth.length > 0) {
+    const stats = await mapPool(dateFoldersAtMonth, 8, (folder) => getFolderNavStats(folder.id));
+    const items: VipMusicCatalogItem[] = dateFoldersAtMonth.map((folder, index) => ({
+      id: folder.id,
+      name: folder.name,
+      type: "folder" as const,
+      isNew: isNewFolderName(folder.name),
+      coverUrl: stats[index]?.coverUrl ?? null,
+      folderCount: stats[index]?.folderCount ?? 0,
+      trackCount: stats[index]?.trackCount ?? 0,
+    }));
+
+    return {
+      configured: true,
+      rootFolderId: rootId,
+      rootFolderName: folderId === rootId ? folderName : "2026",
+      folderId,
+      folderName,
+      level: "folders",
+      items,
+      tracks: [],
+      coverUrl,
+    };
+  }
+
+  // Uma pasta de data mostra os Pools daquele dia.
+  // Não achata a árvore em músicas aqui: o usuário deve seguir
+  // DATA -> POOL -> ESTILO antes de chegar aos arquivos.
+  const dateFolder = parseUpdateDateFolder(folderName);
+  if (dateFolder && subfolders.length > 0) {
+    const sortedPools = sortVipChildFolders(
+      subfolders.map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+        isNew: isNewFolderName(folder.name),
+      })),
+    );
+    const stats = await mapPool(sortedPools, 8, (folder) => getFolderNavStats(folder.id));
+    const items: VipMusicCatalogItem[] = sortedPools.map((folder, index) => ({
+      ...folder,
+      type: "folder" as const,
+      coverUrl: stats[index]?.coverUrl ?? null,
+      folderCount: stats[index]?.folderCount ?? 0,
+      trackCount: stats[index]?.trackCount ?? 0,
+    }));
+
+    return {
+      configured: true,
+      rootFolderId: rootId,
+      rootFolderName: folderId === rootId ? folderName : "2026",
+      folderId,
+      folderName,
+      level: "folders",
+      items,
+      tracks: [],
+      coverUrl,
+    };
+  }
+
+  // Um Pool com subpastas mostra os Estilos. Só o nível final, que contém
+  // diretamente os arquivos, vira uma lista de músicas.
+  if (!dateFolder && subfolders.length > 0 && folderId !== rootId) {
+    const sortedChildren = sortVipChildFolders(
+      subfolders.map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+        isNew: isNewFolderName(folder.name),
+      })),
+    );
+    const stats = await mapPool(sortedChildren, 8, (folder) => getFolderNavStats(folder.id));
+    const items: VipMusicCatalogItem[] = sortedChildren.map((folder, index) => ({
+      ...folder,
+      type: "folder" as const,
+      coverUrl: stats[index]?.coverUrl ?? null,
+      folderCount: stats[index]?.folderCount ?? 0,
+      trackCount: stats[index]?.trackCount ?? 0,
+    }));
+
+    return {
+      configured: true,
+      rootFolderId: rootId,
+      rootFolderName: folderId === rootId ? folderName : "2026",
+      folderId,
+      folderName,
+      level: "folders",
+      items,
+      tracks: [],
+      coverUrl,
+    };
+  }
+
   // Há subpastas. Para qualquer nível navegável abaixo da raiz, se existirem
   // MP3 em níveis descendentes, este próprio nível vira uma tabela contínua.
   // Assim um pack como "DANCE HITS COLLECTION 90TH" não fica preso no
@@ -533,40 +637,6 @@ async function getDriveCatalog(
         return bd.localeCompare(ad);
       });
     const otherFolders = subfolders.filter((folder) => !parseUpdateDateFolder(folder.name));
-
-    // Em um mês (ex.: SETEMBRO 2026), as datas precisam continuar sendo
-    // um nível navegável. Não podemos transformar 29-SET-2026 diretamente
-    // em uma tabela de músicas, porque a URL deve preservar:
-    // SETEMBRO 2026 -> 29-SET-2026 -> POOL -> ESTILO.
-    if (parseMonthFolderDate(folderName) && dateFolders.length > 0) {
-      const sortedDates = [...dateFolders].sort((a, b) => {
-        const ad = parseUpdateDateFolder(a.name)?.key ?? "";
-        const bd = parseUpdateDateFolder(b.name)?.key ?? "";
-        return bd.localeCompare(ad);
-      });
-      const stats = await mapPool(sortedDates, 8, (folder) => getFolderNavStats(folder.id));
-      const items: VipMusicCatalogItem[] = sortedDates.map((folder, index) => ({
-        id: folder.id,
-        name: folder.name,
-        type: "folder" as const,
-        isNew: isNewFolderName(folder.name),
-        coverUrl: stats[index]?.coverUrl ?? null,
-        folderCount: stats[index]?.folderCount ?? 0,
-        trackCount: stats[index]?.trackCount ?? 0,
-      }));
-
-      return {
-        configured: true,
-        rootFolderId: rootId,
-        rootFolderName: folderId === rootId ? folderName : "2026",
-        folderId,
-        folderName,
-        level: "folders",
-        items,
-        tracks: [],
-        coverUrl,
-      };
-    }
 
     // Pastas `17-09-2026`: reúne as faixas de todas as subpastas de estilo
     // na tabela da data, sem obrigar a abrir uma página para cada estilo.
