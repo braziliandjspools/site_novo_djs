@@ -10,7 +10,7 @@
 
 const API_BASE = "https://send.now/api";
 const DEFAULT_FOLDER_ID = "468669";
-const DEFAULT_FOLDER_NAME = "ATUALIZAÇOES";
+const DEFAULT_FOLDER_NAME = "SENDNOW";
 export const SEND_NOW_FILE_PREFIX = "sn-";
 export const SEND_NOW_FOLDER_PREFIX = "sendnow-";
 
