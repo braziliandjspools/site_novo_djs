@@ -167,7 +167,10 @@ export function AtualizacoesRootClient() {
       const result = await autoSyncDriveOnEnter();
       if (cancelled) return;
       if (result?.syncedAt) setUpdatedAt(result.syncedAt);
-      await Promise.all([loadTree(Boolean(result)), loadHome(Boolean(result))]);
+      // O /api/musicas/sync já aquece a raiz com refresh forçado. Fazer outro
+      // refresh imediato no /tree dispara uma segunda varredura completa do Drive
+      // e pode estourar limite/rate limit da API, deixando a árvore sem carregar.
+      await Promise.all([loadTree(false), loadHome(false)]);
     })();
     setContinueItem(getContinueListening());
     setRecent(getRecentFolders());
