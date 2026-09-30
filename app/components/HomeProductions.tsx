@@ -111,22 +111,28 @@ function ProductionCard({
             {production.isFeatured ? "Destaque" : "Novo"}
           </span>
         ) : null}
+        <span className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-[#009739] via-[#1db954] to-[#ffe566] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-black shadow-[0_8px_18px_rgba(0,0,0,0.35)]">
+          Exclusiva BRS
+        </span>
       </div>
       </div>
       <div className="px-1.5 pb-1 pt-4">
         <Link href={`/producoes/${production.slug}`} className="block truncate text-[15px] font-bold tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
           {production.title}
         </Link>
-        <p className="mt-1.5 truncate text-xs text-zinc-400">
-          {production.producerSlug ? (
-            <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#1ed760]">
-              {production.producer}
-            </Link>
-          ) : (
-            production.producer
-          )}
-          <span className="mx-1.5 text-zinc-600">·</span>
-          {production.versionType}
+        <p className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-zinc-400">
+          <span className="truncate">
+            {production.producerSlug ? (
+              <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#1ed760]">
+                {production.producer}
+              </Link>
+            ) : (
+              production.producer
+            )}
+          </span>
+          <span className="shrink-0 rounded-md bg-[#002776] px-1.5 py-0.5 text-[10px] font-bold text-[#d7e7ff]">
+            {production.versionType}
+          </span>
         </p>
         <div className="mt-4 flex items-center justify-between gap-2">
           <span className={`truncate rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.13em] ${tone.chip}`}>

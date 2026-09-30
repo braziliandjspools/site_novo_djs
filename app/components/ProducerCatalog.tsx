@@ -100,8 +100,8 @@ function ReleaseCard({
           className="object-cover transition duration-500 group-hover:scale-[1.045]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent opacity-70" />
-        <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/65 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#1ed760] backdrop-blur">
-          {production.categoryLabel}
+        <span className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-[#009739] via-[#1db954] to-[#ffe566] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-black shadow-[0_8px_18px_rgba(0,0,0,0.35)]">
+          Exclusiva BRS
         </span>
         <button
           type="button"
@@ -119,10 +119,11 @@ function ReleaseCard({
       >
         {production.title}
       </Link>
-      <p className="mt-1 truncate text-xs text-zinc-500">
-        {production.artist}
-        <span className="mx-1.5 text-zinc-700">•</span>
-        {version}
+      <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-zinc-500">
+        <span className="truncate">{production.artist}</span>
+        <span className="shrink-0 rounded-md bg-[#002776] px-1.5 py-0.5 text-[10px] font-bold text-[#d7e7ff]">
+          {version}
+        </span>
       </p>
       <div className="mt-3 flex items-center justify-between gap-2">
         {production.genre ? (
