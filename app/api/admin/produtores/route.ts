@@ -30,13 +30,29 @@ function producerData(body: Record<string, unknown>, slug: string) {
   };
 }
 
+function failure(error: unknown) {
+  const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+  console.error("[admin-produtores]", error);
+  if (code === "P2021" || code === "P2022") {
+    return NextResponse.json(
+      { error: "A tabela de produtores ainda não existe. Reinicie o servidor para criá-la." },
+      { status: 503 },
+    );
+  }
+  return NextResponse.json({ error: "Não foi possível salvar o produtor." }, { status: 500 });
+}
+
 export async function GET(request: Request) {
   if (!isAuthorizedAdminRequest(request)) return unauthorized();
-  const items = await prisma.brsProducer.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { productions: true } } },
-  });
-  return NextResponse.json({ items });
+  try {
+    const items = await prisma.brsProducer.findMany({
+      orderBy: { name: "asc" },
+      include: { _count: { select: { productions: true } } },
+    });
+    return NextResponse.json({ items });
+  } catch (error) {
+    return failure(error);
+  }
 }
 
 export async function POST(request: Request) {
@@ -44,8 +60,12 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const name = body ? clean(body.name) : "";
   if (!name) return NextResponse.json({ error: "Informe o nome artístico." }, { status: 400 });
-  const item = await prisma.brsProducer.create({
-    data: producerData(body!, await uniqueProducerSlug(name)),
-  });
-  return NextResponse.json({ item }, { status: 201 });
+  try {
+    const item = await prisma.brsProducer.create({
+      data: producerData(body!, await uniqueProducerSlug(name)),
+    });
+    return NextResponse.json({ item }, { status: 201 });
+  } catch (error) {
+    return failure(error);
+  }
 }

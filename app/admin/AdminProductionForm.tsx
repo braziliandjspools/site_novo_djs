@@ -112,20 +112,36 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
   }
 
   async function createProducer() {
-    if (!producerName.trim()) return;
-    const res = await fetch("/api/admin/produtores", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: producerName.trim() }),
-    });
-    const data = (await res.json()) as { item?: ProducerOption; error?: string };
-    if (!res.ok || !data.item) {
-      setError(data.error ?? "Não foi possível criar o produtor.");
+    const name = producerName.trim();
+    if (!name) {
+      setError("Informe o nome do produtor.");
       return;
     }
-    setProducers((current) => [...current, data.item!].sort((a, b) => a.name.localeCompare(b.name)));
-    set("producerId", data.item.id);
-    setProducerName("");
+    setBusy("Criando produtor…");
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/produtores", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const text = await res.text();
+      const data = text
+        ? (JSON.parse(text) as { item?: ProducerOption; error?: string })
+        : {};
+      if (!res.ok || !data.item) {
+        setError(data.error ?? "Não foi possível criar o produtor.");
+        return;
+      }
+      setProducers((current) => [...current, data.item!].sort((a, b) => a.name.localeCompare(b.name)));
+      set("producerId", data.item.id);
+      setProducerName("");
+    } catch {
+      setError("Não foi possível criar o produtor.");
+    } finally {
+      setBusy("");
+    }
   }
 
   async function submit(event: FormEvent) {
@@ -166,7 +182,17 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
             ))}
           </select>
           <div className="flex gap-2">
-            <input className="site-input" placeholder="Novo produtor" value={producerName} onChange={(e) => setProducerName(e.target.value)} />
+            <input
+              className="site-input"
+              placeholder="Novo produtor"
+              value={producerName}
+              onChange={(e) => setProducerName(e.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return;
+                event.preventDefault();
+                void createProducer();
+              }}
+            />
             <button type="button" onClick={() => void createProducer()} className="rounded-full border border-white/15 px-3 text-xs">Criar</button>
           </div>
         </div>

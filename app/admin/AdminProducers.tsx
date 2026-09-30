@@ -39,10 +39,26 @@ export function AdminProducers() {
   const [items, setItems] = useState<Producer[]>([]);
   const [form, setForm] = useState({ ...blank, id: "" });
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function readJson(res: Response) {
+    const text = await res.text();
+    if (!text) return {} as { items?: Producer[]; item?: Producer; error?: string };
+    try {
+      return JSON.parse(text) as { items?: Producer[]; item?: Producer; error?: string };
+    } catch {
+      return { error: "O servidor não conseguiu salvar o produtor." };
+    }
+  }
 
   async function load() {
-    const res = await fetch("/api/admin/produtores", { cache: "no-store" });
-    const data = (await res.json()) as { items?: Producer[] };
+    const res = await fetch("/api/admin/produtores", { cache: "no-store", credentials: "same-origin" });
+    const data = await readJson(res);
+    if (!res.ok) {
+      setError(data.error ?? "Não foi possível carregar os produtores.");
+      return;
+    }
     setItems(data.items ?? []);
   }
 
@@ -53,19 +69,30 @@ export function AdminProducers() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (saving) return;
     setError(null);
-    const res = await fetch(form.id ? `/api/admin/produtores/${form.id}` : "/api/admin/produtores", {
-      method: form.id ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = (await res.json()) as { error?: string };
-    if (!res.ok) {
-      setError(data.error ?? "Falha ao salvar.");
-      return;
+    setNotice(null);
+    setSaving(true);
+    try {
+      const res = await fetch(form.id ? `/api/admin/produtores/${form.id}` : "/api/admin/produtores", {
+        method: form.id ? "PATCH" : "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await readJson(res);
+      if (!res.ok || !data.item) {
+        setError(data.error ?? "Falha ao salvar.");
+        return;
+      }
+      setForm({ ...blank, id: "" });
+      setNotice(form.id ? "Produtor atualizado." : `${data.item.name} cadastrado.`);
+      await load();
+    } catch {
+      setError("Não foi possível falar com o servidor.");
+    } finally {
+      setSaving(false);
     }
-    setForm({ ...blank, id: "" });
-    await load();
   }
 
   async function remove(id: string) {
@@ -109,8 +136,9 @@ export function AdminProducers() {
           }} />
         </label>
         {error ? <p className="text-sm text-red-300 sm:col-span-2">{error}</p> : null}
-        <button type="submit" className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold">
-          {form.id ? "Salvar produtor" : "Cadastrar produtor"}
+        {notice ? <p className="text-sm text-[#ff2ea6] sm:col-span-2">{notice}</p> : null}
+        <button type="submit" disabled={saving} className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60">
+          {saving ? "Salvando…" : form.id ? "Salvar produtor" : "Cadastrar produtor"}
         </button>
       </form>
       <div className="overflow-x-auto rounded-2xl border border-white/10">
