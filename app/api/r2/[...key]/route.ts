@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readCatalogImage } from "../../../../lib/music-studio/storage";
+import { readCatalogImage } from "../../../lib/music-studio/storage";
 
 export const runtime = "nodejs";
 
