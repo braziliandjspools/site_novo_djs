@@ -147,17 +147,27 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
         </div>
       </div>
       {more.length > 0 && production.producerSlug ? (
-        <section className="mt-14">
-          <div className="mb-4 flex items-end justify-between">
-            <h2 className="text-sm uppercase tracking-[0.16em] text-[#7eb6ff]">Mais produções</h2>
-            <Link href={`/p/${production.producerSlug}`} className="text-xs text-[#9ef7c0]">Ver perfil</Link>
+        <section className="mt-16 border-t border-white/10 pt-10 font-[family-name:var(--font-space)]">
+          <div className="mb-6 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Do mesmo produtor</p>
+              <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Mais produções</h2>
+            </div>
+            <Link href={`/p/${production.producerSlug}`} className="text-xs font-bold uppercase tracking-[0.14em] text-[#9ef7c0] hover:text-white">
+              Ver perfil
+            </Link>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-4 sm:grid-cols-2">
             {more.map((item) => (
               <li key={item.id}>
-                <Link href={`/m/${item.slug}`} className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 hover:border-[#7eb6ff]/50">
-                  <span className="block text-sm font-bold">{item.title}</span>
-                  <span className="text-xs text-zinc-400">{item.versionType}</span>
+                <Link href={`/m/${item.slug}`} className="flex items-center gap-4 rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(135deg,rgba(0,39,118,0.45),rgba(5,7,13,0.2))] p-3 transition hover:border-[#7eb6ff]/70">
+                  <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#102033]">
+                    <Image src={item.coverUrl} alt="" fill unoptimized={!item.coverUrl.startsWith("/")} sizes="64px" className="object-cover" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-bold text-white">{item.title}</span>
+                    <span className="mt-2 inline-flex rounded-md bg-[#002776] px-2 py-0.5 text-[10px] font-bold text-[#d7e7ff]">{item.versionType}</span>
+                  </span>
                 </Link>
               </li>
             ))}
