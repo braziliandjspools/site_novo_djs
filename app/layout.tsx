@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Plus_Jakarta_Sans, Sora, Space_Mono } from "next/font/google";
+import { Barlow, DM_Sans, Plus_Jakarta_Sans, Sora, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { BackToTopButton } from "./components/BackToTopButton";
 import { MarketingChrome } from "./components/MarketingChrome";
@@ -42,6 +42,12 @@ const plusJakarta = Plus_Jakarta_Sans({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
+const barlow = Barlow({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-barlow",
+});
+
 const spaceMono = Space_Mono({
   weight: ["400", "700"],
   subsets: ["latin"],
@@ -64,7 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${dmSans.variable} ${sora.variable} ${plusJakarta.variable} ${spaceMono.variable} dark h-full w-full max-w-[100vw] overflow-x-clip bg-[#121212] antialiased`}
+      className={`${dmSans.variable} ${sora.variable} ${plusJakarta.variable} ${spaceMono.variable} ${barlow.variable} dark h-full w-full max-w-[100vw] overflow-x-clip bg-[#121212] antialiased`}
     >
       <head>
         <link rel="icon" href={BRS_LOGO_SRC} type="image/jpeg" />

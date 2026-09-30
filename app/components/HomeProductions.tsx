@@ -243,7 +243,7 @@ export function HomeProductions({
 }) {
   if (productions.length === 0) return null;
   return (
-    <section id="producoes-brs" className="relative isolate overflow-hidden border-y border-white/[0.07] bg-[#070908] px-4 py-14 sm:px-6 md:py-20">
+    <section id="producoes-brs" className="relative isolate overflow-hidden border-y border-white/[0.07] bg-[#070908] px-4 py-14 font-[family-name:var(--font-barlow)] sm:px-6 md:py-20">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
       <div className="mx-auto max-w-6xl">
