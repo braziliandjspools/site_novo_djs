@@ -33,6 +33,8 @@ export type PreviewTrack = {
   styleName?: string | null;
   /** Pool da faixa: a primeira pasta dentro da atualização por data. */
   poolName?: string | null;
+  /** ID da pasta Pool no Google Drive, quando a hierarquia possui Pool. */
+  poolFolderId?: string | null;
   /** Tamanho do arquivo em bytes (Drive API `size`). */
   sizeBytes?: number | null;
   /** Key Camelot (ex.: 11A, 12B) extraída do nome. */
