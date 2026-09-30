@@ -10,7 +10,7 @@ import {
   Share2,
 } from "lucide-react";
 import { ProductionRail } from "./HomeProductions";
-import { productionToPreviewTrack } from "../lib/brs-productions";
+import { productionToPreviewTrack, type PublicBrsProduction } from "../lib/brs-productions";
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
 
 const FOLDER_ID = "brs-productions";
