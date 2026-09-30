@@ -833,7 +833,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Faixas da pasta</p>
                   <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
-                  <p className="text-[11px] text-white/45">{directTracks.length} {directTracks.length === 1 ? "faixa" : "faixas"}</p>
+                  <p className="text-[11px] text-white/45">{directTracks.length}{tracksHasMore ? "+" : ""} {directTracks.length === 1 ? "faixa" : "faixas"}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {playbackEnabled ? (
