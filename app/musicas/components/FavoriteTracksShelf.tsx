@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import type { FavoriteTrack } from "../lib/music-library-storage";
 import { toggleFavoriteTrack } from "../lib/music-library-storage";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { MusicLibraryShelf, libraryTileTone } from "./MusicLibraryTiles";
 
 /** Prateleira de faixas salvas pelo usuário (favoritos locais). */
@@ -34,7 +35,7 @@ export function FavoriteTracksShelf({ tracks }: { tracks: FavoriteTrack[] }) {
             <div className="min-w-0 px-3 py-2.5">
               <p className="truncate text-[12px] font-semibold text-white/70">{track.artist}</p>
               <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.08em] text-white/40">
-                {[track.styleName, track.monthName].filter(Boolean).join(" · ")}
+                {[formatStyleNameForDisplay(track.styleName), track.monthName].filter(Boolean).join(" · ")}
               </p>
             </div>
           </Link>

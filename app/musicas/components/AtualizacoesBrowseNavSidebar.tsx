@@ -26,6 +26,7 @@ import {
   sortFoldersByWeek,
   sortVipChildFolders,
 } from "../../lib/vip-music-slugs";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
   getRecentFolders,
@@ -427,7 +428,7 @@ export function AtualizacoesBrowseNavSidebar({
                     <div className="min-w-0 flex-1">
                       <NavLink
                         href={folderHref(hrefSegments)}
-                        title={displayFolderName(folder.name)}
+                        title={formatStyleNameForDisplay(displayFolderName(folder.name))}
                         active={
                           slugSegments.join("/") === styleSlugPath ||
                           slugSegments[slugSegments.length - 1] === slug

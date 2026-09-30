@@ -40,6 +40,7 @@ import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
@@ -634,9 +635,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               onStyleFilter?.(slugifyStyleName(track.styleName!.trim()));
             }}
             className="min-w-0 max-w-[48%] truncate text-left text-[#86e7a7] transition hover:text-white"
-            title={`Abrir estilo: ${track.styleName.trim()}`}
+            title={`Abrir estilo: ${formatStyleNameForDisplay(track.styleName)}`}
           >
-            {track.styleName.trim()}
+            {formatStyleNameForDisplay(track.styleName)}
           </button>
         ) : null}
       </div>
@@ -767,9 +768,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               onStyleFilter?.(track.styleName?.trim() ? slugifyStyleName(track.styleName) : "");
             }}
             className="block max-w-full truncate text-left text-xs font-medium text-[#86e7a7] transition hover:text-white disabled:cursor-default disabled:opacity-60"
-            title={track.styleName?.trim() ? `Filtrar estilo: ${track.styleName.trim()}` : "Estilo não informado"}
+            title={track.styleName?.trim() ? `Filtrar estilo: ${formatStyleNameForDisplay(track.styleName)}` : "Estilo não informado"}
           >
-            {track.styleName?.trim() || "—"}
+            {track.styleName?.trim() ? formatStyleNameForDisplay(track.styleName) : "—"}
           </button>
         </div>
 
@@ -1552,7 +1553,9 @@ export function VipMusicTrackList({
             aria-label="Filtrar por estilo"
           >
             <option value="">Todos os estilos</option>
-            {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+            {filterOptions.styles.map(([slug, name]) => (
+              <option key={slug} value={slug}>{formatStyleNameForDisplay(name)}</option>
+            ))}
           </select>
         ) : null}
         {poolFilterSlug || styleFilterSlug ? (

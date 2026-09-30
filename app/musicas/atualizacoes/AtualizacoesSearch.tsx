@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Calendar, ChevronRight, FolderOpen, Loader2, Music2, Search, X } from "lucide-react";
 import { slugifyStyleName } from "../../lib/vip-music-slugs";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 import { hitHref, useAtualizacoesSearch } from "./AtualizacoesSearchContext";
 
@@ -106,7 +107,7 @@ export function AtualizacoesSearchResults() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-white group-hover:text-[#00ff9d]">
-                    {hit.label}
+                    {hit.type === "style" ? formatStyleNameForDisplay(hit.label) : hit.label}
                   </span>
                   <span className="mt-0.5 block truncate text-[11px] text-zinc-500">{hit.path}</span>
                 </span>

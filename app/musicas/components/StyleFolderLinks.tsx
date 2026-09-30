@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Disc3, FolderOpen, Music2, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import { displayFolderName, folderHref, isMonthFolderName, slugifyFolderName, sortFoldersByMonthDate } from "../../lib/vip-music-slugs";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { prefetchMusicasJson } from "../lib/musicas-fetch-cache";
 
 type StyleFolderLinksProps = {
@@ -69,7 +70,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
                   {folder.isNew ? <span className="inline-flex items-center gap-1 text-[#1ed760]"><Sparkles className="h-2.5 w-2.5" /> Novo</span> : null}
                 </span>
                 <span className="block truncate text-[13px] font-extrabold text-white transition group-hover:text-[#1ed760] sm:text-[15px]">
-                  {displayFolderName(folder.name)}
+                  {formatStyleNameForDisplay(displayFolderName(folder.name))}
                 </span>
                 <span className="mt-1 block text-[10px] font-medium text-zinc-500 sm:text-[11px]">{contentLabel}</span>
               </span>

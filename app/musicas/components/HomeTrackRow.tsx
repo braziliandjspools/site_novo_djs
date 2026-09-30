@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Download, Loader2, MonitorDown, Play } from "lucide-react";
 import type { HomeTrackItem } from "../../lib/vip-music-home";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { startBrowserTrackDownload } from "../lib/browser-download-file";
 import { sendTrackToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
@@ -91,7 +92,7 @@ export function HomeTrackRow({ track, rank, compact = false }: HomeTrackRowProps
             className="text-xs text-zinc-500"
           />
           {track.bpm ? ` · ${track.bpm} BPM` : ""}
-          {track.styleName ? ` · ${track.styleName}` : ""}
+          {track.styleName ? ` · ${formatStyleNameForDisplay(track.styleName)}` : ""}
         </p>
       </div>
 

@@ -10,6 +10,7 @@ import { VipMusicTrackList } from "../../components/VipMusicTrackList";
 import { VipUpgradeBanner } from "../../VipUpgradeGate";
 import { useMusicasSession } from "../../components/MusicasSessionContext";
 import { MUSICAS_HERO_COVER_SRC } from "../../lib/musicas-hero-art";
+import { formatStyleNameForDisplay } from "../../../lib/style-display";
 
 type StyleTrack = PreviewTrack & {
   styleFolderId?: string;
@@ -61,7 +62,7 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
 
   const tracks = useMemo(() => profile?.tracks ?? [], [profile?.tracks]);
   const cover = profile?.imageUrl?.trim() || MUSICAS_HERO_COVER_SRC;
-  const title = profile?.name ?? slug.replace(/-/g, " ");
+  const title = formatStyleNameForDisplay(profile?.name ?? slug.replace(/-/g, " "));
 
   return (
     <div className="w-full space-y-5">

@@ -12,7 +12,6 @@ import {
   parseMonthFolderDate,
   parseUpdateDateFolder,
   slugifyFolderName,
-  slugifyStyleName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
 import { isDriveAudioFile, pickCoverFromChildren } from "./folder-cover";
@@ -24,7 +23,6 @@ import {
   listSendNowFolder,
   sendNowFileStorageId,
   sendNowFldIdFromStorageId,
-  sendNowFolderLabel,
   sendNowFolderStorageId,
 } from "./send-now";
 
@@ -85,61 +83,6 @@ function parseDriveSizeBytes(size?: string | number | null): number | null {
   if (size == null || size === "") return null;
   const n = typeof size === "number" ? size : Number(size);
   return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-function rememberFilterOption(
-  options: Map<string, string>,
-  name: string,
-  slugify: (value: string) => string,
-) {
-  const label = displayFolderName(name);
-  const slug = slugify(label);
-  if (!label || !slug) return;
-  options.set(slug, label);
-}
-
-function sortedFilterOptions(options: Map<string, string>): CatalogFilterOption[] {
-  return [...options.entries()]
-    .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"))
-    .map(([slug, name]) => ({ slug, name }));
-}
-
-/** Lista pools e estilos da árvore sem baixar as faixas. */
-async function listCatalogFilterOptions(folderId: string): Promise<{
-  pools: CatalogFilterOption[];
-  styles: CatalogFilterOption[];
-}> {
-  const pools = new Map<string, string>();
-  const styles = new Map<string, string>();
-  const top = (await listDriveFolderChildren(folderId)).filter((item) => item.mimeType === FOLDER_MIME);
-  const dates = top.filter((folder) => parseUpdateDateFolder(folder.name));
-  const poolFolders = dates.length
-    ? (
-        await mapPool(dates, TRACK_WALK_CONCURRENCY, async (date) =>
-          (await listDriveFolderChildren(date.id)).filter((item) => item.mimeType === FOLDER_MIME),
-        )
-      ).flat()
-    : top;
-
-  await mapPool(poolFolders, TRACK_WALK_CONCURRENCY, async (folder) => {
-    const children = await listDriveFolderChildren(folder.id);
-    const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
-    if (subfolders.length > 0) {
-      rememberFilterOption(pools, folder.name, slugifyFolderName);
-      for (const style of subfolders) {
-        rememberFilterOption(styles, style.name, slugifyStyleName);
-      }
-      return;
-    }
-    if (children.some((item) => isDriveAudioFile(item))) {
-      rememberFilterOption(styles, folder.name, slugifyStyleName);
-    }
-  });
-
-  return {
-    pools: sortedFilterOptions(pools),
-    styles: sortedFilterOptions(styles),
-  };
 }
 
 export function getVipMusicRootFolderId() {
@@ -275,14 +218,6 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
       modifiedAt: folder.modifiedTime ?? folder.createdTime ?? null,
     })),
   );
-  if ((!parentFolderId || parentFolderId === "root" || parentFolderId === rootId) && isSendNowConfigured()) {
-    folders.push({
-      id: sendNowFolderStorageId(),
-      name: sendNowFolderLabel(),
-      isNew: true,
-      modifiedAt: null,
-    });
-  }
   return folders;
 }
 
@@ -1023,13 +958,7 @@ export async function getVipMusicCatalog(
 
   try {
     const catalog = await getDriveCatalog(targetId, resolvedName, trackOffset, trackLimit);
-    if (trackOffset > 0 || catalog.level !== "tracks") return catalog;
-    try {
-      const filters = await listCatalogFilterOptions(targetId);
-      return { ...catalog, filterPools: filters.pools, filterStyles: filters.styles };
-    } catch {
-      return catalog;
-    }
+    return catalog;
   } catch {
     return {
       configured: true,

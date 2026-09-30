@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
   getRecentFolders,
@@ -162,7 +163,7 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
             <SidebarLink
               href={continueItem.href}
               title={continueDisplay.title}
-              subtitle={`${continueDisplay.artist} · ${continueItem.styleName}`}
+              subtitle={`${continueDisplay.artist} · ${formatStyleNameForDisplay(continueItem.styleName)}`}
             />
           </SidebarSection>
         ) : null}
@@ -176,7 +177,7 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
                   key={track.id}
                   href={track.href}
                   title={display.title}
-                  subtitle={`${display.artist} · ${track.styleName}`}
+                  subtitle={`${display.artist} · ${formatStyleNameForDisplay(track.styleName)}`}
                 />
               );
             })
@@ -196,7 +197,7 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
                   href={genre.href}
                   className="rounded-md border border-[#1ed760]/25 bg-[rgba(30,215,96,0.07)] px-2.5 py-1 text-[11px] font-semibold text-white/80 transition-colors hover:border-[#1ed760]/45 hover:bg-[#1ed760]/15 hover:text-white"
                 >
-                  {genre.name}
+                  {formatStyleNameForDisplay(genre.name)}
                   {genre.trackCount > 0 ? (
                     <span className="ml-1 tabular-nums text-white/35">{genre.trackCount}</span>
                   ) : null}

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { HomeTrackRow } from "./HomeTrackRow";
 import { MusicasListSkeleton } from "./MusicasSkeletons";
 import { useDownloaderSync } from "./DownloaderSyncContext";
@@ -174,7 +175,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
                 {continueDisplay?.title}
               </p>
               <p className="truncate text-xs text-zinc-500">
-                {[continueDisplay?.artist, continueItem.styleName].filter(Boolean).join(" · ")}
+                {[continueDisplay?.artist, formatStyleNameForDisplay(continueItem.styleName)].filter(Boolean).join(" · ")}
               </p>
             </div>
             <ArrowRight className="h-5 w-5 text-zinc-500" />

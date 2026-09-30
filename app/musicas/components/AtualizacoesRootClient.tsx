@@ -12,6 +12,7 @@ import {
   parseMonthStatus,
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   clearMusicasCache,
   fetchMusicasJson,
@@ -323,7 +324,7 @@ export function AtualizacoesRootClient() {
                 {continueItem.title}
               </span>
               <span className="mt-0.5 block truncate text-[12px] text-white/50">
-                {continueItem.artist || continueItem.styleName}
+                {continueItem.artist || formatStyleNameForDisplay(continueItem.styleName)}
               </span>
             </span>
           </Link>

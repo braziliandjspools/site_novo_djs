@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Heart, Play } from "lucide-react";
 import type { HomeTrackItem } from "../../lib/vip-music-home";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   isFavoriteTrack,
   subscribeFavoriteTracks,
@@ -108,7 +109,7 @@ export function MusicLibraryTrackShelf({
               <div className="min-w-0 px-3 py-2.5">
                 <p className="truncate text-[12px] font-semibold text-white/70">{display.artist}</p>
                 <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.08em] text-white/40">
-                  {[track.styleName, track.monthName].filter(Boolean).join(" · ")}
+                  {[formatStyleNameForDisplay(track.styleName), track.monthName].filter(Boolean).join(" · ")}
                 </p>
               </div>
             </Link>

@@ -18,6 +18,7 @@ import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import {
   displayFolderName,
 } from "../../lib/vip-music-slugs";
+import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
   getFavoriteTracks,
@@ -210,7 +211,7 @@ export function MusicasHubClient() {
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[14px] font-bold text-white">{continueItem.title}</span>
               <span className="mt-0.5 block truncate text-[12px] text-white/50">
-                {continueItem.artist || continueItem.styleName}
+                {continueItem.artist || formatStyleNameForDisplay(continueItem.styleName)}
               </span>
             </span>
           </Link>
