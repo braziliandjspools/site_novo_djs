@@ -1062,7 +1062,7 @@ export function VipMusicTrackList({
       const style = track.styleName?.trim();
       // Sem ID de pasta de Pool, não há Pool real para filtrar.
       // Isso evita que um estilo de uma estrutura sem Pool apareça como Pool.
-      if (pool && track.poolFolderId && slugifyFolderName(pool) !== slugifyStyleName(style ?? "")) {
+      if (pool && track.poolFolderId) {
         pools.set(slugifyFolderName(pool), pool);
       }
       if (style) styles.set(slugifyStyleName(style), style);
@@ -1094,8 +1094,8 @@ export function VipMusicTrackList({
     [shouldGroupByDate, filteredTracks],
   );
   const orderedTracks = useMemo(
-    () => (trackSections ? flattenTrackSections(trackSections) : tracks),
-    [trackSections, tracks],
+    () => (shouldGroupByDate ? flattenTrackSections(groupTracksByUploadDate(filteredTracks)) : filteredTracks),
+    [shouldGroupByDate, filteredTracks],
   );
 
   useEffect(() => {
