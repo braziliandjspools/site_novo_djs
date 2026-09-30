@@ -104,13 +104,34 @@ function sortTracksByUploadThenTitle(a: PreviewTrack, b: PreviewTrack) {
   return a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" });
 }
 
+function isUpdatesWrapperFolder(name: string): boolean {
+  return displayFolderName(name)
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .trim()
+    .toLowerCase() === "atualizacoes";
+}
+
 export async function listVipMusicFolders(parentFolderId?: string): Promise<VipMusicFolder[]> {
   const rootId = getVipMusicRootFolderId();
   if (!rootId) return [];
 
   const targetId = parentFolderId && parentFolderId !== "root" ? parentFolderId : rootId;
-  const children = await listDriveFolderChildren(targetId);
-  const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+  let children = await listDriveFolderChildren(targetId);
+  let subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+
+  // O ID configurado para o acervo pode apontar para a pasta raiz técnica
+  // que contém uma única pasta "ATUALIZAÇÕES". Essa pasta não deve virar
+  // um nível da URL: a navegação pública precisa começar em SETEMBRO 2026
+  // e continuar em 29-SET-2026 -> POOL -> ESTILO.
+  if (
+    targetId === rootId &&
+    subfolders.length === 1 &&
+    isUpdatesWrapperFolder(subfolders[0].name)
+  ) {
+    children = await listDriveFolderChildren(subfolders[0].id);
+    subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+  }
 
   return sortVipChildFolders(
     subfolders.map((folder) => ({
