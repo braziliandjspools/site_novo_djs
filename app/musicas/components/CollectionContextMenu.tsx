@@ -8,6 +8,7 @@ export type CollectionMenuAction = {
   id: string;
   label: string;
   icon?: LucideIcon;
+  renderIcon?: ReactNode;
   onClick: () => void;
   disabled?: boolean;
 };
@@ -145,9 +146,9 @@ export function CollectionContextMenu({
               index > 0 ? "" : ""
             }`}
           >
-            {Icon ? (
+            {Icon || action.renderIcon ? (
               <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/55 transition-colors group-hover/item:border-[#1ed760]/30 group-hover/item:bg-[#1ed760]/10 group-hover/item:text-[#1ed760]">
-                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+                {Icon ? <Icon className="h-3.5 w-3.5" strokeWidth={2} /> : action.renderIcon}
               </span>
             ) : null}
             <span className="min-w-0 flex-1 break-words leading-snug">{action.label}</span>

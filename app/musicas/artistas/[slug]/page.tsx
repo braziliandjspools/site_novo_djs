@@ -10,6 +10,7 @@ import {
   breadcrumbJsonLd,
   collectionPageJsonLd,
   musicArtistJsonLd,
+  resolveOgImagePath,
   SITE_URL,
 } from "../../../lib/seo";
 import { artistsHref } from "../../../lib/vip-music-slugs";
@@ -33,13 +34,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const name = known?.name ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const artistSlug = known?.slug ?? slug;
   const path = artistsHref(artistSlug);
-  const title = `${name} – Remixes e faixas para DJs | BRS`;
+  const title = `${name} – Remixes para DJs | ${SITE_NAME}`;
   const description =
     known?.shortBio?.trim() ||
     `Explore o perfil de ${name} no acervo BRS: remixes, edits e faixas organizadas para DJs.`;
-  const image = known?.imageUrl?.trim()
-    ? absoluteUrl(known.imageUrl)
-    : absoluteUrl("/images/og/default.jpg");
+  const image = absoluteUrl(resolveOgImagePath("musicas"));
 
   return {
     title: { absolute: title },
@@ -50,7 +49,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: absoluteUrl(path),
       siteName: SITE_NAME,
-      images: [{ url: image, width: 1200, height: 630, alt: name }],
+      locale: "pt_BR",
+      images: [{ url: image, width: 1200, height: 630, alt: `${name} no ${SITE_NAME}` }],
       type: "profile",
     },
     twitter: {

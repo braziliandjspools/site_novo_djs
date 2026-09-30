@@ -14,6 +14,7 @@ import {
 } from "../billing/plan-change";
 import { toDateInputValue } from "../due-queue";
 import { prisma } from "../prisma";
+import { checkRateLimit } from "../rate-limit";
 import {
   computeAggregateMonthlyValue,
   computeAggregateNextDueAt,
@@ -621,66 +622,15 @@ async function applyNonApprovedStatusInTx(
   };
 }
 
-/**
- * Processa notificação Mercado Pago (payment).
- * Sempre valida assinatura; consulta Payment.get; nunca confia só no body.
- */
-export async function processMercadoPagoWebhook(request: Request): Promise<ProcessMercadoPagoWebhookResult> {
-  const env = getMercadoPagoEnv();
-  const url = new URL(request.url);
-  const xSignature = headerValue(request.headers, "x-signature");
-  const xRequestId = headerValue(request.headers, "x-request-id");
-
-  let body: unknown = null;
-  try {
-    const text = await request.text();
-    body = text ? JSON.parse(text) : null;
-  } catch {
-    body = null;
-  }
-
-  const dataId = readPaymentDataId(url, body);
-
-  try {
-    WebhookSignatureValidator.validate({
-      xSignature,
-      xRequestId,
-      dataId,
-      secret: process.env.MERCADO_PAGO_WEBHOOK_SECRET?.trim() || env.webhookSecret,
-      toleranceSeconds: 300,
-    });
-  } catch (err) {
-    const reason =
-      err instanceof InvalidWebhookSignatureError ? err.reason : "SignatureMismatch";
-    logWebhook("assinatura inválida", {
-      reason,
-      requestId: xRequestId ?? undefined,
-    });
-    return { ok: false, status: 401, result: "invalid_signature", reason };
-  }
-
-  const eventType = readEventType(url, body);
-  if (!isPaymentWebhookEvent(eventType)) {
-    logWebhook("evento ignorado", { eventType: eventType ?? "unknown" });
-    return { ok: true, status: 200, result: "ignored_event" };
-  }
-
-  if (!dataId) {
-    logWebhook("data.id ausente");
-    return { ok: true, status: 200, result: "missing_payment_id" };
-  }
-
-  let paymentRaw;
-  try {
-    paymentRaw = await fetchPaymentFromApi(dataId);
-  } catch (err) {
-    logWebhook("falha ao consultar pagamento", {
-      paymentId: dataId,
-      message: sanitizeMercadoPagoErrorMessage(err),
-    });
-    return { ok: true, status: 200, result: "payment_fetch_failed" };
-  }
-
+async function processFetchedPayment(
+  paymentRaw: unknown,
+  env: ReturnType<typeof getMercadoPagoEnv>,
+  expectedOrderId?: string,
+): Promise<ProcessMercadoPagoWebhookResult> {
+  const dataId =
+    paymentRaw && typeof paymentRaw === "object" && "id" in paymentRaw
+      ? String(paymentRaw.id)
+      : "unknown";
   const payment = toPaymentSnapshot(
     paymentRaw as {
       id?: number | string;
@@ -709,6 +659,11 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
     : await prisma.mercadoPagoOrder.findFirst({
         where: { mercadoPagoPaymentId: payment.id },
       });
+
+  if (expectedOrderId && order?.id !== expectedOrderId) {
+    logWebhook("pedido não corresponde à conciliação", { expectedOrderId });
+    return { ok: true, status: 200, result: "validation_failed", reason: "order_mismatch" };
+  }
 
   const validation = validatePaymentAgainstOrder({
     order: order
@@ -942,4 +897,125 @@ export async function processMercadoPagoWebhook(request: Request): Promise<Proce
     });
     return { ok: true, status: 200, result: "error" };
   }
+}
+
+/**
+ * Conciliação de contingência para o retorno do Checkout Pro.
+ * A busca é iniciada apenas para um pedido PENDING do usuário autenticado;
+ * o pagamento ainda passa pelo mesmo GET oficial e as mesmas validações do webhook.
+ */
+export async function reconcilePendingMercadoPagoOrder(input: {
+  orderId: string;
+  portalUserId: number;
+}): Promise<void> {
+  const rate = checkRateLimit({
+    key: `mp-status-reconcile:${input.portalUserId}:${input.orderId}`,
+    limit: 1,
+    windowMs: 1_500,
+  });
+  if (!rate.ok) return;
+
+  const order = await prisma.mercadoPagoOrder.findFirst({
+    where: {
+      id: input.orderId,
+      portalUserId: input.portalUserId,
+      status: "PENDING",
+    },
+    select: { externalReference: true, mercadoPagoPaymentId: true },
+  });
+  if (!order) return;
+
+  try {
+    const env = getMercadoPagoEnv();
+    const client = new Payment(getMercadoPagoConfig());
+    let paymentId = order.mercadoPagoPaymentId;
+
+    if (!paymentId) {
+      const search = await client.search({
+        options: {
+          external_reference: order.externalReference,
+          sort: "date_last_updated",
+          criteria: "desc",
+          limit: 10,
+        },
+      });
+      const matches = (search.results ?? []).filter(
+        (item) => item.external_reference === order.externalReference && item.id != null,
+      );
+      const match = matches.find((item) => item.status === "approved") ?? matches[0];
+      paymentId = match?.id ? String(match.id) : null;
+    }
+
+    if (!paymentId) return;
+
+    // Busca o recurso completo diretamente no Mercado Pago. A URL de retorno
+    // do navegador e os campos de status enviados pelo cliente não são usados.
+    const payment = await client.get({ id: paymentId });
+    await processFetchedPayment(payment, env, input.orderId);
+  } catch (error) {
+    logWebhook("conciliação de retorno falhou", {
+      orderId: input.orderId,
+      message: sanitizeMercadoPagoErrorMessage(error),
+    });
+  }
+}
+
+export async function processMercadoPagoWebhook(request: Request): Promise<ProcessMercadoPagoWebhookResult> {
+  const env = getMercadoPagoEnv();
+  const url = new URL(request.url);
+  const xSignature = headerValue(request.headers, "x-signature");
+  const xRequestId = headerValue(request.headers, "x-request-id");
+
+  let body: unknown = null;
+  try {
+    const text = await request.text();
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    body = null;
+  }
+
+  const dataId = readPaymentDataId(url, body);
+
+  try {
+    WebhookSignatureValidator.validate({
+      xSignature,
+      xRequestId,
+      dataId,
+      secret: process.env.MERCADO_PAGO_WEBHOOK_SECRET?.trim() || env.webhookSecret,
+      toleranceSeconds: 300,
+    });
+  } catch (err) {
+    const reason =
+      err instanceof InvalidWebhookSignatureError ? err.reason : "SignatureMismatch";
+    logWebhook("assinatura inválida", {
+      reason,
+      requestId: xRequestId ?? undefined,
+    });
+    return { ok: false, status: 401, result: "invalid_signature", reason };
+  }
+
+  const eventType = readEventType(url, body);
+  if (!isPaymentWebhookEvent(eventType)) {
+    logWebhook("evento ignorado", { eventType: eventType ?? "unknown" });
+    return { ok: true, status: 200, result: "ignored_event" };
+  }
+
+  if (!dataId) {
+    logWebhook("data.id ausente");
+    return { ok: true, status: 200, result: "missing_payment_id" };
+  }
+
+  let paymentRaw;
+  try {
+    paymentRaw = await fetchPaymentFromApi(dataId);
+  } catch (err) {
+    logWebhook("falha ao consultar pagamento", {
+      paymentId: dataId,
+      message: sanitizeMercadoPagoErrorMessage(err),
+    });
+    return { ok: true, status: 200, result: "payment_fetch_failed" };
+  }
+
+  return processFetchedPayment(paymentRaw, env);
+
 }

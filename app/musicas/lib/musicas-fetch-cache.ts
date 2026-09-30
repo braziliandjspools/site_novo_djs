@@ -48,10 +48,43 @@ export async function fetchMusicasJson<T>(url: string, options: FetchOptions = {
     if (cached != null) return cached;
   }
 
-  const res = await fetch(url, {
-    cache: options.forceRefresh ? "no-store" : "default",
-  });
-  const body = (await res.json()) as T & { error?: string };
+  let res: Response | null = null;
+  // 502/503 podem vir do proxy antes de o Route Handler conseguir responder.
+  // Em vez de quebrar o infinite scroll imediatamente, tenta novamente duas vezes.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      res = await fetch(url, {
+        cache: options.forceRefresh ? "no-store" : "default",
+      });
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+      continue;
+    }
+
+    if (res.status !== 502 && res.status !== 503) break;
+    if (attempt < 2) {
+      await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+    }
+  }
+
+  if (!res) {
+    throw new Error("A API não respondeu.");
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  let body: T & { error?: string };
+  if (contentType.includes("application/json")) {
+    body = (await res.json()) as T & { error?: string };
+  } else {
+    const text = await res.text();
+    const status = res.status ? `Erro ${res.status}` : "Resposta inválida";
+    throw new Error(
+      res.ok
+        ? `${status}: a API retornou conteúdo não-JSON.`
+        : `${status}: a API retornou uma página HTML em vez de JSON.`,
+    );
+  }
   if (!res.ok) {
     throw new Error((body as { error?: string }).error ?? `Erro ${res.status}`);
   }

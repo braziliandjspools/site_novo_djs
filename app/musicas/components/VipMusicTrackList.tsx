@@ -7,6 +7,8 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from "react";
@@ -15,7 +17,6 @@ import {
   Check,
   Copy,
   Download,
-  HardDrive,
   HelpCircle,
   ListPlus,
   Loader2,
@@ -38,18 +39,30 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, slugifyStyleName } from "../../lib/vip-music-slugs";
+import { folderHref, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
   isDownloaderSendCancelled,
 } from "./DownloaderBulkConfirm";
+
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
+import { DriveAccessHelpDialog } from "./DriveAccessHelpDialog";
 import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
+
+function GoogleDriveIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="#00832d" d="M7.7 3.5h6.6L7.7 14.1l-3.3 5.7L1.1 14.1z" />
+      <path fill="#ffba00" d="M7.7 3.5h6.6l8.6 14.9h-6.6z" />
+      <path fill="#0066da" d="M4.4 19.8l3.3-5.7h14.9l-3.3 5.7z" />
+    </svg>
+  );
+}
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -78,10 +91,26 @@ type VipMusicTrackListProps = {
   showDriveButton?: boolean;
 };
 
-const STREAM_DESKTOP_GRID =
-  "hidden md:grid md:grid-cols-[52px_minmax(0,1fr)_auto_36px_36px_36px_36px] md:items-center md:gap-x-3";
-const STREAM_DESKTOP_GRID_SELECT =
-  "hidden md:grid md:grid-cols-[28px_52px_minmax(0,1fr)_auto_36px_36px_36px_36px] md:items-center md:gap-x-3";
+const STREAM_DESKTOP_GRID = "tablemusic-grid";
+const STREAM_DESKTOP_GRID_SELECT = "tablemusic-grid tablemusic-grid-select";
+
+function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
+  return (
+    <>
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 md:hidden" aria-hidden>
+        <span>Música</span><span>Ações</span>
+      </div>
+      <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
+        {selectionMode ? <span /> : null}
+        <span />
+        <span>Música</span>
+        <span className="tablemusic-pool">Pool</span>
+        <span className="tablemusic-style">Estilo</span>
+        <span className="col-span-4 text-center">Download / ações</span>
+      </div>
+    </>
+  );
+}
 
 const DISCOGRAPHY_GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] items-center gap-x-3 sm:gap-x-4";
 
@@ -100,6 +129,26 @@ function formatTime(seconds: number) {
 async function triggerDownload(track: PreviewTrack) {
   // Auth + 302 para o Drive (sem carregar o MP3 na RAM nem proxyar pela VPS).
   startBrowserTrackDownload(track);
+}
+
+async function copyToClipboard(value: string) {
+  try {
+    await navigator.clipboard.writeText(value);
+    return;
+  } catch {
+    // Fallback para navegadores que bloqueiam a Clipboard API após a validação assíncrona.
+  }
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  try {
+    if (!document.execCommand("copy")) throw new Error("Permissão para copiar negada pelo navegador.");
+  } finally {
+    input.remove();
+  }
 }
 
 function PlayingBars() {
@@ -192,13 +241,15 @@ function TrackDownloaderButton({
 function MobilePlayingTitle({ title, active }: { title: string; active: boolean }) {
   const viewportRef = useRef<HTMLSpanElement | null>(null);
   const textRef = useRef<HTMLSpanElement | null>(null);
-  const [overflowing, setOverflowing] = useState(false);
+  const [motion, setMotion] = useState({ overflowing: false, distance: 0, duration: 8 });
 
   useEffect(() => {
     const measure = () => {
       const viewport = viewportRef.current;
       const text = textRef.current;
-      setOverflowing(Boolean(viewport && text && text.scrollWidth > viewport.clientWidth + 2));
+      const width = text?.scrollWidth ?? 0;
+      const overflowing = Boolean(viewport && width > viewport.clientWidth + 2);
+      setMotion({ overflowing, distance: width + 24, duration: Math.max(8, (width + 24) / 36) });
     };
     measure();
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
@@ -210,12 +261,13 @@ function MobilePlayingTitle({ title, active }: { title: string; active: boolean 
   return (
     <span ref={viewportRef} className="block min-w-0 w-full overflow-hidden md:hidden">
       <span
-        ref={textRef}
-        className={`block w-max max-w-none whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
+        style={{ "--brs-marquee-distance": `${motion.distance}px`, "--brs-marquee-duration": `${motion.duration}s` } as CSSProperties}
+        className={`flex w-max max-w-none items-center whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
           active ? "text-[#1ed760]" : "text-white"
-        } ${active && overflowing ? "brs-mobile-track-marquee" : ""}`}
+        } ${active && motion.overflowing ? "brs-mobile-track-marquee" : ""}`}
       >
-        {title}
+        <span ref={textRef}>{title}</span>
+        {active && motion.overflowing ? <span className="pl-6" aria-hidden="true">{title}</span> : null}
       </span>
     </span>
   );
@@ -251,6 +303,8 @@ type StreamingRowProps = {
   onShare: () => void;
   onCopyLink: () => void;
   showDriveButton: boolean;
+  onPoolFilter?: (slug: string) => void;
+  onStyleFilter?: (slug: string) => void;
 };
 
 function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
@@ -327,25 +381,54 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   onShare,
   onCopyLink,
   showDriveButton,
+  onPoolFilter,
+  onStyleFilter,
 }: StreamingRowProps) {
   const display = getTrackDisplayMetadata(track);
-  const a11yName = `${display.title} — ${display.artist}`;
+  const artistLabel = display.artist.replace(/^[\s\-–—:]+/, "").trim();
+  const a11yName = `${display.title}. ${artistLabel}`;
   const showDuration = displayDuration > 0;
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
   const coverUnoptimized = coverSrc.startsWith("/api/");
   const { authenticated, hasVip, userEmail } = useMusicasSession();
+  const { showToast } = useMusicasToast();
+  const [driveHelpOpen, setDriveHelpOpen] = useState(false);
+  const [copyingDrive, setCopyingDrive] = useState(false);
   const gmailDriveAllowed =
     authenticated && hasVip && /@gmail\.com$/i.test(userEmail.trim());
 
-  const openDrive = useCallback(() => {
-    if (!gmailDriveAllowed) return;
-    window.open(`/musicas/drive/${encodeURIComponent(track.id)}`, "_blank", "noopener,noreferrer");
-  }, [gmailDriveAllowed, track.id]);
+  const copyDriveLink = useCallback(async (format: "drive" | "direct" = "drive") => {
+    if (!gmailDriveAllowed || copyingDrive) return;
+    setCopyingDrive(true);
+    try {
+      let url = "";
+      if (format === "drive") {
+        if (!track.poolFolderId) {
+          throw new Error("Esta faixa não possui uma Pool vinculada à data.");
+        }
+        // O ícone do Drive representa a Pool inteira daquela data, não a faixa individual.
+        url = `https://drive.google.com/drive/folders/${encodeURIComponent(track.poolFolderId)}`;
+        await copyToClipboard(url);
+        showToast("Link da Pool no Google Drive copiado");
+      } else {
+        const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link?format=direct`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const result = (await response.json()) as { url?: string; error?: string };
+        if (!response.ok || !result.url) throw new Error(result.error || "Link de download indisponível.");
+        await copyToClipboard(result.url);
+        showToast("Link direto copiado. Válido por 2 horas.");
+      }
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Não foi possível copiar o link do Drive.", "error");
+    } finally {
+      setCopyingDrive(false);
+    }
+  }, [copyingDrive, gmailDriveAllowed, showToast, track.id, track.poolFolderId]);
 
   const explainDriveBlock = useCallback(() => {
-    window.alert(
-      "Sua conta BRS não utiliza um endereço @gmail.com, necessário para a liberação do link no Google Drive. Baixe a pasta inteira pelo BRS Downloader ou baixe as faixas individualmente pelo navegador.",
-    );
+    setDriveHelpOpen(true);
   }, []);
 
   const menuActions = useMemo(() => {
@@ -374,6 +457,15 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         onClick: onSendToDownloader,
       });
     }
+    if (showDriveButton && gmailDriveAllowed) {
+      actions.push({
+        id: "external-download",
+        label: "Copiar link direto",
+        icon: Download,
+        disabled: copyingDrive,
+        onClick: () => void copyDriveLink("direct"),
+      });
+    }
     actions.push(
       { id: "copy", label: "Copiar link", icon: Copy, onClick: onCopyLink },
       { id: "share", label: "Compartilhar", icon: Share2, onClick: onShare },
@@ -382,6 +474,10 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   }, [
     canDownload,
     canPlay,
+    showDriveButton,
+    gmailDriveAllowed,
+    copyingDrive,
+    copyDriveLink,
     isSendingToDownloader,
     onCopyLink,
     onQueueNext,
@@ -390,15 +486,47 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     onToggle,
   ]);
 
+  const mobileMenuActions = useMemo(() => {
+    const actions = [...menuActions];
+    const extras: CollectionMenuAction[] = [];
+    if (canDownload) {
+      extras.push({
+        id: "download-browser",
+        label: "Baixar no navegador",
+        icon: Download,
+        disabled: isDownloading,
+        onClick: onDownload,
+      });
+    }
+    if (showDriveButton && track.poolFolderId && authenticated && hasVip) {
+      extras.push(gmailDriveAllowed
+        ? { id: "drive", label: "Copiar link do Google Drive", renderIcon: <GoogleDriveIcon />, disabled: copyingDrive, onClick: () => void copyDriveLink("drive") }
+        : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
+    }
+    const beforeCopy = actions.findIndex((action) => action.id === "copy");
+    actions.splice(beforeCopy, 0, ...extras);
+    return actions;
+  }, [menuActions, canDownload, isDownloading, onDownload, showDriveButton, authenticated, hasVip, gmailDriveAllowed, copyingDrive, copyDriveLink, explainDriveBlock]);
+
   const rowBg =
     isHighlighted || isSelected || isActive
-      ? "bg-white/[0.05]"
-      : "bg-transparent hover:bg-white/[0.04]";
+      ? "bg-[#102018]"
+      : "bg-[#0b0e0c] hover:bg-[#141c16]";
 
   function handleSeekClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = (event.clientX - rect.left) / rect.width;
     onSeek(Math.max(0, Math.min(1, ratio)));
+  }
+
+  function handleSeekKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      onSeek(Math.max(0, Math.min(1, currentTime / displayDuration + (event.key === "ArrowRight" ? 5 : -5) / displayDuration)));
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      onSeek(event.key === "Home" ? 0 : 1);
+    }
   }
 
   const coverButtonClass =
@@ -465,6 +593,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     </VipLockedPlayHint>
   );
 
+  const uploadedAt = track.modifiedAt ? Date.parse(track.modifiedAt) : NaN;
+  const isRecentlyAdded = Number.isFinite(uploadedAt) && uploadedAt <= Date.now() && Date.now() - uploadedAt < 7 * 86_400_000;
+
   const titleBlock = (
     <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
@@ -477,10 +608,34 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           {display.title}
         </span>
       </p>
+      {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-green-400/40 bg-green-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-green-200">Nova</span> : null}
       <ArtistNameLink
-        artist={display.artist}
-        className="mt-0.5 block truncate text-[12px] leading-snug text-white/50"
+        artist={artistLabel}
+        className="mt-0.5 block whitespace-normal break-words text-[12px] leading-snug text-white/50"
       />
+      <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.08em] md:hidden">
+        {track.poolName?.trim() ? (
+          <span className="min-w-0 max-w-[48%] truncate text-sky-200" title={track.poolName.trim()}>
+            {track.poolName.trim()}
+          </span>
+        ) : null}
+        {track.poolName?.trim() && track.styleName?.trim() ? (
+          <span className="shrink-0 text-white/20" aria-hidden>•</span>
+        ) : null}
+        {track.styleName?.trim() ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onStyleFilter?.(slugifyStyleName(track.styleName!.trim()));
+            }}
+            className="min-w-0 max-w-[48%] truncate text-left text-[#86e7a7] transition hover:text-white"
+            title={`Abrir estilo: ${track.styleName.trim()}`}
+          >
+            {track.styleName.trim()}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 
@@ -493,20 +648,23 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <div
           role="slider"
           tabIndex={0}
-          aria-label="Progresso"
+          aria-label={`Posição de reprodução de ${display.title}`}
           aria-valuemin={0}
           aria-valuemax={Math.round(displayDuration)}
           aria-valuenow={Math.round(currentTime)}
+          aria-valuetext={`${formatTime(currentTime)} de ${formatTime(displayDuration)}`}
           className="flex h-8 min-w-0 flex-1 cursor-pointer items-center py-2 touch-manipulation sm:h-5 sm:py-1"
           onClick={handleSeekClick}
+          onKeyDown={handleSeekKeyDown}
         >
-          <div className="h-1.5 w-full rounded-full bg-white/12 sm:h-[3px]">
+          <div className="relative h-1.5 w-full rounded-sm bg-[#344038] sm:h-1">
             <div
-              className="relative h-full rounded-full bg-[#1ed760]"
+              className="relative h-full rounded-sm bg-[#1ed760]"
               style={{ width: `${Math.min(100, progress)}%` }}
             >
-              <span className="absolute -right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-[#1ed760] shadow sm:h-2.5 sm:w-2.5" />
+              <span className="absolute -right-1 top-1/2 h-3 w-2 -translate-y-1/2 rounded-sm bg-[#a7ffc6] shadow-[0_0_8px_rgba(30,215,96,0.6)] sm:h-2.5" />
             </div>
+            <span className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent_0,transparent_calc(10%_-_1px),rgba(8,14,9,0.5)_calc(10%_-_1px),rgba(8,14,9,0.5)_10%)]" aria-hidden />
           </div>
         </div>
         <span className="w-9 flex-shrink-0 text-right font-mono text-[10px] tabular-nums text-white/40 sm:w-8">
@@ -539,14 +697,14 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`group/row relative hover:z-10 focus-within:z-10 border-b border-white/[0.06] transition-[background-color,box-shadow] duration-200 ease-out last:border-b-0 ${rowBg} ${
+      className={`tablemusic-row group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#1ed760]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
         isActive || isPlaying || isSelected || isHighlighted
           ? "shadow-[inset_3px_0_0_0_#1ed760]"
           : "hover:shadow-[inset_3px_0_0_0_rgba(30,215,96,0.55)]"
       }`}
     >
       {/* Mobile */}
-      <div className="flex items-center gap-2.5 px-3 py-3.5 md:hidden">
+      <div className="flex items-center gap-2.5 px-3 py-3 md:hidden">
         {selectCheckbox}
         {playButton}
         <div className="min-w-0 flex-1">
@@ -558,88 +716,57 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             </p>
           ) : null}
         </div>
-        <div className="flex flex-shrink-0 items-center gap-1">
-          {canDownload ? (
-            <>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDownload();
-                }}
-                disabled={isDownloading}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#1ed760]/40 hover:text-white disabled:opacity-60 md:h-9 md:w-9"
-                title={`Baixar ${display.title}`}
-                aria-label={`Baixar ${display.title}`}
-              >
-                {isDownloading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Download className="h-3.5 w-3.5" />
-                )}
-              </button>
-              <TrackDownloaderButton
-                fileId={track.id}
-                title={display.title}
-                sending={isSendingToDownloader}
-                onSend={onSendToDownloader}
-                compact
-              />
-            </>
-          ) : null}
-          {showDriveButton && authenticated && hasVip ? (
-            gmailDriveAllowed ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  openDrive();
-                }}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
-                title={`Abrir ${display.title} no Drive dentro da BRS`}
-                aria-label={`Abrir ${display.title} no Drive`}
-              >
-                <HardDrive className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  explainDriveBlock();
-                }}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
-                title="Drive indisponível para este e-mail — toque para entender"
-                aria-label="Drive indisponível — saiba por quê"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </button>
-            )
-          ) : null}
+        <div className="flex flex-shrink-0 items-center">
           <CollectionContextMenu
             label={`Opções · ${display.title}`}
             buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
-            actions={menuActions}
+            actions={mobileMenuActions}
           />
         </div>
       </div>
 
-      {/* Desktop: capa · track/artist · duração · baixar · downloader · opções */}
+      {/* Desktop: aligned columns share the same grid as the table header. */}
       <div
         className={`${selectionMode && canDownload ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} px-3.5 py-2.5`}
       >
         {selectionMode && canDownload ? (
           <div className="flex items-center justify-center">{selectCheckbox}</div>
         ) : null}
-        <div className="flex items-center justify-center">{playButton}</div>
+        <div className="relative flex items-center justify-center">
+          {playButton}
+        </div>
 
         <div className="min-w-0 py-0.5">
           {titleBlock}
           {progressBlock}
         </div>
-
-        <div className="text-right font-mono text-[12px] tabular-nums text-white/40">
-          {showSideDuration ? formatTime(displayDuration) : null}
+        <div className="tablemusic-pool min-w-0">
+          <button
+            type="button"
+            disabled={!track.poolName?.trim()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onPoolFilter?.(track.poolName?.trim() ? slugifyFolderName(track.poolName) : "");
+            }}
+            className="block max-w-full truncate text-left text-xs font-medium text-sky-200 transition hover:text-white disabled:cursor-default disabled:opacity-60"
+            title={track.poolName?.trim() ? `Filtrar pool: ${track.poolName.trim()}` : "Pool não informado"}
+          >
+            {track.poolName?.trim() || "—"}
+          </button>
+        </div>
+        <div className="tablemusic-style min-w-0">
+          <button
+            type="button"
+            disabled={!track.styleName?.trim()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onStyleFilter?.(track.styleName?.trim() ? slugifyStyleName(track.styleName) : "");
+            }}
+            className="block max-w-full truncate text-left text-xs font-medium text-[#86e7a7] transition hover:text-white disabled:cursor-default disabled:opacity-60"
+            title={track.styleName?.trim() ? `Filtrar estilo: ${track.styleName.trim()}` : "Estilo não informado"}
+          >
+            {track.styleName?.trim() || "—"}
+          </button>
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
@@ -679,19 +806,20 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         </div>
 
         <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
-          {showDriveButton && authenticated && hasVip ? (
+          {showDriveButton && track.poolFolderId && authenticated && hasVip ? (
             gmailDriveAllowed ? (
               <button
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  openDrive();
+                  void copyDriveLink("drive");
                 }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20"
-                title={`Abrir ${display.title} no Drive dentro da BRS`}
-                aria-label={`Abrir ${display.title} no Drive`}
+                disabled={copyingDrive}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#1ed760]/30 bg-[#1ed760]/10 text-[#1ed760] transition hover:bg-[#1ed760]/20 disabled:opacity-50"
+                title={`Copiar link do Google Drive de ${display.title}`}
+                aria-label={`Copiar link do Google Drive de ${display.title}`}
               >
-                <HardDrive className="h-3.5 w-3.5" />
+                {copyingDrive ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <GoogleDriveIcon className="h-4 w-4" />}
               </button>
             ) : (
               <button
@@ -718,6 +846,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           />
         </div>
       </div>
+      {driveHelpOpen ? <DriveAccessHelpDialog onClose={() => setDriveHelpOpen(false)} /> : null}
     </article>
   );
 }, streamingRowEqual);
@@ -909,20 +1038,64 @@ export function VipMusicTrackList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [durationById, setDurationById] = useState<Record<string, number>>({});
+  const [poolFilterSlug, setPoolFilterSlug] = useState("");
+  const [styleFilterSlug, setStyleFilterSlug] = useState("");
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
   loadMoreRef.current = onLoadMore;
   const isThisFolder = playingFolderId === folderId;
   const isGlobalBusy = loadingId !== null;
-  const shouldGroupByDate = groupByDate ?? true;
+  // A tabela é uma lista contínua: não cria blocos separados por data.
+  const shouldGroupByDate = groupByDate ?? false;
 
   const trackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(tracks) : null),
     [shouldGroupByDate, tracks],
   );
+
+  const filterOptions = useMemo(() => {
+    const pools = new Map<string, string>();
+    const styles = new Map<string, string>();
+
+    for (const track of tracks) {
+      const pool = track.poolName?.trim();
+      const style = track.styleName?.trim();
+      // Sem ID de pasta de Pool, não há Pool real para filtrar.
+      // Isso evita que um estilo de uma estrutura sem Pool apareça como Pool.
+      if (pool && track.poolFolderId) {
+        pools.set(slugifyFolderName(pool), pool);
+      }
+      if (style) styles.set(slugifyStyleName(style), style);
+    }
+
+    return {
+      pools: [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+      styles: [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
+    };
+  }, [tracks]);
+
+  // Os dois filtros atuam somente sobre as faixas já carregadas na tabela.
+  // Não há redirecionamento: Pool + Estilo podem ser combinados.
+  const filteredTracks = useMemo(() => {
+    if (!poolFilterSlug && !styleFilterSlug) return tracks;
+
+    return tracks.filter((track) => {
+      const poolSlug = track.poolName?.trim() ? slugifyFolderName(track.poolName) : "";
+      const styleSlug = track.styleName?.trim() ? slugifyStyleName(track.styleName) : "";
+      return (
+        (!poolFilterSlug || poolSlug === poolFilterSlug) &&
+        (!styleFilterSlug || styleSlug === styleFilterSlug)
+      );
+    });
+  }, [poolFilterSlug, styleFilterSlug, tracks]);
+
+  const visibleTrackSections = useMemo(
+    () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
+    [shouldGroupByDate, filteredTracks],
+  );
   const orderedTracks = useMemo(
-    () => (trackSections ? flattenTrackSections(trackSections) : tracks),
-    [trackSections, tracks],
+    () => (shouldGroupByDate ? flattenTrackSections(groupTracksByUploadDate(filteredTracks)) : filteredTracks),
+    [shouldGroupByDate, filteredTracks],
   );
 
   useEffect(() => {
@@ -1212,10 +1385,11 @@ export function VipMusicTrackList({
   const useStreaming = layout === "table" || layout === "default";
   const useDiscography = layout === "discography";
   const separateByFolderDate = Boolean(
-    trackSections?.some((section) => section.kind === "folder"),
+    visibleTrackSections?.length && shouldGroupByDate,
   );
-  const panelClass =
-    "musicas-track-panel rounded-2xl border border-white/10 bg-[#141816] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
+  const panelClass = layout === "table"
+    ? "musicas-track-panel overflow-hidden !rounded-none border border-green-400/15 bg-[#0b0d0b] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
@@ -1254,7 +1428,9 @@ export function VipMusicTrackList({
           }}
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
-          showDriveButton={showDriveButton}
+          showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
+          onPoolFilter={setPoolFilterSlug}
+          onStyleFilter={setStyleFilterSlug}
         />
       );
     });
@@ -1331,8 +1507,54 @@ export function VipMusicTrackList({
       </div>
     ) : null;
 
+  const filterBar = useStreaming && (filterOptions.pools.length > 0 || filterOptions.styles.length > 0) ? (
+    <div className="border-b border-white/10 bg-[#0b0d0b] px-3 py-3 sm:px-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/40">Filtros</span>
+        <button
+          type="button"
+          onClick={() => {
+            setPoolFilterSlug("");
+            setStyleFilterSlug("");
+          }}
+          className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${!poolFilterSlug ? "border-[#1ed760]/50 bg-[#1ed760]/15 text-[#1ed760]" : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"}`}
+        >
+          Todos
+        </button>
+        {filterOptions.pools.length > 0 ? (
+          <select
+            value={poolFilterSlug}
+            onChange={(event) => setPoolFilterSlug(event.target.value)}
+            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
+            aria-label="Filtrar por pool"
+          >
+            <option value="">Todos os pools</option>
+            {filterOptions.pools.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+          </select>
+        ) : null}
+        {filterOptions.styles.length > 0 ? (
+          <select
+            value={styleFilterSlug}
+            onChange={(event) => setStyleFilterSlug(event.target.value)}
+            className="max-w-[220px] rounded-full border border-white/10 bg-[#111611] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75 outline-none focus:border-[#1ed760]/50"
+            aria-label="Filtrar por estilo"
+          >
+            <option value="">Todos os estilos</option>
+            {filterOptions.styles.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+          </select>
+        ) : null}
+        {poolFilterSlug || styleFilterSlug ? (
+          <span className="ml-auto text-[10px] font-semibold text-white/45">
+            {filteredTracks.length} {filteredTracks.length === 1 ? "faixa" : "faixas"}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
+      {filterBar}
       {error && isThisFolder && (
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
       )}
@@ -1387,17 +1609,17 @@ export function VipMusicTrackList({
           {selectionToolbar ? (
             <div className={`${panelClass} !shadow-none`}>{selectionToolbar}</div>
           ) : null}
-          {trackSections.map((section) => (
+          {visibleTrackSections?.map((section) => (
             <div key={section.id} className={panelClass}>
-              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#141414] px-3.5 py-3 sm:px-4">
-                <h3 className="text-[13px] font-bold tabular-nums tracking-[0.14em] text-white">
+              <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
+                <h3 className="inline-flex items-center bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
                   {section.title}
                 </h3>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                   {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
-              <div>{renderStreamingRows(section.tracks)}</div>
+              <div className="tablemusic"><TableMusicHeader selectionMode={selectionMode && canDownload} />{renderStreamingRows(section.tracks)}</div>
             </div>
           ))}
         </>
@@ -1406,36 +1628,31 @@ export function VipMusicTrackList({
       {useStreaming && !separateByFolderDate ? (
         <div>
           {selectionToolbar}
-          {(trackSections ?? [
-            { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks },
+          {(visibleTrackSections ?? [
+            { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks: filteredTracks },
           ]).map((section) => (
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
-                <header
-                  className={`flex items-center gap-2.5 border-b px-3.5 py-3 ${
-                    section.isNew
-                      ? "border-[#1ed760]/20 bg-[rgba(30,215,96,0.07)]"
-                      : "border-white/[0.05] bg-white/[0.02]"
-                  }`}
-                >
-                  {section.isNew ? (
-                    <span className="rounded-full bg-[#1ed760] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-black">
-                      Recente
-                    </span>
-                  ) : null}
-                  <h3
-                    className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                      section.isNew ? "text-[#1ed760]" : "text-white/60"
-                    }`}
-                  >
+                <header className="flex items-stretch justify-between border-b border-white/10 bg-[#0c120e]">
+                  <h3 className="inline-flex items-center gap-2 bg-[#1ed760] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
+                    {section.isNew ? (
+                      <span className="rounded-full bg-black px-2 py-0.5 text-[9px] font-black tracking-[0.14em] text-[#1ed760]">
+                        NEW
+                      </span>
+                    ) : null}
                     {section.title}
                   </h3>
                   {section.subtitle ? (
-                    <span className="text-[11px] text-white/35">{section.subtitle}</span>
+                    <span className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                      {section.subtitle}
+                    </span>
                   ) : null}
                 </header>
               ) : null}
-              {renderStreamingRows(section.tracks)}
+              <div className="tablemusic">
+                <TableMusicHeader selectionMode={selectionMode && canDownload} />
+                {renderStreamingRows(section.tracks)}
+              </div>
             </section>
           ))}
         </div>

@@ -29,6 +29,12 @@ export type PreviewTrack = {
    * Quando presente, a tabela agrupa por essa data fixa (DD.MM.YYYY).
    */
   updateDate?: string | null;
+  /** Nome da última pasta que contém a faixa (estilo). */
+  styleName?: string | null;
+  /** Pool da faixa: a primeira pasta dentro da atualização por data. */
+  poolName?: string | null;
+  /** ID da pasta Pool no Google Drive, quando a hierarquia possui Pool. */
+  poolFolderId?: string | null;
   /** Tamanho do arquivo em bytes (Drive API `size`). */
   sizeBytes?: number | null;
   /** Key Camelot (ex.: 11A, 12B) extraída do nome. */
@@ -846,9 +852,12 @@ export async function listDriveFolderChildren(folderId: string): Promise<DriveFi
     throw error;
   });
 
+  // O infinite scroll pode consultar o mesmo conjunto de pastas várias vezes
+  // (offset 50, 100, 150...). Mantemos a listagem em memória por alguns minutos
+  // para não refazer dezenas de chamadas ao Drive a cada página.
   childrenMemo.set(folderId, {
     promise,
-    expiresAt: Date.now() + 45_000,
+    expiresAt: Date.now() + 300_000,
   });
 
   return promise;

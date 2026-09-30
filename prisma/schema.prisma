@@ -264,6 +264,22 @@ model SiteNoticeReceipt {
   @@map("site_notice_receipts")
 }
 
+/** Scripts PowerShell publicados pela administração na área Scripts do portal. */
+model PortalAdminScript {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(120)
+  description String   @db.Text
+  fileName    String   @map("file_name") @db.VarChar(180)
+  language    String   @default("powershell") @db.VarChar(30)
+  script      String   @db.Text
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([active, createdAt])
+  @@map("portal_admin_scripts")
+}
+
 enum DownloadJobProvider {
   GOOGLE_DRIVE
 }

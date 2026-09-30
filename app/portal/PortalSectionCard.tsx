@@ -7,8 +7,8 @@ const THEMES = {
     title: "text-[#00B347]",
   },
   purple: {
-    border: "border-purple-500/50",
-    bg: "bg-purple-500/10",
+    border: "border-[#1ed760]/50",
+    bg: "bg-[#1ed760]/10",
     title: "text-white",
   },
   blue: {

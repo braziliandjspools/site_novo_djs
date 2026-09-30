@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ArrowLeft, ChevronRight, Download, Home, Loader2, MonitorDown, Pause, Play } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -27,8 +27,9 @@ import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { autoSyncDriveOnEnter } from "../lib/auto-drive-sync";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
+import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
-import { PackHero, PackHeroSkeleton, type PackHeroStat } from "./PackHero";
+import { PackHero, type PackHeroStat } from "./PackHero";
 import { StyleFolderLinks } from "./StyleFolderLinks";
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { CopyPackLinkButton } from "./CopyPackLinkButton";
@@ -58,6 +59,7 @@ type ResolveResponse = {
   level: "folders" | "tracks";
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
+  tracksHasMore?: boolean;
   coverUrl?: string | null;
   canPlay: boolean;
   canDownload?: boolean;
@@ -72,9 +74,19 @@ type AtualizacoesBrowseClientProps = {
   slugSegments: string[];
 };
 
-function resolveUrl(slugPath: string, forceRefresh = false) {
-  const refresh = forceRefresh ? "&refresh=1" : "";
-  return `/api/musicas/resolve?slug=${encodeURIComponent(slugPath)}${refresh}`;
+function resolveUrl(
+  slugPath: string,
+  forceRefresh = false,
+  trackOffset?: number,
+  trackLimit = 50,
+) {
+  const params = new URLSearchParams({ slug: slugPath });
+  if (forceRefresh) params.set("refresh", "1");
+  if (trackOffset != null && trackOffset > 0) {
+    params.set("trackOffset", String(trackOffset));
+    params.set("trackLimit", String(trackLimit));
+  }
+  return `/api/musicas/resolve?${params.toString()}`;
 }
 
 async function triggerTrackDownload(track: PreviewTrack) {
@@ -122,7 +134,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [playBusy, setPlayBusy] = useState(false);
   const [sendingPack, setSendingPack] = useState(false);
   const [downloadingPack, setDownloadingPack] = useState(false);
+  const [loadingMoreTracks, setLoadingMoreTracks] = useState(false);
+  const tracksLoadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingMoreTracksRef = useRef(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
+  const [bulkLimitNotice, setBulkLimitNotice] = useState<"downloader" | "download" | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -290,6 +306,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingStyles = Boolean(data && data.level === "folders" && !showingWeeks);
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
+  const tracksHasMore = Boolean(data?.tracksHasMore);
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -313,6 +330,49 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
+  const loadMoreTracks = useCallback(async () => {
+    if (!data || data.level !== "tracks" || loadingMoreTracksRef.current || !tracksHasMore) return;
+    loadingMoreTracksRef.current = true;
+    setLoadingMoreTracks(true);
+    try {
+      const url = resolveUrl(slugPath, false, directTracks.length, 50);
+      const body = await fetchMusicasJson<ResolveResponse>(url);
+      setData((current) => {
+        if (!current) return body;
+        return {
+          ...current,
+          tracks: [...(current.tracks ?? []), ...(body.tracks ?? [])],
+          tracksHasMore: body.tracksHasMore,
+        };
+      });
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Não foi possível carregar mais faixas.", "error");
+    } finally {
+      loadingMoreTracksRef.current = false;
+      setLoadingMoreTracks(false);
+    }
+  }, [data, directTracks.length, showToast, slugPath, tracksHasMore]);
+
+
+
+  // Carregamento infinito: quando o usuário se aproxima do fim da lista,
+  // busca automaticamente o próximo lote sem exigir um botão.
+  useEffect(() => {
+    const sentinel = tracksLoadMoreSentinelRef.current;
+    if (!sentinel || !showingTracks || !tracksHasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMoreTracks();
+        }
+      },
+      { rootMargin: "900px 0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMoreTracks, showingTracks, tracksHasMore]);
 
   const monthTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
@@ -495,6 +555,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       showToast("Plano VIP necessário para baixar o pack.", "error");
       return;
     }
+    if (directTracks.length > 50 || tracksHasMore) {
+      setBulkLimitNotice("download");
+      return;
+    }
     setBrowserConfirmOpen(true);
   }, [
     authenticated,
@@ -503,6 +567,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     downloadingPack,
     openLogin,
     showToast,
+    tracksHasMore,
   ]);
 
   const parentSegments = slugSegments.slice(0, -1);
@@ -511,6 +576,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     ? folderHref(parentPathKey.split("/"))
     : "/musicas/atualizacoes";
   const currentFolderSlug = slugSegments.at(-1) ?? "";
+  const breadcrumbNavRef = useRef<HTMLElement | null>(null);
+  const breadcrumbPath = data?.resolvedPath.map((part) => part.id).join("/") ?? slugSegments.join("/");
+
+  useEffect(() => {
+    const nav = breadcrumbNavRef.current;
+    if (nav) nav.scrollLeft = nav.scrollWidth;
+  }, [breadcrumbPath]);
   const siblingNavItems = useMemo(
     () =>
       siblingFolders.map((folder) => {
@@ -550,70 +622,66 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           />
         ) : null}
       </div>
-      <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+      <nav
+        ref={breadcrumbNavRef}
+        aria-label="Caminho das pastas"
+        className="mb-5 flex w-full max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#1ed760]/15 bg-[#0d130f] p-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <Link
           href="/musicas/atualizacoes"
-          className="font-medium text-zinc-400 transition-colors hover:text-white"
+          title="Voltar aos acervos"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/70 transition hover:border-[#1ed760]/40 hover:text-[#1ed760]"
         >
-          Atualizações
+          <Home className="h-3.5 w-3.5 text-[#1ed760]" aria-hidden />
+          Acervos
         </Link>
         {(data?.resolvedPath ?? []).map((part, index, all) => {
           const hrefParts = all.slice(0, index + 1).map((item) => item.slug);
           const isLast = index === all.length - 1;
+          const label = displayFolderName(part.name);
           return (
-            <span key={`${part.id}-${part.slug}`} className="contents">
-              <ChevronRight className="h-3 w-3" />
+            <span key={`${part.id}-${part.slug}`} className="inline-flex shrink-0 items-center gap-1.5">
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#1ed760]/45" aria-hidden />
               {isLast ? (
-                <span className="font-medium text-white">{displayFolderName(part.name)}</span>
+                <span
+                  aria-current="page"
+                  title={label}
+                  className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/15 px-3 font-bold text-[#6af69b] shadow-[0_0_18px_rgba(30,215,96,0.12)]"
+                >
+                  <span className="truncate">{label}</span>
+                </span>
               ) : (
                 <Link
                   href={folderHref(hrefParts)}
-                  className="font-medium text-zinc-400 transition-colors hover:text-white"
+                  title={label}
+                  className="inline-flex h-9 max-w-[min(42vw,14rem)] items-center rounded-xl border border-white/10 bg-white/[0.04] px-3 font-semibold text-white/65 transition hover:border-[#1ed760]/30 hover:bg-[#1ed760]/10 hover:text-white"
                 >
-                  {displayFolderName(part.name)}
+                  <span className="truncate">{label}</span>
                 </Link>
               )}
             </span>
           );
         })}
         {!data && (
-          <>
-            <ChevronRight className="h-3 w-3" />
-            <span className="font-medium text-white">{currentTitle}</span>
-          </>
+          <span className="inline-flex shrink-0 items-center gap-1.5">
+            <ChevronRight className="h-3.5 w-3.5 text-[#1ed760]/45" aria-hidden />
+            <span aria-current="page" className="inline-flex h-9 max-w-[min(60vw,18rem)] items-center truncate rounded-xl border border-[#1ed760]/40 bg-[#1ed760]/15 px-3 font-bold text-[#6af69b]">
+              <span className="truncate">{currentTitle}</span>
+            </span>
+          </span>
         )}
       </nav>
 
       {showInitialSkeleton &&
         (slugSegments.length >= 3 ? (
-          <>
-            <PackHeroSkeleton />
-            <MusicasTracksSkeleton rows={8} />
-          </>
+          <MusicasTracksSkeleton rows={8} />
         ) : (
           <MusicasBrowseFoldersSkeleton rows={12} />
         ))}
 
-      {data && showingTracks ? (
-        <PackHero
-          title={displayFolderName(data.folderName)}
-          eyebrow={parentFolderTitle ? `Pasta · ${parentFolderTitle}` : "Pasta"}
-          description="Ouça no navegador, baixe no dispositivo ou envie direto ao BRS Downloader."
-          coverUrl={data.coverUrl}
-          stats={packStats}
-          playing={packPlaying}
-          playBusy={playBusy}
-          canPlay={playbackEnabled && directTracks.length > 0}
-          canDownload={downloadEnabled}
-          downloading={downloadingPack}
-          sendingToDownloader={sendingPack}
-          onPlay={() => void handlePackPlay()}
-          onSendToDownloader={() => void handlePackSendToDownloader()}
-          onDownload={() => void handlePackDownload()}
-        />
-      ) : null}
 
-      {data && !showingTracks ? (
+
+      {data && !showingTracks && slugSegments.length === 1 ? (
         <AtualizacoesMonthHero
           folderName={data.folderName}
           itemCount={heroCount}
@@ -692,6 +760,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             <div className="mt-4 space-y-4">
               <VipMusicTrackList
                 folderId={data.folderId}
+                groupByDate={false}
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
@@ -749,6 +818,42 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           newChildIds={newChildIds}
         >
           <div className="min-w-0 space-y-4">
+            {directTracks.length > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1ed760]/20 bg-[#0c120e] px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Faixas da pasta</p>
+                  <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
+                  <p className="text-[11px] text-white/45">{directTracks.length}{tracksHasMore ? "+" : ""} {directTracks.length === 1 ? "faixa" : "faixas"}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <AtualizacoesDriveSyncButton
+                    compact
+                    label="Sincronizar"
+                    onSynced={async () => {
+                      await loadBrowse({ forceRefresh: true });
+                    }}
+                  />
+                  {playbackEnabled ? (
+                    <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1ed760] px-3 text-xs font-bold text-black transition hover:bg-[#4bf082] disabled:opacity-50">
+                      {playBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : packPlaying ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="h-3.5 w-3.5" fill="currentColor" />}
+                      {packPlaying ? "Pausar" : "Reproduzir"}
+                    </button>
+                  ) : null}
+                  {downloadEnabled ? (
+                    <>
+                      <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50">
+                        {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
+                        Downloader
+                      </button>
+                      <button type="button" onClick={() => void handlePackDownload()} disabled={directTracks.length > 50 || tracksHasMore || downloadingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">
+                        {downloadingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                        Baixar pasta
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
             {directTracks.length === 0 && loading ? (
               <div className="overflow-hidden rounded-md border border-[#1ed760]/20 bg-[#0d0d0d]">
                 <div className="h-px w-full bg-gradient-to-r from-[#1ed760]/80 via-[#1ed760]/25 to-transparent" />
@@ -762,8 +867,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 </p>
               </div>
             ) : (
-              <VipMusicTrackList
-                folderId={data.folderId}
+              <div className="space-y-3">
+                <VipMusicTrackList
+                  folderId={data.folderId}
+                  groupByDate={true}
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
@@ -783,8 +890,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                         styleName: displayFolderName(data.folderName),
                       }
                     : undefined
-                }
-              />
+                  }
+                />
+                {tracksHasMore ? (
+                  <div
+                    ref={tracksLoadMoreSentinelRef}
+                    className="h-px w-full"
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </div>
             )}
             {(useSiblingFolderNav || slugSegments.length >= 2) && (
               <AtualizacoesMonthFooterNav
@@ -801,6 +916,35 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && !data && !loading && <MusicasListSkeleton rows={6} />}
+
+      {bulkLimitNotice ? (
+        <div className="fixed inset-0 z-[10070] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="presentation" onClick={() => setBulkLimitNotice(null)}>
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            className="w-full max-w-md rounded-2xl border border-amber-400/25 bg-[#12151a] p-5 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.85)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 rounded-full bg-amber-400/10 p-2 text-amber-300">
+                <Download className="h-4 w-4" aria-hidden />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-white">Limite de 50 músicas</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/65">
+                  Esta pasta possui mais de 50 músicas. O download da pasta pelo navegador fica disponível somente para pastas com até 50 músicas.
+                </p>
+                <p className="mt-3 text-xs text-white/40">
+                  Use o botão Downloader para enviar o acervo completo.
+                </p>
+              </div>
+            </div>
+            <button type="button" onClick={() => setBulkLimitNotice(null)} className="mt-5 w-full rounded-full bg-[#1ed760] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black">
+              Entendi
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <BrowserPackDownloadConfirm
         open={browserConfirmOpen}

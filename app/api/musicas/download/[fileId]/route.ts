@@ -64,8 +64,8 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const requestedName = searchParams.get("name");
-  const driveName = requestedName ? null : await getDriveFileName(fileId);
-  const filename = ensureAudioExtension(requestedName ?? driveName ?? "faixa.mp3");
+  const driveName = await getDriveFileName(fileId).catch(() => null);
+  const filename = ensureAudioExtension(driveName ?? requestedName ?? "faixa.mp3");
 
   try {
     const upstream = await fetchDriveAudioUpstream(fileId, request);
@@ -74,7 +74,7 @@ export async function GET(request: Request, context: RouteContext) {
     }
 
     activeProxyDownloads += 1;
-    const headers = driveAudioResponseHeaders(upstream, { inline: true });
+    const headers = driveAudioResponseHeaders(upstream);
     headers.set("Content-Type", contentTypeForFilename(filename));
     headers.set("Content-Disposition", contentDispositionAttachment(filename));
 

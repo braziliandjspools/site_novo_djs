@@ -523,14 +523,12 @@ button {
 
 
 @keyframes brs-mobile-track-marquee {
-  0%, 12% { transform: translateX(0); }
-  82%, 94% { transform: translateX(calc(-100% + min(62vw, 260px))); }
-  100% { transform: translateX(0); }
+  to { transform: translateX(calc(-1 * var(--brs-marquee-distance))); }
 }
 
 @media (max-width: 767px) {
   .brs-mobile-track-marquee {
-    animation: brs-mobile-track-marquee 8s linear infinite;
+    animation: brs-mobile-track-marquee var(--brs-marquee-duration) linear infinite;
     will-change: transform;
   }
 }
@@ -542,4 +540,33 @@ button {
     overflow: hidden;
     max-width: 100%;
   }
+}
+
+
+/* TableMusic: alinhamento fixo, acabamento de painel premium e metadados do catálogo. */
+.tablemusic {
+  --tablemusic-columns: 44px minmax(0, 1fr) minmax(86px, .42fr) minmax(86px, .42fr) repeat(4, 36px);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / .09);
+  border-radius: 0;
+  background: linear-gradient(145deg, rgb(20 28 23 / .98), rgb(8 12 10 / .98));
+  box-shadow: 0 18px 48px rgb(0 0 0 / .22), inset 0 1px 0 rgb(255 255 255 / .035);
+}
+.tablemusic-grid { display: none; }
+.tablemusic-pool, .tablemusic-style { display: none; }
+.tablemusic-row:nth-child(odd) { background-color: rgb(255 255 255 / .018); }
+.tablemusic-row:hover { background: linear-gradient(90deg, rgb(30 215 96 / .1), rgb(255 255 255 / .035)); }
+.tablemusic-row:focus-within { background: linear-gradient(90deg, rgb(30 215 96 / .15), rgb(255 255 255 / .045)); }
+.tablemusic-row [aria-label^="Reproduzir"],
+.tablemusic-row [aria-label^="Pausar"] { border-radius: 10px; }
+.tablemusic :where(button, a):focus-visible { outline: 2px solid #1ed760; outline-offset: 3px; }
+@media (min-width: 768px) {
+  .tablemusic-grid { display: grid; grid-template-columns: var(--tablemusic-columns); align-items: center; column-gap: 12px; }
+  .tablemusic-grid-select { grid-template-columns: 28px var(--tablemusic-columns); }
+  .tablemusic-head { padding: 13px 14px; background: linear-gradient(90deg, rgb(30 215 96 / .13), rgb(17 26 20 / .98) 42%, rgb(11 16 13 / .98)); border-bottom: 1px solid rgb(30 215 96 / .22); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .11em; color: #b8c6bd; }
+  .tablemusic-row > .tablemusic-grid { min-height: 68px; }
+  .tablemusic-pool, .tablemusic-style { display: block; }
+}
+@media (min-width: 1024px) {
+  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(110px, .46fr) minmax(110px, .46fr) repeat(4, 36px); }
 }

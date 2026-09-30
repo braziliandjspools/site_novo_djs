@@ -1,28 +1,8 @@
-# Imagens Open Graph / Twitter (1200 × 630)
+# Imagens de compartilhamento da BRS
 
-Coloque aqui um JPG por página. Formato: **1200×630**, qualidade alta, texto legível.
+As prévias dos links públicos são geradas por `app/og/[slug]/route.tsx` em **1200 × 630 px**.
+Cada página pública usa a URL `/og/{slug}` definida em `app/lib/seo.ts`.
 
-## Páginas públicas (prioridade)
-
-| Arquivo | Página |
-|---------|--------|
-| `default.jpg` | Fallback (obrigatório) |
-| `home.jpg` | `/` |
-| `plans.jpg` | `/plans` |
-| `allavsoft.jpg` | `/allavsoft` |
-| `musicproducer.jpg` | `/musicproducer` |
-| `musicas-entrar.jpg` | `/musicas/entrar` |
-| `gerador-maiusculas` usa `home` / default | `/gerador-maiusculas` |
-| `privacidade.jpg` | `/privacidade` |
-| `termos.jpg` | `/termos` |
-| `privacy-downloader.jpg` | `/privacy/downloader` |
-| `privacy-cookies.jpg` | `/privacy/cookies` |
-| `privacy-conduct.jpg` | `/privacy/conduct` |
-
-Áreas VIP (`/portal`, `/musicas/home` etc.) são **noindex** — OG dedicado é opcional.
-
-## Depois de enviar cada arte
-
-1. Salve o arquivo neste diretório com o nome exato.
-2. Em `app/lib/seo.ts`, adicione o slug em `READY_OG_IMAGES` (ex.: `"home"`).
-3. Redeploy.
+Para trocar a arte ou o texto, altere o endpoint e publique a branch. A imagem
+antiga `default.jpg` permanece apenas como arquivo legado; não é usada pelas tags
+Open Graph e Twitter.

@@ -21,19 +21,10 @@ export const SITE_URL = (() => {
 
 export const SITE_LOCALE = "pt_BR";
 export const SITE_LANGUAGE = "pt-BR";
-export const TWITTER_HANDLE = "@brazilianremixservice";
 export const SUPPORT_EMAIL = "brazilianremixservice@gmail.com";
 
-/** Imagem padrão até as artes por página (1200×630). */
-export const OG_IMAGE_FALLBACK = "/images/og/default.jpg";
-
-/**
- * Slugs com arquivo já em `public/images/og/{slug}.jpg`.
- * Quando enviar a arte de uma página, coloque o arquivo e adicione o slug aqui.
- */
-export const READY_OG_IMAGES = new Set<string>([
-  // Ex.: "home", "plans" — ative após salvar public/images/og/{slug}.jpg
-]);
+/** Cartões sociais gerados em 1200×630 pelo endpoint público /og/[slug]. */
+export const OG_IMAGE_FALLBACK = "/og/home";
 
 export type SeoPageKey =
   | "home"
@@ -69,7 +60,7 @@ export type SeoPageConfig = {
   path: string;
   title: string;
   description: string;
-  /** Slug do arquivo OG: /images/og/{ogImage}.jpg */
+  /** Slug do cartão social em /og/{ogImage}. */
   ogImage: string;
   keywords?: string[];
   /** noindex para áreas privadas/admin/checkout */
@@ -83,7 +74,7 @@ export type SeoPageConfig = {
 };
 
 /** Data de conteúdo estável para páginas institucionais (YYYY-MM-DD). */
-export const SEO_STATIC_LASTMOD = "2026-09-16";
+export const SEO_STATIC_LASTMOD = "2026-09-28";
 
 const SHARED_KEYWORDS = [
   "Brazilian Remix Service",
@@ -98,7 +89,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/",
     title: "Brazilian Remix Service | Packs e Remixes para DJs",
     description:
-      "Packs, remixes, remix services, DJ pools, versões extended, edits e coleções organizadas para DJs. Encontre repertório para diferentes pistas e estilos.",
+      "Brazilian Remix Service: packs, remixes, extended versions e DJ pools organizados para DJs. Ouça no site, explore atualizações e baixe com o BRS Downloader.",
     ogImage: "home",
     keywords: [
       ...SHARED_KEYWORDS,
@@ -116,7 +107,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     path: "/plans",
     title: `Planos VIP e preços | ${SITE_NAME}`,
     description:
-      "Planos BRS Drive VIP: teste 3 dias por R$ 3,50 (uma vez), mensal R$ 35,50, trimestral R$ 100 e semestral R$ 200. Acervo completo, plataforma /musicas e Downloader Windows. Pagamento seguro.",
+      "Conheça os planos do Brazilian Remix Service. Acesse packs e atualizações por estilo, ouça pelo navegador e envie pastas para o BRS Downloader no Windows.",
     ogImage: "plans",
     keywords: [...SHARED_KEYWORDS, "plano VIP DJ", "assinatura pools preço"],
     sitemap: true,
@@ -211,7 +202,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "musicas-atualizacoes": {
     key: "musicas-atualizacoes",
     path: "/musicas/atualizacoes",
-    title: "Atualizações para DJs, Remix Services e DJ Pools | BRS",
+    title: `Atualizações para DJs | ${SITE_NAME}`,
     description:
       "Atualizações para DJs com remix services, DJ pools, packs, extended mixes, intro edits, funk, sertanejo, eletrônico, flashback e muito mais. Explore o acervo BRS.",
     ogImage: "musicas-atualizacoes",
@@ -252,7 +243,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "packs-para-djs": {
     key: "packs-para-djs",
     path: "/packs-para-djs",
-    title: "Packs para DJs – Remixes, Extended e Edits | BRS",
+    title: `Packs para DJs | ${SITE_NAME}`,
     description:
       "Explore packs para DJs com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, flashback e outros estilos organizados para diferentes pistas.",
     ogImage: "home",
@@ -271,7 +262,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "dj-pool-brasil": {
     key: "dj-pool-brasil",
     path: "/dj-pool-brasil",
-    title: "DJ Pool Brasil – Pools, Remixes e Atualizações | BRS",
+    title: `DJ Pool Brasil | ${SITE_NAME}`,
     description:
       "DJ pools para DJs no Brasil: atualizações, remixes, edits e packs organizados no acervo BRS. Conheça o fluxo de pools e acesse as novidades VIP.",
     ogImage: "home",
@@ -284,7 +275,7 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "remix-service-brasil": {
     key: "remix-service-brasil",
     path: "/remix-service-brasil",
-    title: "Remix Service Brasil – Remixes e Edits para DJs | BRS",
+    title: `Remix Service Brasil | ${SITE_NAME}`,
     description:
       "Remix service para DJs: extended mixes, intro edits, clean/dirty, bootlegs e versões prontas para a pista. Veja como o acervo BRS organiza o repertório.",
     ogImage: "home",
@@ -416,10 +407,10 @@ function absoluteUrl(path: string) {
 }
 
 export function resolveOgImagePath(ogImageSlug: string) {
-  if (READY_OG_IMAGES.has(ogImageSlug)) {
-    return `/images/og/${ogImageSlug}.jpg`;
-  }
-  return OG_IMAGE_FALLBACK;
+  const hasPublicPage = Object.values(SEO_PAGES).some(
+    (page) => !page.noIndex && page.ogImage === ogImageSlug,
+  );
+  return hasPublicPage ? `/og/${ogImageSlug}` : OG_IMAGE_FALLBACK;
 }
 
 export function buildPageMetadata(key: SeoPageKey, overrides?: Partial<Metadata>): Metadata {
@@ -459,8 +450,6 @@ export function buildPageMetadata(key: SeoPageKey, overrides?: Partial<Metadata>
       title,
       description,
       images: [ogImage],
-      site: TWITTER_HANDLE,
-      creator: TWITTER_HANDLE,
     },
     robots: page.noIndex
       ? { index: false, follow: false, googleBot: { index: false, follow: false, noimageindex: true } }
@@ -502,8 +491,7 @@ export function buildRootMetadata(): Metadata {
       default: home.title,
       template: `%s | ${SITE_NAME}`,
     },
-    description:
-      "Plataforma para DJs com packs, remixes, remix services, DJ pools, versões extended, intro edits, coleções e atualizações para diferentes estilos e pistas.",
+    description: home.description,
     applicationName: SITE_NAME,
     authors: [{ name: SITE_NAME, url: SITE_URL }],
     creator: SITE_NAME,
@@ -524,14 +512,11 @@ export function buildRootMetadata(): Metadata {
     manifest: "/site.webmanifest",
     appleWebApp: {
       capable: true,
-      title: "BRS VIP",
+      title: SITE_NAME,
       statusBarStyle: "black-translucent",
     },
     alternates: {
       canonical: "/",
-      languages: {
-        "pt-BR": SITE_URL,
-      },
     },
     openGraph: {
       type: "website",
@@ -547,8 +532,6 @@ export function buildRootMetadata(): Metadata {
       title: home.title,
       description: home.description,
       images: [ogImage],
-      site: TWITTER_HANDLE,
-      creator: TWITTER_HANDLE,
     },
     robots: {
       index: true,
@@ -560,9 +543,6 @@ export function buildRootMetadata(): Metadata {
         "max-snippet": -1,
         "max-video-preview": -1,
       },
-    },
-    other: {
-      "og:locale:alternate": "pt_BR",
     },
   };
 }
@@ -579,7 +559,7 @@ export function organizationJsonLd() {
       "@type": "ImageObject",
       url: absoluteUrl("/images/logo.png"),
     },
-    image: absoluteUrl("/images/og/default.jpg"),
+    image: absoluteUrl(OG_IMAGE_FALLBACK),
     description: SITE_TAGLINE,
     email: SUPPORT_EMAIL,
     areaServed: {
@@ -811,11 +791,11 @@ export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel:
   const isStyleLeaf = segments.length >= 3;
   const title = isPackRoot
     ? yearMatch
-      ? `Packs para DJs ${yearMatch[1]} – Remixes, Extended e Edits | BRS`
-      : `${folderLabel} – Packs e Remixes para DJs | BRS`
+      ? `Packs para DJs ${yearMatch[1]} | ${SITE_NAME}`
+      : `${folderLabel} – Packs e Remixes | ${SITE_NAME}`
     : isStyleLeaf
-      ? `${folderLabel} – ${trailLabels[0] ?? "Atualizações"} | BRS`
-      : `${folderLabel} – Atualizações para DJs | BRS`;
+      ? `${folderLabel} – ${trailLabels[0] ?? "Atualizações"} | ${SITE_NAME}`
+      : `${folderLabel} – Atualizações | ${SITE_NAME}`;
   const description = isPackRoot
     ? yearMatch
       ? `Packs para DJs atualizados em ${yearMatch[1]} com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, open format e muito mais no acervo BRS.`
@@ -933,17 +913,17 @@ export function faqJsonLd(faqs: { q: string; a: string }[]) {
   };
 }
 
-/** Lista de artes OG esperadas (para documentação / checklist). */
+/** Lista dos cartões sociais disponíveis. */
 export function expectedOgAssets() {
-  const slugs = new Set<string>(["default"]);
+  const slugs = new Set<string>(["home"]);
   for (const page of Object.values(SEO_PAGES)) {
     if (!page.noIndex) slugs.add(page.ogImage);
   }
   return [...slugs].sort().map((slug) => ({
     slug,
-    file: `public/images/og/${slug}.jpg`,
-    url: `/images/og/${slug}.jpg`,
-    ready: slug === "default" || READY_OG_IMAGES.has(slug),
+    file: "app/og/[slug]/route.tsx",
+    url: `/og/${slug}`,
+    ready: true,
   }));
 }
 
@@ -954,6 +934,7 @@ export const ROBOTS_DISALLOW = [
   "/portal",
   "/musicas/home",
   "/musicas/entrar",
+  "/musicas/drive/",
   "/musicas/dl/",
   "/pagamento/",
   "/checkout/",

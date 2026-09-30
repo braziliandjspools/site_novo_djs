@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   CreditCard,
+  Code2,
   HeadphonesIcon,
   Home,
   LayoutGrid,
@@ -29,6 +30,7 @@ type PortalShellProps = {
   hasPools: boolean;
   hasAllavsoft: boolean;
   hasVip?: boolean;
+  hasActivePlan?: boolean;
   children: React.ReactNode;
 };
 
@@ -36,6 +38,7 @@ const navItems: { id: PortalView; label: string; icon: typeof Home }[] = [
   { id: "dashboard", label: "Painel", icon: Home },
   { id: "services", label: "Meus Serviços", icon: LayoutGrid },
   { id: "service-music-producer", label: "Produções", icon: Music2 },
+  { id: "scripts", label: "Scripts", icon: Code2 },
   { id: "account", label: "Minha Conta", icon: User },
   { id: "support", label: "Suporte", icon: HeadphonesIcon },
 ];
@@ -81,6 +84,7 @@ export function PortalShell({
   hasPools,
   hasAllavsoft,
   hasVip,
+  hasActivePlan = false,
   children,
 }: PortalShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -106,7 +110,7 @@ export function PortalShell({
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {navItems.map(({ id, label, icon }) => (
+          {navItems.filter(({ id }) => id !== "scripts" || hasActivePlan).map(({ id, label, icon }) => (
             <NavLink
               key={id}
               href={portalPath(id)}

@@ -21,6 +21,7 @@ import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
+import { playerTrackCoverUrl } from "../lib/player-track-cover";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -37,6 +38,7 @@ export function VipMiniPlayerBar() {
   const [muted, setMuted] = useState(false);
   const [volumeBeforeMute, setVolumeBeforeMute] = useState(1);
   const [sending, setSending] = useState(false);
+  const [failedArtworkTrackId, setFailedArtworkTrackId] = useState<string | null>(null);
 
   if (!player.currentTrack) return null;
   const track = player.currentTrack;
@@ -44,7 +46,11 @@ export function VipMiniPlayerBar() {
   const isPlaying = player.isPlaying;
   const display = getTrackDisplayMetadata(track);
   const albumOrPack = track.album?.trim() || track.pack?.trim() || "";
-  const coverSrc = player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
+  const fallbackCoverSrc = player.currentCoverUrl?.trim() || PLACEHOLDER.trackCover;
+  const coverSrc = failedArtworkTrackId === track.id
+    ? fallbackCoverSrc
+    : playerTrackCoverUrl(track, "404");
+  const handleArtworkError = () => setFailedArtworkTrackId(track.id);
   const volume = muted ? 0 : player.volume;
 
   async function handleSend() {
@@ -90,7 +96,7 @@ export function VipMiniPlayerBar() {
     <div className="player-shell player-shell--vip fixed bottom-0 left-0 right-0 z-50 overflow-hidden rounded-none border-x-0 border-b-0">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={coverSrc} alt="" className="h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
+        <img src={coverSrc} alt="" onError={handleArtworkError} className="h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a1210]/95 via-[#0e1a16]/88 to-[#121816]/92" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1ed760]/50 to-transparent" />
       </div>
@@ -100,6 +106,7 @@ export function VipMiniPlayerBar() {
         <img
           src={coverSrc}
           alt=""
+          onError={handleArtworkError}
           className="h-14 w-14 flex-shrink-0 rounded-xl object-cover shadow-[0_10px_28px_rgba(0,0,0,0.45)] ring-2 ring-white/15 sm:h-16 sm:w-16"
         />
 

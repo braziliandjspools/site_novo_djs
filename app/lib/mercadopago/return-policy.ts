@@ -81,5 +81,5 @@ export function mapOrderStatusToPublicPhase(
 }
 
 /** Limite de atualizações de status no frontend (polling). */
-export const PAYMENT_STATUS_MAX_POLLS = 15;
-export const PAYMENT_STATUS_POLL_INTERVAL_MS = 2500;
+export const PAYMENT_STATUS_MAX_POLLS = 20;
+export const PAYMENT_STATUS_POLL_INTERVAL_MS = 1000;

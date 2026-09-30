@@ -13,6 +13,8 @@ export async function GET(request: Request) {
   const slugParam = searchParams.get("slug") ?? "";
   const segments = slugParam.split("/").filter(Boolean);
   const forceRefresh = searchParams.get("refresh") === "1";
+  const trackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
+  const trackLimit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("trackLimit") ?? "50", 10) || 50));
 
   try {
     const rootId = getVipMusicRootFolderId();
@@ -41,10 +43,33 @@ export async function GET(request: Request) {
       const catalog = await getVipMusicCatalog(
         target?.id ?? undefined,
         target?.name ?? "Packs 2026",
+        trackOffset,
+        trackLimit,
       );
+
+      // Metadados de Pool/Estilo para qualquer nível do acervo:
+      // quando a pasta atual contém MP3 diretamente, ela é o último nível.
+      // Se houver uma pasta pai, ela pode representar o Pool. Não inventamos
+      // valores para pastas de nível único, como packs antigos sem estilos.
+      const parentFolderName = resolvedPath.at(-2)?.name?.trim() || null;
+      const currentFolderName = target?.name?.trim() || null;
+      const adaptedTracks = (catalog.tracks ?? []).map((track) => ({
+        ...track,
+        styleName:
+          track.styleName?.trim() ||
+          (catalog.tracks.length > 0 && currentFolderName && resolvedPath.length >= 2
+            ? currentFolderName
+            : null),
+        poolName:
+          track.poolName?.trim() ||
+          (catalog.tracks.length > 0 && parentFolderName && resolvedPath.length >= 3
+            ? parentFolderName
+            : null),
+      }));
 
       return NextResponse.json({
         ...catalog,
+        tracks: adaptedTracks,
         ...access,
         slugSegments: segments,
         resolvedPath,

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Download, HardDrive, Loader2, Music2 } from "lucide-react";
+import { ArrowRight, CalendarDays, Disc3, Download, HardDrive, Loader2, Music2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import { VIP_MUSIC_FEED_TRACKS_PAGE_SIZE } from "../../lib/vip-music-catalog";
@@ -74,6 +74,8 @@ export function AtualizacoesPackBlock({
   const dateLabel = formatPackDate(pack.modifiedAt);
   const stamp = formatPackStamp(pack.modifiedAt);
   const tags = [pack.monthName, pack.weekName].filter(Boolean) as string[];
+  const newestAt = pack.modifiedAt ? Date.parse(pack.modifiedAt) : NaN;
+  const isRecent = Number.isFinite(newestAt) && newestAt <= Date.now() && Date.now() - newestAt < 7 * 86_400_000;
 
   const [tracks, setTracks] = useState(pack.tracks);
   const [page, setPage] = useState(1);
@@ -131,17 +133,19 @@ export function AtualizacoesPackBlock({
   const totalSize = formatBytes(pack.totalSizeBytes ?? tracks.reduce((sum, track) => sum + (track.sizeBytes ?? 0), 0));
 
   return (
-    <article className={`${poolPanelClass} bg-[#181818]`}>
-      <header className="border-b border-white/[0.07] px-4 py-4 sm:px-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+    <article className={`${poolPanelClass} overflow-hidden rounded-[22px] border border-green-400/20 bg-[#101210] shadow-[0_24px_60px_-35px_rgba(30,215,96,0.4)]`}>
+      <header className={`relative overflow-hidden border-b px-4 py-5 sm:px-6 sm:py-6 ${isRecent ? "border-green-400/30 bg-gradient-to-r from-green-500/[0.17] via-[#20172c] to-[#101210]" : "border-white/[0.08] bg-gradient-to-r from-[#182018] to-[#101210]"}`}>
+        <Disc3 className="pointer-events-none absolute -right-8 -top-10 h-48 w-48 text-green-300/[0.055]" strokeWidth={0.7} aria-hidden />
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-bold tracking-tight text-white sm:text-xl">
-              <Link href={href} className="hover:text-[#1ed760]">
+            {isRecent ? <span className="mb-2 inline-flex rounded-full border border-green-400/40 bg-green-500/20 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.13em] text-green-200">Novidades · últimos 7 dias</span> : null}
+            <h2 className="text-lg font-black tracking-tight text-white sm:text-2xl">
+              <Link href={href} className="hover:text-green-300">
                 {pack.name}
                 {stamp ? <span className="ml-1.5 font-semibold text-zinc-400">[{stamp}]</span> : null}
               </Link>
             </h2>
-            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
               {dateLabel ? (
                 <span className="inline-flex items-center gap-1">
                   <CalendarDays className="h-3.5 w-3.5" />
@@ -161,8 +165,8 @@ export function AtualizacoesPackBlock({
           </div>
         </div>
 
-        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-lg bg-black/35 px-3 py-2">
+        <dl className="relative mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          <div className="rounded-xl border border-green-400/10 bg-black/20 px-3 py-3">
             <dt className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
               <Music2 className="h-3 w-3" />
               Arquivos
@@ -176,14 +180,14 @@ export function AtualizacoesPackBlock({
             </dt>
             <dd className="mt-1 text-sm font-semibold tabular-nums text-white">{totalSize}</dd>
           </div>
-          <div className="col-span-2 rounded-lg bg-black/35 px-3 py-2 sm:col-span-1">
+          <div className="col-span-2 rounded-xl border border-green-400/10 bg-black/20 px-3 py-3 sm:col-span-1">
             <dt className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
               <Download className="h-3 w-3" />
               Pasta
             </dt>
-            <dd className="mt-1 truncate text-sm font-semibold text-[#1ed760]">
+            <dd className="mt-1 truncate text-sm font-semibold text-green-300">
               <Link href={href} className="hover:underline">
-                Abrir
+                Abrir catálogo <ArrowRight className="ml-1 inline h-3.5 w-3.5" />
               </Link>
             </dd>
           </div>

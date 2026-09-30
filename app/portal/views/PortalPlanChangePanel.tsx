@@ -23,6 +23,7 @@ export type PortalPlanChangeCard = {
 type PortalPlanChangePanelProps = {
   plans: PortalPlanChangeCard[];
   hasVip: boolean;
+  renewalMode?: boolean;
   currentValueLabel?: string;
   currentDueLabel?: string;
 };
@@ -31,6 +32,7 @@ type PortalPlanChangePanelProps = {
 export function PortalPlanChangePanel({
   plans,
   hasVip,
+  renewalMode = false,
   currentValueLabel,
   currentDueLabel,
 }: PortalPlanChangePanelProps) {
@@ -52,7 +54,11 @@ export function PortalPlanChangePanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
-        body: JSON.stringify({ planId: selectedId }),
+        body: JSON.stringify(
+          renewalMode
+            ? { renewalService: "poolsVip", renewalPlanId: selectedId }
+            : { planId: selectedId },
+        ),
       });
       const data = (await res.json()) as {
         checkoutUrl?: string;
@@ -78,7 +84,7 @@ export function PortalPlanChangePanel({
 
   return (
     <PortalCard
-      title={hasVip ? "Trocar plano (upgrade / downgrade)" : "Assinar Pools VIP"}
+      title={renewalMode ? "Renovar Pools VIP" : hasVip ? "Trocar plano (upgrade / downgrade)" : "Assinar Pools VIP"}
       action={
         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
           <ArrowRightLeft className="h-3 w-3" />
@@ -87,7 +93,9 @@ export function PortalPlanChangePanel({
       }
     >
       <p className="mb-4 text-sm text-zinc-400">
-        {hasVip
+        {renewalMode
+          ? "Seu acesso venceu. Escolha 1, 3 ou 6 meses para renovar o VIP."
+          : hasVip
           ? `Com VIP ativo, calculamos o crédito do período restante e cobramos só a diferença. Após o pagamento, o vencimento é atualizado automaticamente${
               currentDueLabel ? ` (hoje: ${currentDueLabel})` : ""
             }${currentValueLabel ? ` · plano atual ${currentValueLabel}` : ""}.`
@@ -154,7 +162,7 @@ export function PortalPlanChangePanel({
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00ff9d] px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#00e68a] disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CreditCard className="h-3.5 w-3.5" />}
-          {hasVip ? "Pagar troca de plano" : "Assinar agora"}
+          {renewalMode ? "Pagar renovação" : hasVip ? "Pagar troca de plano" : "Assinar agora"}
         </button>
         {error ? <p className="text-xs text-red-400">{error}</p> : null}
       </div>

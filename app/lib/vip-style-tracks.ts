@@ -17,7 +17,7 @@ import {
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const STYLE_SCAN_CONCURRENCY = 10;
-const DEFAULT_TRACK_LIMIT = 200;
+const DEFAULT_TRACK_LIMIT = 5000;
 
 export type VipStyleScanTarget = {
   id: string;
@@ -60,85 +60,96 @@ export type VipStyleListItem = {
   href: string;
 };
 
-async function walkMonthStyles(
-  month: VipMusicFolder,
-  ctx: { packSlug?: string; packName?: string },
+async function collectStyleLeaves(
+  folderId: string,
+  context: {
+    packSlug?: string;
+    packName?: string;
+    monthSlug?: string;
+    monthName?: string;
+    weekSlug?: string;
+    weekName?: string;
+    __currentName?: string;
+  },
+  depth = 0,
+  visited = new Set<string>(),
 ): Promise<VipStyleScanTarget[]> {
-  const monthSlug = slugifyFolderName(month.name);
-  const monthName = displayFolderName(month.name);
-  if (!monthSlug) return [];
+  if (depth > 8 || visited.has(folderId)) return [];
+  visited.add(folderId);
 
-  const monthChildren = await listVipMusicFolders(month.id);
+  const children = await listDriveFolderChildren(folderId);
+  const audio = children.filter((item) => isDriveAudioFile(item));
+  const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const out: VipStyleScanTarget[] = [];
 
-  if (childrenAreWeekFolders(monthChildren)) {
-    const weekTrees = await mapPool(monthChildren, 6, async (week) => {
-      const styles = await listVipMusicFolders(week.id);
-      return {
-        weekSlug: slugifyFolderName(week.name),
-        weekName: displayFolderName(week.name),
-        styles,
-      };
-    });
-
-    for (const { weekSlug, weekName, styles } of weekTrees) {
-      for (const style of styles) {
-        if (isMonthFolderName(style.name) || isWeekFolderName(style.name)) continue;
+  // Uma pasta com MP3 diretamente é um nível final. Só tratamos como
+  // "estilo" quando ela não é a própria raiz/pack: isso permite encontrar
+  // estilos mesmo em árvores diferentes das atualizações.
+  if (audio.length > 0 && folders.length === 0 && depth >= 2) {
+    const name = children.length > 0 ? context.__currentName ?? "" : "";
+    if (name) {
+      const slug = slugifyStyleName(name);
+      if (slug) {
         out.push({
-          id: style.id,
-          name: style.name,
-          packSlug: ctx.packSlug,
-          packName: ctx.packName,
-          monthSlug,
-          monthName,
-          weekSlug: weekSlug || undefined,
-          weekName,
+          id: folderId,
+          name,
+          packSlug: context.packSlug,
+          packName: context.packName,
+          monthSlug: context.monthSlug ?? "",
+          monthName: context.monthName ?? "",
+          weekSlug: context.weekSlug,
+          weekName: context.weekName,
         });
       }
     }
-    return out;
   }
 
-  for (const style of monthChildren) {
-    if (isMonthFolderName(style.name) || isWeekFolderName(style.name)) continue;
-    out.push({
-      id: style.id,
-      name: style.name,
-      packSlug: ctx.packSlug,
-      packName: ctx.packName,
-      monthSlug,
-      monthName,
-    });
-  }
+  if (folders.length === 0) return out;
 
-  return out;
+  const nested = await mapPool(folders, 6, async (folder) => {
+    const folderName = displayFolderName(folder.name);
+    const parsedMonth = isMonthFolderName(folder.name);
+    const parsedWeek = isWeekFolderName(folder.name);
+    const nextContext = {
+      ...context,
+      monthSlug: parsedMonth ? slugifyFolderName(folder.name) : context.monthSlug,
+      monthName: parsedMonth ? folderName : context.monthName,
+      weekSlug: parsedWeek ? slugifyFolderName(folder.name) : context.weekSlug,
+      weekName: parsedWeek ? folderName : context.weekName,
+      __currentName: folderName,
+    };
+    return collectStyleLeaves(folder.id, nextContext, depth + 1, visited);
+  });
+
+  return [...out, ...nested.flat()];
 }
 
 /**
- * Lista pastas de estilo no acervo (Pack → Mês → Semana? → Estilo, ou legado Mês → Estilo).
+ * Encontra níveis finais com MP3 em qualquer árvore do Drive.
+ * A estrutura pode ser Pack → Mês → Semana → Estilo, Mês → Estilo,
+ * ou possuir níveis intermediários adicionais.
  */
 export async function collectVipStyleTargets(): Promise<VipStyleScanTarget[]> {
   const roots = await listVipMusicFolders();
-  if (roots.length === 0) return [];
+  if (!roots.length) return [];
 
-  const yearLike = roots.filter((folder) => parseYearCollectionFolder(folder.name)).length;
-  const isPackRoot = yearLike >= Math.max(1, Math.ceil(roots.length * 0.4));
+  const rootLikeYearCount = roots.filter((folder) => parseYearCollectionFolder(folder.name)).length;
+  const rootsArePacks = rootLikeYearCount >= Math.max(1, Math.ceil(roots.length * 0.4));
 
-  if (isPackRoot) {
-    const nested = await mapPool(roots, 4, async (pack) => {
-      const packSlug = slugifyFolderName(pack.name);
-      const packName = displayFolderName(pack.name);
-      const months = await listVipMusicFolders(pack.id);
-      const monthTrees = await mapPool(months, 4, (month) =>
-        walkMonthStyles(month, { packSlug, packName }),
-      );
-      return monthTrees.flat();
-    });
-    return nested.flat();
-  }
+  const trees = await mapPool(roots, 4, async (root) => {
+    const rootName = displayFolderName(root.name);
+    const rootSlug = slugifyFolderName(root.name);
+    const rootContext = {
+      packSlug: rootsArePacks ? rootSlug : undefined,
+      packName: rootsArePacks ? rootName : undefined,
+      monthSlug: rootsArePacks ? undefined : rootSlug,
+      monthName: rootsArePacks ? undefined : rootName,
+      __currentName: rootName,
+    };
+    return collectStyleLeaves(root.id, rootContext, 1, new Set<string>());
+  });
 
-  const monthTrees = await mapPool(roots, 6, (month) => walkMonthStyles(month, {}));
-  return monthTrees.flat();
+  return trees.flat();
 }
 
 function stylePathSegments(style: VipStyleScanTarget, styleSlug: string): string[] {
@@ -217,7 +228,7 @@ export async function findTracksByStyleSlug(
   limit = DEFAULT_TRACK_LIMIT,
 ): Promise<StyleProfileResult> {
   const slug = slugifyStyleName(rawSlug);
-  const max = Math.min(Math.max(limit, 1), 400);
+  const max = Math.min(Math.max(limit, 1), 5000);
 
   if (!slug) {
     return {
@@ -242,7 +253,7 @@ export async function findTracksByStyleSlug(
       const children = await listDriveFolderChildren(style.id);
       if (stop || tracks.length >= max) return;
 
-      const packName = displayFolderName(style.name);
+      const packName = style.packName || style.monthName || displayFolderName(style.name);
       const consider = (file: (typeof children)[number]) => {
         if (tracks.length >= max) {
           stop = true;
@@ -255,17 +266,26 @@ export async function findTracksByStyleSlug(
 
       for (const file of children) consider(file);
 
-      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 12);
-      if (nestedFolders.length === 0 || tracks.length >= max) return;
-
-      await mapPool(nestedFolders, 4, async (folder) => {
-        if (stop || tracks.length >= max) return;
-        try {
-          const nested = await listDriveFolderChildren(folder.id);
-          for (const file of nested) consider(file);
-        } catch {
-          /* pasta inacessível */
+      const visited = new Set<string>([style.id]);
+      const walk = async (folderId: string, depth: number): Promise<void> => {
+        if (stop || tracks.length >= max || depth > 8) return;
+        const nested = await listDriveFolderChildren(folderId);
+        for (const file of nested) {
+          if (stop || tracks.length >= max) return;
+          if (isDriveAudioFile(file)) consider(file);
         }
+        const folders = nested.filter((item) => item.mimeType === FOLDER_MIME);
+        await mapPool(folders, 4, async (folder) => {
+          if (stop || tracks.length >= max || visited.has(folder.id)) return;
+          visited.add(folder.id);
+          await walk(folder.id, depth + 1);
+        });
+      };
+      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME);
+      await mapPool(nestedFolders, 4, async (folder) => {
+        if (stop || tracks.length >= max || visited.has(folder.id)) return;
+        visited.add(folder.id);
+        await walk(folder.id, 1);
       });
     } catch {
       /* pasta inacessível */

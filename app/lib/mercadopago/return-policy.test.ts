@@ -36,7 +36,7 @@ test("external_reference inválido é descartado", () => {
   );
 });
 
-test("PENDING vira confirming (webhook ainda não confirmou liberação)", () => {
+test("PENDING permanece confirming até a validação do servidor", () => {
   assert.equal(mapOrderStatusToPublicPhase("PENDING"), "confirming");
   assert.equal(mapOrderStatusToPublicPhase("APPROVED"), "approved");
   assert.equal(mapOrderStatusToPublicPhase("REJECTED"), "rejected");

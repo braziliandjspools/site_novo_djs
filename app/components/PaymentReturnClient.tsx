@@ -70,7 +70,7 @@ function copyForPhase(
       icon: "loading" as const,
       title: "Confirmando pagamento",
       subtitle:
-        "Estamos aguardando a confirmação oficial do Mercado Pago. Isso não libera o plano pela URL — só pelo webhook validado no servidor.",
+        "Estamos consultando a confirmação diretamente no Mercado Pago. O acesso só é liberado após a validação oficial do pagamento no servidor.",
     };
   }
 
@@ -139,6 +139,8 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
   const [planLabel, setPlanLabel] = useState<string | null>(null);
   const [pollCount, setPollCount] = useState(0);
   const [authRequired, setAuthRequired] = useState(false);
+  const [pollExhausted, setPollExhausted] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,9 +171,21 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
             cache: "no-store",
           });
           if (res.status === 401) {
-            if (!cancelled) {
-              setAuthRequired(true);
-              setPhase("not_found");
+            // O retorno do checkout não deve deslogar nem pedir novo login
+            // apenas porque o endpoint de status não conseguiu localizar o pedido.
+            // Confirma a sessão atual antes de exibir qualquer aviso de autenticação.
+            try {
+              const sessionRes = await fetch("/api/musicas/session", { cache: "no-store" });
+              const sessionData = (await sessionRes.json()) as { authenticated?: boolean };
+              if (!cancelled) {
+                setAuthRequired(!sessionData.authenticated);
+                setPhase(variant === "erro" ? "cancelled" : "not_found");
+              }
+            } catch {
+              if (!cancelled) {
+                setAuthRequired(false);
+                setPhase(variant === "erro" ? "cancelled" : "not_found");
+              }
             }
             return false;
           }
@@ -194,7 +208,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
           );
         } catch {
           if (!cancelled && attempts >= PAYMENT_STATUS_MAX_POLLS) {
-            setPhase("not_found");
+            setPhase("confirming");
           }
           return attempts < PAYMENT_STATUS_MAX_POLLS;
         }
@@ -206,6 +220,9 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
           await new Promise((r) => setTimeout(r, PAYMENT_STATUS_POLL_INTERVAL_MS));
           cont = await poll();
         }
+        if (!cancelled && attempts >= PAYMENT_STATUS_MAX_POLLS) {
+          setPollExhausted(true);
+        }
       })();
     }, 0);
 
@@ -213,7 +230,7 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [searchParams]);
+  }, [searchParams, retryNonce]);
 
   const copy = copyForPhase(variant, phase, planLabel);
   const showingConfirming = phase === "loading" || phase === "confirming";
@@ -245,10 +262,29 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
 
         <SectionHeading badge="Mercado Pago" title={copy.title} subtitle={copy.subtitle} />
 
-        {showingConfirming ? (
+        {showingConfirming && !pollExhausted ? (
           <p className="mt-4 text-xs text-zinc-500" aria-live="polite">
-            Atualizando status {Math.min(pollCount, PAYMENT_STATUS_MAX_POLLS)}/{PAYMENT_STATUS_MAX_POLLS}…
+            Consultando o Mercado Pago · {Math.min(pollCount, PAYMENT_STATUS_MAX_POLLS)}/{PAYMENT_STATUS_MAX_POLLS}
           </p>
+        ) : null}
+
+        {showingConfirming && pollExhausted ? (
+          <div className="mt-4 space-y-3" role="status">
+            <p className="text-sm text-zinc-400">
+              O Mercado Pago ainda não retornou a confirmação. Você pode consultar novamente; a liberação também será atualizada automaticamente quando o pagamento for confirmado.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setPollCount(0);
+                setPollExhausted(false);
+                setRetryNonce((current) => current + 1);
+              }}
+              className="rounded-full border border-[#00ff9d]/30 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00ff9d] transition hover:bg-[#00ff9d]/10"
+            >
+              Consultar novamente
+            </button>
+          </div>
         ) : null}
 
         {authRequired ? (

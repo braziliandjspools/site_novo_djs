@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminLogin } from "./AdminLogin";
 import { AdminMusicProducerDeliveries } from "./AdminMusicProducerDeliveries";
@@ -24,6 +25,8 @@ export function AdminApp() {
   }, []);
 
   useEffect(() => {
+    // Consulta inicial à sessão do admin para escolher o conteúdo protegido.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void checkSession();
   }, [checkSession]);
 
@@ -68,6 +71,15 @@ export function AdminApp() {
       ) : (
         <AdminNotices onLogout={() => setAuthenticated(false)} />
       )}
+
+      <div className="border-t border-white/10 pt-4">
+        <Link
+          href="/admin/scripts"
+          className="inline-flex min-h-10 items-center rounded-lg border border-[#1ed760]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#1ed760] transition hover:bg-[#1ed760]/10"
+        >
+          Gerenciar scripts do portal
+        </Link>
+      </div>
     </div>
   );
 }

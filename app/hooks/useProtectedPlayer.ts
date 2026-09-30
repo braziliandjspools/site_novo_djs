@@ -198,6 +198,9 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
             cache: "no-store",
           });
           const contentType = probe.headers.get("content-type") ?? "";
+          // O probe só valida a resposta; nunca deve manter o stream de bytes aberto.
+          // Isso evita disputar a conexão com o <audio>, principalmente em pastas profundas.
+          void probe.body?.cancel();
           if (!probe.ok || contentType.includes("application/json")) {
             let message = "Não foi possível carregar a faixa.";
             try {

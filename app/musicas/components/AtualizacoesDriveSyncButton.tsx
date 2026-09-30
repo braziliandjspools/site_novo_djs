@@ -13,6 +13,7 @@ type AtualizacoesDriveSyncButtonProps = {
   }) => void | Promise<SyncSnapshot | void | undefined>;
   className?: string;
   compact?: boolean;
+  label?: string;
 };
 
 /** Estilo único do botão Sincronizar (heroes, listas e pastas). */
@@ -24,6 +25,7 @@ export function AtualizacoesDriveSyncButton({
   onSynced,
   className = "",
   compact = false,
+  label,
 }: AtualizacoesDriveSyncButtonProps) {
   const { showToast } = useMusicasToast();
   const [syncing, setSyncing] = useState(false);
@@ -63,9 +65,10 @@ export function AtualizacoesDriveSyncButton({
         disabled={syncing}
         title="Sincronizar com o Google Drive"
         aria-label="Sincronizar com o Google Drive"
-        className={`inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-300 transition-colors hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 text-xs font-bold text-yellow-300 transition-colors hover:bg-yellow-500/20 disabled:cursor-not-allowed disabled:opacity-50 ${label ? "w-auto" : "w-9"} ${className}`}
       >
         {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+        {label ? (syncing ? "Sincronizando…" : label) : null}
       </button>
     );
   }

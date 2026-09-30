@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Mic2, Search } from "lucide-react";
+import { ChevronRight, Headphones, Mic2, Search } from "lucide-react";
 import { artistsHref, slugifyArtistName } from "../../lib/vip-music-slugs";
 import { MusicasArtistGridSkeleton } from "../components/MusicasSkeletons";
 import { MusicLibraryTile, libraryTileTone } from "../components/MusicLibraryTiles";
@@ -33,6 +33,7 @@ export default function ArtistasPage() {
   const [error, setError] = useState<string | null>(null);
   const [artists, setArtists] = useState<ArtistListItem[]>([]);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<"all" | "electronic">("all");
 
   useEffect(() => {
     setLoading(true);
@@ -50,16 +51,20 @@ export default function ArtistasPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const electronicGenres = /(?:electro|eletr[oô]nic|house|techno|trance|dance|edm|dubstep|drum.?and.?bass|dnb|hardstyle|progressive|melodic|afro.?house|brazilian.?bass|deep.?house|tech.?house|psytrance|bass.?house)/i;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return artists;
-    return artists.filter(
+    const categoryArtists = category === "electronic"
+      ? artists.filter((artist) => (artist.genres ?? []).some((genre) => electronicGenres.test(genre)))
+      : artists;
+    if (!q) return categoryArtists;
+    return categoryArtists.filter(
       (artist) =>
         artist.name.toLowerCase().includes(q) ||
         artist.slug.includes(slugifyArtistName(q)) ||
         (artist.genres ?? []).some((genre) => genre.toLowerCase().includes(q)),
     );
-  }, [artists, query]);
+  }, [artists, query, category]);
 
   function openArtistSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -82,9 +87,9 @@ export default function ArtistasPage() {
         <span className="font-medium text-white">Artistas</span>
       </nav>
 
-      <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a2a24] via-[#121816] to-[#0c0e0d] px-4 py-5 ring-1 ring-white/10 sm:px-6 sm:py-6">
+      <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#26163e] via-[#171222] to-[#0c0b12] px-4 py-5 ring-1 ring-white/10 sm:px-6 sm:py-6">
         <div
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#1ed760]/15 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl"
           aria-hidden
         />
         <div
@@ -92,14 +97,14 @@ export default function ArtistasPage() {
           aria-hidden
         />
         <div className="relative z-10">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1ed760]/90">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet-300">
             Brazilian Remix Service
           </p>
           <h1 className="mt-1.5 font-display text-[28px] font-extrabold tracking-tight text-white sm:text-4xl">
             Artistas
           </h1>
           <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-white/55 sm:text-sm">
-            Perfis editoriais em álbuns coloridos — toque para abrir bio, gêneros e faixas do acervo.
+            Explore artistas do acervo BRS, incluindo música eletrônica identificada nas pastas do Google Drive.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="rounded-lg bg-black/35 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white/70 ring-1 ring-white/10">
@@ -138,12 +143,23 @@ export default function ArtistasPage() {
         </label>
         <button
           type="submit"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-[#1fdf67]"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-violet-500 px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-violet-400"
         >
           <Mic2 className="h-4 w-4" />
           Abrir perfil
         </button>
       </form>
+
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar artistas por estilo">
+        <button type="button" aria-pressed={category === "all"} onClick={() => setCategory("all")}
+          className={`rounded-full border px-4 py-2 text-xs font-bold transition ${category === "all" ? "border-violet-400 bg-violet-500/20 text-white" : "border-white/15 bg-white/[0.04] text-zinc-400 hover:text-white"}`}>
+          Todos os artistas
+        </button>
+        <button type="button" aria-pressed={category === "electronic"} onClick={() => setCategory("electronic")}
+          className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition ${category === "electronic" ? "border-violet-400 bg-violet-500/20 text-white" : "border-white/15 bg-white/[0.04] text-zinc-400 hover:text-white"}`}>
+          <Headphones className="h-4 w-4" /> Música eletrônica
+        </button>
+      </div>
 
       {loading ? (
         <MusicasArtistGridSkeleton cards={18} />
