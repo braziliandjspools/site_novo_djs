@@ -90,7 +90,7 @@ export function groupTracksByFolderDate(tracks: PreviewTrack[]): TrackDateSectio
 
   const dayKeys = [...byDay.keys()].sort((a, b) => b.localeCompare(a));
   const sections: TrackDateSection[] = dayKeys.map((key) => {
-    const dayTracks = [...(byDay.get(key) ?? [])].sort(sortByTitle);
+    const dayTracks = [...(byDay.get(key) ?? [])].sort(sortByNewestThenTitle);
     return {
       id: `folder-${key}`,
       title: formatUpdateDateLabel(key),

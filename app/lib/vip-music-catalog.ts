@@ -126,6 +126,24 @@ function toPreviewTrack(
   };
 }
 
+function driveChildStamp(file: { createdTime?: string; modifiedTime?: string }) {
+  return file.createdTime ?? file.modifiedTime ?? "";
+}
+
+/** Datas mais novas primeiro; empate pelo upload real no Drive. */
+function compareNewestDriveChild(a: DriveChild, b: DriveChild) {
+  const dateA = parseUpdateDateFolder(a.name)?.key ?? "";
+  const dateB = parseUpdateDateFolder(b.name)?.key ?? "";
+  if (dateA !== dateB) {
+    if (dateA && dateB) return dateB.localeCompare(dateA);
+    return dateA ? -1 : 1;
+  }
+  const stampA = driveChildStamp(a);
+  const stampB = driveChildStamp(b);
+  if (stampA !== stampB) return stampB.localeCompare(stampA);
+  return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+}
+
 function sortTracksByUploadThenTitle(a: PreviewTrack, b: PreviewTrack) {
   const ad = a.updateDate ?? "";
   const bd = b.updateDate ?? "";
@@ -354,23 +372,11 @@ async function collectTracksPageDeep(
     .map((folder) => rawSubfolders.find((item) => item.id === folder.id))
     .filter((folder): folder is DriveChild => Boolean(folder));
 
-  // Sem filtro, a tabela segue o acervo do Drive: primeiro os pools/estilos
-  // com alteração mais recente, depois os mais antigos. Dentro de cada pasta,
-  // as faixas continuam ordenadas pelo upload/alteração mais recente.
-  subfolders.sort((a, b) => {
-    const am = a.modifiedTime ?? a.createdTime ?? "";
-    const bm = b.modifiedTime ?? b.createdTime ?? "";
-    if (am !== bm) return bm.localeCompare(am);
-    return 0;
-  });
+  // Sem filtro, a primeira página sai das pastas e faixas mais novas no Drive.
+  subfolders.sort(compareNewestDriveChild);
   const audioFiles = children
     .filter((item) => isDriveAudioFile(item))
-    .sort((a, b) => {
-      const am = a.modifiedTime ?? a.createdTime ?? "";
-      const bm = b.modifiedTime ?? b.createdTime ?? "";
-      if (am !== bm) return bm.localeCompare(am);
-      return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
-    });
+    .sort(compareNewestDriveChild);
 
   // DATA -> POOL -> ESTILO -> arquivos. Em uma pasta de data, o primeiro
   // nível abaixo dela é sempre o pool e o segundo é o estilo.
