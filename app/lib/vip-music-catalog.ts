@@ -9,6 +9,7 @@ import {
   childrenAreWeekFolders,
   displayFolderName,
   isNewFolderName,
+  parseMonthFolderDate,
   parseUpdateDateFolder,
   slugifyFolderName,
   sortVipChildFolders,
@@ -532,6 +533,40 @@ async function getDriveCatalog(
         return bd.localeCompare(ad);
       });
     const otherFolders = subfolders.filter((folder) => !parseUpdateDateFolder(folder.name));
+
+    // Em um mês (ex.: SETEMBRO 2026), as datas precisam continuar sendo
+    // um nível navegável. Não podemos transformar 29-SET-2026 diretamente
+    // em uma tabela de músicas, porque a URL deve preservar:
+    // SETEMBRO 2026 -> 29-SET-2026 -> POOL -> ESTILO.
+    if (parseMonthFolderDate(folderName) && dateFolders.length > 0) {
+      const sortedDates = [...dateFolders].sort((a, b) => {
+        const ad = parseUpdateDateFolder(a.name)?.key ?? "";
+        const bd = parseUpdateDateFolder(b.name)?.key ?? "";
+        return bd.localeCompare(ad);
+      });
+      const stats = await mapPool(sortedDates, 8, (folder) => getFolderNavStats(folder.id));
+      const items: VipMusicCatalogItem[] = sortedDates.map((folder, index) => ({
+        id: folder.id,
+        name: folder.name,
+        type: "folder" as const,
+        isNew: isNewFolderName(folder.name),
+        coverUrl: stats[index]?.coverUrl ?? null,
+        folderCount: stats[index]?.folderCount ?? 0,
+        trackCount: stats[index]?.trackCount ?? 0,
+      }));
+
+      return {
+        configured: true,
+        rootFolderId: rootId,
+        rootFolderName: folderId === rootId ? folderName : "2026",
+        folderId,
+        folderName,
+        level: "folders",
+        items,
+        tracks: [],
+        coverUrl,
+      };
+    }
 
     // Pastas `17-09-2026`: reúne as faixas de todas as subpastas de estilo
     // na tabela da data, sem obrigar a abrir uma página para cada estilo.
