@@ -203,8 +203,8 @@ export function MusicProducerDeliveryCard({ delivery, expanded, onToggle, onUpda
             <ChevronDown
               className={`h-5 w-5 flex-shrink-0 text-[#00ff9d] transition-transform ${expanded ? "rotate-180" : ""}`}
             />
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#ff2ea6]/15">
-              <Music2 className="h-5 w-5 text-[#ff2ea6]" />
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#1db954]/15">
+              <Music2 className="h-5 w-5 text-[#1db954]" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">

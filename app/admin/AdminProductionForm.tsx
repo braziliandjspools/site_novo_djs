@@ -281,7 +281,7 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
         <button type="button" onClick={() => void recognizeLink()} className="w-fit rounded-full border border-white/15 px-3 py-2 text-xs">
           Reconhecer
         </button>
-        {form.fileName ? <p className="text-xs text-[#ff2ea6]">{form.fileName}</p> : null}
+        {form.fileName ? <p className="text-xs text-[#1db954]">{form.fileName}</p> : null}
         <label className="text-xs text-white/60">
           Capa da produção
           <input className="mt-1 block w-full text-xs" type="file" accept=".jpg,.jpeg,.png,.webp,image/*" onChange={(e) => {

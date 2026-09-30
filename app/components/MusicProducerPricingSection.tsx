@@ -27,12 +27,12 @@ export function MusicProducerPricingSection() {
               key={plan.id}
               className={`relative flex flex-col rounded-2xl border p-5 text-center transition-all sm:p-6 md:text-left ${
                 plan.highlight
-                  ? "border-[#ff2ea6]/50 bg-gradient-to-b from-[#c2186a]/15 to-[#282828] shadow-lg shadow-[#c2186a]/10"
-                  : "border-white/5 bg-[#282828] hover:border-[#c2186a]/30 hover:bg-[#333333]"
+                  ? "border-[#1db954]/50 bg-gradient-to-b from-[#009739]/15 to-[#282828] shadow-lg shadow-[#009739]/10"
+                  : "border-white/5 bg-[#282828] hover:border-[#009739]/30 hover:bg-[#333333]"
               }`}
             >
               {plan.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#ff2ea6] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-black md:left-6 md:translate-x-0">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#1db954] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-black md:left-6 md:translate-x-0">
                   Mais pedido
                 </span>
               )}
@@ -43,7 +43,7 @@ export function MusicProducerPricingSection() {
               <ul className="mt-4 flex-1 space-y-2">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start justify-center gap-2 text-sm text-[#b3b3b3] md:justify-start">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ff2ea6]" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#1db954]" />
                     {feature}
                   </li>
                 ))}
@@ -61,7 +61,7 @@ export function MusicProducerPricingSection() {
           <button
             type="button"
             onClick={scrollToBriefing}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c2186a] to-[#ff2ea6] px-8 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02] hover:from-[#00B347] hover:to-[#ff2ea6]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1db954] px-8 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02] hover:from-[#00B347] hover:to-[#1db954]"
           >
             Solicitar orçamento
             <ArrowRight className="h-4 w-4" />

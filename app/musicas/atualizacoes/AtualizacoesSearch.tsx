@@ -9,7 +9,7 @@ import { hitHref, useAtualizacoesSearch } from "./AtualizacoesSearchContext";
 
 function HitIcon({ type }: { type: VipMusicSearchHit["type"] }) {
   if (type === "month") return <Calendar className="h-3.5 w-3.5 text-[#00ff9d]" />;
-  if (type === "week") return <Calendar className="h-3.5 w-3.5 text-[#ff2ea6]" />;
+  if (type === "week") return <Calendar className="h-3.5 w-3.5 text-[#1db954]" />;
   if (type === "style") return <FolderOpen className="h-3.5 w-3.5 text-amber-400" />;
   return <Music2 className="h-3.5 w-3.5 text-[#ff5500]" />;
 }
@@ -102,7 +102,7 @@ export function AtualizacoesSearchResults() {
                 }}
                 className="group flex w-full items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-[#00ff9d]/5"
               >
-                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-zinc-900 group-hover:bg-[#c2186a]/20">
+                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-zinc-900 group-hover:bg-[#009739]/20">
                   <HitIcon type={hit.type} />
                 </span>
                 <span className="min-w-0 flex-1">

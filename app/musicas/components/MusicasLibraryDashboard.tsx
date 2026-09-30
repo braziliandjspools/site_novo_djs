@@ -89,7 +89,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
 
   return (
     <div className="space-y-8">
-      <div className="relative overflow-hidden rounded-xl border border-[#ff2ea6]/20 bg-gradient-to-r from-[#1a2e1f] via-[#1f1f1f] to-[#121212] p-4 sm:p-5">
+      <div className="relative overflow-hidden rounded-xl border border-[#1db954]/20 bg-gradient-to-r from-[#1a2e1f] via-[#1f1f1f] to-[#121212] p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-lg font-bold text-white sm:text-xl">{home.newsBanner.title}</p>
@@ -97,7 +97,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
           </div>
           <Link
             href={home.newsBanner.href}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-5 py-2.5 text-sm font-semibold tracking-[-0.01em] text-black hover:bg-[#1bc95b]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-semibold tracking-[-0.01em] text-black hover:bg-[#1bc95b]"
           >
             Ver novidades
             <ArrowRight className="h-4 w-4" />
@@ -118,8 +118,8 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
 
         <div className="site-panel p-4">
           <p className="text-eyebrow text-zinc-500">Sincronização</p>
-          <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#ff2ea6]">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#ff2ea6]" />
+          <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#1db954]">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-[#1db954]" />
             Servidor Sincronizado
           </p>
           <p className="mt-1 text-xs text-zinc-500">Última atualização {syncLabel(home.syncedAt)}</p>
@@ -150,7 +150,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
               onClick={() =>
                 document.getElementById("downloader-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" })
               }
-              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#ff2ea6] hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#1db954] hover:underline"
             >
               <MonitorDown className="h-3.5 w-3.5" />
               Abrir Downloader →
@@ -164,9 +164,9 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
           <h2 className="mb-3 text-xl font-bold text-white">Continue ouvindo</h2>
           <Link
             href={continueItem.href}
-            className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4 transition-colors hover:border-[#ff2ea6]/30"
+            className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-[#1a1a1a] p-4 transition-colors hover:border-[#1db954]/30"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#ff2ea6]/15 text-[#ff2ea6]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#1db954]/15 text-[#1db954]">
               <Music2 className="h-6 w-6" />
             </div>
             <div className="min-w-0 flex-1">
@@ -200,7 +200,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
                 onClick={() => setPeriod(id)}
                 className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
                   period === id
-                    ? "bg-[#ff2ea6] text-black"
+                    ? "bg-[#1db954] text-black"
                     : "bg-zinc-800 text-zinc-400 hover:text-white"
                 }`}
               >
@@ -240,9 +240,9 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
             <Link
               key={genre.slug + genre.monthSlug}
               href={genre.href}
-              className="group rounded-lg border border-zinc-800 bg-gradient-to-br from-zinc-900 to-[#121212] p-3 transition-transform hover:scale-[1.02] hover:border-[#ff2ea6]/30"
+              className="group rounded-lg border border-zinc-800 bg-gradient-to-br from-zinc-900 to-[#121212] p-3 transition-transform hover:scale-[1.02] hover:border-[#1db954]/30"
             >
-              <p className="truncate text-sm font-bold text-white group-hover:text-[#ff2ea6]">{genre.name}</p>
+              <p className="truncate text-sm font-bold text-white group-hover:text-[#1db954]">{genre.name}</p>
               <p className="mt-1 text-[10px] text-zinc-500">{formatStat(genre.trackCount)} faixas</p>
             </Link>
           ))}
@@ -263,7 +263,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
                 <Link
                   key={folder.href}
                   href={folder.href}
-                  className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-[#ff2ea6]/40 hover:text-white"
+                  className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-[#1db954]/40 hover:text-white"
                 >
                   {folder.name}
                 </Link>
@@ -273,10 +273,10 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-[#ff2ea6]/25 bg-gradient-to-br from-[#0c1a12] via-[#121212] to-[#1a1a1a] p-5 sm:p-6">
+      <section className="overflow-hidden rounded-2xl border border-[#1db954]/25 bg-gradient-to-br from-[#0c1a12] via-[#121212] to-[#1a1a1a] p-5 sm:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-eyebrow inline-flex items-center gap-2 text-[#ff2ea6]">
+            <p className="text-eyebrow inline-flex items-center gap-2 text-[#1db954]">
               <Sparkles className="h-3.5 w-3.5" />
               Produção exclusiva
             </p>
@@ -290,7 +290,7 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
           </div>
           <Link
             href="/musicproducer#conte-sua-ideia"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_24px_rgba(29,185,84,0.25)] transition hover:scale-[1.02] hover:bg-[#ff2ea6]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1db954] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_24px_rgba(29,185,84,0.25)] transition hover:scale-[1.02] hover:bg-[#1db954]"
           >
             Pedir minha música
             <Flame className="h-4 w-4" />
@@ -306,9 +306,9 @@ export function MusicasLibraryDashboard({ home, loading }: MusicasLibraryDashboa
           ].map((item) => (
             <div
               key={item.title}
-              className="rounded-xl border border-white/10 bg-black/30 p-4 transition hover:border-[#ff2ea6]/35"
+              className="rounded-xl border border-white/10 bg-black/30 p-4 transition hover:border-[#1db954]/35"
             >
-              <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#ff2ea6]/15 text-[#ff2ea6]">
+              <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1db954]/15 text-[#1db954]">
                 <item.icon className="h-5 w-5" />
               </span>
               <p className="text-sm font-bold text-white">{item.title}</p>

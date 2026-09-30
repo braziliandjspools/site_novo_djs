@@ -17,10 +17,10 @@ const MARQUEE_POOLS = [
 ] as const;
 
 const ACCENTS = [
-  "from-[#c2186a]/40 to-[#c2186a]/10 border-[#c2186a]/40 text-[#ffb3df]",
+  "from-[#009739]/40 to-[#009739]/10 border-[#009739]/40 text-[#86efac]",
   "from-[#FFDF00]/25 to-[#FFDF00]/5 border-[#FFDF00]/35 text-[#FFE566]",
   "from-[#6B9FFF]/30 to-[#002776]/20 border-[#6B9FFF]/35 text-[#9fc2ff]",
-  "from-[#ff2ea6]/35 to-[#ff2ea6]/10 border-[#ff2ea6]/40 text-[#ff2ea6]",
+  "from-[#1db954]/35 to-[#1db954]/10 border-[#1db954]/40 text-[#1db954]",
 ] as const;
 
 function PoolCard({ name, index }: { name: string; index: number }) {

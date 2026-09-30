@@ -16,7 +16,7 @@ function NameList({ names }: { names: string[] }) {
       {names.map((name) => (
         <li
           key={name}
-          className="truncate rounded-md border border-[#ff2ea6]/20 bg-[rgba(255,46,166,0.06)] px-2.5 py-1.5 text-[12px] font-medium text-white/85"
+          className="truncate rounded-md border border-[#1db954]/20 bg-[rgba(29,185,84,0.06)] px-2.5 py-1.5 text-[12px] font-medium text-white/85"
           title={name}
         >
           {name}
@@ -41,11 +41,11 @@ export function SyncDeltaNotice({
     <aside
       role="status"
       aria-live="polite"
-      className="mb-5 overflow-hidden rounded-2xl border border-[#ff2ea6]/35 bg-[#17191d] shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
+      className="mb-5 overflow-hidden rounded-2xl border border-[#1db954]/35 bg-[#17191d] shadow-[0_12px_32px_rgba(0,0,0,0.35)]"
     >
       <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-4 py-3 sm:px-5">
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
             Resultado da sincronização
           </p>
           <p className="mt-1 text-sm font-semibold text-white">
@@ -65,7 +65,7 @@ export function SyncDeltaNotice({
       <div className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
         <div>
           <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/55">
-            <FolderPlus className="h-3.5 w-3.5 text-[#ff2ea6]" aria-hidden />
+            <FolderPlus className="h-3.5 w-3.5 text-[#1db954]" aria-hidden />
             Pastas novas · {delta.newFolders.length}
           </p>
           {folderNames.length > 0 ? (
@@ -82,7 +82,7 @@ export function SyncDeltaNotice({
 
         <div>
           <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/55">
-            <Music2 className="h-3.5 w-3.5 text-[#ff2ea6]" aria-hidden />
+            <Music2 className="h-3.5 w-3.5 text-[#1db954]" aria-hidden />
             Músicas novas · {delta.newTracks.length}
           </p>
           {trackNames.length > 0 ? (

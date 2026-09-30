@@ -27,10 +27,10 @@ const GRADIENTS = {
     ring: "group-hover/card:border-white/20 group-hover/card:ring-emerald-300/35",
   },
   blue: {
-    surface: "from-[#ff2ea6] via-[#0a3d22] to-[#050505]",
-    glow: "bg-[#ff2ea6]/30",
-    edge: "from-[#ff2ea6]/45 via-transparent to-transparent",
-    ring: "group-hover/card:border-white/20 group-hover/card:ring-[#ff2ea6]/35",
+    surface: "from-[#1db954] via-[#0a3d22] to-[#050505]",
+    glow: "bg-[#1db954]/30",
+    edge: "from-[#1db954]/45 via-transparent to-transparent",
+    ring: "group-hover/card:border-white/20 group-hover/card:ring-[#1db954]/35",
   },
   amber: {
     surface: "from-[#f59e0b] via-[#9a3412] to-[#050505]",

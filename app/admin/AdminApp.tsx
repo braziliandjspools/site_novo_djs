@@ -81,7 +81,7 @@ export function AdminApp() {
         </Link>
         <Link
           href="/admin/scripts"
-          className="inline-flex min-h-10 items-center rounded-lg border border-[#ff2ea6]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#ff2ea6] transition hover:bg-[#ff2ea6]/10"
+          className="inline-flex min-h-10 items-center rounded-lg border border-[#1db954]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#1db954] transition hover:bg-[#1db954]/10"
         >
           Gerenciar scripts do portal
         </Link>

@@ -136,7 +136,7 @@ export function AdminProducers() {
           }} />
         </label>
         {error ? <p className="text-sm text-red-300 sm:col-span-2">{error}</p> : null}
-        {notice ? <p className="text-sm text-[#ff2ea6] sm:col-span-2">{notice}</p> : null}
+        {notice ? <p className="text-sm text-[#1db954] sm:col-span-2">{notice}</p> : null}
         <button type="submit" disabled={saving} className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60">
           {saving ? "Salvando…" : form.id ? "Salvar produtor" : "Cadastrar produtor"}
         </button>
@@ -152,7 +152,7 @@ export function AdminProducers() {
                 <td className="p-3">{item.name}</td>
                 <td className="p-3">{item._count.productions}</td>
                 <td className="p-3">
-                  <button type="button" className="mr-3 text-xs text-[#ff2ea6]" onClick={() => setForm({
+                  <button type="button" className="mr-3 text-xs text-[#1db954]" onClick={() => setForm({
                     id: item.id,
                     name: item.name,
                     fullName: item.fullName ?? "",

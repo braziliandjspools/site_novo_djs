@@ -165,7 +165,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título"
-            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#c2186a]/50 sm:col-span-2"
+            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#009739]/50 sm:col-span-2"
           />
           <textarea
             required
@@ -173,7 +173,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
             onChange={(e) => setBody(e.target.value)}
             placeholder="Mensagem"
             rows={3}
-            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#c2186a]/50 sm:col-span-2"
+            className="w-full min-w-0 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#009739]/50 sm:col-span-2"
           />
           <select
             value={severity}
@@ -214,7 +214,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
         <button
           type="submit"
           disabled={saving}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#c2186a] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#00B347] disabled:opacity-60 sm:w-auto"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#009739] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#00B347] disabled:opacity-60 sm:w-auto"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Publicar aviso
@@ -223,7 +223,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-[#c2186a]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#009739]" />
         </div>
       ) : notices.length === 0 ? (
         <p className="rounded-xl border border-white/5 bg-[#181818] px-4 py-8 text-center text-sm text-zinc-500">

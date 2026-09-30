@@ -97,7 +97,7 @@ export function MusicLibraryTile({
           onMouseEnter={prefetchApi}
           onFocus={prefetchApi}
           aria-label={title}
-          className="block outline-none focus-visible:ring-2 focus-visible:ring-[#ff2ea6]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1012]"
+          className="block outline-none focus-visible:ring-2 focus-visible:ring-[#1db954]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1012]"
         >
           <div
             className={`relative overflow-hidden ${radius} shadow-[0_12px_28px_-16px_rgba(0,0,0,0.85)] ring-1 ring-white/10 transition duration-300 ease-out group-hover/tile:-translate-y-1 group-hover/tile:ring-white/25 ${sizeClass}`}
@@ -150,7 +150,7 @@ export function MusicLibraryTile({
             onFocus={prefetchApi}
             className="outline-none"
           >
-            <h3 className="line-clamp-2 text-[13px] font-bold leading-snug tracking-tight text-white transition-colors hover:text-[#ff2ea6] sm:text-[14px]">
+            <h3 className="line-clamp-2 text-[13px] font-bold leading-snug tracking-tight text-white transition-colors hover:text-[#1db954] sm:text-[14px]">
               {title}
             </h3>
           </Link>
@@ -171,7 +171,7 @@ export function MusicLibraryTile({
       onMouseEnter={prefetchApi}
       onFocus={prefetchApi}
       aria-label={title}
-      className={`group relative block overflow-hidden ${radius} shadow-[0_12px_28px_-16px_rgba(0,0,0,0.85)] ring-1 ring-white/10 transition duration-300 ease-out hover:-translate-y-1 hover:ring-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff2ea6]/60 ${sizeClass} ${className}`}
+      className={`group relative block overflow-hidden ${radius} shadow-[0_12px_28px_-16px_rgba(0,0,0,0.85)] ring-1 ring-white/10 transition duration-300 ease-out hover:-translate-y-1 hover:ring-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1db954]/60 ${sizeClass} ${className}`}
     >
       {cover ? (
         <span className="absolute inset-0 block overflow-hidden" aria-hidden>
@@ -299,7 +299,7 @@ export function MusicLibraryShelf({
             <Link
               href={actionHref}
               prefetch={false}
-              className="text-[12px] font-semibold text-white/45 transition-colors hover:text-[#ff2ea6]"
+              className="text-[12px] font-semibold text-white/45 transition-colors hover:text-[#1db954]"
             >
               {actionLabel}
             </Link>

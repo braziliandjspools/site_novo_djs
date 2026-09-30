@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 
 const THEMES = {
   green: {
-    border: "border-[#c2186a]/50",
-    bg: "bg-[#c2186a]/10",
+    border: "border-[#009739]/50",
+    bg: "bg-[#009739]/10",
     title: "text-[#00B347]",
   },
   purple: {
-    border: "border-[#ff2ea6]/50",
-    bg: "bg-[#ff2ea6]/10",
+    border: "border-[#1db954]/50",
+    bg: "bg-[#1db954]/10",
     title: "text-white",
   },
   blue: {

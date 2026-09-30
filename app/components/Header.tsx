@@ -56,7 +56,7 @@ export function Header() {
                 <li key={link.href}>
                   <a href={link.href} className={navLinkClass}>
                     {link.label}
-                    <span className="absolute inset-x-3 -bottom-px h-0.5 origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#c2186a] via-[#FFDF00] to-[#ff2ea6] transition-transform duration-300 group-hover:scale-x-100" />
+                    <span className="absolute inset-x-3 -bottom-px h-0.5 origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#009739] via-[#FFDF00] to-[#1db954] transition-transform duration-300 group-hover:scale-x-100" />
                   </a>
                 </li>
               ))}
@@ -81,7 +81,7 @@ export function Header() {
                   {toolsOpen && (
                     <div
                       role="menu"
-                      className="absolute right-0 top-[calc(100%+0.75rem)] z-50 min-w-[220px] overflow-hidden rounded-2xl border border-white/10 bg-[#141414] py-2 shadow-2xl shadow-black/50 ring-1 ring-[#c2186a]/15"
+                      className="absolute right-0 top-[calc(100%+0.75rem)] z-50 min-w-[220px] overflow-hidden rounded-2xl border border-white/10 bg-[#141414] py-2 shadow-2xl shadow-black/50 ring-1 ring-[#009739]/15"
                     >
                       <p className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">
                         Ferramentas
@@ -92,9 +92,9 @@ export function Header() {
                           href={item.href}
                           role="menuitem"
                           onClick={() => setToolsOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#c2186a]/12 hover:text-white"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#009739]/12 hover:text-white"
                         >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#c2186a]/20 text-[#ff2ea6]">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#009739]/20 text-[#1db954]">
                             <item.icon className="h-4 w-4" />
                           </span>
                           <span>
@@ -119,7 +119,7 @@ export function Header() {
             <MarketingAuthControls />
             <Link
               href="/musicas"
-              className="inline-flex flex-shrink-0 items-center gap-2 rounded-full border border-[#c2186a]/45 bg-[#c2186a]/12 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#ff2ea6] transition-all hover:border-[#ff2ea6] hover:bg-[#c2186a]/22 hover:text-white"
+              className="inline-flex flex-shrink-0 items-center gap-2 rounded-full border border-[#009739]/45 bg-[#009739]/12 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#1db954] transition-all hover:border-[#1db954] hover:bg-[#009739]/22 hover:text-white"
             >
               Plataforma
             </Link>
@@ -147,7 +147,7 @@ export function Header() {
               className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm lg:hidden"
               onClick={() => setIsOpen(false)}
             />
-            <div className="fixed inset-y-0 right-0 z-[101] flex w-72 max-w-[85vw] flex-col overflow-hidden border-l border-[#c2186a]/40 bg-[#121212] shadow-2xl lg:hidden">
+            <div className="fixed inset-y-0 right-0 z-[101] flex w-72 max-w-[85vw] flex-col overflow-hidden border-l border-[#009739]/40 bg-[#121212] shadow-2xl lg:hidden">
               <div className="br-stripe" />
               <div className="relative flex items-center justify-between border-b border-white/10 p-4">
                 <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white">
@@ -167,12 +167,12 @@ export function Header() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#181818] px-3 py-3 text-[12px] font-bold uppercase tracking-[0.12em] text-gray-200 transition-all hover:border-[#c2186a]/50 hover:bg-[#282828]"
+                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#181818] px-3 py-3 text-[12px] font-bold uppercase tracking-[0.12em] text-gray-200 transition-all hover:border-[#009739]/50 hover:bg-[#282828]"
                   >
                     <span
                       className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
                         i % 3 === 0
-                          ? "bg-[#c2186a]/25 text-[#00B347]"
+                          ? "bg-[#009739]/25 text-[#00B347]"
                           : i % 3 === 1
                             ? "bg-[#FFDF00]/15 text-[#FFDF00]"
                             : "bg-[#002776]/40 text-[#6B9FFF]"
@@ -191,7 +191,7 @@ export function Header() {
                     aria-expanded={mobileToolsOpen}
                     className="flex w-full items-center gap-3 px-3 py-3 text-left text-[12px] font-bold uppercase tracking-[0.12em] text-gray-200 transition-colors hover:bg-[#282828]"
                   >
-                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#c2186a]/25 text-[#00B347]">
+                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#009739]/25 text-[#00B347]">
                       <SITE_TOOLS_MENU.icon size={16} />
                     </span>
                     <span className="flex-1">{SITE_TOOLS_MENU.label}</span>
@@ -210,7 +210,7 @@ export function Header() {
                           onClick={() => setIsOpen(false)}
                           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[12px] font-bold uppercase tracking-[0.1em] text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
                         >
-                          <item.icon className="h-4 w-4 text-[#ff2ea6]" />
+                          <item.icon className="h-4 w-4 text-[#1db954]" />
                           {item.label}
                         </a>
                       ))}
@@ -221,7 +221,7 @@ export function Header() {
                 <Link
                   href="/musicas"
                   onClick={() => setIsOpen(false)}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c2186a] to-[#ff2ea6] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white"
+                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1db954] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white"
                 >
                   Plataforma
                 </Link>

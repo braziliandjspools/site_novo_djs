@@ -50,7 +50,7 @@ export default function ComoBaixarPage() {
         <span className="text-white">Como baixar</span>
       </nav>
 
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">Tutorial</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1db954]">Tutorial</p>
       <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
         Como baixar no site
       </h1>
@@ -62,7 +62,7 @@ export default function ComoBaixarPage() {
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/musicas/atualizacoes"
-          className="inline-flex h-11 items-center rounded-full bg-[#ff2ea6] px-5 text-sm font-bold text-black"
+          className="inline-flex h-11 items-center rounded-full bg-[#1db954] px-5 text-sm font-bold text-black"
         >
           Abrir Atualizações
         </Link>
@@ -78,7 +78,7 @@ export default function ComoBaixarPage() {
         {STEPS.map((step) => (
           <li key={step.n} className="grid gap-5">
             <div>
-              <p className="font-mono text-sm font-bold text-[#ff2ea6]">{step.n}</p>
+              <p className="font-mono text-sm font-bold text-[#1db954]">{step.n}</p>
               <h2 className="mt-1 text-2xl font-bold text-white">{step.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-zinc-300 sm:text-base">{step.body}</p>
             </div>
@@ -116,7 +116,7 @@ export default function ComoBaixarPage() {
         </p>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-[#ff2ea6]/30 bg-black p-6 sm:p-8">
+      <section className="mt-8 rounded-2xl border border-[#1db954]/30 bg-black p-6 sm:p-8">
         <h2 className="text-2xl font-bold text-white">Baixar no BRS Downloader</h2>
         <p className="mt-3 text-sm leading-relaxed text-zinc-300">
           No Windows, instale a versão {version}. Faça login com a mesma conta do site. Na capa, cole o link
@@ -152,7 +152,7 @@ export default function ComoBaixarPage() {
         </div>
         <a
           href={downloadUrl}
-          className="mt-6 inline-flex h-11 items-center rounded-full bg-[#ff2ea6] px-5 text-sm font-bold text-black"
+          className="mt-6 inline-flex h-11 items-center rounded-full bg-[#1db954] px-5 text-sm font-bold text-black"
         >
           Instalar BRS Downloader {version}
         </a>

@@ -65,10 +65,10 @@ const steps = [
 ];
 
 const accentStyles = [
-  { icon: "bg-[#c2186a]/20 text-[#ff2ea6]", step: "text-[#ff2ea6]" },
+  { icon: "bg-[#009739]/20 text-[#1db954]", step: "text-[#1db954]" },
   { icon: "bg-[#FFDF00]/15 text-[#FFDF00]", step: "text-[#FFDF00]" },
   { icon: "bg-[#002776]/30 text-[#6B9FFF]", step: "text-[#6B9FFF]" },
-  { icon: "bg-[#c2186a]/20 text-[#ff2ea6]", step: "text-[#ff2ea6]" },
+  { icon: "bg-[#009739]/20 text-[#1db954]", step: "text-[#1db954]" },
 ];
 
 type MusicProducerPageClientProps = {
@@ -94,12 +94,12 @@ export function MusicProducerPageClient({ demoPlaylists }: MusicProducerPageClie
         <div className="pointer-events-none absolute inset-0 site-glow-spotify" />
         <div className="relative mx-auto max-w-5xl">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#FFDF00]/40 bg-[#FFDF00]/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFDF00]">
-            <span className="h-2 w-2 rounded-full bg-[#ff2ea6]" />
+            <span className="h-2 w-2 rounded-full bg-[#1db954]" />
             Produção Musical
           </span>
           <h1 className="mx-auto max-w-3xl font-display text-3xl tracking-wide text-white sm:text-4xl md:mx-0 lg:text-6xl">
             Criamos a{" "}
-            <span className="bg-gradient-to-r from-[#ff2ea6] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#1db954] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
               trilha sonora
             </span>{" "}
             do seu projeto
@@ -125,13 +125,13 @@ export function MusicProducerPageClient({ demoPlaylists }: MusicProducerPageClie
             {creations.map((item, i) => (
               <div
                 key={item.title}
-                className="group flex flex-col items-center rounded-2xl border border-white/5 bg-[#282828] p-5 text-center transition-all hover:-translate-y-0.5 hover:border-[#c2186a]/40 hover:bg-[#333333] sm:p-6 md:items-start md:text-left"
+                className="group flex flex-col items-center rounded-2xl border border-white/5 bg-[#282828] p-5 text-center transition-all hover:-translate-y-0.5 hover:border-[#009739]/40 hover:bg-[#333333] sm:p-6 md:items-start md:text-left"
               >
                 <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${accentStyles[i].icon}`}>
                   <item.icon className="h-6 w-6" />
                 </div>
                 <h3 className="font-display text-lg tracking-wide text-white">{item.title}</h3>
-                <p className="mt-1 text-sm font-bold text-[#ff2ea6]">{item.price}</p>
+                <p className="mt-1 text-sm font-bold text-[#1db954]">{item.price}</p>
                 <p className="mt-2 text-sm leading-relaxed text-[#b3b3b3]">{item.description}</p>
               </div>
             ))}

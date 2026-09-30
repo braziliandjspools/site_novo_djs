@@ -16,39 +16,39 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold tracking-[-0.01em] text-[#FFDF00]">Plataforma</h4>
           <ul className="mt-3 space-y-2 text-xs">
-            <li><a href="/packs-para-djs" className="transition-colors hover:text-[#ff2ea6]">Packs para DJs</a></li>
-            <li><a href="/musicas/atualizacoes" className="transition-colors hover:text-[#ff2ea6]">Atualizações VIP</a></li>
-            <li><a href="/como-baixar" className="transition-colors hover:text-[#ff2ea6]">Como baixar</a></li>
-            <li><a href="/dj-pool-brasil" className="transition-colors hover:text-[#ff2ea6]">DJ Pools</a></li>
-            <li><a href="/remix-service-brasil" className="transition-colors hover:text-[#ff2ea6]">Remix Services</a></li>
-            <li><a href="/plans" className="transition-colors hover:text-[#ff2ea6]">Planos</a></li>
-            <li><a href="/allavsoft" className="transition-colors hover:text-[#ff2ea6]">Allavsoft</a></li>
-            <li><a href="/musicproducer" className="transition-colors hover:text-[#ff2ea6]">Music Producer</a></li>
+            <li><a href="/packs-para-djs" className="transition-colors hover:text-[#1db954]">Packs para DJs</a></li>
+            <li><a href="/musicas/atualizacoes" className="transition-colors hover:text-[#1db954]">Atualizações VIP</a></li>
+            <li><a href="/como-baixar" className="transition-colors hover:text-[#1db954]">Como baixar</a></li>
+            <li><a href="/dj-pool-brasil" className="transition-colors hover:text-[#1db954]">DJ Pools</a></li>
+            <li><a href="/remix-service-brasil" className="transition-colors hover:text-[#1db954]">Remix Services</a></li>
+            <li><a href="/plans" className="transition-colors hover:text-[#1db954]">Planos</a></li>
+            <li><a href="/allavsoft" className="transition-colors hover:text-[#1db954]">Allavsoft</a></li>
+            <li><a href="/musicproducer" className="transition-colors hover:text-[#1db954]">Music Producer</a></li>
           </ul>
         </div>
         <div>
           <h4 className="text-sm font-semibold tracking-[-0.01em] text-[#FFDF00]">Suporte</h4>
           <ul className="mt-3 space-y-2 text-xs">
             <li>
-              <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#ff2ea6]">
+              <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#1db954]">
                 WhatsApp
               </a>
             </li>
-            <li><a href="#faq" className="transition-colors hover:text-[#ff2ea6]">Central de ajuda</a></li>
-            <li><a href="/termos" className="transition-colors hover:text-[#ff2ea6]">Termos de Serviço</a></li>
-            <li><a href="/privacidade" className="transition-colors hover:text-[#ff2ea6]">Política de Privacidade</a></li>
+            <li><a href="#faq" className="transition-colors hover:text-[#1db954]">Central de ajuda</a></li>
+            <li><a href="/termos" className="transition-colors hover:text-[#1db954]">Termos de Serviço</a></li>
+            <li><a href="/privacidade" className="transition-colors hover:text-[#1db954]">Política de Privacidade</a></li>
             <li>
-              <a href="/privacy/downloader" className="transition-colors hover:text-[#ff2ea6]">
+              <a href="/privacy/downloader" className="transition-colors hover:text-[#1db954]">
                 Privacidade — Downloader
               </a>
             </li>
             <li>
-              <a href="/privacy/cookies" className="transition-colors hover:text-[#ff2ea6]">
+              <a href="/privacy/cookies" className="transition-colors hover:text-[#1db954]">
                 Política de Cookies
               </a>
             </li>
             <li>
-              <a href="/privacy/conduct" className="transition-colors hover:text-[#ff2ea6]">
+              <a href="/privacy/conduct" className="transition-colors hover:text-[#1db954]">
                 Código de Conduta
               </a>
             </li>
@@ -58,7 +58,7 @@ export function Footer() {
       <div className="mx-auto mt-8 flex max-w-6xl flex-col items-center gap-3 border-t border-white/5 pt-6 text-center text-xs text-gray-500 sm:mt-10 sm:flex-row sm:justify-between">
         <p>&copy; {new Date().getFullYear()} {SITE_NAME}. Todos os direitos reservados.</p>
         <p className="flex items-center gap-2 tracking-[-0.01em]">
-          <span className="inline-block h-2 w-2 rounded-full bg-[#c2186a]" />
+          <span className="inline-block h-2 w-2 rounded-full bg-[#009739]" />
           <span className="inline-block h-2 w-2 rounded-full bg-[#FFDF00]" />
           <span className="inline-block h-2 w-2 rounded-full bg-[#002776]" />
           Brasil

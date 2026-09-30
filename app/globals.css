@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1a1a1a;
+  --background: #121212;
   --foreground: #f4f4f5;
-  --bg-elevated: #242424;
-  --bg-card: #2a2a2a;
-  --bg-hover: #333333;
-  --text-muted: #bdbdbd;
+  --bg-elevated: #161616;
+  --bg-card: #1a1a1a;
+  --bg-hover: #242424;
+  --text-muted: #a1a1aa;
   --text-secondary: rgba(255, 255, 255, 0.62);
-  --accent: #ff2ea6;
-  --accent-hover: #ff67c2;
-  --br-green: #ff2ea6;
+  --accent: #1db954;
+  --accent-hover: #1ed760;
+  --br-green: #009739;
   --br-yellow: #ffdf00;
   --br-blue: #002776;
   --line: rgba(255, 255, 255, 0.08);
@@ -37,7 +37,7 @@
   --radius-panel: 1.125rem;
   --radius-control: 0.875rem;
   --shadow-panel: 0 18px 48px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --shadow-btn: 0 12px 28px rgba(255, 46, 166, 0.28);
+  --shadow-btn: 0 12px 28px rgba(29, 185, 84, 0.28);
 }
 
 @theme inline {
@@ -225,28 +225,28 @@ button {
 }
 
 .site-btn-primary {
-  background: linear-gradient(180deg, #ff2ea6 0%, #c2186a 100%);
+  background: linear-gradient(180deg, #12c75a 0%, #009739 100%);
   color: #fff;
   box-shadow: var(--shadow-btn), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .site-btn-primary:hover {
-  background: linear-gradient(180deg, #ff2ea6 0%, #d43d93 100%);
-  box-shadow: 0 16px 34px rgba(255, 46, 166, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  background: linear-gradient(180deg, #1ed760 0%, #00a843 100%);
+  box-shadow: 0 16px 34px rgba(29, 185, 84, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   filter: brightness(1.03);
 }
 
 .site-btn-ghost {
-  border: 1px solid rgba(255, 46, 166, 0.42);
-  background: linear-gradient(180deg, rgba(255, 46, 166, 0.14), rgba(255, 46, 166, 0.06));
-  color: #ff2ea6;
+  border: 1px solid rgba(29, 185, 84, 0.42);
+  background: linear-gradient(180deg, rgba(29, 185, 84, 0.14), rgba(29, 185, 84, 0.06));
+  color: #1db954;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .site-btn-ghost:hover {
-  background: linear-gradient(180deg, rgba(255, 46, 166, 0.22), rgba(255, 46, 166, 0.1));
-  border-color: rgba(255, 46, 166, 0.55);
-  color: #ffb3df;
+  background: linear-gradient(180deg, rgba(29, 185, 84, 0.22), rgba(29, 185, 84, 0.1));
+  border-color: rgba(29, 185, 84, 0.55);
+  color: #86efac;
 }
 
 /* Players / listas de faixas */
@@ -320,7 +320,7 @@ button {
 .player-progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #c2186a, #ff2ea6);
+  background: linear-gradient(90deg, #009739, #1db954);
 }
 
 @keyframes brs-eq {
@@ -490,8 +490,8 @@ button {
 
 /* Tema /musicas — verde + branco (pools DJ) */
 .musicas-theme {
-  --musicas-green: #ff2ea6;
-  --musicas-green-deep: #c2186a;
+  --musicas-green: #1db954;
+  --musicas-green-deep: #009739;
   --musicas-surface: #1c1c1c;
   --musicas-ink: #ffffff;
 }
@@ -568,7 +568,7 @@ button {
 .tablemusic-row:focus-within { background: linear-gradient(90deg, rgb(30 215 96 / .15), rgb(255 255 255 / .045)); }
 .tablemusic-row [aria-label^="Reproduzir"],
 .tablemusic-row [aria-label^="Pausar"] { border-radius: 10px; }
-.tablemusic :where(button, a):focus-visible { outline: 2px solid #ff2ea6; outline-offset: 3px; }
+.tablemusic :where(button, a):focus-visible { outline: 2px solid #1db954; outline-offset: 3px; }
 @media (min-width: 768px) {
   .tablemusic-grid { display: grid; grid-template-columns: var(--tablemusic-columns); align-items: center; column-gap: 12px; }
   .tablemusic-grid-select { grid-template-columns: 28px var(--tablemusic-columns); }

@@ -80,7 +80,7 @@ export default function PacksParaDjsPage() {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/musicas/atualizacoes"
-            className="inline-flex h-11 items-center rounded-full bg-[#ff2ea6] px-5 text-sm font-bold text-black"
+            className="inline-flex h-11 items-center rounded-full bg-[#1db954] px-5 text-sm font-bold text-black"
           >
             Ver atualizações VIP
           </Link>

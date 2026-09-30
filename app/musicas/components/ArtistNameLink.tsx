@@ -17,7 +17,7 @@ type ArtistNameLinkProps = {
 };
 
 const LINK_HOVER =
-  "transition-colors duration-150 hover:text-[#ff2ea6] hover:underline underline-offset-2 decoration-[#ff2ea6]/80";
+  "transition-colors duration-150 hover:text-[#1db954] hover:underline underline-offset-2 decoration-[#1db954]/80";
 
 function stopRow(event: MouseEvent) {
   event.stopPropagation();

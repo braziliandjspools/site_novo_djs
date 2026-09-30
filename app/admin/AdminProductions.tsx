@@ -90,7 +90,7 @@ export function AdminProductions() {
                 <td className="p-3">{new Date(item.publishedAt).toLocaleDateString("pt-BR")}</td>
                 <td className="p-3">{item.isPublished ? "Publicada" : "Rascunho"}</td>
                 <td className="p-3 text-xs">
-                  <Link className="mr-3 text-[#ff2ea6]" href={`/admin/producoes/${item.id}/editar`}>Editar</Link>
+                  <Link className="mr-3 text-[#1db954]" href={`/admin/producoes/${item.id}/editar`}>Editar</Link>
                   <Link className="mr-3 text-white/70" href={`/admin/producoes/${item.id}`}>Ver</Link>
                   <button type="button" className="mr-3 text-white/70" onClick={() => void toggle(item)}>{item.isPublished ? "Despublicar" : "Publicar"}</button>
                   <button type="button" className="text-red-300" onClick={() => void remove(item.id)}>Excluir</button>

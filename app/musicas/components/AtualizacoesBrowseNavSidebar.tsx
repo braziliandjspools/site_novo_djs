@@ -95,7 +95,7 @@ function SidebarSection({
         className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/12 text-[#ff2ea6]">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-[#1db954]/30 bg-[#1db954]/12 text-[#1db954]">
           <Icon className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
         </span>
         <h3 className="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
@@ -136,13 +136,13 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       className={`group flex items-center gap-2.5 rounded-full border px-3.5 py-2.5 transition-all ${
         active
-          ? "border-[#ff2ea6] bg-[#ff2ea6] text-black shadow-[0_8px_20px_rgba(255,46,166,0.25)]"
-          : "border-white/10 bg-[#222222] text-white hover:border-[#ff2ea6]/45 hover:bg-[#ff2ea6]/10"
+          ? "border-[#1db954] bg-[#1db954] text-black shadow-[0_8px_20px_rgba(29,185,84,0.25)]"
+          : "border-white/10 bg-[#222222] text-white hover:border-[#1db954]/45 hover:bg-[#1db954]/10"
       }`}
     >
       <span
         className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-          active ? "bg-black" : "bg-[#ff2ea6]"
+          active ? "bg-black" : "bg-[#1db954]"
         }`}
       />
       <span className="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-[0.08em]">
@@ -151,7 +151,7 @@ function NavLink({
       {isNew ? (
         <span
           className={`flex-shrink-0 text-[9px] font-bold uppercase tracking-[0.1em] ${
-            active ? "text-black/70" : "text-[#ff2ea6]"
+            active ? "text-black/70" : "text-[#1db954]"
           }`}
         >
           Novo
@@ -384,8 +384,8 @@ export function AtualizacoesBrowseNavSidebar({
 
   return (
     <aside className="musicas-side-nav flex h-full max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#121614] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
-      <div className="mb-3.5 flex-shrink-0 rounded-xl border border-[#ff2ea6]/25 bg-gradient-to-br from-[#ff2ea6]/15 via-transparent to-transparent px-3.5 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
+      <div className="mb-3.5 flex-shrink-0 rounded-xl border border-[#1db954]/25 bg-gradient-to-br from-[#1db954]/15 via-transparent to-transparent px-3.5 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
           Biblioteca
         </p>
         <h2 className="mt-1 text-[15px] font-bold tracking-tight text-white">
@@ -397,7 +397,7 @@ export function AtualizacoesBrowseNavSidebar({
         <Link
           href="/musicas/atualizacoes"
           prefetch={false}
-          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#ff2ea6] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#2dff7a]"
+          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#1db954] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black transition-colors hover:bg-[#2dff7a]"
         >
           <Home className="h-3.5 w-3.5" aria-hidden />
           Acervo (raiz)
@@ -416,7 +416,7 @@ export function AtualizacoesBrowseNavSidebar({
                 prefetch={false}
                 className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] ${
                   last
-                    ? "bg-[#ff2ea6]/15 text-[#ff2ea6]"
+                    ? "bg-[#1db954]/15 text-[#1db954]"
                     : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
                 }`}
               >

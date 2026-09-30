@@ -5,7 +5,7 @@ import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib
 import { MUSICAS_HERO_BG_SRC, MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
 
 export function monthStatusClass(status: MonthStatus) {
-  if (status === "completo") return "text-[#ff2ea6]";
+  if (status === "completo") return "text-[#1db954]";
   if (status === "em-atualizacao") return "text-amber-300";
   if (status === "em-breve") return "text-zinc-500";
   return "text-zinc-600";
@@ -112,7 +112,7 @@ export function AtualizacoesMonthHero({
           </>
         )}
       </div>
-      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#ff2ea6] via-[#ff2ea6]/40 to-transparent" />
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1db954] via-[#1db954]/40 to-transparent" />
 
       <div className="relative z-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:gap-7 sm:p-7 lg:p-8">
         <div className="mx-auto w-full max-w-[160px] flex-shrink-0 sm:mx-0 sm:max-w-[200px] lg:max-w-[220px]">
@@ -165,7 +165,7 @@ export function AtualizacoesMonthHero({
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                   hasVip
-                    ? "border-[#ff2ea6]/30 bg-[#ff2ea6]/10 text-[#ff2ea6]"
+                    ? "border-[#1db954]/30 bg-[#1db954]/10 text-[#1db954]"
                     : "border-white/10 bg-black/35 text-white/75"
                 }`}
               >

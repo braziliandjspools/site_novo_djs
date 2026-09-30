@@ -153,7 +153,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
+                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
                   <Mic2 className="h-3.5 w-3.5" />
                   {profile?.known ? "Artista conhecido" : "Perfil"}
                 </p>
@@ -192,7 +192,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                     {(profile?.trackCount ?? 0) === 1 ? "faixa" : "faixas"}
                   </span>
                   {hasVip ? (
-                    <span className="rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 py-1.5 text-xs font-semibold text-[#ff2ea6]">
+                    <span className="rounded-full border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-1.5 text-xs font-semibold text-[#1db954]">
                       Premium ativo
                     </span>
                   ) : (
@@ -213,7 +213,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                       href={profile.spotifyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-[#ff2ea6]/35 hover:text-[#ff2ea6]"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-[#1db954]/35 hover:text-[#1db954]"
                     >
                       Spotify
                       <ExternalLink className="h-3 w-3" />
@@ -228,7 +228,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
               {bioParagraphs.length > 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-5 py-5">
-                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#ff2ea6]">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
                     Sobre
                   </h2>
                   <div className="mt-3 space-y-3 text-sm leading-relaxed text-white/70">
@@ -240,7 +240,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
               ) : null}
               {notableWorks.length > 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-5 py-5">
-                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#ff2ea6]">
+                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
                     <Music2 className="h-3.5 w-3.5" />
                     Obras de referência
                   </h2>

@@ -51,7 +51,7 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
         <div>
           <h1 className="font-display text-3xl font-semibold text-white">{producer.name}</h1>
           {producer.fullName ? <p className="text-sm text-zinc-400">{producer.fullName}</p> : null}
-          {place ? <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#ff2ea6]">{place}</p> : null}
+          {place ? <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#1db954]">{place}</p> : null}
           {producer.bio ? <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-300">{producer.bio}</p> : null}
           <div className="mt-3 flex flex-wrap gap-2">
             {SOCIAL.map(([key, label]) => {
@@ -71,9 +71,9 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
       </div>
       {pages > 1 ? (
         <nav className="mt-6 flex gap-2 text-sm">
-          {page > 1 ? <Link className="text-[#ff2ea6]" href={`/produtores/${slug}?page=${page - 1}`}>Anterior</Link> : null}
+          {page > 1 ? <Link className="text-[#1db954]" href={`/produtores/${slug}?page=${page - 1}`}>Anterior</Link> : null}
           <span className="text-white/40">{page} / {pages}</span>
-          {page < pages ? <Link className="text-[#ff2ea6]" href={`/produtores/${slug}?page=${page + 1}`}>Próxima</Link> : null}
+          {page < pages ? <Link className="text-[#1db954]" href={`/produtores/${slug}?page=${page + 1}`}>Próxima</Link> : null}
         </nav>
       ) : null}
     </main>

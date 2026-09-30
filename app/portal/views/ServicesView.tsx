@@ -81,7 +81,7 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
               </Link>
               <Link
                 href="/musicproducer#conte-sua-ideia"
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-[#ff2ea6]/40 hover:text-white"
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-[#1db954]/40 hover:text-white"
               >
                 <Music2 className="h-3.5 w-3.5" />
                 Pedir produção

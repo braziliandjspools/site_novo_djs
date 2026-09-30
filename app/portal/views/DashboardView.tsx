@@ -32,7 +32,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
           {greeting}, <span className="text-[#00ff9d]">{user.name.split(" ")[0]}</span>
         </h1>
         <p className="mt-1 text-sm capitalize text-zinc-500">{formatDateTimeBr(now)}</p>
-        <div className="mt-3 h-0.5 w-20 rounded-full bg-gradient-to-r from-[#c2186a] to-[#FFDF00]" />
+        <div className="mt-3 h-0.5 w-20 rounded-full bg-gradient-to-r from-[#009739] to-[#FFDF00]" />
       </div>
 
       {renewables.length > 0 && <PortalRenewalPay renewables={renewables} />}
@@ -85,7 +85,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               </Link>
               <Link
                 href="/musicproducer#conte-sua-ideia"
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-[#ff2ea6]/40 hover:text-white"
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:border-[#1db954]/40 hover:text-white"
               >
                 <Music2 className="h-3.5 w-3.5" />
                 Pedir produção
@@ -237,7 +237,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
             <button
               type="button"
               onClick={() => onNavigate("services")}
-              className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-[#0a0a0a] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[#c2186a]/40 hover:text-white"
+              className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-[#0a0a0a] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[#009739]/40 hover:text-white"
             >
               Ver todos os serviços
               <ArrowRight className="h-4 w-4 text-[#00ff9d]" />
@@ -246,7 +246,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               href={whatsappUrl("Olá! Preciso de suporte na área do cliente.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-[#0a0a0a] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[#c2186a]/40 hover:text-white"
+              className="flex w-full items-center justify-between rounded-lg border border-zinc-800 bg-[#0a0a0a] px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[#009739]/40 hover:text-white"
             >
               Falar com suporte
               <MessageCircle className="h-4 w-4 text-[#00ff9d]" />

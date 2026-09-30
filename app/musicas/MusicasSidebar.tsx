@@ -66,7 +66,7 @@ export function MusicasTopNav({
     <header className={`${APP_TOP_CHROME} z-40`}>
       <div className="br-stripe" />
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ff2ea6]/45 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent"
         aria-hidden
       />
 
@@ -90,7 +90,7 @@ export function MusicasTopNav({
                   href={href}
                   className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-all lg:px-4 lg:text-[14px] ${
                     active
-                      ? "bg-[#ff2ea6] text-black shadow-[0_0_24px_rgba(255,46,166,0.35)]"
+                      ? "bg-[#1db954] text-black shadow-[0_0_24px_rgba(29,185,84,0.35)]"
                       : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
                   }`}
                 >
@@ -118,15 +118,15 @@ export function MusicasTopNav({
                 />
               </button>
               {siteOpen && (
-                <div className="absolute left-0 top-[calc(100%+0.65rem)] z-50 min-w-[240px] overflow-hidden rounded-2xl border border-white/10 bg-[#121414] py-2 shadow-2xl shadow-black/60 ring-1 ring-[#ff2ea6]/10">
+                <div className="absolute left-0 top-[calc(100%+0.65rem)] z-50 min-w-[240px] overflow-hidden rounded-2xl border border-white/10 bg-[#121414] py-2 shadow-2xl shadow-black/60 ring-1 ring-[#1db954]/10">
                   {SITE_PRIMARY_NAV.map(({ href, label, icon: Icon }) => (
                     <Link
                       key={href}
                       href={href}
                       onClick={() => setSiteOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#ff2ea6]/10 hover:text-white"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#1db954]/10 hover:text-white"
                     >
-                      <Icon className="h-4 w-4 text-[#ff2ea6]/80" />
+                      <Icon className="h-4 w-4 text-[#1db954]/80" />
                       {label}
                     </Link>
                   ))}
@@ -139,9 +139,9 @@ export function MusicasTopNav({
                       key={href}
                       href={href}
                       onClick={() => setSiteOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#ff2ea6]/10 hover:text-white"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#1db954]/10 hover:text-white"
                     >
-                      <Icon className="h-4 w-4 text-[#ff2ea6]/80" />
+                      <Icon className="h-4 w-4 text-[#1db954]/80" />
                       {label}
                     </Link>
                   ))}
@@ -167,7 +167,7 @@ export function MusicasTopNav({
           {!hasVip && (
             <a
               href={checkoutUrl("VIP")}
-              className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#ff2ea6] px-3.5 py-2 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_20px_rgba(255,46,166,0.25)] transition-transform hover:scale-[1.03] hover:bg-[#2dff7a] sm:px-4"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#1db954] px-3.5 py-2 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_20px_rgba(29,185,84,0.25)] transition-transform hover:scale-[1.03] hover:bg-[#2dff7a] sm:px-4"
             >
               Assinar VIP
             </a>
@@ -201,7 +201,7 @@ export function MusicasTopNav({
                   onClick={() => onMobileOpenChange(false)}
                   className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold tracking-[-0.01em] ${
                     active
-                      ? "bg-[#ff2ea6] text-black shadow-[0_0_20px_rgba(255,46,166,0.25)]"
+                      ? "bg-[#1db954] text-black shadow-[0_0_20px_rgba(29,185,84,0.25)]"
                       : "text-zinc-300 hover:bg-white/5"
                   }`}
                 >
@@ -223,7 +223,7 @@ export function MusicasTopNav({
                 onClick={() => onMobileOpenChange(false)}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 hover:bg-white/5 hover:text-white"
               >
-                <Icon className="h-4 w-4 text-[#ff2ea6]/70" />
+                <Icon className="h-4 w-4 text-[#1db954]/70" />
                 {label}
               </Link>
             ))}
@@ -240,7 +240,7 @@ export function MusicasTopNav({
                 onClick={() => onMobileOpenChange(false)}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 hover:bg-white/5 hover:text-white"
               >
-                <Icon className="h-4 w-4 text-[#ff2ea6]/70" />
+                <Icon className="h-4 w-4 text-[#1db954]/70" />
                 {label}
               </Link>
             ))}
@@ -251,7 +251,7 @@ export function MusicasTopNav({
               <span className="font-semibold text-white">{firstName}</span>
               {" · "}
               {hasVip ? (
-                <span className="text-[#ff2ea6]">Premium</span>
+                <span className="text-[#1db954]">Premium</span>
               ) : authenticated ? (
                 "Sem VIP"
               ) : (

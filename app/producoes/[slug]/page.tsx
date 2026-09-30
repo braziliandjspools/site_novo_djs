@@ -45,7 +45,7 @@ export default async function ProducaoPage({ params }: PageProps) {
         <span className="mx-2">/</span>
         <Link href="/#producoes-brs" className="hover:text-white">Produções BRS</Link>
       </nav>
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">{production.categoryLabel}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1db954]">{production.categoryLabel}</p>
       <h1 className="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">{production.title}</h1>
       <p className="mt-2 text-sm text-zinc-400">
         {production.producerSlug ? (
@@ -73,12 +73,12 @@ export default async function ProducaoPage({ params }: PageProps) {
         <section className="mt-10">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-sm font-semibold tracking-[0.16em] text-white/70">MAIS PRODUÇÕES</h2>
-            <Link href={`/produtores/${production.producerSlug}`} className="text-xs text-[#ff2ea6]">Ver perfil</Link>
+            <Link href={`/produtores/${production.producerSlug}`} className="text-xs text-[#1db954]">Ver perfil</Link>
           </div>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {more.map((item) => (
               <li key={item.id}>
-                <Link href={`/producoes/${item.slug}`} className="block rounded-xl border border-white/10 px-3 py-2 hover:border-[#ff2ea6]/50">
+                <Link href={`/producoes/${item.slug}`} className="block rounded-xl border border-white/10 px-3 py-2 hover:border-[#1db954]/50">
                   <span className="block text-sm font-semibold">{item.title}</span>
                   <span className="text-xs text-white/50">{item.versionType}</span>
                 </Link>

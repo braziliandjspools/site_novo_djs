@@ -46,8 +46,8 @@ function StatBlock({
   icon: LucideIcon;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-[200px] flex-col items-center gap-2 rounded-xl border border-[#ff2ea6]/30 bg-[#121212]/90 px-4 py-3.5 text-center backdrop-blur-sm">
-      <StatIcon className="h-4 w-4 flex-shrink-0 text-[#ff2ea6]/80" strokeWidth={2} aria-hidden />
+    <div className="mx-auto flex w-full max-w-[200px] flex-col items-center gap-2 rounded-xl border border-[#1db954]/30 bg-[#121212]/90 px-4 py-3.5 text-center backdrop-blur-sm">
+      <StatIcon className="h-4 w-4 flex-shrink-0 text-[#1db954]/80" strokeWidth={2} aria-hidden />
       <div className="min-w-0">
         <p className="text-[28px] font-bold tabular-nums leading-none tracking-tight text-white sm:text-[30px]">
           {formatLibraryStatCount(value)}
@@ -105,7 +105,7 @@ export function LibraryCategoryCard({
       onMouseEnter={prefetch}
       onFocus={prefetch}
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-      className={`brs-folder-card group/card animate-fade-in-up relative mx-auto flex h-[300px] w-full max-w-[280px] flex-col overflow-hidden rounded-[22px] border border-[#ff2ea6]/35 bg-[#17191d] text-white opacity-0 shadow-[0_12px_40px_rgba(0,0,0,0.4)] outline-none transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5 hover:border-[#ff2ea6]/70 hover:shadow-[0_24px_48px_rgba(255,46,166,0.18)] focus-visible:ring-2 focus-visible:ring-[#ff2ea6]/40 md:h-[380px] md:max-w-none ${className}`}
+      className={`brs-folder-card group/card animate-fade-in-up relative mx-auto flex h-[300px] w-full max-w-[280px] flex-col overflow-hidden rounded-[22px] border border-[#1db954]/35 bg-[#17191d] text-white opacity-0 shadow-[0_12px_40px_rgba(0,0,0,0.4)] outline-none transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1.5 hover:border-[#1db954]/70 hover:shadow-[0_24px_48px_rgba(29,185,84,0.18)] focus-visible:ring-2 focus-visible:ring-[#1db954]/40 md:h-[380px] md:max-w-none ${className}`}
     >
       {cover ? (
         <>
@@ -118,10 +118,10 @@ export function LibraryCategoryCard({
             unoptimized={cover.startsWith("/api/")}
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/15" />
-          <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover/card:opacity-100 bg-[radial-gradient(circle_at_30%_20%,rgba(255,46,166,0.25),transparent_55%)]" />
+          <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover/card:opacity-100 bg-[radial-gradient(circle_at_30%_20%,rgba(29,185,84,0.25),transparent_55%)]" />
         </>
       ) : (
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,46,166,0.12),transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,185,84,0.12),transparent_55%)]" />
       )}
 
       {!cover ? (
@@ -134,11 +134,11 @@ export function LibraryCategoryCard({
 
       <div className="relative z-10 flex h-full flex-col items-center p-4 pt-11 text-center sm:p-5 sm:pt-12">
         <div className="flex items-center justify-center gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff2ea6]/85">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1db954]/85">
             {eyebrow}
           </p>
           {badge ? (
-            <span className="rounded-full border border-[#ff2ea6]/40 bg-[#121212]/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#ff2ea6] shadow-[0_0_12px_rgba(255,46,166,0.25)]">
+            <span className="rounded-full border border-[#1db954]/40 bg-[#121212]/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#1db954] shadow-[0_0_12px_rgba(29,185,84,0.25)]">
               {badge}
             </span>
           ) : null}
@@ -162,10 +162,10 @@ export function LibraryCategoryCard({
         </div>
 
         <div className="mt-auto flex w-full justify-center pt-[18px] pb-1">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/35 px-4 py-2 text-[13px] font-bold text-white backdrop-blur-sm transition-colors duration-200 group-hover/card:border-[#ff2ea6]/40 group-hover/card:text-[#ff2ea6]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/35 px-4 py-2 text-[13px] font-bold text-white backdrop-blur-sm transition-colors duration-200 group-hover/card:border-[#1db954]/40 group-hover/card:text-[#1db954]">
             {cta}
             <ArrowRight
-              className="h-4 w-4 text-[#ff2ea6] transition-transform duration-200 ease-out group-hover/card:translate-x-1"
+              className="h-4 w-4 text-[#1db954] transition-transform duration-200 ease-out group-hover/card:translate-x-1"
               aria-hidden
             />
           </span>

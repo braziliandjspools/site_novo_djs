@@ -30,8 +30,8 @@ function Preview({ params }: { params: Promise<{ id: string }> }) {
   const slug = String(item.slug ?? "");
   return (
     <div>
-      <Link href="/admin/producoes" className="text-xs text-[#ff2ea6]">Voltar</Link>
-      <p className="mt-4 text-xs uppercase tracking-[0.16em] text-[#ff2ea6]">{item.isPublished ? "Publicada" : "Rascunho"}</p>
+      <Link href="/admin/producoes" className="text-xs text-[#1db954]">Voltar</Link>
+      <p className="mt-4 text-xs uppercase tracking-[0.16em] text-[#1db954]">{item.isPublished ? "Publicada" : "Rascunho"}</p>
       <h1 className="mt-2 text-3xl font-semibold">{String(item.title)}</h1>
       <p className="mt-2 text-sm text-white/60">{String(item.producer)} · {String(item.versionType)}</p>
       <dl className="mt-6 text-sm">
@@ -40,7 +40,7 @@ function Preview({ params }: { params: Promise<{ id: string }> }) {
         <div className="grid grid-cols-[7rem_1fr] border-b border-white/10 py-2"><dt className="text-white/40">Duração</dt><dd>{String(item.duration ?? "—")}</dd></div>
       </dl>
       {item.isPublished ? (
-        <Link href={`/producoes/${slug}`} className="mt-6 inline-block text-sm text-[#ff2ea6]">Ver página pública</Link>
+        <Link href={`/producoes/${slug}`} className="mt-6 inline-block text-sm text-[#1db954]">Ver página pública</Link>
       ) : (
         <p className="mt-6 text-sm text-white/45">Publique para abrir a página pública.</p>
       )}

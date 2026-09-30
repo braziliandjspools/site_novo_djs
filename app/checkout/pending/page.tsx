@@ -21,7 +21,7 @@ export default function CheckoutPendingPage() {
         />
         <Link
           href="/portal/conta"
-          className="mt-8 inline-flex items-center gap-2 rounded-lg border border-[#c2186a]/60 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#00B347] transition-all hover:bg-[#c2186a]/10"
+          className="mt-8 inline-flex items-center gap-2 rounded-lg border border-[#009739]/60 px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-[#00B347] transition-all hover:bg-[#009739]/10"
         >
           <User className="h-4 w-4" />
           Ir para minha conta

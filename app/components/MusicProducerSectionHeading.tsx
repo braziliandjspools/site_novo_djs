@@ -17,13 +17,13 @@ export function MusicProducerSectionHeading({
   return (
     <div className={`mx-auto max-w-3xl ${align}`}>
       {badge && (
-        <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#ff2ea6]/40 bg-[#ff2ea6]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#ff2ea6]">
+        <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#1db954]/40 bg-[#1db954]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1db954]">
           {badge}
         </span>
       )}
       {badge && (
         <div className={`mb-4 flex gap-1 ${stripeAlign}`}>
-          <span className="h-1 w-8 rounded-full bg-[#c2186a]" />
+          <span className="h-1 w-8 rounded-full bg-[#009739]" />
           <span className="h-1 w-8 rounded-full bg-[#FFDF00]" />
           <span className="h-1 w-8 rounded-full bg-[#002776]" />
         </div>
@@ -32,7 +32,7 @@ export function MusicProducerSectionHeading({
       {subtitle && <p className="mt-3 text-sm leading-relaxed text-[#b3b3b3] sm:text-base">{subtitle}</p>}
       {!badge && (
         <div className={`mt-5 flex gap-1 ${stripeAlign}`}>
-          <span className="h-1 w-8 rounded-full bg-[#c2186a]" />
+          <span className="h-1 w-8 rounded-full bg-[#009739]" />
           <span className="h-1 w-8 rounded-full bg-[#FFDF00]" />
           <span className="h-1 w-8 rounded-full bg-[#002776]" />
         </div>

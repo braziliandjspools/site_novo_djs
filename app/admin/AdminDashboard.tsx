@@ -120,21 +120,21 @@ function StatCard({
     <div
       className={`rounded-xl border p-4 ${
         accent
-          ? "border-[#ff2ea6]/40 bg-[#ff2ea6]/10"
+          ? "border-[#1db954]/40 bg-[#1db954]/10"
           : "border-white/10 bg-white/[0.03]"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">{label}</p>
-          <p className={`mt-2 font-display text-3xl font-semibold tabular-nums ${accent ? "text-[#ff2ea6]" : "text-white"}`}>
+          <p className={`mt-2 font-display text-3xl font-semibold tabular-nums ${accent ? "text-[#1db954]" : "text-white"}`}>
             {value}
           </p>
           {hint ? <p className="mt-1 text-xs text-zinc-500">{hint}</p> : null}
         </div>
         <span
           className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-            accent ? "bg-[#ff2ea6]/20 text-[#ff2ea6]" : "bg-white/5 text-zinc-400"
+            accent ? "bg-[#1db954]/20 text-[#1db954]" : "bg-white/5 text-zinc-400"
           }`}
         >
           <Icon className="h-5 w-5" />
@@ -305,7 +305,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   type="button"
                   onClick={() => setFilter("online")}
                   className={`rounded-md px-3 py-1.5 ${
-                    filter === "online" ? "bg-[#ff2ea6] text-black" : "text-zinc-400 hover:text-white"
+                    filter === "online" ? "bg-[#1db954] text-black" : "text-zinc-400 hover:text-white"
                   }`}
                 >
                   Online ({stats.downloaders.usersWithConnected})
@@ -314,7 +314,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   type="button"
                   onClick={() => setFilter("all")}
                   className={`rounded-md px-3 py-1.5 ${
-                    filter === "all" ? "bg-[#ff2ea6] text-black" : "text-zinc-400 hover:text-white"
+                    filter === "all" ? "bg-[#1db954] text-black" : "text-zinc-400 hover:text-white"
                   }`}
                 >
                   Todos ({stats.downloaders.usersWithAnyDevice})
@@ -343,7 +343,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             </span>
                           ) : null}
                           {user.poolsVip ? (
-                            <span className="rounded bg-[#ff2ea6]/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#ff2ea6]">
+                            <span className="rounded bg-[#1db954]/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#1db954]">
                               VIP
                             </span>
                           ) : (
@@ -365,7 +365,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           key={device.id}
                           className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
                             device.isOnline
-                              ? "border-[#ff2ea6]/30 bg-[#ff2ea6]/5"
+                              ? "border-[#1db954]/30 bg-[#1db954]/5"
                               : "border-white/8 bg-black/20"
                           }`}
                         >
@@ -373,7 +373,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             <p className="truncate font-medium text-white">
                               <span
                                 className={`mr-2 inline-block h-2 w-2 rounded-full ${
-                                  device.isOnline ? "bg-[#ff2ea6]" : "bg-zinc-600"
+                                  device.isOnline ? "bg-[#1db954]" : "bg-zinc-600"
                                 }`}
                               />
                               {device.deviceName || device.deviceId}
@@ -382,7 +382,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               {device.platform} · v{device.appVersion || "?"} · {device.deviceId}
                             </p>
                           </div>
-                          <p className={`tabular-nums ${device.isOnline ? "text-[#ff2ea6]" : "text-zinc-500"}`}>
+                          <p className={`tabular-nums ${device.isOnline ? "text-[#1db954]" : "text-zinc-500"}`}>
                             {device.isOnline ? "Online" : "Offline"} · {formatRelative(device.lastSeenAt)}
                           </p>
                         </li>

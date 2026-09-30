@@ -280,7 +280,7 @@ export function PlansSection({
         {activeVip && plans.some((plan) => planProduct(plan) === "poolsVip") ? (
           <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-zinc-400">
             VIP ativo até {activeVip.expiresLabel}.{" "}
-            <Link href="/portal/conta" className="font-semibold text-[#ff2ea6] underline-offset-2 hover:underline">
+            <Link href="/portal/conta" className="font-semibold text-[#1db954] underline-offset-2 hover:underline">
               Trocar plano no portal
             </Link>
           </p>
@@ -288,7 +288,7 @@ export function PlansSection({
         {expiredVip && plans.some((plan) => planProduct(plan) === "poolsVip") ? (
           <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-zinc-400">
             Seu VIP venceu em {expiredVip.expiresLabel}.{" "}
-            <Link href="/portal/conta" className="font-semibold text-[#ff2ea6] underline-offset-2 hover:underline">
+            <Link href="/portal/conta" className="font-semibold text-[#1db954] underline-offset-2 hover:underline">
               Renove no portal
             </Link>
             .
@@ -333,8 +333,8 @@ export function PlansSection({
                       : plan.isTestPlan
                         ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
                         : plan.highlight
-                          ? "border-[#FFDF00]/40 from-[#c2186a]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#c2186a]/15"
-                          : "hover:border-[#c2186a]/35"
+                          ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
+                          : "hover:border-[#009739]/35"
                 }`}
               >
                 {plan.badge && (
@@ -365,7 +365,7 @@ export function PlansSection({
                   {plan.price}
                 </p>
                 {plan.equivalent ? (
-                  <p className="mt-1 text-sm font-medium text-[#ff2ea6]">{plan.equivalent}</p>
+                  <p className="mt-1 text-sm font-medium text-[#1db954]">{plan.equivalent}</p>
                 ) : null}
                 <p className="mt-1 text-xs tracking-[-0.01em] text-gray-500">{plan.period}</p>
                 <ul className="mt-6 flex-1 space-y-2.5">
@@ -374,7 +374,7 @@ export function PlansSection({
                       key={feature}
                       className="flex items-start justify-center gap-2 text-sm text-gray-300 md:justify-start"
                     >
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#c2186a]" />
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#009739]" />
                       {feature}
                     </li>
                   ))}
@@ -420,7 +420,7 @@ export function PlansSection({
                   </p>
                 ) : null}
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500 md:justify-start">
-                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#c2186a]" />
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#009739]" />
                   {blocked
                     ? planProduct(plan) === "allavsoft"
                       ? "Licença vitalícia já liberada nesta conta."

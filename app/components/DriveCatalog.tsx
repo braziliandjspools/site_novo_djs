@@ -322,7 +322,7 @@ export function DriveCatalog() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar pools e remix services..."
-          className="w-full rounded-full border border-white/10 bg-[#282828] py-3 pl-11 pr-11 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-[#ff2ea6]/60"
+          className="w-full rounded-full border border-white/10 bg-[#282828] py-3 pl-11 pr-11 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-[#1db954]/60"
         />
         {query && (
           <button
@@ -345,7 +345,7 @@ export function DriveCatalog() {
               if (item !== "Todos") setShowAll(true);
             }}
             className={`min-w-8 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
-              letter === item ? "bg-[#c2186a] text-white" : "bg-white/5 text-gray-400 hover:text-white"
+              letter === item ? "bg-[#009739] text-white" : "bg-white/5 text-gray-400 hover:text-white"
             }`}
           >
             {item}

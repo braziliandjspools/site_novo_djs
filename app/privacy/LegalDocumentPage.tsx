@@ -22,7 +22,7 @@ export function LegalDocumentPage({ document, backHref = "/" }: LegalDocumentPag
       <div className="mb-8">
         <Link
           href={backHref}
-          className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-[#b3b3b3] transition-colors hover:border-[#ff2ea6]/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+          className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-[#b3b3b3] transition-colors hover:border-[#1db954]/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Voltar
@@ -41,7 +41,7 @@ export function LegalDocumentPage({ document, backHref = "/" }: LegalDocumentPag
               aria-expanded={tocOpen}
               aria-controls={tocId}
               onClick={() => setTocOpen((open) => !open)}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#181818] px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:border-[#ff2ea6]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#181818] px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:border-[#1db954]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
             >
               <span className="inline-flex items-center gap-2">
                 <Menu className="h-4 w-4 text-[#FFDF00]" aria-hidden />
@@ -94,7 +94,7 @@ export function LegalDocumentPage({ document, backHref = "/" }: LegalDocumentPag
           <div className="border-t border-white/10 pt-8">
             <a
               href={mailtoHref}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c2186a] to-[#ff2ea6] px-6 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02] hover:from-[#00B347] hover:to-[#ff2ea6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1db954] px-6 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02] hover:from-[#00B347] hover:to-[#1db954] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
             >
               <Mail className="h-4 w-4" aria-hidden />
               {document.ctaLabel}
@@ -121,7 +121,7 @@ function TocLinks({
           <a
             href={`#${section.id}`}
             onClick={onNavigate}
-            className="block rounded-lg px-2 py-1.5 text-xs text-gray-400 transition-colors hover:bg-white/5 hover:text-[#ff2ea6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+            className="block rounded-lg px-2 py-1.5 text-xs text-gray-400 transition-colors hover:bg-white/5 hover:text-[#1db954] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db954]"
           >
             {section.title}
           </a>
@@ -134,7 +134,7 @@ function TocLinks({
 function LegalBlockView({ block }: { block: LegalBlock }) {
   if (block.type === "list") {
     return (
-      <ul className="list-disc space-y-1.5 pl-5 marker:text-[#ff2ea6]">
+      <ul className="list-disc space-y-1.5 pl-5 marker:text-[#1db954]">
         {block.items.map((item) => (
           <li key={item}>{item}</li>
         ))}

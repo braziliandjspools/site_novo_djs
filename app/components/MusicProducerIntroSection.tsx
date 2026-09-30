@@ -18,10 +18,10 @@ import { SiteImage } from "./SiteImage";
 const services = [
   { icon: Cake, label: "Aniversários", color: "text-[#FFDF00]" },
   { icon: Heart, label: "Casamentos", color: "text-[#ff5500]" },
-  { icon: Megaphone, label: "Jingles comerciais", color: "text-[#ff2ea6]" },
+  { icon: Megaphone, label: "Jingles comerciais", color: "text-[#1db954]" },
   { icon: Headphones, label: "Produções para DJs", color: "text-[#6B9FFF]" },
   { icon: GraduationCap, label: "Escolas e formaturas", color: "text-[#FFDF00]" },
-  { icon: Mic2, label: "Vinhetas e intros", color: "text-[#ff2ea6]" },
+  { icon: Mic2, label: "Vinhetas e intros", color: "text-[#1db954]" },
   { icon: Music2, label: "Remixes personalizados", color: "text-[#6B9FFF]" },
   { icon: Star, label: "Projetos exclusivos", color: "text-[#ff5500]" },
 ];
@@ -47,7 +47,7 @@ export function MusicProducerIntroSection() {
                 quality={82}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/20 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-[#121212]/30 lg:to-[#181818]" />
-              <div className="absolute inset-0 bg-gradient-to-br from-[#c2186a]/20 via-transparent to-[#002776]/25" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#009739]/20 via-transparent to-[#002776]/25" />
 
               <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 lg:hidden">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md">
@@ -70,14 +70,14 @@ export function MusicProducerIntroSection() {
 
             {/* Conteúdo */}
             <div className="order-2 flex flex-col items-center justify-center p-5 text-center sm:p-8 md:items-start md:p-10 md:text-left lg:p-10 xl:p-12">
-              <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#ff2ea6]" />
+              <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1db954]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1db954]" />
                 Sua ideia, nossa produção
               </span>
 
               <h2 className="font-display text-3xl leading-tight tracking-wide text-white sm:text-4xl">
                 Sua ideia pode virar{" "}
-                <span className="bg-gradient-to-r from-[#ff2ea6] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#1db954] via-[#FFDF00] to-[#6B9FFF] bg-clip-text text-transparent">
                   música
                 </span>
               </h2>
@@ -117,14 +117,14 @@ export function MusicProducerIntroSection() {
                 <button
                   type="button"
                   onClick={scrollToBriefing}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c2186a] to-[#ff2ea6] px-6 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02] hover:from-[#00B347] hover:to-[#ff2ea6]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#009739] to-[#1db954] px-6 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02] hover:from-[#00B347] hover:to-[#1db954]"
                 >
                   Solicitar orçamento
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <a
                   href="#demos"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-6 py-3.5 text-sm font-semibold text-[#b3b3b3] transition-colors hover:border-[#ff2ea6]/40 hover:text-white"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-6 py-3.5 text-sm font-semibold text-[#b3b3b3] transition-colors hover:border-[#1db954]/40 hover:text-white"
                 >
                   Ouvir demos
                 </a>

@@ -36,7 +36,7 @@ export function ServiceSelector({ value, onChange, compact = false }: ServiceSel
             type="checkbox"
             checked={value[key]}
             onChange={(event) => onChange({ ...value, [key]: event.target.checked })}
-            className="h-3.5 w-3.5 accent-[#c2186a]"
+            className="h-3.5 w-3.5 accent-[#009739]"
           />
           {label}
         </label>

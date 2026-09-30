@@ -142,7 +142,7 @@ function OneSignalVerifyDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="border-b border-white/[0.06] px-5 py-4">
-          <div className="flex items-center gap-2 text-[#ff2ea6]">
+          <div className="flex items-center gap-2 text-[#1db954]">
             <Bell className="h-5 w-5" />
             <p
               id="onesignal-verify-title"
@@ -160,7 +160,7 @@ function OneSignalVerifyDialog({
           <button
             type="button"
             onClick={onGotIt}
-            className="inline-flex flex-1 items-center justify-center rounded-full bg-[#ff2ea6] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
+            className="inline-flex flex-1 items-center justify-center rounded-full bg-[#1db954] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
           >
             Got it
           </button>

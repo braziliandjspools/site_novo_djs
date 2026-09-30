@@ -137,7 +137,7 @@ export default async function AllavsoftPage() {
         </div>
         <a
           href="#allavsoft-plano"
-          className="inline-flex w-full max-w-xs items-center justify-center rounded-full bg-[#c2186a] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#00B347] sm:w-auto sm:max-w-none"
+          className="inline-flex w-full max-w-xs items-center justify-center rounded-full bg-[#009739] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#00B347] sm:w-auto sm:max-w-none"
         >
           Comprar por R$ 50
         </a>
@@ -203,7 +203,7 @@ export default async function AllavsoftPage() {
           ))}
         </div>
 
-        <div className="mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-[#c2186a]/30 bg-white/[0.03] p-2">
+        <div className="mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-[#009739]/30 bg-white/[0.03] p-2">
           <Image
             src={PLACEHOLDER.allavsoft}
             alt="Allavsoft"
@@ -261,7 +261,7 @@ export default async function AllavsoftPage() {
             {faqs.map((faq) => (
               <details
                 key={faq.q}
-                className="group rounded-xl border border-[#002776]/60 bg-white/[0.04] p-4 open:border-[#c2186a]/50"
+                className="group rounded-xl border border-[#002776]/60 bg-white/[0.04] p-4 open:border-[#009739]/50"
               >
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 text-sm font-semibold text-white">
                   <span className="min-w-0 flex-1 break-words">{faq.q}</span>

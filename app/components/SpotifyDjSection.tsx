@@ -25,13 +25,13 @@ export function SpotifyDjSection() {
     <section id="spotify" className="border-y border-white/5 bg-[#0a0a0a] py-12 sm:py-16 md:py-20">
       <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
         <div className="mb-2 flex justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#ff2ea6]/45 bg-[#ff2ea6]/12 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#1db954]/45 bg-[#1db954]/12 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#1db954]">
             <SpotifyMark className="h-3.5 w-3.5" />
             Spotify
           </span>
         </div>
         <div className="mb-4 flex justify-center gap-1">
-          <span className="h-1 w-8 rounded-full bg-[#ff2ea6]" />
+          <span className="h-1 w-8 rounded-full bg-[#1db954]" />
           <span className="h-1 w-8 rounded-full bg-[#FF4FD8]" />
           <span className="h-1 w-8 rounded-full bg-white/30" />
         </div>
@@ -47,7 +47,7 @@ export function SpotifyDjSection() {
             href={SPOTIFY_ARTIST.spotifyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-5 py-2.5 text-sm font-bold text-black transition hover:scale-[1.02] hover:bg-[#ff2ea6] sm:w-auto"
+            className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-bold text-black transition hover:scale-[1.02] hover:bg-[#1db954] sm:w-auto"
           >
             <SpotifyMark className="h-4 w-4" />
             Abrir no Spotify
@@ -59,8 +59,8 @@ export function SpotifyDjSection() {
         <div className="mx-auto mt-5 overflow-hidden rounded-2xl border border-white/10 bg-[#121212] sm:mt-6">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 px-3 py-2 sm:px-4">
             <p className="text-xs font-semibold text-white">Músicas no Spotify</p>
-            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#ff2ea6]">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff2ea6]" />
+            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#1db954]">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#1db954]" />
               Ao vivo
             </span>
           </div>
@@ -79,7 +79,7 @@ export function SpotifyDjSection() {
             <p className="text-[11px] text-zinc-500">Toque as faixas no player. No celular abre o app se instalado.</p>
             <Link
               href="/musicproducer"
-              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-200 transition hover:border-[#ff2ea6]/40 hover:text-white"
+              className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-200 transition hover:border-[#1db954]/40 hover:text-white"
             >
               Quero minha música no Spotify
             </Link>

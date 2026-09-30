@@ -94,7 +94,7 @@ export function PackHero({
           </>
         )}
       </div>
-      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#ff2ea6] via-[#ff2ea6]/40 to-transparent" />
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1db954] via-[#1db954]/40 to-transparent" />
 
       <div className="relative z-10 grid gap-6 p-5 sm:p-7 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end lg:gap-8 lg:p-8">
         <div className="mx-auto w-full max-w-[220px] sm:max-w-[240px] lg:mx-0 lg:max-w-none">
@@ -147,7 +147,7 @@ export function PackHero({
                   key={stat.label}
                   className={`rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                     stat.accent
-                      ? "border-[#ff2ea6]/30 bg-[#ff2ea6]/10 text-[#ff2ea6]"
+                      ? "border-[#1db954]/30 bg-[#1db954]/10 text-[#1db954]"
                       : "border-white/10 bg-white/5 text-white/70"
                   }`}
                 >
@@ -163,7 +163,7 @@ export function PackHero({
               onClick={onPlay}
               disabled={!canPlay || playBusy || !onPlay}
               aria-label={playing ? `Pausar ${title}` : `Ouvir agora ${title}`}
-              className={`${btnBase} w-full bg-[#ff2ea6] text-black hover:bg-[#1fdf67] sm:col-span-2 lg:w-auto lg:min-w-[9.5rem]`}
+              className={`${btnBase} w-full bg-[#1db954] text-black hover:bg-[#1fdf67] sm:col-span-2 lg:w-auto lg:min-w-[9.5rem]`}
             >
               {playBusy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -180,7 +180,7 @@ export function PackHero({
               onClick={onSendToDownloader}
               disabled={!canDownload || sendingToDownloader || !onSendToDownloader}
               aria-label={`Enviar ${title} ao Downloader`}
-              className={`${btnBase} w-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 text-[#ff2ea6] hover:bg-[#ff2ea6]/20 lg:w-auto`}
+              className={`${btnBase} w-full border border-[#1db954]/30 bg-[#1db954]/10 text-[#1db954] hover:bg-[#1db954]/20 lg:w-auto`}
             >
               {sendingToDownloader ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

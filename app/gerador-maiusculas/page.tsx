@@ -10,20 +10,20 @@ export default function GeradorMaiusculasPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0a0a0a] text-white">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,46,166,0.12),transparent_45%),radial-gradient(ellipse_at_bottom_right,rgba(0,39,118,0.18),transparent_40%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,185,84,0.12),transparent_45%),radial-gradient(ellipse_at_bottom_right,rgba(0,39,118,0.18),transparent_40%)]"
         aria-hidden
       />
       <div className="relative mx-auto w-full max-w-4xl px-4 pb-16 pt-8 sm:px-6 sm:pt-10 lg:px-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-400 transition hover:text-[#ff2ea6]"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-400 transition hover:text-[#1db954]"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar ao início
         </Link>
 
         <header className="mt-8 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
             <Type className="h-3.5 w-3.5" />
             Utilitário
           </div>

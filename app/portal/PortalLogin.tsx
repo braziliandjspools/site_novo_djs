@@ -14,7 +14,7 @@ type PortalLoginProps = {
 };
 
 const inputClassName =
-  "w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#ff2ea6]/50 focus:ring-2 focus:ring-[#ff2ea6]/20";
+  "w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1db954]/50 focus:ring-2 focus:ring-[#1db954]/20";
 
 const labelClassName = "block text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500";
 
@@ -60,7 +60,7 @@ function PasswordField({
           <button
             type="button"
             onClick={handleGenerate}
-            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#ff2ea6] hover:text-[#ffb3df]"
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#1db954] hover:text-[#86efac]"
           >
             <Sparkles className="h-3 w-3" />
             Gerar senha
@@ -188,9 +188,9 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
     >
       {!embedded && (
         <>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(255,46,166,0.18),transparent_45%),radial-gradient(ellipse_at_90%_100%,rgba(255,223,0,0.08),transparent_40%),radial-gradient(ellipse_at_50%_50%,rgba(0,39,118,0.2),transparent_55%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(29,185,84,0.18),transparent_45%),radial-gradient(ellipse_at_90%_100%,rgba(255,223,0,0.08),transparent_40%),radial-gradient(ellipse_at_50%_50%,rgba(0,39,118,0.2),transparent_55%)]" />
           <div className="pointer-events-none absolute inset-0 br-pattern opacity-40" />
-          <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ff2ea6]/60 to-transparent" />
+          <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#1db954]/60 to-transparent" />
         </>
       )}
 
@@ -199,7 +199,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
           <div className="flex justify-center">
             <BrsLogo href="/" className="h-9 w-auto max-w-[200px] object-contain" />
           </div>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]/80">
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]/80">
             Área do cliente
           </p>
         </div>
@@ -213,7 +213,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                 onClick={() => switchMode("login")}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-all ${
                   mode === "login"
-                    ? "bg-[#ff2ea6] text-black shadow-[0_8px_24px_rgba(255,46,166,0.25)]"
+                    ? "bg-[#1db954] text-black shadow-[0_8px_24px_rgba(29,185,84,0.25)]"
                     : "text-zinc-500 hover:text-white"
                 }`}
               >
@@ -225,7 +225,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                 onClick={() => switchMode("register")}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-all ${
                   mode === "register"
-                    ? "bg-[#ff2ea6] text-black shadow-[0_8px_24px_rgba(255,46,166,0.25)]"
+                    ? "bg-[#1db954] text-black shadow-[0_8px_24px_rgba(29,185,84,0.25)]"
                     : "text-zinc-500 hover:text-white"
                 }`}
               >
@@ -274,7 +274,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                     Entrar
@@ -355,7 +355,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                       type="checkbox"
                       checked={acceptedTerms}
                       onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-black accent-[#ff2ea6]"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-black accent-[#1db954]"
                       required
                     />
                     <span>
@@ -364,7 +364,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                         href="/termos"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-[#ff2ea6] hover:underline"
+                        className="font-semibold text-[#1db954] hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
                         Termos de Serviço
@@ -374,7 +374,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                         href="/privacidade"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-[#ff2ea6] hover:underline"
+                        className="font-semibold text-[#1db954] hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
                         Política de Privacidade
@@ -392,7 +392,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading || !acceptedTerms}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
                     Criar conta
@@ -410,7 +410,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("register")}
-                className="font-bold uppercase tracking-wide text-[#ff2ea6] hover:underline"
+                className="font-bold uppercase tracking-wide text-[#1db954] hover:underline"
               >
                 Criar conta
               </button>
@@ -421,7 +421,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className="font-bold uppercase tracking-wide text-[#ff2ea6] hover:underline"
+                className="font-bold uppercase tracking-wide text-[#1db954] hover:underline"
               >
                 Entrar
               </button>

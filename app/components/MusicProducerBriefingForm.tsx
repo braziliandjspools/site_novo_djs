@@ -31,7 +31,7 @@ import {
 
 const inputClassName =
 
-  "w-full rounded-md border-0 bg-[#282828] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#727272] focus:bg-[#333333] focus:ring-2 focus:ring-[#ff2ea6]";
+  "w-full rounded-md border-0 bg-[#282828] px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-[#727272] focus:bg-[#333333] focus:ring-2 focus:ring-[#1db954]";
 
 const selectClassName = `${inputClassName} cursor-pointer`;
 
@@ -587,7 +587,7 @@ export function MusicProducerBriefingForm() {
 
       <div className="mt-10 rounded-lg bg-[#282828] p-8 text-center">
 
-        <CheckCircle2 className="mx-auto h-10 w-10 text-[#ff2ea6]" />
+        <CheckCircle2 className="mx-auto h-10 w-10 text-[#1db954]" />
 
         <h3 className="mt-4 text-xl font-bold text-white">
 
@@ -609,7 +609,7 @@ export function MusicProducerBriefingForm() {
 
                   {" "}
 
-                  com valor estimado de <span className="font-semibold text-[#ff2ea6]">{submittedQuote}</span>
+                  com valor estimado de <span className="font-semibold text-[#1db954]">{submittedQuote}</span>
 
                 </>
 
@@ -633,7 +633,7 @@ export function MusicProducerBriefingForm() {
 
                   {" "}
 
-                  com valor estimado de <span className="font-semibold text-[#ff2ea6]">{submittedQuote}</span>
+                  com valor estimado de <span className="font-semibold text-[#1db954]">{submittedQuote}</span>
 
                 </>
 
@@ -687,7 +687,7 @@ export function MusicProducerBriefingForm() {
 
           }}
 
-          className="mt-6 text-sm font-bold text-[#ff2ea6] hover:underline"
+          className="mt-6 text-sm font-bold text-[#1db954] hover:underline"
 
         >
 
@@ -719,7 +719,7 @@ export function MusicProducerBriefingForm() {
 
       <div className="mt-10 flex justify-center py-16">
 
-        <Loader2 className="h-8 w-8 animate-spin text-[#ff2ea6]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
 
       </div>
 
@@ -735,7 +735,7 @@ export function MusicProducerBriefingForm() {
 
       <div className="mt-10 rounded-lg bg-[#282828] p-8 text-center">
 
-        <LogIn className="mx-auto h-10 w-10 text-[#ff2ea6]" />
+        <LogIn className="mx-auto h-10 w-10 text-[#1db954]" />
 
         <h3 className="mt-4 text-xl font-bold text-white">Crie sua conta no portal</h3>
 
@@ -751,7 +751,7 @@ export function MusicProducerBriefingForm() {
 
           href="/portal?return=/musicproducer%23conte-sua-ideia"
 
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-6 py-3 text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#ff2ea6]"
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#1db954] px-6 py-3 text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#1db954]"
 
         >
 
@@ -775,9 +775,9 @@ export function MusicProducerBriefingForm() {
 
       {portalProfile && (
 
-        <div className="flex items-center gap-3 rounded-lg border border-[#ff2ea6]/25 bg-[#ff2ea6]/10 px-4 py-3 text-sm text-[#b3b3b3]">
+        <div className="flex items-center gap-3 rounded-lg border border-[#1db954]/25 bg-[#1db954]/10 px-4 py-3 text-sm text-[#b3b3b3]">
 
-          <UserCheck className="h-4 w-4 flex-shrink-0 text-[#ff2ea6]" />
+          <UserCheck className="h-4 w-4 flex-shrink-0 text-[#1db954]" />
 
           <p>
 
@@ -791,13 +791,13 @@ export function MusicProducerBriefingForm() {
 
 
 
-      <div className="rounded-2xl border border-[#ff2ea6]/30 bg-[#282828] p-5 sm:p-6">
+      <div className="rounded-2xl border border-[#1db954]/30 bg-[#282828] p-5 sm:p-6">
 
         <div className="flex items-start gap-3">
 
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#ff2ea6]/15">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#1db954]/15">
 
-            <Sparkles className="h-5 w-5 text-[#ff2ea6]" />
+            <Sparkles className="h-5 w-5 text-[#1db954]" />
 
           </div>
 
@@ -895,7 +895,7 @@ export function MusicProducerBriefingForm() {
 
         {aiGenerated && (
 
-          <p className="mt-4 rounded-lg bg-[#ff2ea6]/10 px-4 py-3 text-sm text-[#ff2ea6]">
+          <p className="mt-4 rounded-lg bg-[#1db954]/10 px-4 py-3 text-sm text-[#1db954]">
 
             Ideia, letra e estilo gerados! Revise os campos abaixo e ajuste o que quiser antes de enviar.
 
@@ -915,7 +915,7 @@ export function MusicProducerBriefingForm() {
 
             onClick={() => void handleGenerateIdea(!isFirstGeneration)}
 
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#FFDF00]/40 bg-gradient-to-r from-[#c2186a]/20 to-[#ff2ea6]/20 px-6 py-3 text-sm font-bold text-white transition-all hover:from-[#c2186a]/30 hover:to-[#ff2ea6]/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#FFDF00]/40 bg-gradient-to-r from-[#009739]/20 to-[#1db954]/20 px-6 py-3 text-sm font-bold text-white transition-all hover:from-[#009739]/30 hover:to-[#1db954]/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
 
           >
 
@@ -1236,7 +1236,7 @@ export function MusicProducerBriefingForm() {
 
             disabled={loading}
 
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#ff2ea6] px-8 py-3.5 text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#ff2ea6] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-8 py-3.5 text-sm font-bold text-black transition-all hover:scale-[1.02] hover:bg-[#1db954] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
 
           >
 

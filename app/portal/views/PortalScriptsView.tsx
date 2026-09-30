@@ -95,7 +95,7 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
       ) : loading ? (
         <PortalCard>
           <div className="flex items-center justify-center gap-3 py-12 text-sm text-zinc-400">
-            <Loader2 className="h-5 w-5 animate-spin text-[#ff2ea6]" />
+            <Loader2 className="h-5 w-5 animate-spin text-[#1db954]" />
             Carregando scripts disponíveis…
           </div>
         </PortalCard>
@@ -105,13 +105,13 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
         </PortalCard>
       ) : (
         <>
-          <section className="overflow-hidden rounded-2xl border border-[#ff2ea6]/20 bg-[radial-gradient(ellipse_at_top_left,rgba(255,46,166,0.13),transparent_55%),#111411] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.28)] sm:p-7">
+          <section className="overflow-hidden rounded-2xl border border-[#1db954]/20 bg-[radial-gradient(ellipse_at_top_left,rgba(29,185,84,0.13),transparent_55%),#111411] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.28)] sm:p-7">
             <div className="flex items-start gap-4">
-              <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#ff2ea6]/25 bg-[#ff2ea6]/10 text-[#ff2ea6] sm:flex">
+              <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#1db954]/25 bg-[#1db954]/10 text-[#1db954] sm:flex">
                 <Code2 className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff2ea6]">Biblioteca BRS</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#1db954]">Biblioteca BRS</p>
                 <h2 className="mt-1 text-xl font-black text-white sm:text-2xl">Scripts prontos para usar</h2>
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-300">
                   Copie o código e execute no seu computador. Cada ferramenta vem com instruções, requisitos e um resumo do que será feito.
@@ -120,15 +120,15 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-3 text-xs text-zinc-300">
-                <Tags className="h-4 w-4 shrink-0 text-[#ff2ea6]" />
+                <Tags className="h-4 w-4 shrink-0 text-[#1db954]" />
                 Ferramentas locais
               </div>
               <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-3 text-xs text-zinc-300">
-                <Zap className="h-4 w-4 shrink-0 text-[#ff2ea6]" />
+                <Zap className="h-4 w-4 shrink-0 text-[#1db954]" />
                 Código pronto para copiar
               </div>
               <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-3 text-xs text-zinc-300">
-                <FolderOpen className="h-4 w-4 shrink-0 text-[#ff2ea6]" />
+                <FolderOpen className="h-4 w-4 shrink-0 text-[#1db954]" />
                 Instruções por script
               </div>
             </div>
@@ -144,7 +144,7 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
                 <button
                   type="button"
                   onClick={() => void copyScript(script)}
-                  className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-[#ff2ea6] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-black transition hover:bg-[#55e986] sm:px-4 sm:text-xs"
+                  className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-[#1db954] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-black transition hover:bg-[#55e986] sm:px-4 sm:text-xs"
                   aria-label={`Copiar ${script.title}`}
                 >
                   {copiedId === script.id ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
@@ -157,26 +157,26 @@ export function PortalScriptsView({ hasActivePlan }: { hasActivePlan: boolean })
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-white/[0.07] bg-[#101210] p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#ff2ea6]">Como funciona</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#1db954]">Como funciona</p>
                     <p className="mt-2 text-xs leading-relaxed text-zinc-400">
                       Leia a descrição do script para saber a pasta de origem, os tipos de arquivo aceitos e o resultado esperado. Os requisitos podem variar entre ferramentas.
                     </p>
                   </div>
                   <div className="rounded-xl border border-white/[0.07] bg-[#101210] p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#ff2ea6]">Antes de executar</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#1db954]">Antes de executar</p>
                     <p className="mt-2 text-xs leading-relaxed text-zinc-400">
                       Revise o código e confira a pasta selecionada antes de executar. Alguns scripts podem mover ou renomear arquivos e pastas conforme descrito.
                     </p>
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-[#ff2ea6]/20 bg-[#080b09] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+                <div className="overflow-hidden rounded-xl border border-[#1db954]/20 bg-[#080b09] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <div className="flex items-center justify-between gap-3 border-b border-white/[0.07] bg-white/[0.025] px-4 py-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-[#ff2ea6] shadow-[0_0_10px_rgba(255,46,166,0.75)]" />
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.75)]" />
                       <span className="truncate font-mono text-xs text-zinc-300">{script.fileName}</span>
                     </div>
-                    <span className="shrink-0 rounded-md border border-[#ff2ea6]/20 bg-[#ff2ea6]/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[#ff2ea6]">
+                    <span className="shrink-0 rounded-md border border-[#1db954]/20 bg-[#1db954]/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[#1db954]">
                       PowerShell
                     </span>
                   </div>

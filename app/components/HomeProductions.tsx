@@ -77,22 +77,22 @@ function ProductionCard({
           className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/45"
           aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
         >
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff2ea6] text-black opacity-0 shadow-lg transition group-hover:opacity-100">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1db954] text-black opacity-0 shadow-lg transition group-hover:opacity-100">
             {playing ? <Pause className="h-5 w-5" fill="currentColor" /> : <Play className="ml-0.5 h-5 w-5" fill="currentColor" />}
           </span>
         </button>
         {production.isFeatured || production.isNew ? (
-          <span className="absolute left-2 top-2 rounded-full bg-black/75 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#ff2ea6]">
+          <span className="absolute left-2 top-2 rounded-full bg-black/75 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
             {production.isFeatured ? "Destaque" : "Novo"}
           </span>
         ) : null}
       </div>
-      <Link href={`/producoes/${production.slug}`} className="mt-3 block truncate text-sm font-bold uppercase tracking-wide text-white hover:text-[#ff8ac8]">
+      <Link href={`/producoes/${production.slug}`} className="mt-3 block truncate text-sm font-bold uppercase tracking-wide text-white hover:text-[#1ed760]">
         {production.title}
       </Link>
       <p className="truncate text-xs text-zinc-400">
         {production.producerSlug ? (
-          <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#ff8ac8]">
+          <Link href={`/produtores/${production.producerSlug}`} className="hover:text-[#1ed760]">
             {production.producer}
           </Link>
         ) : (
@@ -101,7 +101,7 @@ function ProductionCard({
       </p>
       <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-zinc-500">{production.versionType}</p>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#ff8ac8]">
+        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#1ed760]">
           {production.categoryLabel}
         </span>
         <span className="text-[10px] uppercase tracking-wider text-zinc-500">{dateLabel}</span>
@@ -112,7 +112,7 @@ function ProductionCard({
           {access.canPlay ? "Reproduzir" : "Entrar para ouvir"}
         </button>
         {access.canDownload ? (
-          <button type="button" onClick={download} className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-full bg-[#ff2ea6] text-[10px] font-bold uppercase tracking-wider text-black">
+          <button type="button" onClick={download} className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-full bg-[#1db954] text-[10px] font-bold uppercase tracking-wider text-black">
             <Download className="h-3 w-3" /> Baixar
           </button>
         ) : (
@@ -198,7 +198,7 @@ export function HomeProductions({
   return (
     <section id="producoes-brs" className="border-y border-white/5 bg-[#1a1a1a] px-4 py-12 sm:px-6 md:py-16">
       <div className="mx-auto max-w-6xl">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">Catálogo</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Catálogo</p>
         <h2 className="mt-2 font-display text-3xl font-semibold text-white sm:text-4xl">{heading}</h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base">
           Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.

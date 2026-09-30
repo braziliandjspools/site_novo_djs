@@ -108,7 +108,7 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
                 <Image src={cover} alt={title} fill sizes="112px" className="object-cover" unoptimized={cover.startsWith("/api/")} />
               </div>
               <div className="min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">
+                <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]">
                   <Music2 className="h-3.5 w-3.5" />
                   Estilo
                 </p>
@@ -122,7 +122,7 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
                     {profile?.folderCount ?? 0} {profile?.folderCount === 1 ? "pasta" : "pastas"}
                   </span>
                   {hasVip ? (
-                    <span className="rounded-full border border-[#ff2ea6]/30 bg-[#ff2ea6]/10 px-3 py-1.5 text-[#ff2ea6]">Premium ativo</span>
+                    <span className="rounded-full border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-1.5 text-[#1db954]">Premium ativo</span>
                   ) : (
                     <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/50">Só navegação</span>
                   )}

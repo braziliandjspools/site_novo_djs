@@ -21,9 +21,9 @@ export function MusicasCenterLoading({
     >
       <div className="flex flex-col items-center gap-4 text-center">
         <span className="relative flex h-16 w-16 items-center justify-center" aria-hidden>
-          <span className="absolute inset-0 animate-spin rounded-full border-2 border-[#ff2ea6]/15 border-t-[#ff2ea6]" />
-          <span className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-b-[#ff2ea6]/70 [animation-duration:1.4s]" />
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#ff2ea6]" />
+          <span className="absolute inset-0 animate-spin rounded-full border-2 border-[#1db954]/15 border-t-[#1db954]" />
+          <span className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-b-[#1db954]/70 [animation-duration:1.4s]" />
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#1db954]" />
         </span>
         <p className="text-sm font-semibold tracking-wide text-white">{label}</p>
       </div>
@@ -138,7 +138,7 @@ export function MusicasTracksSkeleton({ rows = 10 }: { rows?: number }) {
   return (
     <div className="space-y-3" aria-busy="true" aria-live="polite" aria-label="Carregando músicas">
       <div className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#12141a] to-[#0f1012] px-4 py-3.5">
-        <Loader2 className="mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-[#ff2ea6]" aria-hidden />
+        <Loader2 className="mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-[#1db954]" aria-hidden />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-zinc-100">As músicas estão carregando…</p>
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">

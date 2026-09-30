@@ -49,7 +49,7 @@ export function AdminProductionEdit({ id }: { id: string }) {
   if (!draft) return <p className="text-sm text-white/50">Carregando…</p>;
   return (
     <div>
-      <Link href="/admin/producoes" className="mb-4 inline-block text-xs text-[#ff2ea6]">Voltar</Link>
+      <Link href="/admin/producoes" className="mb-4 inline-block text-xs text-[#1db954]">Voltar</Link>
       <h1 className="mb-4 text-2xl font-semibold">Editar produção</h1>
       <AdminProductionForm initial={draft} />
     </div>

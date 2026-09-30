@@ -14,11 +14,11 @@ export function TrackDownloadStatus({ fileId }: { fileId: string }) {
   const tone = getTrackDownloadTone(job?.status);
   const className =
     tone === "success"
-      ? "bg-[#ff2ea6]/10 text-[#ff2ea6]"
+      ? "bg-[#1db954]/10 text-[#1db954]"
       : tone === "error"
         ? "bg-red-500/10 text-red-400"
         : tone === "active"
-          ? "bg-[#ff2ea6]/10 text-[#ff2ea6]"
+          ? "bg-[#1db954]/10 text-[#1db954]"
           : tone === "pending"
             ? "bg-zinc-800 text-zinc-400"
             : "bg-zinc-900 text-zinc-500";
