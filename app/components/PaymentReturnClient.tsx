@@ -171,9 +171,21 @@ export function PaymentReturnClient({ variant }: PaymentReturnClientProps) {
             cache: "no-store",
           });
           if (res.status === 401) {
-            if (!cancelled) {
-              setAuthRequired(true);
-              setPhase("not_found");
+            // O retorno do checkout não deve deslogar nem pedir novo login
+            // apenas porque o endpoint de status não conseguiu localizar o pedido.
+            // Confirma a sessão atual antes de exibir qualquer aviso de autenticação.
+            try {
+              const sessionRes = await fetch("/api/musicas/session", { cache: "no-store" });
+              const sessionData = (await sessionRes.json()) as { authenticated?: boolean };
+              if (!cancelled) {
+                setAuthRequired(!sessionData.authenticated);
+                setPhase(variant === "erro" ? "cancelled" : "not_found");
+              }
+            } catch {
+              if (!cancelled) {
+                setAuthRequired(false);
+                setPhase(variant === "erro" ? "cancelled" : "not_found");
+              }
             }
             return false;
           }
