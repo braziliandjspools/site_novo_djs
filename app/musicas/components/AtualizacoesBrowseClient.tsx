@@ -844,7 +844,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   ) : null}
                   {downloadEnabled ? (
                     <>
-                      <button type="button" onClick={() => void handlePackSendToDownloader()} aria-disabled={directTracks.length > 50 || sendingPack} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 ${directTracks.length > 50 ? "cursor-not-allowed opacity-40" : ""} bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50`">
+                      <button type="button" onClick={() => void handlePackSendToDownloader()} aria-disabled={directTracks.length > 50 || sendingPack} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 ${directTracks.length > 50 ? "cursor-not-allowed opacity-40" : ""} bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50`}>
                         {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
                         Downloader
                       </button>
