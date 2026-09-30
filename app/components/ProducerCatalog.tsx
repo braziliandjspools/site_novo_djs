@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  CalendarDays,
+  CheckCircle2,
   ExternalLink,
+  Headphones,
+  MapPin,
+  Music2,
   Play,
   Share2,
 } from "lucide-react";
@@ -13,7 +18,6 @@ import { productionToPreviewTrack, type PublicBrsProduction } from "../lib/brs-p
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
 
 const FOLDER_ID = "brs-productions";
-const PROFILE_BARS = [18, 28, 16, 36, 22, 42, 20, 34, 14, 40, 24, 32, 18, 38, 22, 30, 16, 36, 26, 44, 20, 34, 18, 28];
 
 type Access = {
   authenticated: boolean;
@@ -37,7 +41,13 @@ function loginHref(returnPath: string) {
 
 function SocialIcon({ label }: { label: string }) {
   const name = label.toLowerCase();
-  const common = { className: "h-4 w-4", viewBox: "0 0 24 24", fill: "currentColor", "aria-hidden": true as const };
+  const common = {
+    className: "h-4 w-4",
+    viewBox: "0 0 24 24",
+    fill: "currentColor",
+    "aria-hidden": true as const,
+  };
+
   if (name.includes("instagram")) {
     return (
       <svg {...common}>
@@ -45,6 +55,7 @@ function SocialIcon({ label }: { label: string }) {
       </svg>
     );
   }
+
   if (name.includes("facebook")) {
     return (
       <svg {...common}>
@@ -52,6 +63,7 @@ function SocialIcon({ label }: { label: string }) {
       </svg>
     );
   }
+
   if (name.includes("youtube")) {
     return (
       <svg {...common}>
@@ -59,6 +71,7 @@ function SocialIcon({ label }: { label: string }) {
       </svg>
     );
   }
+
   if (name.includes("soundcloud")) {
     return (
       <svg {...common}>
@@ -66,6 +79,7 @@ function SocialIcon({ label }: { label: string }) {
       </svg>
     );
   }
+
   if (name.includes("spotify")) {
     return (
       <svg {...common}>
@@ -73,10 +87,11 @@ function SocialIcon({ label }: { label: string }) {
       </svg>
     );
   }
+
   return <ExternalLink className="h-4 w-4" />;
 }
 
-function Catalog({
+function ProfilePage({
   producer,
   productions,
   page,
@@ -96,7 +111,6 @@ function Catalog({
     canPlay: false,
     canDownload: false,
   });
-  const latest = productions[0];
 
   useEffect(() => {
     void fetch("/api/musicas/session", { cache: "no-store" })
@@ -111,6 +125,33 @@ function Catalog({
       })
       .catch(() => undefined);
   }, []);
+
+  const latest = productions[0];
+  const latestDate = latest
+    ? new Date(latest.publishedAt).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
+  const profilePath = `/p/${producer.slug}`;
+  const initials =
+    producer.name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "P";
+
+  const heroImage = producer.photoUrl || latest?.coverUrl || null;
+
+  const genreList = useMemo(() => {
+    const values = productions
+      .map((item) => item.genre?.trim())
+      .filter((item): item is string => Boolean(item));
+    return [...new Set(values)].slice(0, 4);
+  }, [productions]);
 
   async function shareProfile() {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -132,12 +173,14 @@ function Catalog({
   function playLatest() {
     if (!latest) return;
     if (!access.canPlay) {
-      router.push(loginHref(`/p/${producer.slug}#lancamentos`));
+      router.push(loginHref(`${profilePath}#lancamentos`));
       return;
     }
+
     const tracks = productions.map(productionToPreviewTrack);
     const track = tracks[0];
     if (!track) return;
+
     player.registerTrackMeta(track);
     player.setFolderPlayback(FOLDER_ID, {
       tracks,
@@ -149,101 +192,190 @@ function Catalog({
     void player.toggleTrack(FOLDER_ID, track.id);
   }
 
-  const profilePath = `/p/${producer.slug}`;
-  const initials = producer.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "P";
-  const spinning = Boolean(latest && player.playingId === latest.audioFileId && player.isPlaying);
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_18%_0%,rgba(0,70,160,0.48),transparent_42%),linear-gradient(180deg,#05070d_0%,#02040a_100%)] font-[family-name:var(--font-barlow)] text-white">
-      <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-        <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-          <div className="relative mx-auto aspect-square w-full max-w-[420px]">
-            <div className="absolute inset-[6%] rounded-full">
-              {PROFILE_BARS.map((height, index) => (
-                <span
-                  key={index}
-                  className="absolute left-1/2 top-1/2 w-1 origin-bottom rounded-full bg-gradient-to-t from-[#1db954] via-[#7eb6ff] to-[#ffe566]"
-                  style={{
-                    height: `${spinning ? height : 10}px`,
-                    transform: `rotate(${index * (360 / PROFILE_BARS.length)}deg) translateY(-176px)`,
-                    opacity: spinning ? 0.95 : 0.35,
-                    transition: "height 180ms linear",
-                  }}
-                />
-              ))}
-            </div>
+    <div className="relative min-h-screen overflow-hidden bg-[#050607] font-[family-name:var(--font-barlow)] text-white">
+      <section className="relative isolate overflow-hidden border-b border-white/[0.08]">
+        <div className="absolute inset-0 -z-20 bg-[#050607]" />
+        {heroImage ? (
+          <div
+            className="absolute inset-0 -z-10 bg-cover bg-center opacity-25 blur-2xl scale-110"
+            style={{ backgroundImage: `url("${heroImage}")` }}
+          />
+        ) : null}
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,8,0.25)_0%,rgba(5,6,7,0.92)_78%,#050607_100%)]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_25%,rgba(29,185,84,0.18),transparent_30%),radial-gradient(circle_at_85%_20%,rgba(126,182,255,0.14),transparent_28%)]" />
+
+        <div className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-6 sm:pb-14 lg:px-8">
+          <div className="mb-7 flex items-center justify-between">
+            <Link
+              href="/musicas"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45 transition hover:text-white"
+            >
+              Brazilian Remix Service
+            </Link>
             <button
               type="button"
-              onClick={playLatest}
-              aria-label={access.canPlay ? `Ouvir ${producer.name}` : "Entrar para ouvir"}
-              className="absolute inset-[18%] overflow-hidden rounded-full border-4 border-[#102033] bg-[#07111c] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
+              onClick={() => void shareProfile()}
+              className="inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 backdrop-blur transition hover:border-white/20 hover:text-white"
             >
-              {producer.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={producer.photoUrl}
-                  alt=""
-                  className={`absolute inset-0 h-full w-full object-cover ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}
-                />
-              ) : (
-                <span className={`flex h-full items-center justify-center text-5xl font-semibold text-[#9ef7c0] ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}>{initials}</span>
-              )}
+              <Share2 className="h-3.5 w-3.5" />
+              Compartilhar
             </button>
           </div>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Perfil público · Produtor</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
-            {producer.fullName ? <p className="mt-2 text-sm text-zinc-400">{producer.fullName}</p> : null}
-            <p className="mt-5 max-w-xl text-sm leading-7 text-zinc-300 sm:text-base">
-              {producer.bio || "Catálogo oficial de produções no Brazilian Remix Service."}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-md bg-[#002776] px-2 py-1 text-xs font-bold text-[#d7e7ff]">
-                {total} {total === 1 ? "faixa" : "faixas"}
-              </span>
-              <span className="rounded-md bg-[#1db954]/15 px-2 py-1 text-xs font-bold text-[#9ef7c0]">
-                {producer.place || "Catálogo BRS"}
+
+          <div className="grid items-end gap-8 md:grid-cols-[230px_minmax(0,1fr)] lg:grid-cols-[270px_minmax(0,1fr)]">
+            <div className="relative mx-auto w-full max-w-[270px] md:mx-0">
+              <div className="absolute -inset-3 rounded-[30px] bg-[#1db954]/15 blur-2xl" />
+              <div className="relative aspect-square overflow-hidden rounded-[26px] border border-white/15 bg-[#111514] shadow-2xl">
+                {heroImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={heroImage}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#1db95433,transparent_45%),#111514] text-6xl font-black text-[#9ef7c0]">
+                    {initials}
+                  </div>
+                )}
+              </div>
+              <span className="absolute -bottom-3 left-5 inline-flex items-center gap-1.5 rounded-full border border-[#1db954]/30 bg-[#07110b]/95 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-[#8af2ad] shadow-xl backdrop-blur">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1ed760] shadow-[0_0_9px_#1ed760]" />
+                Produtor BRS
               </span>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              {latest ? (
-                <button type="button" onClick={playLatest} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1db954] px-5 text-sm font-bold text-black">
-                  <Play className="h-4 w-4" fill="currentColor" />
-                  Ouvir lançamento mais recente
-                </button>
+
+            <div className="min-w-0 pb-1">
+              <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#72e89c]">
+                <span>Perfil oficial</span>
+                <span className="h-1 w-1 rounded-full bg-white/20" />
+                <span>Produções BRS</span>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <h1 className="text-4xl font-black tracking-[-0.045em] text-white sm:text-6xl lg:text-7xl">
+                  {producer.name}
+                </h1>
+                <CheckCircle2 className="mt-2 h-6 w-6 shrink-0 text-[#1ed760] sm:h-7 sm:w-7" fill="currentColor" strokeWidth={2.5} />
+              </div>
+
+              {producer.fullName && producer.fullName !== producer.name ? (
+                <p className="mt-2 text-sm font-medium text-white/45">{producer.fullName}</p>
               ) : null}
-              <a href="#lancamentos" className="inline-flex h-11 items-center rounded-full border border-[#7eb6ff]/40 px-5 text-sm font-semibold text-white">
-                Ver lançamentos
-              </a>
-              <button type="button" onClick={() => void shareProfile()} aria-label="Compartilhar perfil" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
-                <Share2 className="h-4 w-4" />
-              </button>
-              {producer.links.map((link) => (
-                <a key={link.href} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
-                  <SocialIcon label={link.label} />
+
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-zinc-300 sm:text-base">
+                {producer.bio ||
+                  `Conheça o catálogo oficial de ${producer.name}, com produções, remixes, edits e versões exclusivas disponíveis no Brazilian Remix Service.`}
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                {producer.place ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-white/60">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {producer.place}
+                  </span>
+                ) : null}
+                {genreList.map((genre) => (
+                  <span
+                    key={genre}
+                    className="rounded-full border border-[#7eb6ff]/20 bg-[#7eb6ff]/[0.07] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-[#b9d6ff]"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-7 flex flex-wrap items-center gap-2.5">
+                {latest ? (
+                  <button
+                    type="button"
+                    onClick={playLatest}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1ed760] px-5 text-xs font-black uppercase tracking-[0.08em] text-[#031008] shadow-[0_12px_35px_-14px_rgba(30,215,96,0.9)] transition hover:bg-[#35e777]"
+                  >
+                    <Play className="h-4 w-4" fill="currentColor" />
+                    {access.canPlay ? "Ouvir lançamentos" : "Entrar para ouvir"}
+                  </button>
+                ) : null}
+
+                <a
+                  href="#lancamentos"
+                  className="inline-flex h-11 items-center rounded-full border border-white/15 bg-white/[0.03] px-5 text-xs font-black uppercase tracking-[0.08em] text-white/80 transition hover:border-white/25 hover:text-white"
+                >
+                  Ver catálogo
                 </a>
-              ))}
+
+                {producer.links.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={link.label}
+                    title={link.label}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/60 transition hover:border-[#1ed760]/35 hover:bg-[#1ed760]/10 hover:text-[#1ed760]"
+                  >
+                    <SocialIcon label={link.label} />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
 
+          <div className="mt-10 grid grid-cols-2 overflow-hidden rounded-2xl border border-white/[0.08] bg-black/25 backdrop-blur sm:grid-cols-4">
+            <div className="border-b border-white/[0.07] p-4 sm:border-b-0 sm:border-r">
+              <div className="flex items-center gap-2 text-white/35">
+                <Music2 className="h-3.5 w-3.5" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em]">Faixas</span>
+              </div>
+              <p className="mt-2 text-2xl font-black tracking-tight text-white">{total}</p>
+            </div>
+            <div className="border-b border-white/[0.07] p-4 sm:border-b-0 sm:border-r">
+              <div className="flex items-center gap-2 text-white/35">
+                <Headphones className="h-3.5 w-3.5" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em]">Catálogo</span>
+              </div>
+              <p className="mt-2 text-2xl font-black tracking-tight text-white">BRS</p>
+            </div>
+            <div className="border-r border-white/[0.07] p-4">
+              <div className="flex items-center gap-2 text-white/35">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em]">Status</span>
+              </div>
+              <p className="mt-2 text-2xl font-black tracking-tight text-[#1ed760]">Oficial</p>
+            </div>
+            <div className="p-4">
+              <div className="flex items-center gap-2 text-white/35">
+                <CalendarDays className="h-3.5 w-3.5" />
+                <span className="text-[9px] font-black uppercase tracking-[0.16em]">Último lançamento</span>
+              </div>
+              <p className="mt-2 truncate text-sm font-bold capitalize text-white">
+                {latestDate || "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
         <section id="lancamentos" className="scroll-mt-24 pt-12 sm:pt-16">
-          <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1ed760]">Catálogo público</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Lançamentos</h2>
-              <p className="mt-1 text-sm text-zinc-500">Produções de {producer.name} disponíveis no catálogo BRS.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#1ed760]">
+                Discografia
+              </p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl">
+                Lançamentos
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+                Explore as produções de {producer.name}, com reprodução e download para usuários com acesso ativo ao BRS.
+              </p>
             </div>
             {latest ? (
               <button
                 type="button"
                 onClick={playLatest}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-xs font-black uppercase tracking-[0.1em] text-[#1ed760] transition hover:bg-[#1ed760]/15"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#1ed760]/30 bg-[#1ed760]/[0.08] px-4 text-[10px] font-black uppercase tracking-[0.12em] text-[#1ed760] transition hover:bg-[#1ed760]/15"
               >
                 <Play className="h-3.5 w-3.5" fill="currentColor" />
                 Tocar catálogo
@@ -252,8 +384,8 @@ function Catalog({
           </div>
 
           {productions.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] px-5 py-12 text-center text-sm text-zinc-500">
-              Nenhuma música publicada ainda.
+            <div className="mt-7 rounded-2xl border border-white/10 bg-white/[0.02] px-5 py-14 text-center text-sm text-white/40">
+              Nenhuma produção publicada ainda.
             </div>
           ) : (
             <div className="mt-7">
@@ -265,18 +397,18 @@ function Catalog({
             <nav className="mt-10 flex items-center justify-center gap-3" aria-label="Paginação dos lançamentos">
               {page > 1 ? (
                 <Link
-                  className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/65 transition hover:text-white"
+                  className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/60 transition hover:border-white/20 hover:text-white"
                   href={`${profilePath}?page=${page - 1}#lancamentos`}
                 >
                   Anterior
                 </Link>
               ) : null}
-              <span className="rounded-full bg-white/[0.04] px-4 py-2 text-xs font-bold text-white/45">
+              <span className="rounded-full bg-white/[0.04] px-4 py-2 text-xs font-bold text-white/40">
                 {page} / {pages}
               </span>
               {page < pages ? (
                 <Link
-                  className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/65 transition hover:text-white"
+                  className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/60 transition hover:border-white/20 hover:text-white"
                   href={`${profilePath}?page=${page + 1}#lancamentos`}
                 >
                   Próxima
@@ -286,24 +418,43 @@ function Catalog({
           ) : null}
         </section>
 
-        <section className="mt-14 rounded-2xl border border-white/10 bg-[#101211] p-5 sm:p-7">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#1ed760]">Brazilian Remix Service</p>
-              <h2 className="mt-2 text-xl font-black">Mais produções, mais música, direto no seu acervo.</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500">
-                Explore o catálogo do BRS e, para usuários com acesso ativo, reproduza e baixe as produções diretamente pela plataforma.
+        <section className="mt-14 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d100f]">
+          <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="p-6 sm:p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#72e89c]">
+                Sobre o produtor
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+                {producer.name}
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/55">
+                {producer.bio ||
+                  `Perfil oficial de ${producer.name} no Brazilian Remix Service. Aqui você encontra os lançamentos publicados, versões produzidas e o catálogo disponível na plataforma.`}
               </p>
             </div>
-            <Link
-              href="/musicas"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-white px-5 text-xs font-black uppercase tracking-[0.1em] text-black transition hover:bg-[#1ed760]"
-            >
-              Explorar músicas
-            </Link>
+            <div className="border-t border-white/[0.08] bg-white/[0.02] p-6 sm:p-8 lg:border-l lg:border-t-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                Acesso ao catálogo
+              </p>
+              <div className="mt-4 flex items-start gap-3">
+                <div className="mt-0.5 rounded-xl bg-[#1ed760]/10 p-2.5 text-[#1ed760]">
+                  <Headphones className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">
+                    {access.canDownload ? "Download liberado" : "Catálogo para membros"}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-white/40">
+                    {access.canDownload
+                      ? "Você pode reproduzir e baixar as produções disponíveis."
+                      : "Entre com sua conta BRS para acessar a reprodução e os downloads."}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
-      </div>
+      </main>
     </div>
   );
 }
@@ -328,7 +479,7 @@ export function ProducerCatalog(props: {
 
   return (
     <VipMusicPlayerProvider canPlayFull={access}>
-      <Catalog {...props} />
+      <ProfilePage {...props} />
     </VipMusicPlayerProvider>
   );
 }
