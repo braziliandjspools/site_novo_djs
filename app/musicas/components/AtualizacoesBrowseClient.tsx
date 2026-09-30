@@ -27,6 +27,7 @@ import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { autoSyncDriveOnEnter } from "../lib/auto-drive-sync";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
+import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
 import { PackHero, type PackHeroStat } from "./PackHero";
 import { StyleFolderLinks } from "./StyleFolderLinks";
@@ -137,6 +138,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const tracksLoadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreTracksRef = useRef(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
+  const [bulkLimitNotice, setBulkLimitNotice] = useState<"downloader" | "download" | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -483,6 +485,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       showToast("Plano VIP necessário para usar o Downloader.", "error");
       return;
     }
+    if (directTracks.length > 50) {
+      setBulkLimitNotice("downloader");
+      return;
+    }
     setSendingPack(true);
     try {
       const result = await sendPackSlugToDownloader(slugPath, {
@@ -509,6 +515,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     openLogin,
     sendingPack,
     showToast,
+    directTracks.length,
     slugPath,
     sync,
   ]);
@@ -551,6 +558,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     }
     if (!downloadEnabled) {
       showToast("Plano VIP necessário para baixar o pack.", "error");
+      return;
+    }
+    if (directTracks.length > 50) {
+      setBulkLimitNotice("download");
       return;
     }
     setBrowserConfirmOpen(true);
@@ -614,6 +625,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             className="h-9 w-9 rounded-full"
           />
         ) : null}
+        {data ? (
+          <AtualizacoesDriveSyncButton
+            compact
+            onSynced={() => loadBrowse({ forceRefresh: true })}
+          />
+        ) : null}
       </div>
       <nav
         ref={breadcrumbNavRef}
@@ -672,24 +689,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           <MusicasBrowseFoldersSkeleton rows={12} />
         ))}
 
-      {data && showingTracks && slugSegments.length === 1 ? (
-        <PackHero
-          title={displayFolderName(data.folderName)}
-          eyebrow={parentFolderTitle ? `Pasta · ${parentFolderTitle}` : "Pasta"}
-          description="Ouça no navegador, baixe no dispositivo ou envie direto ao BRS Downloader."
-          coverUrl={data.coverUrl}
-          stats={packStats}
-          playing={packPlaying}
-          playBusy={playBusy}
-          canPlay={playbackEnabled && directTracks.length > 0}
-          canDownload={downloadEnabled}
-          downloading={downloadingPack}
-          sendingToDownloader={sendingPack}
-          onPlay={() => void handlePackPlay()}
-          onSendToDownloader={() => void handlePackSendToDownloader()}
-          onDownload={() => void handlePackDownload()}
-        />
-      ) : null}
+
 
       {data && !showingTracks && slugSegments.length === 1 ? (
         <AtualizacoesMonthHero
@@ -828,7 +828,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           newChildIds={newChildIds}
         >
           <div className="min-w-0 space-y-4">
-            {slugSegments.length > 1 && directTracks.length > 0 ? (
+            {directTracks.length > 0 ? (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1ed760]/20 bg-[#0c120e] px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Faixas da pasta</p>
@@ -844,11 +844,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   ) : null}
                   {downloadEnabled ? (
                     <>
-                      <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50">
+                      <button type="button" onClick={() => void handlePackSendToDownloader()} aria-disabled={directTracks.length > 50 || sendingPack} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1ed760]/30 ${directTracks.length > 50 ? "cursor-not-allowed opacity-40" : ""}` bg-[#1ed760]/10 px-3 text-xs font-semibold text-[#6af69b] transition hover:bg-[#1ed760]/20 disabled:opacity-50">
                         {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
                         Downloader
                       </button>
-                      <button type="button" onClick={() => void handlePackDownload()} disabled={downloadingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:opacity-50">
+                      <button type="button" onClick={() => void handlePackDownload()} aria-disabled={directTracks.length > 50 || downloadingPack} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 ${directTracks.length > 50 ? "cursor-not-allowed opacity-40" : ""}` bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:opacity-50">
                         {downloadingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
                         Baixar pasta
                       </button>
@@ -919,6 +919,35 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       )}
 
       {!error && !data && !loading && <MusicasListSkeleton rows={6} />}
+
+      {bulkLimitNotice ? (
+        <div className="fixed inset-0 z-[10070] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="presentation" onClick={() => setBulkLimitNotice(null)}>
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            className="w-full max-w-md rounded-2xl border border-amber-400/25 bg-[#12151a] p-5 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.85)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 rounded-full bg-amber-400/10 p-2 text-amber-300">
+                <Download className="h-4 w-4" aria-hidden />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-white">Limite de 50 músicas</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/65">
+                  Esta pasta possui mais de 50 músicas. O envio em massa pelo Downloader e o download da pasta pelo navegador ficam disponíveis somente para pastas com até 50 músicas.
+                </p>
+                <p className="mt-3 text-xs text-white/40">
+                  Para este acervo, use o carregamento individual das faixas.
+                </p>
+              </div>
+            </div>
+            <button type="button" onClick={() => setBulkLimitNotice(null)} className="mt-5 w-full rounded-full bg-[#1ed760] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black">
+              Entendi
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <BrowserPackDownloadConfirm
         open={browserConfirmOpen}
