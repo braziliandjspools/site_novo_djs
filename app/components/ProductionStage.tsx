@@ -143,7 +143,12 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             <Sheet label="Formato" value={production.format} />
             <Sheet label="Bitrate" value={production.bitrate} />
           </dl>
-          {production.description ? <p className="mt-6 text-sm leading-7 text-zinc-300">{production.description}</p> : null}
+          {production.description?.trim() ? (
+            <section className="mt-8 rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>
+              <p className="mt-4 whitespace-pre-line text-sm leading-8 text-zinc-100">{production.description.trim()}</p>
+            </section>
+          ) : null}
         </div>
       </div>
       {more.length > 0 && production.producerSlug ? (

@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!production) return { title: "Produção | Brazilian Remix Service" };
   return {
     title: `${production.title} | ${production.producer} | BRS`,
-    description: `${production.producer} — ${production.title} no catálogo Brazilian Remix Service.`,
+    description: production.description?.trim() || `${production.producer} — ${production.title} no catálogo Brazilian Remix Service.`,
   };
 }
 
