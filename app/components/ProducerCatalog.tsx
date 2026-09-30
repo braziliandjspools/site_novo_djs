@@ -14,6 +14,7 @@ import { productionToPreviewTrack, type PublicBrsProduction } from "../lib/brs-p
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
 
 const FOLDER_ID = "brs-productions";
+const PROFILE_BARS = [18, 28, 16, 36, 22, 42, 20, 34, 14, 40, 24, 32, 18, 38, 22, 30, 16, 36, 26, 44, 20, 34, 18, 28];
 
 type Access = {
   authenticated: boolean;
@@ -115,65 +116,80 @@ function Catalog({
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("") || "P";
+  const spinning = Boolean(latest && player.playingId === latest.audioFileId && player.isPlaying);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#070807] text-white">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
-          backgroundSize: "72px 72px",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(29,185,84,0.16),transparent_42%)]" />
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_18%_0%,rgba(0,70,160,0.48),transparent_42%),linear-gradient(180deg,#05070d_0%,#02040a_100%)] font-[family-name:var(--font-barlow)] text-white">
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-black/35 px-5 py-8 shadow-[0_30px_90px_rgba(0,0,0,0.45)] sm:px-8 sm:py-10 lg:px-12 lg:py-12">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#1ed760]">
-            Perfil público · Produtor
-            <span className="ml-2 rounded-full border border-[#1ed760]/40 px-2 py-0.5 text-[9px] tracking-[0.16em]">Pro</span>
-          </p>
-          <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0 max-w-3xl">
-              <h1 className="font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
-              {producer.bio ? (
-                <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">{producer.bio}</p>
-              ) : (
-                <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Catálogo oficial de produções no Brazilian Remix Service.</p>
-              )}
-              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-400">
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-[#1db954]" />
-                  {total} {total === 1 ? "faixa publicada" : "faixas publicadas"}
-                </span>
-                <span>{producer.place || "Catálogo BRS"}</span>
-              </div>
-              <div className="mt-6 flex flex-wrap items-center gap-2">
-                {latest ? (
-                  <button type="button" onClick={playLatest} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1db954] px-5 text-sm font-bold text-black">
-                    <Play className="h-4 w-4" fill="currentColor" />
-                    Ouvir lançamento mais recente
-                  </button>
-                ) : null}
-                <a href="#lancamentos" className="inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white">
-                  Ver lançamentos
-                </a>
-                <button type="button" onClick={() => void shareProfile()} aria-label="Compartilhar perfil" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
-                  <Share2 className="h-4 w-4" />
-                </button>
-                {producer.links[0] ? (
-                  <a href={producer.links[0].href} target="_blank" rel="noreferrer" aria-label={producer.links[0].label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                ) : null}
-              </div>
+        <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+          <div className="relative mx-auto aspect-square w-full max-w-[420px]">
+            <div className="absolute inset-[6%] rounded-full">
+              {PROFILE_BARS.map((height, index) => (
+                <span
+                  key={index}
+                  className="absolute left-1/2 top-1/2 w-1 origin-bottom rounded-full bg-gradient-to-t from-[#1db954] via-[#7eb6ff] to-[#ffe566]"
+                  style={{
+                    height: `${spinning ? height : 10}px`,
+                    transform: `rotate(${index * (360 / PROFILE_BARS.length)}deg) translateY(-176px)`,
+                    opacity: spinning ? 0.95 : 0.35,
+                    transition: "height 180ms linear",
+                  }}
+                />
+              ))}
             </div>
-            <div className="relative mx-auto h-36 w-36 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#102216] shadow-[0_0_80px_rgba(29,185,84,0.18)] sm:h-44 sm:w-44 lg:mx-0">
+            <button
+              type="button"
+              onClick={playLatest}
+              aria-label={access.canPlay ? `Ouvir ${producer.name}` : "Entrar para ouvir"}
+              className="absolute inset-[18%] overflow-hidden rounded-full border-4 border-[#102033] bg-[#07111c] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
+            >
               {producer.photoUrl ? (
-                <Image src={producer.photoUrl} alt="" fill unoptimized className="object-cover" sizes="176px" />
+                <Image
+                  src={producer.photoUrl}
+                  alt=""
+                  fill
+                  unoptimized
+                  sizes="320px"
+                  className={`object-cover ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}
+                />
               ) : (
-                <span className="flex h-full items-center justify-center text-4xl font-semibold tracking-tight text-[#9ef7c0]">{initials}</span>
+                <span className={`flex h-full items-center justify-center text-5xl font-semibold text-[#9ef7c0] ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}>{initials}</span>
               )}
+            </button>
+          </div>
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Perfil público · Produtor</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
+            {producer.fullName ? <p className="mt-2 text-sm text-zinc-400">{producer.fullName}</p> : null}
+            <p className="mt-5 max-w-xl text-sm leading-7 text-zinc-300 sm:text-base">
+              {producer.bio || "Catálogo oficial de produções no Brazilian Remix Service."}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-md bg-[#002776] px-2 py-1 text-xs font-bold text-[#d7e7ff]">
+                {total} {total === 1 ? "faixa" : "faixas"}
+              </span>
+              <span className="rounded-md bg-[#1db954]/15 px-2 py-1 text-xs font-bold text-[#9ef7c0]">
+                {producer.place || "Catálogo BRS"}
+              </span>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              {latest ? (
+                <button type="button" onClick={playLatest} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1db954] px-5 text-sm font-bold text-black">
+                  <Play className="h-4 w-4" fill="currentColor" />
+                  Ouvir lançamento mais recente
+                </button>
+              ) : null}
+              <a href="#lancamentos" className="inline-flex h-11 items-center rounded-full border border-[#7eb6ff]/40 px-5 text-sm font-semibold text-white">
+                Ver lançamentos
+              </a>
+              <button type="button" onClick={() => void shareProfile()} aria-label="Compartilhar perfil" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
+                <Share2 className="h-4 w-4" />
+              </button>
+              {producer.links[0] ? (
+                <a href={producer.links[0].href} target="_blank" rel="noreferrer" aria-label={producer.links[0].label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : null}
             </div>
           </div>
         </section>

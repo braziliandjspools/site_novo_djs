@@ -37,7 +37,7 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
   const place = [producer.city, producer.country].filter(Boolean).join(", ") || null;
 
   return (
-    <main className="min-h-screen bg-[#070807]">
+    <main className="min-h-screen bg-[#02040a]">
       <ProducerCatalog
         page={page}
         pages={pages}
