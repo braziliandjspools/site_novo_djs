@@ -53,20 +53,40 @@ async function parseBody(body: Record<string, unknown>, ignoreId?: string) {
   };
 }
 
+function failure(error: unknown) {
+  const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+  console.error("[admin-producoes]", error);
+  if (code === "P2021" || code === "P2022") {
+    return NextResponse.json(
+      { error: "A tabela de produções ainda não existe. Reinicie o servidor para criá-la." },
+      { status: 503 },
+    );
+  }
+  return NextResponse.json({ error: "Não foi possível salvar a produção." }, { status: 500 });
+}
+
 export async function GET(request: Request) {
   if (!isAuthorizedAdminRequest(request)) return unauthorized();
-  const items = await prisma.brsProduction.findMany({
-    include: { producerRef: { select: { id: true, name: true, slug: true } } },
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-  });
-  return NextResponse.json({ items });
+  try {
+    const items = await prisma.brsProduction.findMany({
+      include: { producerRef: { select: { id: true, name: true, slug: true } } },
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    });
+    return NextResponse.json({ items });
+  } catch (error) {
+    return failure(error);
+  }
 }
 
 export async function POST(request: Request) {
   if (!isAuthorizedAdminRequest(request)) return unauthorized();
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  const data = body ? await parseBody(body) : null;
-  if (!data) return NextResponse.json({ error: "Preencha título, artista, produtor e o arquivo." }, { status: 400 });
-  const item = await prisma.brsProduction.create({ data });
-  return NextResponse.json({ item }, { status: 201 });
+  try {
+    const data = body ? await parseBody(body) : null;
+    if (!data) return NextResponse.json({ error: "Preencha título, artista, produtor e o link da música." }, { status: 400 });
+    const item = await prisma.brsProduction.create({ data });
+    return NextResponse.json({ item }, { status: 201 });
+  } catch (error) {
+    return failure(error);
+  }
 }

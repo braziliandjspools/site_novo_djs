@@ -126,7 +126,7 @@ function ProductionCard({
   );
 }
 
-function Rail({ productions }: { productions: PublicBrsProduction[] }) {
+function Rail({ productions, embedded = false }: { productions: PublicBrsProduction[]; embedded?: boolean }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
 
@@ -146,8 +146,7 @@ function Rail({ productions }: { productions: PublicBrsProduction[] }) {
     node.scrollBy({ left: direction * (node.clientWidth * 0.8), behavior: "smooth" });
   }
 
-  return (
-    <VipMusicPlayerProvider canPlayFull={access.canPlay}>
+  const rail = (
     <div className="relative">
       <div
         ref={scroller}
@@ -168,8 +167,10 @@ function Rail({ productions }: { productions: PublicBrsProduction[] }) {
         </>
       ) : null}
     </div>
-    </VipMusicPlayerProvider>
   );
+
+  if (embedded) return rail;
+  return <VipMusicPlayerProvider canPlayFull={access.canPlay}>{rail}</VipMusicPlayerProvider>;
 }
 
 export function ProductionDetail({ production }: { production: PublicBrsProduction }) {
@@ -187,9 +188,11 @@ export function ProductionDetail({ production }: { production: PublicBrsProducti
 export function HomeProductions({
   productions,
   heading = "Produções BRS",
+  embedded = false,
 }: {
   productions: PublicBrsProduction[];
   heading?: string;
+  embedded?: boolean;
 }) {
   if (productions.length === 0) return null;
   return (
@@ -201,7 +204,7 @@ export function HomeProductions({
           Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.
         </p>
         <div className="mt-8">
-          <Rail productions={productions} />
+          <Rail productions={productions} embedded={embedded} />
         </div>
       </div>
     </section>

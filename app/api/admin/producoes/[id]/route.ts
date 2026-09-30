@@ -41,7 +41,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const category = BRS_PRODUCTION_CATEGORIES.some((item) => item.id === body.category)
     ? String(body.category)
     : "BRS_ORIGINAL";
-  const item = await prisma.brsProduction.update({
+  try {
+    const item = await prisma.brsProduction.update({
     where: { id },
     data: {
       title,
@@ -69,7 +70,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       slug: await uniqueProductionSlug(clean(body.slug) || title, id),
     },
   });
-  return NextResponse.json({ item });
+    return NextResponse.json({ item });
+  } catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+    console.error("[admin-producoes]", error);
+    if (code === "P2021" || code === "P2022") {
+      return NextResponse.json({ error: "A tabela de produções ainda não existe. Reinicie o servidor para criá-la." }, { status: 503 });
+    }
+    return NextResponse.json({ error: "Não foi possível salvar a produção." }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {

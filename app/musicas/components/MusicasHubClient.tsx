@@ -39,6 +39,7 @@ import { MusicLibraryShelf, MusicLibraryTile, libraryTileTone } from "./MusicLib
 import { MusicasListSkeleton, MusicasPageSkeleton } from "./MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
+import { MusicasProductionsSection } from "./MusicasProductionsSection";
 
 type ArtistListItem = {
   slug: string;
@@ -169,6 +170,8 @@ export function MusicasHubClient() {
       </header>
 
       <DjPoolDiscovery />
+
+      <MusicasProductionsSection />
 
       {authenticated && !hasVip ? <VipUpgradeBanner /> : null}
       {!authenticated ? <VipUpgradeBanner /> : null}
