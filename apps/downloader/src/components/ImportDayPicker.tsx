@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, X } from "lucide-react";
 import { browsePackDay, type PackDateOption, type PackDayContents, type PackImportTarget } from "../lib/api/pack-import";
 import { formatApiError } from "../lib/errors";
@@ -128,14 +129,14 @@ export function ImportDayPicker({
   const poolCount = day?.poolCount ?? day?.pools.length ?? 0;
   const trackCount = day?.trackCount ?? 0;
 
-  return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4">
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="import-pick-title"
-      className="flex h-[min(720px,calc(100vh-2rem))] w-[min(960px,100%)] flex-col overflow-hidden rounded-2xl border border-[#ff2ea6]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
-    >
+  const dialog = (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 p-6">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-pick-title"
+        className="flex max-h-[calc(100dvh-3rem)] w-[min(920px,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-[#ff2ea6]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+      >
       <header className="flex shrink-0 items-center gap-3 border-b border-[#ff2ea6]/30 bg-[#070707] px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff2ea6]">Dias</p>
@@ -291,7 +292,10 @@ export function ImportDayPicker({
           </div>
         </section>
       </div>
-    </div>
+      </div>
     </div>
   );
+
+  if (typeof document === "undefined") return dialog;
+  return createPortal(dialog, document.body);
 }
