@@ -43,6 +43,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 const barlow = Barlow({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
   variable: "--font-barlow",
