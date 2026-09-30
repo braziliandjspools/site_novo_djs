@@ -481,10 +481,10 @@ async function getDriveCatalog(
     };
   }
 
-  // ATUALIZAÇÕES usa a hierarquia:
-  // MÊS -> DATA -> POOL -> ESTILO -> MÚSICAS.
-  // Esses níveis precisam permanecer navegáveis. O deep-walk abaixo é usado
-  // somente quando chegamos a um nível que realmente deve exibir faixas.
+  // ATUALIZAÇÕES: o mês é o nível navegável e, ao entrar nele,
+  // a tabela já reúne todas as músicas das datas daquele mês.
+  // As pastas de data NÃO viram uma segunda tela: seus nomes são preservados
+  // em updateDate e as colunas Pool/Estilo são preenchidas pelo deep-walk.
   const monthFolder = parseMonthFolderDate(folderName);
   const dateFoldersAtMonth = subfolders
     .filter((folder) => parseUpdateDateFolder(folder.name))
@@ -495,16 +495,21 @@ async function getDriveCatalog(
     });
 
   if (monthFolder && dateFoldersAtMonth.length > 0) {
-    const stats = await mapPool(dateFoldersAtMonth, 8, (folder) => getFolderNavStats(folder.id));
-    const items: VipMusicCatalogItem[] = dateFoldersAtMonth.map((folder, index) => ({
-      id: folder.id,
-      name: folder.name,
-      type: "folder" as const,
-      isNew: isNewFolderName(folder.name),
-      coverUrl: stats[index]?.coverUrl ?? null,
-      folderCount: stats[index]?.folderCount ?? 0,
-      trackCount: stats[index]?.trackCount ?? 0,
-    }));
+    const dateTracks = await mapPool(dateFoldersAtMonth, 6, async (dateFolder) => {
+      const parsed = parseUpdateDateFolder(dateFolder.name);
+      if (!parsed) return [];
+      return collectTracksDeep(
+        dateFolder.id,
+        dateFolder.name,
+        0,
+        new Set<string>(),
+        parsed.key,
+        null,
+        null,
+        true,
+      );
+    });
+    const tracks = dateTracks.flat().sort(sortTracksByUploadThenTitle);
 
     return {
       configured: true,
@@ -512,9 +517,37 @@ async function getDriveCatalog(
       rootFolderName: folderId === rootId ? folderName : "2026",
       folderId,
       folderName,
-      level: "folders",
-      items,
-      tracks: [],
+      level: "tracks",
+      items: [],
+      tracks,
+      coverUrl,
+    };
+  }
+
+  // Uma pasta de data, quando acessada diretamente por uma URL legada,
+  // continua mostrando a tabela de músicas e suas colunas Pool/Estilo.
+  const dateFolder = parseUpdateDateFolder(folderName);
+  if (dateFolder) {
+    const tracks = (await collectTracksDeep(
+      folderId,
+      folderName,
+      0,
+      new Set<string>(),
+      dateFolder.key,
+      null,
+      null,
+      true,
+    )).sort(sortTracksByUploadThenTitle);
+
+    return {
+      configured: true,
+      rootFolderId: rootId,
+      rootFolderName: folderId === rootId ? folderName : "2026",
+      folderId,
+      folderName,
+      level: "tracks",
+      items: [],
+      tracks,
       coverUrl,
     };
   }
