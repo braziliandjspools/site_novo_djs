@@ -15,7 +15,7 @@ const FOLDER_ID = "brs-productions";
 type Access = { authenticated: boolean; canPlay: boolean; canDownload: boolean };
 
 function loginHref(slug: string) {
-  return `/musicas/entrar?return=${encodeURIComponent(`/producoes/${slug}`)}`;
+  return `/musicas/entrar?return=${encodeURIComponent(`/m/${slug}`)}`;
 }
 
 function catalogTone(category: string) {
@@ -43,9 +43,11 @@ function catalogTone(category: string) {
 function ProductionCard({
   production,
   access,
+  fill = false,
 }: {
   production: PublicBrsProduction;
   access: Access;
+  fill?: boolean;
 }) {
   const player = useVipMusicPlayer();
   const router = useRouter();
@@ -84,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative w-[82%] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]`}>
+    <article className={`group/card relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[82%] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -117,7 +119,7 @@ function ProductionCard({
       </div>
       </div>
       <div className="px-1.5 pb-1 pt-4">
-        <Link href={`/producoes/${production.slug}`} className="block truncate text-[15px] font-bold tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
+        <Link href={`/m/${production.slug}`} className="block truncate text-[15px] font-bold tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
           {production.title}
         </Link>
         <p className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-zinc-400">
@@ -161,7 +163,15 @@ function ProductionCard({
   );
 }
 
-function Rail({ productions, embedded = false }: { productions: PublicBrsProduction[]; embedded?: boolean }) {
+export function ProductionRail({
+  productions,
+  embedded = false,
+  layout = "carousel",
+}: {
+  productions: PublicBrsProduction[];
+  embedded?: boolean;
+  layout?: "carousel" | "grid";
+}) {
   const scroller = useRef<HTMLDivElement>(null);
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
 
@@ -185,13 +195,15 @@ function Rail({ productions, embedded = false }: { productions: PublicBrsProduct
     <div className="relative">
       <div
         ref={scroller}
-        className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className={layout === "grid"
+          ? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
+          : "flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}
       >
         {productions.map((production) => (
-          <ProductionCard key={production.id} production={production} access={access} />
+          <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
         ))}
       </div>
-      {productions.length > 1 ? (
+      {layout === "carousel" && productions.length > 1 ? (
         <>
           <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="absolute -left-5 top-[34%] hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760] lg:flex">
             <ChevronLeft className="h-5 w-5" />
@@ -211,7 +223,7 @@ function Rail({ productions, embedded = false }: { productions: PublicBrsProduct
 export function ProductionDetail({ production }: { production: PublicBrsProduction }) {
   return (
     <div className="max-w-3xl">
-      <Rail productions={[production]} />
+      <ProductionRail productions={[production]} />
       {production.description ? (
         <p className="mt-6 max-w-xl text-sm leading-relaxed text-zinc-300">{production.description}</p>
       ) : null}
@@ -243,12 +255,12 @@ export function HomeProductions({
             </p>
             <h2 className="mt-3 font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
           </div>
-          <p className="max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-right sm:text-base">
+          <p className="max-w-xl text-base leading-relaxed text-gray-300 sm:text-right sm:text-lg">
             Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.
           </p>
         </div>
         <div className="mt-8">
-          <Rail productions={productions} embedded={embedded} />
+          <ProductionRail productions={productions} embedded={embedded} />
         </div>
       </div>
     </section>

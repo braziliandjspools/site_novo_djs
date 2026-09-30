@@ -11,7 +11,7 @@ function getSafeReturnPath(value: string | null) {
   if (value.startsWith("/musicas") || value === "/plans" || value.startsWith("/plans?")) {
     return value;
   }
-  if (value === "/" || value.startsWith("/producoes/") || value === "/producoes" || value.startsWith("/p/")) return value;
+  if (value === "/" || value.startsWith("/m/") || value === "/m" || value.startsWith("/p/")) return value;
   if (value.startsWith("/checkout/")) return value;
   return "/musicas";
 }

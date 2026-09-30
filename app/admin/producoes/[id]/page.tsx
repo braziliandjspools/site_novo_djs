@@ -40,7 +40,7 @@ function Preview({ params }: { params: Promise<{ id: string }> }) {
         <div className="grid grid-cols-[7rem_1fr] border-b border-white/10 py-2"><dt className="text-white/40">Duração</dt><dd>{String(item.duration ?? "—")}</dd></div>
       </dl>
       {item.isPublished ? (
-        <Link href={`/producoes/${slug}`} className="mt-6 inline-block text-sm text-[#1db954]">Ver página pública</Link>
+        <Link href={`/m/${slug}`} className="mt-6 inline-block text-sm text-[#1db954]">Ver página pública</Link>
       ) : (
         <p className="mt-6 text-sm text-white/45">Publique para abrir a página pública.</p>
       )}

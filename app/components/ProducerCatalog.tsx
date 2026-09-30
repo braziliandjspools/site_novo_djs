@@ -5,16 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Download,
   ExternalLink,
-  Lock,
-  Pause,
   Play,
   Share2,
 } from "lucide-react";
-import type { PublicBrsProduction } from "../lib/brs-productions";
-import { productionDownloadTrack, productionToPreviewTrack } from "../lib/brs-productions";
-import { startBrowserTrackDownload } from "../musicas/lib/browser-download-file";
+import { ProductionRail } from "./HomeProductions";
+import { productionToPreviewTrack } from "../lib/brs-productions";
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
 
 const FOLDER_ID = "brs-productions";
@@ -37,112 +33,6 @@ type ProducerProfile = {
 
 function loginHref(returnPath: string) {
   return `/musicas/entrar?return=${encodeURIComponent(returnPath)}`;
-}
-
-function ReleaseCard({
-  production,
-  access,
-}: {
-  production: PublicBrsProduction;
-  access: Access;
-}) {
-  const player = useVipMusicPlayer();
-  const router = useRouter();
-  const playing = player.playingId === production.audioFileId && player.isPlaying;
-  const version = production.versionLabel || production.versionType;
-
-  function play() {
-    if (!access.canPlay) {
-      router.push(loginHref(`/producoes/${production.slug}`));
-      return;
-    }
-    const track = productionToPreviewTrack(production);
-    player.registerTrackMeta(track);
-    player.setFolderPlayback(FOLDER_ID, {
-      tracks: [track],
-      hasMore: false,
-      loadMore: async () => undefined,
-      coverUrl: production.coverUrl,
-      albumTitle: production.producer,
-    });
-    void player.toggleTrack(FOLDER_ID, track.id);
-  }
-
-  function download() {
-    if (!access.authenticated) {
-      router.push(loginHref(`/p/${production.producerSlug ?? ""}#lancamentos`));
-      return;
-    }
-    if (!access.canDownload) {
-      router.push("/plans");
-      return;
-    }
-    startBrowserTrackDownload(productionDownloadTrack(production));
-  }
-
-  const tone = production.category === "EQUIPE_BRS"
-    ? "from-[#7eb6ff] via-[#1db954] to-[#ffe566]"
-    : production.category === "DJ_PARCEIRO"
-      ? "from-[#ffe566] via-[#ffb703] to-[#1db954]"
-      : "from-[#1ed760] via-[#ffe566] to-[#009739]";
-
-  return (
-    <article className="group min-w-0">
-      <div className={`rounded-2xl bg-gradient-to-br p-[1.5px] shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] transition duration-300 group-hover:-translate-y-1 ${tone}`}>
-      <div className="relative aspect-square overflow-hidden rounded-[14px] bg-[#111]">
-        <Image
-          src={production.coverUrl}
-          alt={production.title}
-          fill
-          unoptimized={!production.coverUrl.startsWith("/")}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
-          className="object-cover transition duration-500 group-hover:scale-[1.045]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent opacity-70" />
-        <span className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-[#009739] via-[#1db954] to-[#ffe566] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-black shadow-[0_8px_18px_rgba(0,0,0,0.35)]">
-          Exclusiva BRS
-        </span>
-        <button
-          type="button"
-          onClick={play}
-          className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-[0_8px_25px_rgba(0,0,0,0.45)] transition hover:scale-105"
-          aria-label={access.canPlay ? `Ouvir ${production.title}` : "Entrar para ouvir"}
-        >
-          {playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="ml-0.5 h-4 w-4" fill="currentColor" />}
-        </button>
-      </div>
-      </div>
-      <Link
-        href={`/producoes/${production.slug}`}
-        className="mt-3 block truncate text-[15px] font-bold text-white transition hover:text-[#1ed760]"
-      >
-        {production.title}
-      </Link>
-      <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-zinc-500">
-        <span className="truncate">{production.artist}</span>
-        <span className="shrink-0 rounded-md bg-[#002776] px-1.5 py-0.5 text-[10px] font-bold text-[#d7e7ff]">
-          {version}
-        </span>
-      </p>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        {production.genre ? (
-          <span className="truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-600">
-            {production.genre}
-          </span>
-        ) : <span />}
-        <button
-          type="button"
-          onClick={download}
-          className={access.canDownload
-            ? "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-[#1ed760] px-3 text-[11px] font-black text-black transition hover:brightness-110"
-            : "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-[11px] font-bold text-zinc-300 transition hover:border-[#1ed760]/30 hover:text-white"}
-        >
-          {access.canDownload ? <Download className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-          {access.canDownload ? "Baixar" : access.authenticated ? "Membros" : "Entrar"}
-        </button>
-      </div>
-    </article>
-  );
 }
 
 function Catalog({
@@ -206,6 +96,7 @@ function Catalog({
     }
     const tracks = productions.map(productionToPreviewTrack);
     const track = tracks[0];
+    if (!track) return;
     player.registerTrackMeta(track);
     player.setFolderPlayback(FOLDER_ID, {
       tracks,
@@ -311,10 +202,8 @@ function Catalog({
               Nenhuma música publicada ainda.
             </div>
           ) : (
-            <div className="mt-7 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4 lg:gap-x-6">
-              {productions.map((production) => (
-                <ReleaseCard key={production.id} production={production} access={access} />
-              ))}
+            <div className="mt-7">
+              <ProductionRail productions={productions} layout="grid" embedded />
             </div>
           )}
 
