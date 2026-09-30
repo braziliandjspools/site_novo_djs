@@ -353,6 +353,16 @@ async function collectTracksPageDeep(
   const subfolders = orderedSubfolders
     .map((folder) => rawSubfolders.find((item) => item.id === folder.id))
     .filter((folder): folder is DriveChild => Boolean(folder));
+
+  // Sem filtro, a tabela segue o acervo do Drive: primeiro os pools/estilos
+  // com alteração mais recente, depois os mais antigos. Dentro de cada pasta,
+  // as faixas continuam ordenadas pelo upload/alteração mais recente.
+  subfolders.sort((a, b) => {
+    const am = a.modifiedTime ?? a.createdTime ?? "";
+    const bm = b.modifiedTime ?? b.createdTime ?? "";
+    if (am !== bm) return bm.localeCompare(am);
+    return 0;
+  });
   const audioFiles = children
     .filter((item) => isDriveAudioFile(item))
     .sort((a, b) => {
@@ -561,9 +571,11 @@ async function getDriveCatalog(
       }
     }
 
-    const tracks = datedTracks
-      .sort(sortTracksByUploadThenTitle)
-      .slice(0, requestedLimit);
+    // Não reordenar globalmente aqui: o deep-walk já percorre
+    // data → pool → estilo → faixas. Isso mantém cada pool agrupado,
+    // como no acervo do Drive, enquanto avança dos conteúdos mais novos
+    // para os mais antigos.
+    const tracks = datedTracks.slice(0, requestedLimit);
 
     return {
       configured: true,
