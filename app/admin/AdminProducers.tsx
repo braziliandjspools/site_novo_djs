@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { catalogMediaUrl } from "../lib/catalog-media";
 
 type Producer = {
   id: string;
@@ -106,9 +107,27 @@ export function AdminProducers() {
     await load();
   }
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Produtores</h1>
+  function startEdit(item: Producer) {
+    setError(null);
+    setNotice(null);
+    setForm({
+      id: item.id,
+      name: item.name,
+      fullName: item.fullName ?? "",
+      bio: item.bio ?? "",
+      photoFileId: item.photoFileId ?? "",
+      city: item.city ?? "",
+      country: item.country ?? "",
+      instagram: item.instagram ?? "",
+      facebook: item.facebook ?? "",
+      youtube: item.youtube ?? "",
+      soundcloud: item.soundcloud ?? "",
+      spotify: item.spotify ?? "",
+      website: item.website ?? "",
+    });
+  }
+
+  const editor = (
       <form onSubmit={submit} className="grid gap-2 rounded-2xl border border-white/10 bg-[#242424] p-4 sm:grid-cols-2">
         <input className="site-input" placeholder="Nome artístico" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         <input className="site-input" placeholder="Nome completo" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
@@ -135,12 +154,36 @@ export function AdminProducers() {
             else setForm((current) => ({ ...current, photoFileId: data.fileId! }));
           }} />
         </label>
+        {catalogMediaUrl(form.photoFileId) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={catalogMediaUrl(form.photoFileId) ?? ""} alt="" className="h-20 w-20 rounded-full object-cover" />
+        ) : null}
         {error ? <p className="text-sm text-red-300 sm:col-span-2">{error}</p> : null}
         {notice ? <p className="text-sm text-[#1db954] sm:col-span-2">{notice}</p> : null}
-        <button type="submit" disabled={saving} className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60">
-          {saving ? "Salvando…" : form.id ? "Salvar produtor" : "Cadastrar produtor"}
-        </button>
+        <div className="flex gap-2 sm:col-span-2">
+          <button type="submit" disabled={saving} className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60">
+            {saving ? "Salvando…" : form.id ? "Salvar produtor" : "Cadastrar produtor"}
+          </button>
+          {form.id ? (
+            <button type="button" onClick={() => setForm({ ...blank, id: "" })} className="rounded-full border border-white/15 px-4 py-2 text-sm">
+              Cancelar
+            </button>
+          ) : null}
+        </div>
       </form>
+  );
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">Produtores</h1>
+      {form.id ? (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/75 p-3 sm:items-center" role="dialog" aria-modal="true" aria-label="Editar produtor">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto">
+            <p className="mb-3 text-lg font-semibold">Editar {form.name || "produtor"}</p>
+            {editor}
+          </div>
+        </div>
+      ) : editor}
       <div className="overflow-x-auto rounded-2xl border border-white/10">
         <table className="min-w-full text-left text-sm">
           <thead className="text-[11px] uppercase tracking-wide text-white/40">
@@ -152,21 +195,7 @@ export function AdminProducers() {
                 <td className="p-3">{item.name}</td>
                 <td className="p-3">{item._count.productions}</td>
                 <td className="p-3">
-                  <button type="button" className="mr-3 text-xs text-[#1db954]" onClick={() => setForm({
-                    id: item.id,
-                    name: item.name,
-                    fullName: item.fullName ?? "",
-                    bio: item.bio ?? "",
-                    photoFileId: item.photoFileId ?? "",
-                    city: item.city ?? "",
-                    country: item.country ?? "",
-                    instagram: item.instagram ?? "",
-                    facebook: item.facebook ?? "",
-                    youtube: item.youtube ?? "",
-                    soundcloud: item.soundcloud ?? "",
-                    spotify: item.spotify ?? "",
-                    website: item.website ?? "",
-                  })}>Editar</button>
+                  <button type="button" className="mr-3 text-xs text-[#1db954]" onClick={() => startEdit(item)}>Editar</button>
                   <a className="mr-3 text-xs text-white/70" href={`/p/${item.slug}`} target="_blank" rel="noreferrer">Ver página</a>
                   <button type="button" className="text-xs text-red-300" onClick={() => void remove(item.id)}>Excluir</button>
                 </td>
