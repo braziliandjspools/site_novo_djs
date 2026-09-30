@@ -18,6 +18,28 @@ function loginHref(slug: string) {
   return `/musicas/entrar?return=${encodeURIComponent(`/producoes/${slug}`)}`;
 }
 
+function catalogTone(category: string) {
+  if (category === "EQUIPE_BRS") {
+    return {
+      frame: "from-[#7eb6ff] via-[#1db954] to-[#ffe566]",
+      chip: "border-[#7eb6ff]/45 bg-[#002776]/70 text-[#d7e7ff]",
+      glow: "hover:shadow-[0_28px_70px_-28px_rgba(107,159,255,0.55)]",
+    };
+  }
+  if (category === "DJ_PARCEIRO") {
+    return {
+      frame: "from-[#ffe566] via-[#ffb703] to-[#1db954]",
+      chip: "border-[#ffe566]/50 bg-[#3a3200]/80 text-[#ffe566]",
+      glow: "hover:shadow-[0_28px_70px_-28px_rgba(255,223,0,0.42)]",
+    };
+  }
+  return {
+    frame: "from-[#1ed760] via-[#ffe566] to-[#009739]",
+    chip: "border-[#1db954]/40 bg-[#063318]/80 text-[#9ef7c0]",
+    glow: "hover:shadow-[0_28px_70px_-28px_rgba(29,185,84,0.5)]",
+  };
+}
+
 function ProductionCard({
   production,
   access,
@@ -28,6 +50,7 @@ function ProductionCard({
   const player = useVipMusicPlayer();
   const router = useRouter();
   const playing = player.playingId === production.audioFileId && player.isPlaying;
+  const tone = catalogTone(production.category);
   const date = new Date(production.publishedAt);
   const dateLabel = date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
 
@@ -61,9 +84,9 @@ function ProductionCard({
   }
 
   return (
-    <article className="group/card relative w-[82%] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/[0.10] bg-[linear-gradient(155deg,rgba(255,255,255,0.055),rgba(255,255,255,0.012))] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 hover:border-[#1db954]/45 hover:shadow-[0_26px_70px_-32px_rgba(29,185,84,0.28)] sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]">
-      <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/70 to-transparent opacity-0 transition group-hover/card:opacity-100" />
-      <div className="group relative aspect-square overflow-hidden rounded-xl bg-[#161816] ring-1 ring-inset ring-white/[0.06]">
+    <article className={`group/card relative w-[82%] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]`}>
+      <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
+      <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
           src={production.coverUrl}
           alt=""
@@ -89,6 +112,7 @@ function ProductionCard({
           </span>
         ) : null}
       </div>
+      </div>
       <div className="px-1.5 pb-1 pt-4">
         <Link href={`/producoes/${production.slug}`} className="block truncate text-[15px] font-bold tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
           {production.title}
@@ -105,7 +129,7 @@ function ProductionCard({
           {production.versionType}
         </p>
         <div className="mt-4 flex items-center justify-between gap-2">
-          <span className="truncate rounded-full border border-[#1db954]/20 bg-[#1db954]/[0.07] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.13em] text-[#72e89c]">
+          <span className={`truncate rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.13em] ${tone.chip}`}>
             {production.categoryLabel}
           </span>
           <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-zinc-500">{dateLabel}</span>
@@ -202,7 +226,7 @@ export function HomeProductions({
   if (productions.length === 0) return null;
   return (
     <section id="producoes-brs" className="relative isolate overflow-hidden border-y border-white/[0.07] bg-[#070908] px-4 py-14 sm:px-6 md:py-20">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_12%_0%,rgba(29,185,84,0.14),transparent_38%),radial-gradient(ellipse_at_88%_100%,rgba(0,151,57,0.07),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-8 sm:flex-row sm:items-end sm:justify-between">

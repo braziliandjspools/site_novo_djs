@@ -81,9 +81,16 @@ function ReleaseCard({
     startBrowserTrackDownload(productionDownloadTrack(production));
   }
 
+  const tone = production.category === "EQUIPE_BRS"
+    ? "from-[#7eb6ff] via-[#1db954] to-[#ffe566]"
+    : production.category === "DJ_PARCEIRO"
+      ? "from-[#ffe566] via-[#ffb703] to-[#1db954]"
+      : "from-[#1ed760] via-[#ffe566] to-[#009739]";
+
   return (
     <article className="group min-w-0">
-      <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-[#111] shadow-[0_12px_35px_rgba(0,0,0,0.28)]">
+      <div className={`rounded-2xl bg-gradient-to-br p-[1.5px] shadow-[0_18px_40px_-24px_rgba(0,0,0,0.85)] transition duration-300 group-hover:-translate-y-1 ${tone}`}>
+      <div className="relative aspect-square overflow-hidden rounded-[14px] bg-[#111]">
         <Image
           src={production.coverUrl}
           alt={production.title}
@@ -104,6 +111,7 @@ function ReleaseCard({
         >
           {playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="ml-0.5 h-4 w-4" fill="currentColor" />}
         </button>
+      </div>
       </div>
       <Link
         href={`/producoes/${production.slug}`}
