@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ProducerCatalog } from "../../components/ProducerCatalog";
 import { catalogMediaUrl } from "../../lib/catalog-media";
 import { getProducerPage } from "../../lib/brs-productions";
+import { findKnownArtistBySlug } from "../../lib/vip-known-artists";
 
 type PageProps = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
 
@@ -34,6 +35,7 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
   const { producer, items, total, pageSize } = data;
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const photoUrl = catalogMediaUrl(producer.photoFileId);
+  const fallbackPhotoUrl = findKnownArtistBySlug(producer.slug)?.imageUrl || findKnownArtistBySlug(producer.name)?.imageUrl || null;
   const place = [producer.city, producer.country].filter(Boolean).join(", ") || null;
 
   return (
@@ -49,6 +51,7 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
           fullName: producer.fullName,
           bio: producer.bio,
           photoUrl,
+          fallbackPhotoUrl,
           place,
           links: SOCIAL.flatMap(([key, label]) => {
             const href = producer[key];

@@ -42,6 +42,7 @@ export function AdminProducers() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
   const photoId = useRef("");
 
@@ -149,34 +150,43 @@ export function AdminProducers() {
 
   const editor = (
       <form onSubmit={submit} className="grid gap-2 rounded-2xl border border-white/10 bg-[#242424] p-4 sm:grid-cols-2">
-        <input className="site-input" placeholder="Nome artístico" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <input className="site-input" placeholder="Nome completo" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-        <input className="site-input" placeholder="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-        <input className="site-input" placeholder="País" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
-        <input className="site-input" placeholder="Instagram" value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} />
-        <input className="site-input" placeholder="Facebook" value={form.facebook} onChange={(e) => setForm({ ...form, facebook: e.target.value })} />
-        <input className="site-input" placeholder="YouTube" value={form.youtube} onChange={(e) => setForm({ ...form, youtube: e.target.value })} />
-        <input className="site-input" placeholder="SoundCloud" value={form.soundcloud} onChange={(e) => setForm({ ...form, soundcloud: e.target.value })} />
-        <input className="site-input" placeholder="Spotify" value={form.spotify} onChange={(e) => setForm({ ...form, spotify: e.target.value })} />
-        <input className="site-input" placeholder="Site" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
-        <textarea className="site-input min-h-20 sm:col-span-2" placeholder="Biografia" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
+        <input className="site-input" placeholder="Nome artístico" value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} required />
+        <input className="site-input" placeholder="Nome completo" value={form.fullName} onChange={(e) => setForm((current) => ({ ...current, fullName: e.target.value }))} />
+        <input className="site-input" placeholder="Cidade" value={form.city} onChange={(e) => setForm((current) => ({ ...current, city: e.target.value }))} />
+        <input className="site-input" placeholder="País" value={form.country} onChange={(e) => setForm((current) => ({ ...current, country: e.target.value }))} />
+        <input className="site-input" placeholder="Instagram" value={form.instagram} onChange={(e) => setForm((current) => ({ ...current, instagram: e.target.value }))} />
+        <input className="site-input" placeholder="Facebook" value={form.facebook} onChange={(e) => setForm((current) => ({ ...current, facebook: e.target.value }))} />
+        <input className="site-input" placeholder="YouTube" value={form.youtube} onChange={(e) => setForm((current) => ({ ...current, youtube: e.target.value }))} />
+        <input className="site-input" placeholder="SoundCloud" value={form.soundcloud} onChange={(e) => setForm((current) => ({ ...current, soundcloud: e.target.value }))} />
+        <input className="site-input" placeholder="Spotify" value={form.spotify} onChange={(e) => setForm((current) => ({ ...current, spotify: e.target.value }))} />
+        <input className="site-input" placeholder="Site" value={form.website} onChange={(e) => setForm((current) => ({ ...current, website: e.target.value }))} />
+        <textarea className="site-input min-h-20 sm:col-span-2" placeholder="Biografia" value={form.bio} onChange={(e) => setForm((current) => ({ ...current, bio: e.target.value }))} />
         <label className="text-xs text-white/60 sm:col-span-2">
           Foto
           <input className="mt-1 block w-full" type="file" accept=".jpg,.jpeg,.png,.webp,image/*" onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            const body = new FormData();
-            body.set("file", file);
-            body.set("kind", "profile");
-            const res = await fetch("/api/admin/producoes/upload", { method: "POST", body });
-            const data = (await res.json()) as { fileId?: string; error?: string };
-            if (!data.fileId) setError(data.error ?? "Falha no envio da foto.");
-            else {
-              photoId.current = data.fileId;
-              setForm((current) => ({ ...current, photoFileId: data.fileId! }));
+            setUploading(true);
+            setError(null);
+            try {
+              const body = new FormData();
+              body.set("file", file);
+              body.set("kind", "profile");
+              const res = await fetch("/api/admin/producoes/upload", { method: "POST", body, credentials: "same-origin" });
+              const data = (await res.json()) as { fileId?: string; error?: string };
+              if (!data.fileId) setError(data.error ?? "Falha no envio da foto.");
+              else {
+                photoId.current = data.fileId;
+                setForm((current) => ({ ...current, photoFileId: data.fileId! }));
+              }
+            } catch {
+              setError("Não foi possível enviar a foto.");
+            } finally {
+              setUploading(false);
             }
           }} />
         </label>
+        {uploading ? <p className="text-xs text-white/60 sm:col-span-2">Enviando a foto…</p> : null}
         {catalogMediaUrl(form.photoFileId) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={catalogMediaUrl(form.photoFileId) ?? ""} alt="" className="h-20 w-20 rounded-full object-cover" />
@@ -184,8 +194,8 @@ export function AdminProducers() {
         {error ? <p className="text-sm text-red-300 sm:col-span-2">{error}</p> : null}
         {notice ? <p className="text-sm text-[#1db954] sm:col-span-2">{notice}</p> : null}
         <div className="flex gap-2 sm:col-span-2">
-          <button type="submit" disabled={saving} className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60">
-            {saving ? "Salvando…" : form.id ? "Salvar produtor" : "Cadastrar produtor"}
+          <button type="submit" disabled={saving || uploading} className="site-btn-primary w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-60">
+            {uploading ? "Enviando a foto…" : saving ? "Salvando…" : form.id ? "Salvar produtor" : "Cadastrar produtor"}
           </button>
           {form.id ? (
             <button type="button" onClick={closeEditor} className="rounded-full border border-white/15 px-4 py-2 text-sm">

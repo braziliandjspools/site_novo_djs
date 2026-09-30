@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[82%] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]"}`}>
+    <article className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[82%] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -118,11 +118,11 @@ function ProductionCard({
         </span>
       </div>
       </div>
-      <div className="px-1.5 pb-1 pt-4">
-        <Link href={`/m/${production.slug}`} className="block truncate text-[15px] font-bold tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
+      <div className="flex flex-1 flex-col px-1.5 pb-1 pt-4">
+        <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[15px] font-bold leading-none tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
           {production.title}
         </Link>
-        <p className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-zinc-400">
+        <p className="mt-1.5 flex min-w-0 items-center gap-1.5 whitespace-nowrap text-xs text-zinc-400">
           <span className="truncate">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
@@ -142,7 +142,7 @@ function ProductionCard({
           </span>
           <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-zinc-500">{dateLabel}</span>
         </div>
-        <div className="mt-4 flex gap-2 border-t border-white/[0.07] pt-3.5">
+        <div className="mt-auto flex gap-2 border-t border-white/[0.07] pt-3.5">
           <button type="button" onClick={play} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.035] text-[10px] font-bold text-white transition hover:border-[#1db954]/45 hover:bg-[#1db954]/[0.06]">
             <Play className="h-3 w-3" fill="currentColor" />
             {access.canPlay ? "Ouvir" : "Entrar"}

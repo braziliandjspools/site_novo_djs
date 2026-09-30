@@ -75,8 +75,9 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
 
   return (
     <div className="font-[family-name:var(--font-space)]">
-      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="relative mx-auto aspect-square w-full max-w-[440px]">
+      <div className="grid items-stretch gap-4 lg:grid-cols-2">
+        <div className="flex h-full items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-6">
+        <div className="relative aspect-square w-full max-w-[440px]">
           <div className="absolute inset-[6%] rounded-full">
             {BARS.map((height, index) => (
               <span
@@ -110,10 +111,11 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             </span>
           </button>
         </div>
+        </div>
 
-        <div>
+        <div className="flex h-full flex-col justify-center rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Exclusiva BRS</p>
-          <h1 className="mt-3 text-4xl font-bold leading-tight text-white sm:text-6xl">{production.title}</h1>
+          <h1 className="mt-3 truncate text-3xl font-bold leading-none tracking-[-0.03em] text-white sm:text-4xl lg:text-[2.35rem]" title={production.title}>{production.title}</h1>
           <p className="mt-4 text-sm text-zinc-300">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="text-[#9ef7c0] hover:text-white">{production.producer}</Link>
@@ -162,16 +164,16 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               Ver perfil
             </Link>
           </div>
-          <ul className="grid gap-4 sm:grid-cols-2">
+          <ul className="grid items-stretch gap-4 sm:grid-cols-2">
             {more.map((item) => (
-              <li key={item.id}>
-                <Link href={`/m/${item.slug}`} className="flex items-center gap-4 rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(135deg,rgba(0,39,118,0.45),rgba(5,7,13,0.2))] p-3 transition hover:border-[#7eb6ff]/70">
+              <li key={item.id} className="h-full">
+                <Link href={`/m/${item.slug}`} className="flex h-full min-h-20 items-center gap-4 rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(135deg,rgba(0,39,118,0.45),rgba(5,7,13,0.2))] p-3 transition hover:border-[#7eb6ff]/70">
                   <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#102033]">
                     <Image src={item.coverUrl} alt="" fill unoptimized={!item.coverUrl.startsWith("/")} sizes="64px" className="object-cover" />
                   </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-bold text-white">{item.title}</span>
-                    <span className="mt-2 inline-flex rounded-md bg-[#002776] px-2 py-0.5 text-[10px] font-bold text-[#d7e7ff]">{item.versionType}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold leading-none text-white">{item.title}</span>
+                    <span className="shrink-0 rounded-md bg-[#002776] px-2 py-0.5 text-[10px] font-bold text-[#d7e7ff]">{item.versionType}</span>
                   </span>
                 </Link>
               </li>
