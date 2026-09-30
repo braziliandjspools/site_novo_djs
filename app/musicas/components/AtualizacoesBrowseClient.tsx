@@ -848,7 +848,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                         {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
                         Downloader
                       </button>
-                      <button type="button" onClick={() => void handlePackDownload()} aria-disabled={directTracks.length > 50 || downloadingPack} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 ${directTracks.length > 50 ? "cursor-not-allowed opacity-40" : ""} bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:opacity-50`">
+                      <button type="button" onClick={() => void handlePackDownload()} aria-disabled={directTracks.length > 50 || downloadingPack} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 ${directTracks.length > 50 ? "cursor-not-allowed opacity-40" : ""} bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:opacity-50`}>
                         {downloadingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
                         Baixar pasta
                       </button>
