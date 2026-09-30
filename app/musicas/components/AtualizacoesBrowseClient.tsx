@@ -327,6 +327,35 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     });
   }, [data, slugSegments]);
 
+  const poolsFolderId = data?.level === "tracks" && !data.filterPools ? data.folderId : "";
+  useEffect(() => {
+    if (!poolsFolderId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const body = await fetchMusicasJson<{ filterPools?: { slug: string; name: string }[] }>(
+          `${resolveUrl(slugPath)}&meta=pools`,
+        );
+        if (cancelled) return;
+        setData((current) =>
+          current && current.folderId === poolsFolderId
+            ? { ...current, filterPools: body.filterPools ?? [] }
+            : current,
+        );
+      } catch {
+        if (cancelled) return;
+        setData((current) =>
+          current && current.folderId === poolsFolderId && !current.filterPools
+            ? { ...current, filterPools: [] }
+            : current,
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [poolsFolderId, slugPath]);
+
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
   const loadMoreTracks = useCallback(async () => {

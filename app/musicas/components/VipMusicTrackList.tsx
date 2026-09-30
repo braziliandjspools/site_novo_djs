@@ -1468,7 +1468,7 @@ export function VipMusicTrackList({
 
   const drainLengthRef = useRef<number | null>(null);
   useEffect(() => {
-    const shouldDrain = markPickerOpen || markRule !== null || Boolean(poolFilterSlug || styleFilterSlug || searchDraft.trim());
+    const shouldDrain = markPickerOpen || markRule !== null;
     if (!shouldDrain) {
       drainLengthRef.current = null;
       return;
@@ -1476,7 +1476,7 @@ export function VipMusicTrackList({
     if (!hasMore || !onLoadMore || drainLengthRef.current === tracks.length) return;
     drainLengthRef.current = tracks.length;
     void onLoadMore();
-  }, [hasMore, markPickerOpen, markRule, onLoadMore, poolFilterSlug, searchDraft, styleFilterSlug, tracks.length]);
+  }, [hasMore, markPickerOpen, markRule, onLoadMore, tracks.length]);
 
   const copyTrackLink = useCallback(
     (track: PreviewTrack) => {

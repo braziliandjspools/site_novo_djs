@@ -24,6 +24,7 @@ function joinPath(...parts: Array<string | null | undefined>) {
 export function ImportDayPicker({
   token,
   dates,
+  rootIsDate,
   onClose,
   onConfirm,
 }: {
@@ -86,6 +87,7 @@ export function ImportDayPicker({
     for (const date of dates) {
       const day = contents[date.key];
       if (!day) continue;
+      const dayPrefix = rootIsDate ? "" : date.name;
       for (const pool of day.pools) {
         const marked = pool.styles.filter((style) => selected[style.folderId]);
         if (marked.length === 0) continue;
@@ -93,7 +95,7 @@ export function ImportDayPicker({
           targets.push({
             folderId: pool.folderId,
             folderName: pool.name,
-            relativePath: pool.name,
+            relativePath: joinPath(dayPrefix, pool.name),
           });
           continue;
         }
@@ -101,7 +103,7 @@ export function ImportDayPicker({
           targets.push({
             folderId: style.folderId,
             folderName: style.name,
-            relativePath: joinPath(pool.name, style.name),
+            relativePath: joinPath(dayPrefix, pool.name, style.name),
           });
         }
       }
@@ -110,7 +112,7 @@ export function ImportDayPicker({
         targets.push({
           folderId: style.folderId,
           folderName: style.name,
-          relativePath: style.name,
+          relativePath: joinPath(dayPrefix, style.name),
         });
       }
     }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
 import { findFolderBySlug } from "../../../lib/vip-music-slugs";
-import { getVipMusicCatalog, getVipMusicRootFolderId, listVipMusicFolders } from "../../../lib/vip-music-catalog";
+import { getVipMusicCatalog, getVipMusicRootFolderId, listUpdatePoolOptions, listVipMusicFolders } from "../../../lib/vip-music-catalog";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 
 export const revalidate = 120;
@@ -15,6 +15,7 @@ export async function GET(request: Request) {
   const forceRefresh = searchParams.get("refresh") === "1";
   const trackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
   const trackLimit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("trackLimit") ?? "50", 10) || 50));
+  const poolsOnly = searchParams.get("meta") === "pools";
 
   try {
     const rootId = getVipMusicRootFolderId();
@@ -40,6 +41,10 @@ export async function GET(request: Request) {
       }
 
       const target = resolvedPath.at(-1);
+      if (poolsOnly && target) {
+        const filterPools = await listUpdatePoolOptions(target.id, target.name);
+        return NextResponse.json({ ok: true, filterPools, ...access });
+      }
       const catalog = await getVipMusicCatalog(
         target?.id ?? undefined,
         target?.name ?? "Packs 2026",

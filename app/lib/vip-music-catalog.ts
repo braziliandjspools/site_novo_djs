@@ -50,6 +50,19 @@ async function listPoolOptionsFromParents(folderIds: string[]): Promise<CatalogF
     .map(([slug, name]) => ({ slug, name }))
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
+
+/** Pools de um mês ou de um dia, sem baixar as faixas. */
+export async function listUpdatePoolOptions(folderId: string, folderName: string): Promise<CatalogFilterOption[]> {
+  if (parseUpdateDateFolder(folderName)) {
+    return listPoolOptionsFromParents([folderId]);
+  }
+  const children = await listDriveFolderChildren(folderId);
+  const dates = children.filter(
+    (child) => child.mimeType === FOLDER_MIME && parseUpdateDateFolder(child.name),
+  );
+  if (dates.length === 0) return [];
+  return listPoolOptionsFromParents(dates.map((folder) => folder.id));
+}
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
 /** Pastas irmãs no deep-walk — paraleliza sem saturar a Drive API. */
@@ -603,8 +616,8 @@ async function getDriveCatalog(
     });
 
   if (monthFolder && dateFoldersAtMonth.length > 0) {
-    const filterPoolsPromise = listPoolOptionsFromParents(dateFoldersAtMonth.map((folder) => folder.id));
     // O Downloader pede o mês sem paginação. A tabela do site continua em lotes.
+    // As pools de todos os dias são listadas depois, para a tabela não esperar cada dia.
     if (trackLimit == null) {
       const nested = await mapPool(dateFoldersAtMonth, TRACK_WALK_CONCURRENCY, async (dateFolder) => {
         const parsed = parseUpdateDateFolder(dateFolder.name);
@@ -635,7 +648,6 @@ async function getDriveCatalog(
         items: [],
         tracks,
         tracksHasMore: false,
-        filterPools: await filterPoolsPromise,
         updateDays: updateDayLinks(dateFoldersAtMonth),
         coverUrl,
       };
@@ -692,7 +704,6 @@ async function getDriveCatalog(
       items: [],
       tracks,
       tracksHasMore: state.hasMore || datedTracks.length > requestedLimit,
-      filterPools: await filterPoolsPromise,
       updateDays: updateDayLinks(dateFoldersAtMonth),
       coverUrl,
     };
@@ -702,20 +713,16 @@ async function getDriveCatalog(
   // continua mostrando a tabela de músicas e suas colunas Pool/Estilo.
   const dateFolder = parseUpdateDateFolder(folderName);
   if (dateFolder) {
-    const [tracks, filterPools] = await Promise.all([
-      collectTracksDeep(
-        folderId,
-        folderName,
-        0,
-        new Set<string>(),
-        dateFolder.key,
-        null,
-        null,
-        true,
-      ),
-      listPoolOptionsFromParents([folderId]),
-    ]);
-    const sortedTracks = tracks.sort(sortTracksByUploadThenTitle);
+    const tracks = (await collectTracksDeep(
+      folderId,
+      folderName,
+      0,
+      new Set<string>(),
+      dateFolder.key,
+      null,
+      null,
+      true,
+    )).sort(sortTracksByUploadThenTitle);
 
     return {
       configured: true,
@@ -725,8 +732,7 @@ async function getDriveCatalog(
       folderName,
       level: "tracks",
       items: [],
-      tracks: sortedTracks,
-      filterPools,
+      tracks,
       coverUrl,
     };
   }

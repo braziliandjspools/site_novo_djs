@@ -186,6 +186,41 @@ export async function previewPackBySlug(slug: string, options?: { root?: PackRoo
   };
 }
 
+const DRIVE_FOLDER = "application/vnd.google-apps.folder";
+
+async function mapTargetDays(
+  parentId: string,
+  parentName: string,
+  targets: { folderId: string }[],
+): Promise<Map<string, string>> {
+  const found = new Map<string, string>();
+  const wanted = new Set(targets.map((target) => target.folderId));
+  if (wanted.size === 0 || parseUpdateDateFolder(parentName)) return found;
+
+  const children = await listDriveFolderChildren(parentId);
+  const dates = children.filter(
+    (child) => child.mimeType === DRIVE_FOLDER && parseUpdateDateFolder(child.name),
+  );
+  await mapPool(dates, 4, async (date) => {
+    const nested = await listDriveFolderChildren(date.id);
+    for (const child of nested) {
+      if (wanted.has(child.id)) found.set(child.id, date.name);
+    }
+    const pools = nested.filter((child) => child.mimeType === DRIVE_FOLDER);
+    await mapPool(pools, 4, async (pool) => {
+      if (wanted.has(pool.id)) {
+        found.set(pool.id, date.name);
+        return;
+      }
+      const styles = await listDriveFolderChildren(pool.id);
+      for (const style of styles) {
+        if (wanted.has(style.id)) found.set(style.id, date.name);
+      }
+    });
+  });
+  return found;
+}
+
 export async function importPackJobsBySlug(
   portalUserId: number,
   slug: string,
@@ -212,18 +247,22 @@ export async function importPackJobsBySlug(
   }
 
   const selected = options?.targets?.filter((target) => target.folderId?.trim()) ?? [];
-  const basePath = parseUpdateDateFolder(folder.folderName)
-    ? folder.pathLabels.slice(0, -1).join("/")
-    : folder.relativePath;
+  const dayByFolder = await mapTargetDays(folder.folderId, folder.folderName, selected);
   const tracks = selected.length
     ? (
-        await mapPool(selected, 4, (target) =>
-          collectTracksRecursive(
+        await mapPool(selected, 4, (target) => {
+          const dayName = dayByFolder.get(target.folderId) ?? "";
+          const relative = target.relativePath?.trim() ?? "";
+          const withDay =
+            dayName && !relative.startsWith(`${dayName}/`) && relative !== dayName
+              ? `${dayName}/${relative}`
+              : relative || dayName;
+          return collectTracksRecursive(
             target.folderId,
             target.folderName,
-            target.relativePath ? `${basePath}/${target.relativePath}` : basePath,
-          ),
-        )
+            withDay ? `${folder.relativePath}/${withDay}` : folder.relativePath,
+          );
+        })
       ).flat()
     : await collectTracksRecursive(folder.folderId, folder.folderName, folder.relativePath);
   if (tracks.length === 0) {

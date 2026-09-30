@@ -284,6 +284,18 @@ export function parseMonthFolderDate(name: string): { year: number; month: numbe
   return { year: new Date().getFullYear(), month };
 }
 
+/** Pasta cujo nome é só o ano, como `2026`. */
+export function isYearFolderName(name: string): boolean {
+  const label = displayFolderName(name).trim();
+  if (!/^\d{4}$/.test(label)) return false;
+  const year = Number(label);
+  return year >= 2000 && year <= 2100;
+}
+
+export function isYearSlug(slug: string): boolean {
+  return isYearFolderName(slug);
+}
+
 /** Detecta pastas de mês: "JANEIRO", "04- ABRIL 2024", "Janeiro 2024", etc. */
 export function isMonthFolderName(name: string): boolean {
   return parseMonthFolderDate(name) != null;

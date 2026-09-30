@@ -22,6 +22,8 @@ import {
   isMonthFolderName,
   isUpdateDateFolderName,
   isWeekFolderName,
+  isYearFolderName,
+  isYearSlug,
   parseUpdateDateFolder,
   slugifyFolderName,
   slugifyStyleName,
@@ -225,8 +227,12 @@ export function AtualizacoesBrowseNavSidebar({
   }, [slugSegments.join("/")]);
 
   const packSlug = slugSegments[0] ?? "";
-  const monthSlug = slugSegments[1] ?? "";
-  const weekSlug = slugSegments[2] ?? "";
+  const yearSlug =
+    slugSegments.find((slug) => isYearSlug(slug)) ??
+    (isYearFolderName(resolvedPath[resolvedPath.length - 1]?.name ?? "") ? slugSegments[slugSegments.length - 1] ?? "" : "");
+  const monthFromPath = [...resolvedPath].reverse().find((part) => isMonthFolderName(part.name));
+  const monthSlug = monthFromPath?.slug ?? (yearSlug ? "" : slugSegments[1] ?? "");
+  const weekSlug = yearSlug ? (slugSegments[3] ?? "") : (slugSegments[2] ?? "");
   const currentSlug = slugSegments[slugSegments.length - 1] ?? "";
 
   const packs = useMemo(
@@ -280,11 +286,25 @@ export function AtualizacoesBrowseNavSidebar({
     return sortVipChildFolders(
       uniqueById(
         source.filter(
-          (folder) => !isWeekFolderName(folder.name) && !isMonthFolderName(folder.name),
+          (folder) =>
+            !isWeekFolderName(folder.name) &&
+            !isMonthFolderName(folder.name) &&
+            !isYearFolderName(folder.name),
         ),
       ),
     );
   }, [currentChildren, siblings]);
+
+  const years = useMemo(() => {
+    const fromChildren = currentChildren.filter((folder) => isYearFolderName(folder.name));
+    const fromSiblings = siblings.filter((folder) => isYearFolderName(folder.name));
+    const list = uniqueById(fromChildren.length > 0 ? fromChildren : fromSiblings);
+    const pathYear = resolvedPath.find((part) => isYearFolderName(part.name));
+    if (pathYear && !list.some((folder) => slugifyFolderName(folder.name) === pathYear.slug)) {
+      list.unshift({ id: pathYear.id ?? pathYear.slug, name: pathYear.name });
+    }
+    return list.sort((a, b) => displayFolderName(b.name).localeCompare(displayFolderName(a.name), "pt-BR"));
+  }, [currentChildren, resolvedPath, siblings]);
 
   const dayFolders = useMemo(
     () => styleFolders.filter((folder) => isUpdateDateFolderName(folder.name)),
@@ -363,7 +383,7 @@ export function AtualizacoesBrowseNavSidebar({
           {displayFolderName(currentTitle)}
         </h2>
         <p className="mt-1 text-[11px] leading-relaxed text-white/50">
-          Pack → Mês → Dia → Músicas. O dia vira link.
+          Pack → Ano → Mês → Dia → Músicas. O ano e o dia entram no link.
         </p>
         <Link
           href="/musicas/atualizacoes"
@@ -420,7 +440,24 @@ export function AtualizacoesBrowseNavSidebar({
           )}
         </SidebarSection>
 
-        {packSlug ? (
+        {years.length > 0 && packSlug ? (
+          <SidebarSection title="Anos" icon={CalendarDays} count={years.length} defaultOpen>
+            {years.map((year) => {
+              const slug = slugifyFolderName(year.name);
+              return (
+                <NavLink
+                  key={year.id}
+                  href={folderHref([packSlug, slug])}
+                  title={displayFolderName(year.name)}
+                  active={yearSlug === slug}
+                  isNew={newChildIds?.has(year.id)}
+                />
+              );
+            })}
+          </SidebarSection>
+        ) : null}
+
+        {months.length > 0 && packSlug ? (
           <SidebarSection title="Meses" icon={CalendarDays} count={months.length} defaultOpen>
             {months.length > 0 ? (
               months.map((month) => {
@@ -428,7 +465,7 @@ export function AtualizacoesBrowseNavSidebar({
                 return (
                   <NavLink
                     key={month.id}
-                    href={folderHref([packSlug, slug])}
+                    href={folderHref(yearSlug ? [packSlug, yearSlug, slug] : [packSlug, slug])}
                     title={displayFolderName(month.name)}
                     active={monthSlug === slug}
                     isNew={newChildIds?.has(month.id)}
@@ -451,7 +488,7 @@ export function AtualizacoesBrowseNavSidebar({
                 return (
                   <NavLink
                     key={week.id}
-                    href={folderHref([packSlug, monthSlug, slug])}
+                    href={folderHref(yearSlug ? [packSlug, yearSlug, monthSlug, slug] : [packSlug, monthSlug, slug])}
                     title={displayFolderName(week.name)}
                     active={weekSlug === slug}
                     isNew={newChildIds?.has(week.id)}
