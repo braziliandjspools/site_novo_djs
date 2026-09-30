@@ -130,8 +130,9 @@ export async function readCatalogImage(key: string) {
     cache: "no-store",
   });
   if (!res.ok || !res.body) throw new Error("Imagem não encontrada.");
+  const bytes = await res.arrayBuffer();
   return {
-    body: res.body,
+    body: bytes,
     contentType: res.headers.get("content-type") || "image/jpeg",
   };
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -144,13 +143,11 @@ function Catalog({
               className="absolute inset-[18%] overflow-hidden rounded-full border-4 border-[#102033] bg-[#07111c] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
             >
               {producer.photoUrl ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={producer.photoUrl}
                   alt=""
-                  fill
-                  unoptimized
-                  sizes="320px"
-                  className={`object-cover ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}
+                  className={`absolute inset-0 h-full w-full object-cover ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}
                 />
               ) : (
                 <span className={`flex h-full items-center justify-center text-5xl font-semibold text-[#9ef7c0] ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}>{initials}</span>
