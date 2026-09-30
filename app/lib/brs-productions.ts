@@ -1,7 +1,7 @@
 import type { PreviewTrack } from "./google-drive";
 import { prisma } from "./prisma";
 import { PLACEHOLDER } from "./theme";
-import { slugifyFolderName } from "./vip-music-slugs";
+import { catalogMediaUrl } from "./catalog-media";
 
 export const BRS_PRODUCTION_CATEGORIES = [
   { id: "BRS_ORIGINAL", label: "BRS ORIGINAL" },
@@ -82,11 +82,7 @@ export function categoryLabel(category: string) {
 }
 
 export function productionCover(coverUrl: string | null | undefined, coverFileId?: string | null) {
-  if (coverFileId && /^[a-zA-Z0-9_-]+$/.test(coverFileId)) {
-    return `/api/musicas/cover/${coverFileId}`;
-  }
-  const value = coverUrl?.trim();
-  return value || PLACEHOLDER.trackCover;
+  return catalogMediaUrl(coverFileId) || coverUrl?.trim() || PLACEHOLDER.trackCover;
 }
 
 export function toPublicProduction(row: ProductionRow): PublicBrsProduction {
@@ -98,9 +94,7 @@ export function toPublicProduction(row: ProductionRow): PublicBrsProduction {
     producer: row.producerRef?.name || row.producer,
     producerSlug: row.producerRef?.slug ?? null,
     producerBio: row.producerRef?.bio ?? null,
-    producerPhotoUrl: row.producerRef?.photoFileId
-      ? `/api/musicas/cover/${row.producerRef.photoFileId}`
-      : null,
+    producerPhotoUrl: catalogMediaUrl(row.producerRef?.photoFileId),
     versionType: row.versionType,
     versionLabel: row.versionLabel,
     category: row.category,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProducerCatalog } from "../../components/ProducerCatalog";
+import { catalogMediaUrl } from "../../lib/catalog-media";
 import { getProducerPage } from "../../lib/brs-productions";
 
 type PageProps = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
@@ -32,7 +33,7 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
   if (!data) notFound();
   const { producer, items, total, pageSize } = data;
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  const photoUrl = producer.photoFileId ? `/api/musicas/cover/${producer.photoFileId}` : null;
+  const photoUrl = catalogMediaUrl(producer.photoFileId);
   const place = [producer.city, producer.country].filter(Boolean).join(", ") || null;
 
   return (

@@ -128,7 +128,7 @@ export function AdminProducers() {
             if (!file) return;
             const body = new FormData();
             body.set("file", file);
-            body.set("kind", "cover");
+            body.set("kind", "profile");
             const res = await fetch("/api/admin/producoes/upload", { method: "POST", body });
             const data = (await res.json()) as { fileId?: string; error?: string };
             if (!data.fileId) setError(data.error ?? "Falha no envio da foto.");

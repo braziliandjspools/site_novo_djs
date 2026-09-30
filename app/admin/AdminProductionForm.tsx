@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { catalogMediaUrl } from "../lib/catalog-media";
 import { BRS_PRODUCTION_CATEGORIES, BRS_PRODUCTION_VERSIONS } from "../lib/brs-productions";
 
 export type ProductionDraft = {
@@ -142,13 +143,14 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
     body.set("file", file);
     body.set("kind", "cover");
     const res = await fetch("/api/admin/producoes/upload", { method: "POST", credentials: "same-origin", body });
-    const data = (await res.json()) as { fileId?: string; error?: string };
+    const data = (await res.json()) as { fileId?: string; url?: string; error?: string };
     setBusy("");
     if (!res.ok || !data.fileId) {
       setError(data.error ?? "Falha no envio da capa.");
       return;
     }
     set("coverFileId", data.fileId);
+    if (data.url) set("coverUrl", data.url);
   }
 
   async function createProducer() {
@@ -215,9 +217,7 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
     }
   }
 
-  const coverPreview = form.coverFileId
-    ? `/api/musicas/cover/${form.coverFileId}`
-    : form.coverUrl || null;
+  const coverPreview = form.coverUrl || catalogMediaUrl(form.coverFileId);
 
   return (
     <form onSubmit={submit} className="grid gap-4 text-sm">
