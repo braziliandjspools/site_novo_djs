@@ -14,7 +14,7 @@ type PortalLoginProps = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3.5 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1ed760]/50 focus:ring-2 focus:ring-[#1ed760]/20";
+  "w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1ed760]/50 focus:ring-2 focus:ring-[#1ed760]/20";
 
 const labelClassName = "block text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500";
 
@@ -52,7 +52,7 @@ function PasswordField({
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-1 flex items-center justify-between gap-2">
         <label htmlFor={id} className={labelClassName}>
           {label}
         </label>
@@ -183,7 +183,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden px-4 ${
-        embedded ? "min-h-0 bg-transparent py-6" : "min-h-screen bg-[#0a0a0a] py-12 sm:py-16"
+        embedded ? "min-h-0 bg-transparent py-4" : "min-h-dvh bg-[#0a0a0a] py-4 sm:py-6"
       }`}
     >
       {!embedded && (
@@ -194,27 +194,24 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
         </>
       )}
 
-      <div className="relative w-full max-w-md sm:max-w-lg">
-        <div className="mb-8 text-center">
+      <div className="relative w-full max-w-md">
+        <div className="mb-3 text-center">
           <div className="flex justify-center">
-            <BrsLogo href="/" className="h-12 w-auto max-w-[280px] object-contain sm:h-14" />
+            <BrsLogo href="/" className="h-9 w-auto max-w-[200px] object-contain" />
           </div>
-          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#1ed760]/80">
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1ed760]/80">
             Área do cliente
-          </p>
-          <p className="mt-2 text-sm text-zinc-500">
-            Portal VIP · licenças, produções e serviços BRS
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#121212]/90 shadow-[0_30px_100px_rgba(0,0,0,0.65)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121212]/90 shadow-[0_24px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
           <div className="br-stripe-thin" />
-          <div className="p-6 sm:p-8">
-            <div className="flex gap-1.5 rounded-2xl border border-white/5 bg-black/40 p-1.5">
+          <div className="p-4 sm:p-5">
+            <div className="flex gap-1 rounded-xl border border-white/5 bg-black/40 p-1">
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] transition-all ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-all ${
                   mode === "login"
                     ? "bg-[#1ed760] text-black shadow-[0_8px_24px_rgba(30,215,96,0.25)]"
                     : "text-zinc-500 hover:text-white"
@@ -226,7 +223,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               <button
                 type="button"
                 onClick={() => switchMode("register")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold tracking-[-0.01em] transition-all ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-all ${
                   mode === "register"
                     ? "bg-[#1ed760] text-black shadow-[0_8px_24px_rgba(30,215,96,0.25)]"
                     : "text-zinc-500 hover:text-white"
@@ -239,14 +236,14 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
 
             {mode === "login" ? (
               <>
-                <h1 className="mt-7 text-2xl font-bold tracking-tight text-white">Bem-vindo de volta</h1>
-                <p className="mt-1.5 text-sm text-zinc-500">
+                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Bem-vindo de volta</h1>
+                <p className="mt-0.5 text-xs text-zinc-500">
                   Entre para acessar o acervo VIP, portal e Downloader.
                 </p>
 
-                <form onSubmit={(e) => void handleLogin(e)} className="mt-8 space-y-5">
+                <form onSubmit={(e) => void handleLogin(e)} className="mt-4 space-y-3">
                   <div>
-                    <label htmlFor="portal-email" className={`${labelClassName} mb-2`}>
+                    <label htmlFor="portal-email" className={`${labelClassName} mb-1`}>
                       E-mail
                     </label>
                     <input
@@ -277,7 +274,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:scale-[1.01] hover:bg-[#2dff7a] disabled:opacity-60 disabled:hover:scale-100"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                     Entrar
@@ -286,15 +283,15 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
               </>
             ) : (
               <>
-                <h1 className="mt-7 text-2xl font-bold tracking-tight text-white">Crie sua conta</h1>
-                <p className="mt-1.5 text-sm text-zinc-500">
-                  Sem plano no cadastro — depois você assina VIP, Allavsoft ou pede uma produção.
+                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Crie sua conta</h1>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Sem plano no cadastro. Você assina VIP depois.
                 </p>
 
-                <form onSubmit={(e) => void handleRegister(e)} className="mt-8 space-y-5">
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="portal-name" className={`${labelClassName} mb-2`}>
+                <form onSubmit={(e) => void handleRegister(e)} className="mt-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label htmlFor="portal-name" className={`${labelClassName} mb-1`}>
                         Nome completo
                       </label>
                       <input
@@ -309,7 +306,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                       />
                     </div>
                     <div>
-                      <label htmlFor="portal-register-email" className={`${labelClassName} mb-2`}>
+                      <label htmlFor="portal-register-email" className={`${labelClassName} mb-1`}>
                         E-mail
                       </label>
                       <input
@@ -324,7 +321,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                       />
                     </div>
                     <div>
-                      <label htmlFor="portal-whatsapp" className={`${labelClassName} mb-2`}>
+                      <label htmlFor="portal-whatsapp" className={`${labelClassName} mb-1`}>
                         WhatsApp
                       </label>
                       <input
@@ -351,7 +348,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
 
                   <label
                     htmlFor="portal-accept-terms"
-                    className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-black/30 px-3.5 py-3 text-sm text-zinc-400 transition-colors hover:border-white/20"
+                    className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs leading-snug text-zinc-400 transition-colors hover:border-white/20"
                   >
                     <input
                       id="portal-accept-terms"
@@ -395,7 +392,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                   <button
                     type="submit"
                     disabled={loading || !acceptedTerms}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-6 py-3.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:scale-[1.01] hover:bg-[#2dff7a] disabled:opacity-60 disabled:hover:scale-100"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1ed760] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
                     Criar conta
@@ -406,7 +403,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-zinc-600">
+        <p className="mt-3 text-center text-xs text-zinc-600">
           {mode === "login" ? (
             <>
               Ainda não tem conta?{" "}
