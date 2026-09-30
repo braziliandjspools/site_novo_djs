@@ -35,6 +35,47 @@ function loginHref(returnPath: string) {
   return `/musicas/entrar?return=${encodeURIComponent(returnPath)}`;
 }
 
+function SocialIcon({ label }: { label: string }) {
+  const name = label.toLowerCase();
+  const common = { className: "h-4 w-4", viewBox: "0 0 24 24", fill: "currentColor", "aria-hidden": true as const };
+  if (name.includes("instagram")) {
+    return (
+      <svg {...common}>
+        <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 4.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5zm6.2-.9a1 1 0 1 0 1 1 1 1 0 0 0-1-1zM12 9.2A2.8 2.8 0 1 1 9.2 12 2.8 2.8 0 0 1 12 9.2z" />
+      </svg>
+    );
+  }
+  if (name.includes("facebook")) {
+    return (
+      <svg {...common}>
+        <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z" />
+      </svg>
+    );
+  }
+  if (name.includes("youtube")) {
+    return (
+      <svg {...common}>
+        <path d="M23 12.2s0-3.2-.4-4.6a3 3 0 0 0-2.1-2.1C18.9 5 12 5 12 5s-6.9 0-8.5.5a3 3 0 0 0-2.1 2.1C1 9 1 12.2 1 12.2s0 3.2.4 4.6a3 3 0 0 0 2.1 2.1C5.1 19.4 12 19.4 12 19.4s6.9 0 8.5-.5a3 3 0 0 0 2.1-2.1c.4-1.4.4-4.6.4-4.6zM9.8 15.5v-6.6l6.2 3.3z" />
+      </svg>
+    );
+  }
+  if (name.includes("soundcloud")) {
+    return (
+      <svg {...common}>
+        <path d="M17.5 10.2a4.4 4.4 0 0 0-4.2 3H7.6a.6.6 0 0 0-.6.6v.8h6.3a3.2 3.2 0 1 0 4.2-4.4zM4 14.8h.8v-2.2H4zm1.4 0h.8v-3.2h-.8zm1.4 0h.8V10h-.8z" />
+      </svg>
+    );
+  }
+  if (name.includes("spotify")) {
+    return (
+      <svg {...common}>
+        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm4.6 14.4a.6.6 0 0 1-.8.2c-2.3-1.4-5.2-1.7-8.6-.9a.6.6 0 1 1-.3-1.2c3.7-.9 7-0.5 9.6 1.1a.6.6 0 0 1 .1.8zm1.2-2.7a.8.8 0 0 1-1 .2c-2.6-1.6-6.6-2.1-9.7-1.1a.8.8 0 0 1-.5-1.5c3.5-1.1 8-0.6 11 1.3a.8.8 0 0 1 .2 1.1zm.1-2.8C14.8 9.4 9.6 9.2 7 10a1 1 0 1 1-.6-1.9c3-0.9 8.7-.6 12.1 1.4a1 1 0 0 1-1.1 1.6z" />
+      </svg>
+    );
+  }
+  return <ExternalLink className="h-4 w-4" />;
+}
+
 function Catalog({
   producer,
   productions,
@@ -182,11 +223,11 @@ function Catalog({
               <button type="button" onClick={() => void shareProfile()} aria-label="Compartilhar perfil" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
                 <Share2 className="h-4 w-4" />
               </button>
-              {producer.links[0] ? (
-                <a href={producer.links[0].href} target="_blank" rel="noreferrer" aria-label={producer.links[0].label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
-                  <ExternalLink className="h-4 w-4" />
+              {producer.links.map((link) => (
+                <a key={link.href} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
+                  <SocialIcon label={link.label} />
                 </a>
-              ) : null}
+              ))}
             </div>
           </div>
         </section>

@@ -194,11 +194,11 @@ export function ProductionRail({
   const rail = (
     <div>
       {layout === "carousel" && productions.length > 1 ? (
-        <div className="mb-4 flex justify-end gap-2">
-          <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760]">
+      <div className="mb-3 flex translate-x-3 justify-end gap-1 sm:translate-x-8">
+          <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-white/80">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <button type="button" aria-label="Próximas produções" onClick={() => scrollByCard(1)} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white shadow-xl backdrop-blur-md transition hover:border-[#1db954]/45 hover:text-[#1ed760]">
+          <button type="button" aria-label="Próximas produções" onClick={() => scrollByCard(1)} className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-white/80">
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
