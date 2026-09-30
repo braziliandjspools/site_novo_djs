@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import {
   Download,
   ExternalLink,
-  Instagram,
   Lock,
   Pause,
   Play,
@@ -330,7 +329,7 @@ function Catalog({
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/45 transition hover:text-[#1ed760]"
                       >
-                        {link.label.toLowerCase().includes("instagram") ? <Instagram className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                        <ExternalLink className="h-3.5 w-3.5" />
                         {link.label}
                       </a>
                     ))}
