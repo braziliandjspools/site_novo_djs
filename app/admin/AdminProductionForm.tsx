@@ -124,9 +124,9 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
     xhr.onload = () => {
       try {
         const data = JSON.parse(xhr.responseText) as { error?: string; file?: Parameters<typeof applyRecognizedFile>[0] };
-        if (xhr.status < 200 || xhr.status >= 300 || !data.file) { setError(data.error ?? "Falha no upload da faixa."); return; }
+        if (xhr.status < 200 || xhr.status >= 300 || !data.file) { setError(data.error ?? "Falha no upload da faixa."); setBusy(""); return; }
         applyRecognizedFile(data.file); setAudioSource("r2"); setUploadProgress(100); setBusy("");
-      } catch { setError("O servidor devolveu uma resposta inválida."); }
+      } catch { setError("O servidor devolveu uma resposta inválida."); setBusy(""); }
       finally { window.setTimeout(() => setUploadProgress(0), 1200); }
     };
     xhr.onerror = () => { setError("Falha de conexão durante o upload."); setBusy(""); setUploadProgress(0); };
