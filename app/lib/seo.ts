@@ -39,7 +39,6 @@ export type SeoPageKey =
   | "musicas-atualizacoes"
   | "musicas-artistas"
   | "musicas-entrar"
-  | "packs-para-djs"
   | "dj-pool-brasil"
   | "remix-service-brasil"
   | "privacidade"
@@ -240,25 +239,6 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     ogImage: "musicas-entrar",
     noIndex: true,
     sitemap: false,
-  },
-  "packs-para-djs": {
-    key: "packs-para-djs",
-    path: "/packs-para-djs",
-    title: `Packs para DJs | ${SITE_NAME}`,
-    description:
-      "Explore packs para DJs com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, flashback e outros estilos organizados para diferentes pistas.",
-    ogImage: "home",
-    keywords: [
-      "packs para DJs",
-      "pack funk DJ",
-      "pack sertanejo DJ",
-      "extended mix",
-      "intro edit",
-    ],
-    sitemap: true,
-    changeFrequency: "weekly",
-    priority: 0.92,
-    lastModified: SEO_STATIC_LASTMOD,
   },
   "dj-pool-brasil": {
     key: "dj-pool-brasil",
