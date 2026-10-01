@@ -145,7 +145,7 @@ async function catalogObjectExists(key: string) {
 
 export async function readCatalogImage(key: string) {
   if (!r2Configured()) throw new Error("R2 não configurado.");
-  if (!/^(capas|perfis)\/[a-zA-Z0-9._-]+$/.test(key)) throw new Error("Arquivo inválido.");
+  if (!/^(capas|perfis|banners)\/[a-zA-Z0-9._-]+$/.test(key)) throw new Error("Arquivo inválido.");
   const accountId = process.env.R2_ACCOUNT_ID!;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID!;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY!;
