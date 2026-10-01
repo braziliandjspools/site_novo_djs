@@ -16,6 +16,8 @@ export async function GET(request: Request) {
   const trackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
   const trackLimit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("trackLimit") ?? "50", 10) || 50));
   const poolsOnly = searchParams.get("meta") === "pools";
+  const dayParam = searchParams.get("dia")?.trim() ?? "";
+  const dayKey = /^\d{4}-\d{2}-\d{2}$/.test(dayParam) ? dayParam : null;
 
   try {
     const rootId = getVipMusicRootFolderId();
@@ -50,6 +52,7 @@ export async function GET(request: Request) {
         target?.name ?? "Packs 2026",
         trackOffset,
         trackLimit,
+        dayKey,
       );
 
       // Metadados de Pool/Estilo para qualquer nível do acervo:

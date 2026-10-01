@@ -515,6 +515,7 @@ async function getDriveCatalog(
   folderName: string,
   trackOffset = 0,
   trackLimit?: number,
+  dayKey: string | null = null,
 ): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
   const children = await listDriveFolderChildren(folderId);
@@ -595,15 +596,18 @@ async function getDriveCatalog(
   // As pastas de data NÃO viram uma segunda tela: seus nomes são preservados
   // em updateDate e as colunas Pool/Estilo são preenchidas pelo deep-walk.
   const monthFolder = parseMonthFolderDate(folderName);
-  const dateFoldersAtMonth = subfolders
+  const allDateFolders = subfolders
     .filter((folder) => parseUpdateDateFolder(folder.name))
     .sort((a, b) => {
       const ad = parseUpdateDateFolder(a.name)?.key ?? "";
       const bd = parseUpdateDateFolder(b.name)?.key ?? "";
       return bd.localeCompare(ad);
     });
+  const dateFoldersAtMonth = dayKey
+    ? allDateFolders.filter((folder) => parseUpdateDateFolder(folder.name)?.key === dayKey)
+    : allDateFolders;
 
-  if (monthFolder && dateFoldersAtMonth.length > 0) {
+  if (monthFolder && allDateFolders.length > 0) {
     // O Downloader pede o mês sem paginação. A tabela do site continua em lotes.
     // As pools de todos os dias são listadas depois, para a tabela não esperar cada dia.
     if (trackLimit == null) {
@@ -636,7 +640,7 @@ async function getDriveCatalog(
         items: [],
         tracks,
         tracksHasMore: false,
-        updateDays: updateDayLinks(dateFoldersAtMonth),
+        updateDays: updateDayLinks(allDateFolders),
         coverUrl,
       };
     }
@@ -692,7 +696,7 @@ async function getDriveCatalog(
       items: [],
       tracks,
       tracksHasMore: state.hasMore || datedTracks.length > requestedLimit,
-      updateDays: updateDayLinks(dateFoldersAtMonth),
+      updateDays: updateDayLinks(allDateFolders),
       coverUrl,
     };
   }
@@ -996,6 +1000,7 @@ export async function getVipMusicCatalog(
   folderName?: string,
   trackOffset = 0,
   trackLimit?: number,
+  dayKey?: string | null,
 ): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
 
@@ -1021,7 +1026,14 @@ export async function getVipMusicCatalog(
   }
 
   try {
-    const catalog = await getDriveCatalog(targetId, resolvedName, trackOffset, trackLimit);
+    const day = dayKey?.trim() ?? "";
+    const catalog = await getDriveCatalog(
+      targetId,
+      resolvedName,
+      trackOffset,
+      trackLimit,
+      /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null,
+    );
     return catalog;
   } catch {
     return {

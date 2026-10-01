@@ -78,6 +78,7 @@ function resolveUrl(
   forceRefresh = false,
   trackOffset?: number,
   trackLimit = 50,
+  day?: string,
 ) {
   const params = new URLSearchParams({ slug: slugPath });
   if (forceRefresh) params.set("refresh", "1");
@@ -85,6 +86,7 @@ function resolveUrl(
     params.set("trackOffset", String(trackOffset));
     params.set("trackLimit", String(trackLimit));
   }
+  if (day) params.set("dia", day);
   return `/api/musicas/resolve?${params.toString()}`;
 }
 
@@ -114,6 +116,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
   const estiloSlug = searchParams.get("estilo");
+  const dayFilter = searchParams.get("dia") ?? "";
   const faixaId = searchParams.get("faixa");
   const slugPath = slugSegments.join("/");
   const packSlug = slugSegments[0] ?? "";
@@ -236,8 +239,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {
-      const canonicalUrl = resolveUrl(slugPath);
-      const url = resolveUrl(slugPath, options?.forceRefresh);
+      const canonicalUrl = resolveUrl(slugPath, false, undefined, 50, dayFilter);
+      const url = resolveUrl(slugPath, options?.forceRefresh, undefined, 50, dayFilter);
       const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
       const keepVisible = Boolean(options?.forceRefresh && hasTracksRef.current);
       if (cached) {
@@ -266,7 +269,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         setLoading(false);
       }
     },
-    [slugPath],
+    [slugPath, dayFilter],
   );
 
   useEffect(() => {
@@ -367,7 +370,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     loadingMoreTracksRef.current = true;
     setLoadingMoreTracks(true);
     try {
-      const url = resolveUrl(slugPath, false, directTracks.length, 50);
+      const url = resolveUrl(slugPath, false, directTracks.length, 50, dayFilter);
       const body = await fetchMusicasJson<ResolveResponse>(url);
       setData((current) => {
         if (!current) return body;
@@ -383,7 +386,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       loadingMoreTracksRef.current = false;
       setLoadingMoreTracks(false);
     }
-  }, [data, directTracks.length, showToast, slugPath, tracksHasMore]);
+  }, [data, dayFilter, directTracks.length, showToast, slugPath, tracksHasMore]);
 
 
 
