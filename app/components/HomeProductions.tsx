@@ -223,7 +223,12 @@ export function ProductionRail({
         }
       `}</style>
     <div>
-      {renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
+      {headerTitle ? (
+        <div className="mb-3 flex items-center justify-between gap-4">
+          <h2 className="min-w-0 font-display text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{headerTitle}</h2>
+          {renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
+        </div>
+      ) : renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
       {!renderHeaderActions && layout === "carousel" && productions.length > 1 ? (
         <div className="mb-3 flex justify-end gap-1">
           <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-white/80">
