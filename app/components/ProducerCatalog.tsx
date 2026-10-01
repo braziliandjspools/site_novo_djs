@@ -11,8 +11,6 @@ import { productionToPreviewTrack, type PublicBrsProduction } from "../lib/brs-p
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
 
 const FOLDER_ID = "brs-productions";
-const PROFILE_BARS = [18, 28, 16, 36, 22, 42, 20, 34, 14, 40, 24, 32, 18, 38, 22, 30, 16, 36, 26, 44, 20, 34, 18, 28];
-
 type Access = {
   authenticated: boolean;
   canPlay: boolean;
@@ -142,39 +140,25 @@ function Catalog({
         <section className="grid items-start gap-4 lg:grid-cols-2">
           <div className="flex flex-col items-center gap-4">
           <div className="relative aspect-square w-full max-w-[420px]">
-            <div className="absolute inset-[6%] z-0 rounded-full">
-              {PROFILE_BARS.map((height, index) => (
-                <span
-                  key={index}
-                  className="absolute left-1/2 top-1/2 w-1 origin-bottom rounded-full bg-gradient-to-t from-[#1db954] via-[#7eb6ff] to-[#ffe566]"
-                  style={{
-                    height: `${spinning ? height : 10}px`,
-                    transform: `rotate(${index * (360 / PROFILE_BARS.length)}deg) translateY(-176px)`,
-                    opacity: spinning ? 0.95 : 0.35,
-                    transition: "height 180ms linear",
-                  }}
-                />
-              ))}
-            </div>
             <button
               type="button"
               onClick={() => photo && setExpanded(true)}
               aria-label={photo ? `Ampliar foto de ${producer.name}` : producer.name}
-              className="absolute inset-[18%] z-10 overflow-hidden rounded-full border-4 border-[#102033] bg-[#07111c] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
+              className="absolute inset-0 z-10 overflow-hidden rounded-[24px] border border-white/10 bg-[#07111c] shadow-[0_0_70px_rgba(0,80,180,0.25)]"
             >
               {photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={photo}
                   alt=""
-                  className={`absolute inset-0 z-10 h-full w-full object-cover ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}
+                  className="absolute inset-0 z-10 h-full w-full object-cover"
                   onError={() => {
                     if (producer.fallbackPhotoUrl && photo !== producer.fallbackPhotoUrl) setPhoto(producer.fallbackPhotoUrl);
                     else setPhoto(null);
                   }}
                 />
               ) : (
-                <span className={`flex h-full items-center justify-center text-5xl font-semibold text-[#9ef7c0] ${spinning ? "animate-[spin_8s_linear_infinite]" : ""}`}>{initials}</span>
+                <span className="flex h-full items-center justify-center text-5xl font-semibold text-[#9ef7c0]">{initials}</span>
               )}
             </button>
           </div>
@@ -189,7 +173,7 @@ function Catalog({
           <div className="flex h-full flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Perfil público · Produtor</p>
             <div className="mt-3 flex items-center gap-3">
-              <h1 className="text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
+              <h1 className="min-w-0 truncate whitespace-nowrap text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
               <span className="group relative inline-flex shrink-0">
                 <i className="fa-solid fa-circle-check text-2xl text-[#1db954] sm:text-3xl" aria-hidden="true" />
                 <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition group-hover:opacity-100">
