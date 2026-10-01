@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
+    <article className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -194,6 +194,33 @@ export function ProductionRail({
   }
 
   const rail = (
+    <>
+      <style>{`
+        .brs-production-rail[data-layout="carousel"] .brs-production-card {
+          flex: 0 0 calc(50% - 6px);
+          width: calc(50% - 6px);
+          max-width: calc(50% - 6px);
+        }
+        .brs-production-rail[data-layout="grid"] .brs-production-card {
+          flex: 1 1 auto;
+          width: 100%;
+          max-width: none;
+        }
+        @media (min-width: 640px) {
+          .brs-production-rail[data-layout="carousel"] .brs-production-card {
+            flex-basis: 46%;
+            width: 46%;
+            max-width: 46%;
+          }
+        }
+        @media (min-width: 1024px) {
+          .brs-production-rail[data-layout="carousel"] .brs-production-card {
+            flex-basis: 23%;
+            width: 23%;
+            max-width: 23%;
+          }
+        }
+      `}</style>
     <div>
       {renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
       {!renderHeaderActions && layout === "carousel" && productions.length > 1 ? (
@@ -208,15 +235,17 @@ export function ProductionRail({
       ) : null}
       <div
         ref={scroller}
-        className={layout === "grid"
+        data-layout={layout}
+        className={`brs-production-rail min-w-0 ${layout === "grid"
           ? "grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
-          : "flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}
+          : "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}`}
       >
         {productions.map((production) => (
           <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
         ))}
       </div>
     </div>
+    </>
   );
 
   if (embedded) return rail;
