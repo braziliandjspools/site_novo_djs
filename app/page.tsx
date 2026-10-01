@@ -35,7 +35,6 @@ import { SITE_FAQS } from "./lib/site-faqs";
 import { buildPageMetadata, faqJsonLd } from "./lib/seo";
 import { PLACEHOLDER } from "./lib/theme";
 import { JsonLd } from "./components/JsonLd";
-import { ensureBrsDownloaderBanner } from "./lib/music-studio/storage";
 
 const AllavsoftPlatformsMarquee = dynamic(
   () =>
@@ -166,7 +165,6 @@ const testimonials = [
 export default async function Home() {
   // The database and catalog services are available in the running app, not the build container.
   await connection();
-  await ensureBrsDownloaderBanner().catch(() => false);
   const topDownloads = await getMostDownloadedTracks(12).catch(() => []);
   const productions = await listPublishedProductions(12).catch(() => []);
   const downloaderRelease = getDownloaderReleaseManifest();
