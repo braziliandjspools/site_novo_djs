@@ -44,10 +44,12 @@ function ProductionCard({
   production,
   access,
   fill = false,
+  list = false,
 }: {
   production: PublicBrsProduction;
   access: Access;
   fill?: boolean;
+  list?: boolean;
 }) {
   const player = useVipMusicPlayer();
   const router = useRouter();
@@ -86,9 +88,9 @@ function ProductionCard({
   }
 
   return (
-    <article className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-1.5 sm:p-2 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
-      <div className={`rounded-xl bg-gradient-to-br p-[1px] sm:p-[1.5px] ${tone.frame}`}>
-      <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
+    <article className={`brs-production-card group/card relative flex h-full min-w-0 overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-1.5 sm:p-2 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${list ? "w-full flex-row items-stretch" : "flex-col"} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
+      <div className={`rounded-xl bg-gradient-to-br p-[1px] sm:p-[1.5px] ${tone.frame} ${list ? "w-24 shrink-0 self-stretch sm:w-32" : ""}`}>
+      <div className={`group relative overflow-hidden rounded-[11px] bg-[#161816] ${list ? "h-full min-h-24 sm:min-h-32" : "aspect-square"}`}>
         <Image
           src={production.coverUrl}
           alt=""
@@ -118,7 +120,7 @@ function ProductionCard({
         </span>
       </div>
       </div>
-      <div className="flex flex-1 flex-col px-1 pb-1 pt-2.5 sm:px-1.5 sm:pt-4">
+      <div className={`flex min-w-0 flex-1 flex-col px-1 pb-1 pt-2.5 sm:px-1.5 sm:pt-4 ${list ? "justify-center pl-3 sm:pl-5" : ""}`}>
         <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[12px] font-bold leading-tight tracking-[-0.01em] text-white transition hover:text-[#1ed760] sm:text-[15px] sm:leading-none">
           {production.title}
         </Link>
@@ -174,7 +176,7 @@ export function ProductionRail({
 }: {
   productions: PublicBrsProduction[];
   embedded?: boolean;
-  layout?: "carousel" | "grid";
+  layout?: "carousel" | "grid" | "list";
   renderHeaderActions?: (actions: { previous: () => void; next: () => void }) => React.ReactNode;
   headerTitle?: string;
 }) {
@@ -247,10 +249,12 @@ export function ProductionRail({
         data-layout={layout}
         className={`brs-production-rail min-w-0 ${layout === "grid"
           ? "grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
-          : "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}`}
+          : layout === "list"
+            ? "flex flex-col gap-3 sm:gap-4"
+            : "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}`}
       >
         {productions.map((production) => (
-          <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
+          <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid" || layout === "list"} list={layout === "list"} />
         ))}
       </div>
     </div>
