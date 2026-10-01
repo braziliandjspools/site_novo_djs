@@ -118,14 +118,18 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
 
         <div className="order-2 flex flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8 lg:order-none">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Exclusiva BRS</p>
-          <h1 className="mt-3 break-words text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-tight tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
-          <p className="mt-1 text-sm text-zinc-300">
+          <p className="mt-3 text-sm font-semibold text-[#9ef7c0]">
             {production.producerSlug ? (
-              <Link href={`/p/${production.producerSlug}`} className="text-[#9ef7c0] hover:text-white">{production.producer}</Link>
+              <Link href={`/p/${production.producerSlug}`} className="hover:text-white">{production.producer}</Link>
             ) : production.producer}
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-md bg-[#002776] px-2 py-1 text-xs font-bold text-[#d7e7ff]">{production.versionType}</span>
+          <h1 className="mt-1 break-words text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-tight tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
+          <div className="mt-1 flex justify-end">
+            <span className="rounded-md bg-[#002776] px-1.5 py-0.5 text-[9px] font-bold leading-none text-[#d7e7ff] sm:px-2 sm:text-[10px]">
+              {production.versionType}
+            </span>
+          </div>
+          <div className="mt-3">
             <span className="rounded-md bg-[#1db954]/15 px-2 py-1 text-xs font-bold text-[#9ef7c0]">{production.categoryLabel}</span>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
