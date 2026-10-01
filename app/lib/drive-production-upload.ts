@@ -1,4 +1,6 @@
 import { getGoogleDriveAccessToken, hasGoogleDriveOAuth } from "./google-drive-auth";
+import { uploadCatalogImage } from "./music-studio/storage";
+import { BRS_PRODUCTION_VERSIONS } from "./brs-productions";
 
 const AUDIO_TYPES = new Set([
   "audio/mpeg",
@@ -88,5 +90,54 @@ async function readAudioSheet(bytes: Buffer, mime: string) {
     return { duration, bitrate, format, bpm };
   } catch {
     return {};
+  }
+}
+
+
+export async function recognizeProductionAudioFile(file: File, audioFileId: string) {
+  const bytes = Buffer.from(await file.arrayBuffer());
+  try {
+    const { parseBuffer } = await import("music-metadata");
+    const meta = await parseBuffer(bytes, file.type || undefined, { skipCovers: false, skipPostHeaders: false });
+    const seconds = meta.format.duration;
+    const duration = seconds && Number.isFinite(seconds)
+      ? `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`
+      : null;
+    const bitrate = meta.format.bitrate ? `${Math.round(meta.format.bitrate / 1000)} kbps` : null;
+    const format = (meta.format.container || meta.format.codec || file.name.split(".").pop() || "").toUpperCase();
+    const bpm = meta.common.bpm ? String(Math.round(meta.common.bpm)) : null;
+    const artist = meta.common.artist?.trim() || null;
+    const title = meta.common.title?.trim() || null;
+    const genre = meta.common.genre?.[0]?.trim() || null;
+    const text = `${meta.common.comment?.join(" ") ?? ""} ${file.name}`.toLowerCase();
+    const versionType =
+      BRS_PRODUCTION_VERSIONS.find((item) => text.includes(item.toLowerCase())) ??
+      (text.includes("extended") ? "Extended" : text.includes("remix") ? "Remix" : text.includes("edit") ? "Edit" : text.includes("mashup") ? "Mashup" : text.includes("bootleg") ? "Bootleg" : "Original Mix");
+    let coverFileId: string | null = null;
+    let coverUrl: string | null = null;
+    const picture = meta.common.picture?.[0];
+    if (picture?.data?.length) {
+      const imageFile = new File([picture.data], `cover-${audioFileId}.jpg`, { type: picture.format || "image/jpeg" });
+      const uploaded = await uploadCatalogImage(imageFile, "capas");
+      coverFileId = uploaded.key;
+      coverUrl = uploaded.url;
+    }
+    return { audioFileId, fileName: file.name, title, artist, duration, bpm, format, bitrate, genre, versionType, versionLabel: versionType, coverFileId, coverUrl };
+  } catch {
+    return {
+      audioFileId,
+      fileName: file.name,
+      title: null,
+      artist: null,
+      duration: null,
+      bpm: null,
+      format: file.name.split(".").pop()?.toUpperCase() || null,
+      bitrate: null,
+      genre: null,
+      versionType: "Original Mix",
+      versionLabel: null,
+      coverFileId: null,
+      coverUrl: null,
+    };
   }
 }
