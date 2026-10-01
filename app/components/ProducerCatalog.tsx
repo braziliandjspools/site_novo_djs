@@ -167,7 +167,7 @@ function Catalog({
             <p className="mt-2 text-3xl font-semibold tracking-tight text-white">{total}</p>
             <p className="text-sm text-white">{total === 1 ? "faixa publicada" : "faixas publicadas"}</p>
             {producer.place ? <p className="mt-2 text-sm text-white">{producer.place}</p> : null}
-            {latest ? <p className="mt-3 truncate text-sm text-white">Último lançamento · {latest.title}</p> : null}
+            {latest ?  : null}
           </div>
           </div>
           <div className="flex h-full flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
@@ -175,7 +175,7 @@ function Catalog({
             <div className="mt-3 flex items-center gap-3">
               <h1 className="min-w-0 truncate whitespace-nowrap text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
               <span className="group relative inline-flex shrink-0">
-                <i className="fa-solid fa-circle-check text-2xl text-[#1db954] sm:text-3xl" aria-hidden="true" />
+                <i className="fa-solid fa-circle-check text-lg text-[#4d9cff] sm:text-xl" aria-hidden="true" />
                 <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition group-hover:opacity-100">
                   Verificado
                 </span>
