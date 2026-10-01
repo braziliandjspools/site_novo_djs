@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash, createHmac, randomBytes } from "crypto";
+import { BRS_DOWNLOADER_BANNER_BASE64 } from "../brs-downloader-banner";
 
 export type StoredAudio = {
   audioUrl: string | null;
@@ -76,6 +77,15 @@ async function putObjectR2(key: string, body: Buffer, contentType: string) {
     const text = await res.text().catch(() => "");
     throw new Error(`Falha ao gravar áudio no R2 (${res.status}): ${text.slice(0, 200)}`);
   }
+}
+
+export async function ensureBrsDownloaderBanner() {
+  if (!r2Configured()) return false;
+  const key = "banners/brs-downloader-selecao.webp";
+  if (await catalogObjectExists(key)) return true;
+  const bytes = Buffer.from(BRS_DOWNLOADER_BANNER_BASE64, "base64");
+  await putObjectR2(key, bytes, "image/webp");
+  return true;
 }
 
 export async function uploadCatalogImage(file: File, folder: "capas" | "perfis" | "banners") {
