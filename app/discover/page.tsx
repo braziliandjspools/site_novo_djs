@@ -107,7 +107,7 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
           {catalog.items.length > 0 ? (
             <ProductionRail
               productions={catalog.items}
-              layout="grid"
+              layout="list"
               headerTitle="Todas as produções"
             />
           ) : (
