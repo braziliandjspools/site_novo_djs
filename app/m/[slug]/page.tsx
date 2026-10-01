@@ -28,12 +28,7 @@ export default async function MusicPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_20%_0%,rgba(0,70,160,0.45),transparent_42%),linear-gradient(180deg,#05070d_0%,#02040a_100%)] px-4 py-10 text-white sm:px-6">
       <div className="mx-auto max-w-6xl">
-        <nav className="mb-8 text-xs text-zinc-500">
-          <Link href="/" className="hover:text-white">Início</Link>
-          <span className="mx-2">/</span>
-          <Link href="/#producoes-brs" className="hover:text-white">Produções BRS</Link>
-        </nav>
-        <ProductionStage production={production} more={more} />
+<ProductionStage production={production} more={more} />
       </div>
     </main>
   );
