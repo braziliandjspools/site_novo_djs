@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-1.5 sm:p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
+    <article className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-1.5 sm:p-2 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1px] sm:p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -279,8 +279,8 @@ export function HomeProductions({
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
       <div className="mx-auto max-w-6xl">
-        <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
-          <h2 className="min-w-0 font-display text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
+        <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+          <h2 className="min-w-0 font-display text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{heading}</h2>
         </div>
         <div className="-mt-[58px] mb-8 flex justify-end pr-0 sm:-mt-[58px]">
           <div>
