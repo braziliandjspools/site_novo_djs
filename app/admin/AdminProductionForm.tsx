@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { catalogMediaUrl } from "../lib/catalog-media";
 import { BRS_PRODUCTION_CATEGORIES, BRS_PRODUCTION_VERSIONS } from "../lib/brs-productions";
+import { CloudUpload, FileAudio, Loader2, UploadCloud } from "lucide-react";
 
 export type ProductionDraft = {
   id?: string;
@@ -65,6 +66,9 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
   const [error, setError] = useState<string | null>(null);
   const [coverWarn, setCoverWarn] = useState<string | null>(null);
   const [driveLink, setDriveLink] = useState("");
+  const [audioSource, setAudioSource] = useState<"drive" | "r2">("drive");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/produtores", { cache: "no-store" })
@@ -77,63 +81,57 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  function applyRecognizedFile(file: { audioFileId: string; fileName: string; title?: string | null; artist?: string | null; duration?: string | null; bpm?: string | null; format?: string | null; bitrate?: string | null; genre?: string | null; versionType?: string | null; versionLabel?: string | null; coverUrl?: string | null; coverFileId?: string | null }) {
+    setForm((current) => ({
+      ...current,
+      audioFileId: file.audioFileId,
+      fileName: file.fileName,
+      title: current.title || file.title || "",
+      artist: current.artist || file.artist || "",
+      duration: current.duration || file.duration || "",
+      bpm: current.bpm || file.bpm || "",
+      format: current.format || file.format || "",
+      bitrate: current.bitrate || file.bitrate || "",
+      genre: current.genre || file.genre || "",
+      versionType: file.versionType && current.versionType === "Original Mix" ? file.versionType : current.versionType,
+      versionLabel: current.versionLabel || file.versionLabel || "",
+      coverUrl: current.coverUrl || file.coverUrl || "",
+      coverFileId: current.coverFileId || file.coverFileId || "",
+    }));
+  }
+
   async function recognizeLink() {
     const link = driveLink.trim();
-    if (!link) {
-      setError("Cole o link do arquivo no Google Drive.");
-      return;
-    }
-    setBusy("Lendo o arquivo…");
-    setError(null);
+    if (!link) { setError("Cole o link do arquivo no Google Drive."); return; }
+    setBusy("Lendo tags do Drive…"); setError(null);
     try {
-      const res = await fetch("/api/admin/producoes/drive", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ link }),
-      });
-      const data = (await res.json()) as {
-        error?: string;
-        file?: {
-          audioFileId: string;
-          fileName: string;
-          title: string | null;
-          artist: string | null;
-          duration: string | null;
-          bpm: string | null;
-          format: string | null;
-          bitrate: string | null;
-          genre: string | null;
-          versionType: string | null;
-          versionLabel: string | null;
-          coverUrl: string | null;
-        };
-      };
-      if (!res.ok || !data.file) {
-        setError(data.error ?? "Não reconheci esse link.");
-        return;
-      }
-      const file = data.file;
-      setForm((current) => ({
-        ...current,
-        audioFileId: file.audioFileId,
-        fileName: file.fileName,
-        title: current.title || file.title || current.title,
-        artist: current.artist || file.artist || current.artist,
-        duration: current.duration || file.duration || "",
-        bpm: current.bpm || file.bpm || "",
-        format: current.format || file.format || "",
-        bitrate: current.bitrate || file.bitrate || "",
-        genre: current.genre || file.genre || "",
-        versionType: file.versionType && current.versionType === "Original Mix" ? file.versionType : current.versionType,
-        versionLabel: current.versionLabel || file.versionLabel || "",
-        coverUrl: current.coverUrl || file.coverUrl || "",
-      }));
-    } catch {
-      setError("Não consegui ler o link do Drive.");
-    } finally {
-      setBusy("");
-    }
+      const res = await fetch("/api/admin/producoes/drive", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ link }) });
+      const data = (await res.json()) as { error?: string; file?: Parameters<typeof applyRecognizedFile>[0] };
+      if (!res.ok || !data.file) { setError(data.error ?? "Não reconheci esse link."); return; }
+      applyRecognizedFile(data.file); setAudioSource("drive");
+    } catch { setError("Não consegui ler o link do Drive."); }
+    finally { setBusy(""); }
+  }
+
+  function uploadAudioToR2(file: File) {
+    setBusy("Enviando faixa para o R2…"); setError(null); setUploadProgress(0);
+    const body = new FormData(); body.set("file", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/admin/producoes/upload-r2"); xhr.withCredentials = true;
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) setUploadProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
+    };
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText) as { error?: string; file?: Parameters<typeof applyRecognizedFile>[0] };
+        if (xhr.status < 200 || xhr.status >= 300 || !data.file) { setError(data.error ?? "Falha no upload da faixa."); return; }
+        applyRecognizedFile(data.file); setAudioSource("r2"); setUploadProgress(100); setBusy("");
+      } catch { setError("O servidor devolveu uma resposta inválida."); }
+      finally { window.setTimeout(() => setUploadProgress(0), 1200); }
+    };
+    xhr.onerror = () => { setError("Falha de conexão durante o upload."); setBusy(""); setUploadProgress(0); };
+    xhr.onabort = () => { setError("Upload cancelado."); setBusy(""); setUploadProgress(0); };
+    xhr.send(body);
   }
 
   async function uploadCover(file: File) {
@@ -190,7 +188,7 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
     event.preventDefault();
     setError(null);
     if (!form.audioFileId || !form.fileName) {
-      setError("Cole o link da música e clique em Reconhecer.");
+      setError("Adicione a música pelo Drive ou faça o upload para o R2.");
       return;
     }
     setBusy("Salvando…");
@@ -264,24 +262,22 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
 
       <fieldset className="grid gap-3 rounded-2xl border border-white/10 bg-[#242424] p-4">
         <legend className="px-1 text-xs font-semibold tracking-[0.14em] text-white/50">ARQUIVO E CAPA</legend>
-        <label className="text-xs text-white/60">
-          Link do arquivo no Google Drive
-          <input
-            className="site-input mt-1"
-            placeholder="https://drive.google.com/file/d/..."
-            value={driveLink}
-            onChange={(e) => setDriveLink(e.target.value)}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
-              event.preventDefault();
-              void recognizeLink();
-            }}
-          />
-        </label>
-        <button type="button" onClick={() => void recognizeLink()} className="w-fit rounded-full border border-white/15 px-3 py-2 text-xs">
-          Reconhecer
-        </button>
-        {form.fileName ? <p className="text-xs text-[#1db954]">{form.fileName}</p> : null}
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-[#1db954]/20 bg-black/20 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-white"><FileAudio className="h-4 w-4 text-[#1db954]" /> Google Drive</div>
+            <p className="mt-1 text-xs text-white/45">Cole o link e o BRS lê as tags da faixa.</p>
+            <input className="site-input mt-3" placeholder="https://drive.google.com/file/d/..." value={driveLink} onChange={(e) => setDriveLink(e.target.value)} onKeyDown={(event) => { if (event.key !== "Enter") return; event.preventDefault(); void recognizeLink(); }} />
+            <button type="button" onClick={() => void recognizeLink()} disabled={Boolean(busy)} className="mt-2 inline-flex h-10 items-center gap-2 rounded-full border border-white/15 px-4 text-xs font-bold text-white hover:border-[#1db954]/50 hover:bg-white/5 disabled:opacity-50">Reconhecer Drive</button>
+          </div>
+          <div className="rounded-2xl border border-[#7eb6ff]/20 bg-black/20 p-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-white"><CloudUpload className="h-4 w-4 text-[#7eb6ff]" /> Upload R2</div>
+            <p className="mt-1 text-xs text-white/45">Envie direto para o Cloudflare R2 e reconheça as tags.</p>
+            <input ref={audioInputRef} className="hidden" type="file" accept=".mp3,.wav,.flac,.aiff,.aif,audio/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadAudioToR2(file); e.currentTarget.value = ""; }} />
+            <button type="button" onClick={() => audioInputRef.current?.click()} disabled={Boolean(busy)} className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-dashed border-[#7eb6ff]/40 bg-[#7eb6ff]/5 px-4 py-4 text-sm font-bold text-white hover:bg-[#7eb6ff]/10 disabled:opacity-50"><UploadCloud className="h-5 w-5 text-[#7eb6ff]" /> Selecionar faixa</button>
+            {uploadProgress > 0 ? <div className="mt-3"><div className="mb-1 flex justify-between text-[10px] font-bold uppercase tracking-wider text-white/50"><span>{uploadProgress >= 100 ? "Concluído" : "Enviando…"}</span><span>{uploadProgress}%</span></div><div className="h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#7eb6ff] transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div></div> : null}
+          </div>
+        </div>
+        {form.fileName ? <div className="flex items-center justify-between gap-3 rounded-xl border border-[#1db954]/20 bg-[#1db954]/5 px-3 py-2 text-xs"><span className="truncate text-[#9ef7c0]">{form.fileName}</span><span className="shrink-0 rounded-full bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white/45">{audioSource === "r2" ? "Cloudflare R2" : "Google Drive"}</span></div> : null}
         <label className="text-xs text-white/60">
           Capa da produção
           <input className="mt-1 block w-full text-xs" type="file" accept=".jpg,.jpeg,.png,.webp,image/*" onChange={(e) => {
@@ -319,7 +315,7 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
         <label className="flex items-center gap-2"><input type="checkbox" checked={form.isNew} onChange={(e) => set("isNew", e.target.checked)} /> Selo Novo</label>
       </div>
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
-      {busy ? <p className="text-sm text-white/60">{busy}</p> : null}
+      {busy ? <p className="inline-flex items-center gap-2 text-sm text-white/60"><Loader2 className="h-4 w-4 animate-spin" />{busy}</p> : null}
       <button type="submit" disabled={Boolean(busy)} className="site-btn-primary w-fit rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-60">
         {form.id ? "Salvar alterações" : "Salvar"}
       </button>
