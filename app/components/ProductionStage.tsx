@@ -76,6 +76,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
   return (
     <div className="font-[family-name:var(--font-space)]">
       <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-4">
         <div className="flex items-start justify-center overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-6">
         <div className="relative aspect-square w-full max-w-[440px]">
           <div className="absolute inset-[6%] rounded-full">
@@ -112,10 +113,17 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
           </button>
         </div>
         </div>
+        {production.description?.trim() ? (
+          <section className="rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>
+            <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>
+          </section>
+        ) : null}
+        </div>
 
         <div className="flex flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Exclusiva BRS</p>
-          <h1 className="mt-3 truncate text-3xl font-bold leading-none tracking-[-0.03em] text-white sm:text-4xl lg:text-[2.35rem]" title={production.title}>{production.title}</h1>
+          <h1 className="mt-3 whitespace-nowrap text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-none tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
           <p className="mt-4 text-sm text-zinc-300">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="text-[#9ef7c0] hover:text-white">{production.producer}</Link>
@@ -145,12 +153,6 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             <Sheet label="Formato" value={production.format} />
             <Sheet label="Bitrate" value={production.bitrate} />
           </dl>
-          {production.description?.trim() ? (
-            <section className="mt-8 rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6">
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>
-              <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>
-            </section>
-          ) : null}
         </div>
       </div>
       {more.length > 0 && production.producerSlug ? (
