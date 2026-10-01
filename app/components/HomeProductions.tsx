@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[48%] shrink-0 snap-start sm:w-[46%] lg:w-[23%]"}`}>
+    <article className={`group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -253,7 +253,7 @@ export function HomeProductions({
         <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
           <h2 className="min-w-0 font-display text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
         </div>
-        <div className="-mt-[58px] mb-8 flex justify-end pr-0">
+        <div className="-mt-[58px] mb-8 flex justify-end pr-0 sm:-mt-[58px]">
           <div>
             <ProductionRail
             productions={productions}
