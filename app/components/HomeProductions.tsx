@@ -195,6 +195,7 @@ export function ProductionRail({
 
   const rail = (
     <div>
+      {renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
       {!renderHeaderActions && layout === "carousel" && productions.length > 1 ? (
         <div className="mb-3 flex justify-end gap-1">
           <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-white/80">
@@ -209,7 +210,7 @@ export function ProductionRail({
         ref={scroller}
         className={layout === "grid"
           ? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
-          : "flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}
+          : "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}
       >
         {productions.map((production) => (
           <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
