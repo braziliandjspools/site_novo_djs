@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
-import { recognizeProductionAudioFile } from "@/lib/drive-production-upload";
-import { uploadProductionAudioR2 } from "@/lib/music-studio/storage";
+import { isAuthorizedAdminRequest } from "../../../../lib/admin-auth";
+import { recognizeProductionAudioFile } from "../../../../lib/drive-production-upload";
+import { uploadProductionAudioR2 } from "../../../../lib/music-studio/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
