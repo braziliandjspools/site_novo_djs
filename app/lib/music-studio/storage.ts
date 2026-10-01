@@ -112,6 +112,85 @@ export async function uploadCatalogImage(file: File, folder: "capas" | "perfis" 
 
 const EMPTY_PAYLOAD_HASH = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
+export function isR2AudioFileId(value: string) {
+  return /^r2_[A-Za-z0-9_-]+$/.test(value);
+}
+
+export function encodeR2AudioFileId(key: string) {
+  return `r2_${Buffer.from(key, "utf8").toString("base64url")}`;
+}
+
+export function decodeR2AudioFileId(fileId: string) {
+  if (!isR2AudioFileId(fileId)) return null;
+  try {
+    const key = Buffer.from(fileId.slice(3), "base64url").toString("utf8");
+    return /^producoes-audio\/[a-zA-Z0-9._-]+$/.test(key) ? key : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function uploadProductionAudioR2(file: File) {
+  if (!r2Configured()) {
+    throw new Error("R2 não está configurado. Defina R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY e R2_BUCKET_NAME.");
+  }
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const allowed = new Set(["mp3", "wav", "flac", "aiff", "aif"]);
+  if (!allowed.has(ext) && !file.type.startsWith("audio/")) {
+    throw new Error("Envie MP3, WAV, FLAC ou AIFF.");
+  }
+  if (file.size > 100 * 1024 * 1024) {
+    throw new Error("A faixa passa de 100 MB.");
+  }
+  const safeExt = ["mp3", "wav", "flac", "aiff", "aif"].includes(ext) ? ext : "mp3";
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  const key = `producoes-audio/${hash}.${safeExt}`;
+  if (!(await catalogObjectExists(key))) {
+    await putObjectR2(key, bytes, file.type || "audio/mpeg");
+  }
+  return { fileId: encodeR2AudioFileId(key), fileName: file.name, key };
+}
+
+export async function readR2Audio(key: string, request?: Request) {
+  if (!r2Configured() || !/^producoes-audio\/[a-zA-Z0-9._-]+$/.test(key)) {
+    throw new Error("Áudio inválido.");
+  }
+  const accountId = process.env.R2_ACCOUNT_ID!;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID!;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY!;
+  const bucket = process.env.R2_BUCKET_NAME!;
+  const region = process.env.R2_REGION || "auto";
+  const host = `${accountId}.r2.cloudflarestorage.com`;
+  const range = request?.headers.get("range");
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const payloadHash = EMPTY_PAYLOAD_HASH;
+  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+  const canonicalHeadersForRequest = canonicalHeaders;
+  const canonicalRequest = [
+    "GET", `/${bucket}/${key}`, "", canonicalHeadersForRequest, signedHeaders, payloadHash,
+  ].join("\n");
+  const credentialScope = `${dateStamp}/${region}/s3/aws4_request`;
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, createHash("sha256").update(canonicalRequest).digest("hex")].join("\n");
+  const kDate = createHmac("sha256", `AWS4${secretAccessKey}`).update(dateStamp).digest();
+  const kRegion = createHmac("sha256", kDate).update(region).digest();
+  const kService = createHmac("sha256", kRegion).update("s3").digest();
+  const kSigning = createHmac("sha256", kService).update("aws4_request").digest();
+  const signature = createHmac("sha256", kSigning).update(stringToSign).digest("hex");
+  const headers: Record<string, string> = {
+    Authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+    "x-amz-content-sha256": payloadHash,
+    "x-amz-date": amzDate,
+  };
+  if (range) headers.Range = range;
+  const res = await fetch(`https://${host}/${bucket}/${key}`, { headers, cache: "no-store" });
+  if (!res.ok || !res.body) throw new Error("Áudio não encontrado.");
+  return res;
+}
+
 async function catalogObjectExists(key: string) {
   const accountId = process.env.R2_ACCOUNT_ID!;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID!;
