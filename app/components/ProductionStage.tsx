@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Download, Lock, Pause, Play, Share2 } from "lucide-react";
 import type { PublicBrsProduction } from "../lib/brs-productions";
 import { productionDownloadTrack, productionToPreviewTrack } from "../lib/brs-productions";
+import { ProductionRail } from "./HomeProductions";
 import { formatStyleNameForDisplay } from "../lib/style-display";
 import { startBrowserTrackDownload } from "../musicas/lib/browser-download-file";
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
@@ -92,7 +93,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             type="button"
             onClick={play}
             aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
-            className="group relative aspect-square w-full max-w-[440px] overflow-hidden rounded-[24px] border border-white/10 shadow-[0_0_60px_rgba(0,80,180,0.22)]"
+            className={`group relative aspect-square w-full max-w-[440px] overflow-hidden rounded-full border border-white/10 shadow-[0_0_60px_rgba(0,80,180,0.22)] transition-transform duration-700 ${playing ? "animate-[spin_12s_linear_infinite]" : ""}`}
           >
             <Image
               src={production.coverUrl}
@@ -102,20 +103,20 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               sizes="(max-width: 1024px) 92vw, 440px"
               className="object-cover"
             />
-            <span className={`absolute inset-0 m-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/70 text-[#7eb6ff] transition ${playing ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+            <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/75 text-[#7eb6ff] opacity-100 shadow-[0_0_30px_rgba(0,0,0,0.45)] transition">
               {playing ? <Pause className="h-6 w-6" fill="currentColor" /> : <Play className="ml-1 h-6 w-6" fill="currentColor" />}
             </span>
           </button>
         </div>
         {production.description?.trim() ? (
-          <section className="rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6">
+          <section className="order-last rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6 lg:order-none">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>
             <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>
           </section>
         ) : null}
         </div>
 
-        <div className="flex flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
+        <div className="order-2 flex flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8 lg:order-none">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Exclusiva BRS</p>
           <h1 className="mt-3 break-words text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-tight tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
           <p className="mt-4 text-sm text-zinc-300">
@@ -153,31 +154,25 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
         </div>
       </div>
       {more.length > 0 && production.producerSlug ? (
-        <section className="mt-16 border-t border-white/10 pt-10 font-[family-name:var(--font-space)]">
-          <div className="mb-6 flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Do mesmo produtor</p>
-              <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Mais produções</h2>
-            </div>
-            <Link href={`/p/${production.producerSlug}`} className="text-xs font-bold uppercase tracking-[0.14em] text-[#9ef7c0] hover:text-white">
-              Ver perfil
-            </Link>
+        <section className="mt-14 border-t border-white/10 pt-10">
+          <ProductionRail
+            productions={more}
+            embedded
+            headerTitle="Do mesmo produtor"
+            renderHeaderActions={({ previous, next }) => (
+              <div className="flex shrink-0 items-center gap-1">
+                <button type="button" aria-label="Produções anteriores" onClick={previous} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
+                  <span className="text-lg leading-none">‹</span>
+                </button>
+                <button type="button" aria-label="Próximas produções" onClick={next} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
+                  <span className="text-lg leading-none">›</span>
+                </button>
+              </div>
+            )}
+          />
+          <div className="mt-4 flex justify-end">
+            <Link href={`/p/${production.producerSlug}`} className="text-xs font-bold uppercase tracking-[0.14em] text-[#9ef7c0] hover:text-white">Ver perfil do produtor</Link>
           </div>
-          <ul className="grid min-w-0 items-stretch gap-4 sm:grid-cols-2">
-            {more.map((item) => (
-              <li key={item.id} className="h-full">
-                <Link href={`/m/${item.slug}`} className="flex h-full min-w-0 min-h-20 items-center gap-3 rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(135deg,rgba(0,39,118,0.45),rgba(5,7,13,0.2))] p-3 transition hover:border-[#7eb6ff]/70">
-                  <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#102033]">
-                    <Image src={item.coverUrl} alt="" fill unoptimized={!item.coverUrl.startsWith("/")} sizes="64px" className="object-cover" />
-                  </span>
-                  <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold leading-tight text-white">{item.title}</span>
-                    <span className="max-w-[38%] shrink-0 truncate rounded-md bg-[#002776] px-2 py-0.5 text-[10px] font-bold text-[#d7e7ff]">{item.versionType}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </section>
       ) : null}
     </div>
