@@ -73,12 +73,6 @@ export default function DjPoolBrasilPage() {
           Ir para Atualizações VIP
         </Link>
         <Link
-          href="/packs-para-djs"
-          className="inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white"
-        >
-          Packs para DJs
-        </Link>
-        <Link
           href="/plans"
           className="inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white"
         >
