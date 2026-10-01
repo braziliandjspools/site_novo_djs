@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[calc((100%_-_0.75rem)/2)] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%_-_3.75rem)/4)]"}`}>
+    <article className={`group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[48%] shrink-0 snap-start sm:w-[46%] lg:w-[23%]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
