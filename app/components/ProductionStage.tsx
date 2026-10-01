@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, Lock, Pause, Play } from "lucide-react";
+import { Download, Lock, Pause, Play, Share2 } from "lucide-react";
 import type { PublicBrsProduction } from "../lib/brs-productions";
 import { productionDownloadTrack, productionToPreviewTrack } from "../lib/brs-productions";
 import { formatStyleNameForDisplay } from "../lib/style-display";
@@ -12,8 +12,6 @@ import { startBrowserTrackDownload } from "../musicas/lib/browser-download-file"
 import { VipMusicPlayerProvider, useVipMusicPlayer } from "../musicas/components/VipMusicPlayerContext";
 
 const FOLDER_ID = "brs-production";
-const BARS = [18, 28, 16, 36, 22, 42, 20, 34, 14, 40, 24, 32, 18, 38, 22, 30, 16, 36, 26, 44, 20, 34, 18, 28];
-
 function loginHref(slug: string) {
   return `/musicas/entrar?return=${encodeURIComponent(`/m/${slug}`)}`;
 }
@@ -61,6 +59,18 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
     void player.toggleTrack(FOLDER_ID, track.id);
   }
 
+  async function share() {
+    try {
+      await navigator.share?.({
+        title: production.title,
+        text: `${production.producer} — ${production.title}`,
+        url: window.location.href,
+      });
+    } catch {
+      // compartilhamento cancelado
+    }
+  }
+
   function download() {
     if (!access.authenticated) {
       router.push(loginHref(production.slug));
@@ -77,41 +87,25 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
     <div className="font-[family-name:var(--font-space)]">
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-4">
-        <div className="flex items-start justify-center overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-6">
-        <div className="relative aspect-square w-full max-w-[440px]">
-          <div className="absolute inset-[6%] rounded-full">
-            {BARS.map((height, index) => (
-              <span
-                key={index}
-                className="absolute left-1/2 top-1/2 w-1 origin-bottom rounded-full bg-gradient-to-t from-[#1db954] via-[#7eb6ff] to-[#ffe566]"
-                style={{
-                  height: `${playing ? height : 10}px`,
-                  transform: `rotate(${index * (360 / BARS.length)}deg) translateY(-188px)`,
-                  opacity: playing ? 0.95 : 0.35,
-                  transition: "height 180ms linear",
-                }}
-              />
-            ))}
-          </div>
+        <div className="flex min-w-0 items-start justify-center overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-3 sm:p-6">
           <button
             type="button"
             onClick={play}
             aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
-            className="group absolute inset-[16%] overflow-hidden rounded-full border-4 border-[#102033] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
+            className="group relative aspect-square w-full max-w-[440px] overflow-hidden rounded-[24px] border border-white/10 shadow-[0_0_60px_rgba(0,80,180,0.22)]"
           >
             <Image
               src={production.coverUrl}
               alt=""
               fill
               unoptimized={!production.coverUrl.startsWith("/")}
-              sizes="360px"
-              className={`object-cover ${playing ? "animate-[spin_8s_linear_infinite]" : ""}`}
+              sizes="(max-width: 1024px) 92vw, 440px"
+              className="object-cover"
             />
             <span className={`absolute inset-0 m-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/70 text-[#7eb6ff] transition ${playing ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
               {playing ? <Pause className="h-6 w-6" fill="currentColor" /> : <Play className="ml-1 h-6 w-6" fill="currentColor" />}
             </span>
           </button>
-        </div>
         </div>
         {production.description?.trim() ? (
           <section className="rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6">
@@ -123,7 +117,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
 
         <div className="flex flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Exclusiva BRS</p>
-          <h1 className="mt-3 whitespace-nowrap text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-none tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
+          <h1 className="mt-3 break-words text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-tight tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
           <p className="mt-4 text-sm text-zinc-300">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="text-[#9ef7c0] hover:text-white">{production.producer}</Link>
@@ -134,6 +128,9 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             <span className="rounded-md bg-[#1db954]/15 px-2 py-1 text-xs font-bold text-[#9ef7c0]">{production.categoryLabel}</span>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
+            <button type="button" onClick={() => void share()} className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm font-bold text-white/75 transition hover:border-white/20 hover:text-white" aria-label="Compartilhar produção">
+              <Share2 className="h-4 w-4" /> Compartilhar
+            </button>
             <button type="button" onClick={play} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1db954] px-5 text-sm font-bold text-black">
               <Play className="h-4 w-4" fill="currentColor" />
               {access.canPlay ? "Ouvir" : "Entrar para ouvir"}
@@ -166,16 +163,16 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               Ver perfil
             </Link>
           </div>
-          <ul className="grid items-stretch gap-4 sm:grid-cols-2">
+          <ul className="grid min-w-0 items-stretch gap-4 sm:grid-cols-2">
             {more.map((item) => (
               <li key={item.id} className="h-full">
-                <Link href={`/m/${item.slug}`} className="flex h-full min-h-20 items-center gap-4 rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(135deg,rgba(0,39,118,0.45),rgba(5,7,13,0.2))] p-3 transition hover:border-[#7eb6ff]/70">
+                <Link href={`/m/${item.slug}`} className="flex h-full min-w-0 min-h-20 items-center gap-3 rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(135deg,rgba(0,39,118,0.45),rgba(5,7,13,0.2))] p-3 transition hover:border-[#7eb6ff]/70">
                   <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#102033]">
                     <Image src={item.coverUrl} alt="" fill unoptimized={!item.coverUrl.startsWith("/")} sizes="64px" className="object-cover" />
                   </span>
-                  <span className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold leading-none text-white">{item.title}</span>
-                    <span className="shrink-0 rounded-md bg-[#002776] px-2 py-0.5 text-[10px] font-bold text-[#d7e7ff]">{item.versionType}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold leading-tight text-white">{item.title}</span>
+                    <span className="max-w-[38%] shrink-0 truncate rounded-md bg-[#002776] px-2 py-0.5 text-[10px] font-bold text-[#d7e7ff]">{item.versionType}</span>
                   </span>
                 </Link>
               </li>
