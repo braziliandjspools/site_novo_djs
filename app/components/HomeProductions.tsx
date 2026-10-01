@@ -308,7 +308,7 @@ export function HomeProductions({
             href="/discover"
             className="group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border border-[#1db954]/35 bg-[#1db954]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#8ef0b0] transition hover:-translate-y-0.5 hover:border-[#1db954] hover:bg-[#1db954]/15 hover:text-white"
           >
-            Descobrir todas as produções
+            Descobrir e baixar todas as produções
             <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
