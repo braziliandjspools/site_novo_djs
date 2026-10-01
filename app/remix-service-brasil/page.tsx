@@ -72,12 +72,6 @@ export default function RemixServiceBrasilPage() {
         >
           Abrir atualizações
         </Link>
-        <Link
-          href="/packs-para-djs"
-          className="inline-flex h-11 items-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white"
-        >
-          Packs para DJs
-        </Link>
       </section>
 
       <section className="mt-12 space-y-4">
