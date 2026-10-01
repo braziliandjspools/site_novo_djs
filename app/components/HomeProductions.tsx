@@ -173,6 +173,7 @@ export function ProductionRail({
   embedded?: boolean;
   layout?: "carousel" | "grid";
   renderHeaderActions?: (actions: { previous: () => void; next: () => void }) => React.ReactNode;
+  headerTitle?: string;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
