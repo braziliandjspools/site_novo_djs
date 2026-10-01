@@ -16,7 +16,6 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold tracking-[-0.01em] text-[#FFDF00]">Plataforma</h4>
           <ul className="mt-3 space-y-2 text-xs">
-            <li><a href="/packs-para-djs" className="transition-colors hover:text-[#1db954]">Packs para DJs</a></li>
             <li><a href="/musicas/atualizacoes" className="transition-colors hover:text-[#1db954]">Atualizações VIP</a></li>
             <li><a href="/como-baixar" className="transition-colors hover:text-[#1db954]">Como baixar</a></li>
             <li><a href="/dj-pool-brasil" className="transition-colors hover:text-[#1db954]">DJ Pools</a></li>
