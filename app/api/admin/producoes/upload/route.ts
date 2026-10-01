@@ -18,8 +18,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Selecione um arquivo." }, { status: 400 });
   }
   try {
-    if (kind === "cover" || kind === "profile") {
-      const uploaded = await uploadCatalogImage(file, kind === "profile" ? "perfis" : "capas");
+    if (kind === "cover" || kind === "profile" || kind === "banner") {
+      const folder = kind === "profile" ? "perfis" : kind === "banner" ? "banners" : "capas";
+      const uploaded = await uploadCatalogImage(file, folder);
       return NextResponse.json({ fileId: uploaded.key, url: uploaded.url });
     }
     const uploaded = await uploadProductionFile(file, "audio");
