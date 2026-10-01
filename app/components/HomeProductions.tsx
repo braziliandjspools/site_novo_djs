@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[82%] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]"}`}>
+    <article className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[calc((100%-0.75rem)/2)] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -94,7 +94,7 @@ function ProductionCard({
           alt=""
           fill
           unoptimized={!production.coverUrl.startsWith("/")}
-          sizes="(max-width: 640px) 78vw, 220px"
+          sizes="(max-width: 640px) 46vw, 220px"
           className="object-cover transition duration-500 group-hover:scale-[1.05]"
         />
         <button
@@ -167,10 +167,12 @@ export function ProductionRail({
   productions,
   embedded = false,
   layout = "carousel",
+  renderHeaderActions,
 }: {
   productions: PublicBrsProduction[];
   embedded?: boolean;
   layout?: "carousel" | "grid";
+  renderHeaderActions?: (actions: { previous: () => void; next: () => void }) => React.ReactNode;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
@@ -193,8 +195,8 @@ export function ProductionRail({
 
   const rail = (
     <div>
-      {layout === "carousel" && productions.length > 1 ? (
-      <div className="mb-3 flex translate-x-3 justify-end gap-1 sm:translate-x-8">
+      {!renderHeaderActions && layout === "carousel" && productions.length > 1 ? (
+        <div className="mb-3 flex justify-end gap-1">
           <button type="button" aria-label="Produções anteriores" onClick={() => scrollByCard(-1)} className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-white/80">
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -247,14 +249,26 @@ export function HomeProductions({
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
       <div className="mx-auto max-w-6xl">
-        <div className="border-b border-white/[0.08] pb-8">
-          <h2 className="font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg">
-            Remixes, edits, versões exclusivas e produções da nossa equipe e DJs parceiros.
-          </p>
+        <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
+          <h2 className="min-w-0 font-display text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{heading}</h2>
         </div>
-        <div className="mt-8">
-          <ProductionRail productions={productions} embedded={embedded} />
+        <div className="-mt-[58px] mb-8 flex justify-end pr-0">
+          <div>
+            <ProductionRail
+            productions={productions}
+            embedded={embedded}
+            renderHeaderActions={({ previous, next }) => (
+              <div className="flex shrink-0 items-center gap-1">
+                <button type="button" aria-label="Produções anteriores" onClick={previous} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button type="button" aria-label="Próximas produções" onClick={next} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+          />
+          </div>
         </div>
       </div>
     </section>
