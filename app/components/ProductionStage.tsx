@@ -119,7 +119,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
         <div className="order-2 flex flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8 lg:order-none">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Exclusiva BRS</p>
           <h1 className="mt-3 break-words text-[clamp(1.2rem,2.1vw,1.7rem)] font-bold leading-tight tracking-[-0.03em] text-white" title={production.title}>{production.title}</h1>
-          <p className="mt-4 text-sm text-zinc-300">
+          <p className="mt-1 text-sm text-zinc-300">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="text-[#9ef7c0] hover:text-white">{production.producer}</Link>
             ) : production.producer}
