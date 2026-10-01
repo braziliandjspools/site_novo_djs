@@ -86,7 +86,7 @@ function ProductionCard({
   }
 
   return (
-    <article className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[calc((100%-0.75rem)/2)] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%-3.75rem)/4)]"}`}>
+    <article className={`group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full" : "w-[calc((100%_-_0.75rem)/2)] shrink-0 snap-start sm:w-[46%] lg:w-[calc((100%_-_3.75rem)/4)]"}`}>
       <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
@@ -94,7 +94,7 @@ function ProductionCard({
           alt=""
           fill
           unoptimized={!production.coverUrl.startsWith("/")}
-          sizes="(max-width: 640px) 46vw, 220px"
+          sizes="(max-width: 640px) 46vw, (max-width: 1024px) 44vw, 220px"
           className="object-cover transition duration-500 group-hover:scale-[1.05]"
         />
         <button
@@ -209,8 +209,8 @@ export function ProductionRail({
       <div
         ref={scroller}
         className={layout === "grid"
-          ? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
-          : "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}
+          ? "grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
+          : "flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}
       >
         {productions.map((production) => (
           <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
