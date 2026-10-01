@@ -47,7 +47,9 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
 
-  const { searchParams } = new URL(request.url);\n\n  if (isR2AudioFileId(fileId)) {
+  const { searchParams } = new URL(request.url);
+
+  if (isR2AudioFileId(fileId)) {
     const key = decodeR2AudioFileId(fileId);
     if (!key) return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     try {
@@ -77,7 +79,6 @@ export async function GET(request: Request, context: RouteContext) {
     }
   }
 
-  const { searchParams } = new URL(request.url);
   const forceProxy = searchParams.get("proxy") === "1";
   const quotaBlocked = forceProxy ? false : await publicDriveDownloadNeedsOwnerProxy(fileId);
 
