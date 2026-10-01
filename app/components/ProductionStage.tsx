@@ -93,7 +93,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
             type="button"
             onClick={play}
             aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
-            className={`group relative aspect-square w-full max-w-[440px] overflow-hidden rounded-full border border-white/10 shadow-[0_0_60px_rgba(0,80,180,0.22)] transition-transform duration-700 ${playing ? "animate-[spin_12s_linear_infinite]" : ""}`}
+            className="group relative aspect-square w-full max-w-[440px] overflow-hidden rounded-full border border-white/10 shadow-[0_0_60px_rgba(0,80,180,0.22)]"
           >
             <Image
               src={production.coverUrl}
@@ -101,7 +101,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               fill
               unoptimized={!production.coverUrl.startsWith("/")}
               sizes="(max-width: 1024px) 92vw, 440px"
-              className="object-cover"
+              className={`object-cover ${playing ? "animate-[spin_12s_linear_infinite]" : ""}`}
             />
             <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/75 text-[#7eb6ff] opacity-100 shadow-[0_0_30px_rgba(0,0,0,0.45)] transition">
               {playing ? <Pause className="h-6 w-6" fill="currentColor" /> : <Play className="ml-1 h-6 w-6" fill="currentColor" />}
@@ -109,7 +109,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
           </button>
         </div>
         {production.description?.trim() ? (
-          <section className="order-last rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6 lg:order-none">
+          <section className="rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 sm:p-6 lg:block">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>
             <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>
           </section>
@@ -141,7 +141,7 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               {access.canDownload ? "Baixar" : access.authenticated ? "Membros" : "Entrar para baixar"}
             </button>
           </div>
-          <dl className="mt-8">
+          {production.description?.trim() ? (\n            <section className="mt-6 rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 lg:hidden">\n              <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>\n              <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>\n            </section>\n          ) : null}\n          <dl className="mt-8">
             <Sheet label="Tipo" value={production.versionType} />
             <Sheet label="Duração" value={production.duration} />
             <Sheet label="BPM" value={production.bpm} />
