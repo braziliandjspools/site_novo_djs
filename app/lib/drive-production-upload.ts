@@ -117,7 +117,8 @@ export async function recognizeProductionAudioFile(file: File, audioFileId: stri
     let coverUrl: string | null = null;
     const picture = meta.common.picture?.[0];
     if (picture?.data?.length) {
-      const coverBytes = new Uint8Array(picture.data);\n      const imageFile = new File([coverBytes.buffer as ArrayBuffer], `cover-${audioFileId}.jpg`, { type: picture.format || "image/jpeg" });
+      const coverBytes = new Uint8Array(picture.data);
+      const imageFile = new File([coverBytes.buffer as ArrayBuffer], `cover-${audioFileId}.jpg`, { type: picture.format || "image/jpeg" });
       const uploaded = await uploadCatalogImage(imageFile, "capas");
       coverFileId = uploaded.key;
       coverUrl = uploaded.url;
