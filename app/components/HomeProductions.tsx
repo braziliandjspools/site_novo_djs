@@ -168,6 +168,7 @@ export function ProductionRail({
   embedded = false,
   layout = "carousel",
   renderHeaderActions,
+  headerTitle,
 }: {
   productions: PublicBrsProduction[];
   embedded?: boolean;
