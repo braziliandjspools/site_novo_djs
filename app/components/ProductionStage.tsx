@@ -141,7 +141,13 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               {access.canDownload ? "Baixar" : access.authenticated ? "Membros" : "Entrar para baixar"}
             </button>
           </div>
-          {production.description?.trim() ? (\n            <section className="mt-6 rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 lg:hidden">\n              <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>\n              <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>\n            </section>\n          ) : null}\n          <dl className="mt-8">
+          {production.description?.trim() ? (
+            <section className="mt-6 rounded-2xl border border-[#7eb6ff]/30 bg-[linear-gradient(160deg,rgba(0,39,118,0.55),rgba(5,7,13,0.35))] p-5 lg:hidden">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Descrição</h2>
+              <p className="mt-4 whitespace-pre-line text-justify text-sm leading-8 text-zinc-100">{production.description.trim()}</p>
+            </section>
+          ) : null}
+          <dl className="mt-8">
             <Sheet label="Tipo" value={production.versionType} />
             <Sheet label="Duração" value={production.duration} />
             <Sheet label="BPM" value={production.bpm} />
