@@ -47,7 +47,7 @@ export async function GET(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
 
-  if (isR2AudioFileId(fileId)) {
+  const { searchParams } = new URL(request.url);\n\n  if (isR2AudioFileId(fileId)) {
     const key = decodeR2AudioFileId(fileId);
     if (!key) return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     try {
