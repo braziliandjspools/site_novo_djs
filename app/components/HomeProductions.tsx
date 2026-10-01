@@ -282,9 +282,8 @@ export function HomeProductions({
         <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
           <h2 className="min-w-0 font-display text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{heading}</h2>
         </div>
-        <div className="-mt-[58px] mb-8 flex justify-end pr-0 sm:-mt-[58px]">
-          <div>
-            <ProductionRail
+        <div className="mt-6">
+          <ProductionRail
             productions={productions}
             embedded={embedded}
             renderHeaderActions={({ previous, next }) => (
@@ -298,7 +297,6 @@ export function HomeProductions({
               </div>
             )}
           />
-          </div>
         </div>
       </div>
     </section>
