@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ExternalLink,
   Play,
-  Share2,
 } from "lucide-react";
 import { ProductionRail } from "./HomeProductions";
 import { productionToPreviewTrack, type PublicBrsProduction } from "../lib/brs-productions";
@@ -38,43 +36,20 @@ function loginHref(returnPath: string) {
 
 function SocialIcon({ label }: { label: string }) {
   const name = label.toLowerCase();
-  const common = { className: "h-4 w-4", viewBox: "0 0 24 24", fill: "currentColor", "aria-hidden": true as const };
-  if (name.includes("instagram")) {
-    return (
-      <svg {...common}>
-        <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 4.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5zm6.2-.9a1 1 0 1 0 1 1 1 1 0 0 0-1-1zM12 9.2A2.8 2.8 0 1 1 9.2 12 2.8 2.8 0 0 1 12 9.2z" />
-      </svg>
-    );
-  }
-  if (name.includes("facebook")) {
-    return (
-      <svg {...common}>
-        <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z" />
-      </svg>
-    );
-  }
-  if (name.includes("youtube")) {
-    return (
-      <svg {...common}>
-        <path d="M23 12.2s0-3.2-.4-4.6a3 3 0 0 0-2.1-2.1C18.9 5 12 5 12 5s-6.9 0-8.5.5a3 3 0 0 0-2.1 2.1C1 9 1 12.2 1 12.2s0 3.2.4 4.6a3 3 0 0 0 2.1 2.1C5.1 19.4 12 19.4 12 19.4s6.9 0 8.5-.5a3 3 0 0 0 2.1-2.1c.4-1.4.4-4.6.4-4.6zM9.8 15.5v-6.6l6.2 3.3z" />
-      </svg>
-    );
-  }
-  if (name.includes("soundcloud")) {
-    return (
-      <svg {...common}>
-        <path d="M17.5 10.2a4.4 4.4 0 0 0-4.2 3H7.6a.6.6 0 0 0-.6.6v.8h6.3a3.2 3.2 0 1 0 4.2-4.4zM4 14.8h.8v-2.2H4zm1.4 0h.8v-3.2h-.8zm1.4 0h.8V10h-.8z" />
-      </svg>
-    );
-  }
-  if (name.includes("spotify")) {
-    return (
-      <svg {...common}>
-        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm4.6 14.4a.6.6 0 0 1-.8.2c-2.3-1.4-5.2-1.7-8.6-.9a.6.6 0 1 1-.3-1.2c3.7-.9 7-0.5 9.6 1.1a.6.6 0 0 1 .1.8zm1.2-2.7a.8.8 0 0 1-1 .2c-2.6-1.6-6.6-2.1-9.7-1.1a.8.8 0 0 1-.5-1.5c3.5-1.1 8-0.6 11 1.3a.8.8 0 0 1 .2 1.1zm.1-2.8C14.8 9.4 9.6 9.2 7 10a1 1 0 1 1-.6-1.9c3-0.9 8.7-.6 12.1 1.4a1 1 0 0 1-1.1 1.6z" />
-      </svg>
-    );
-  }
-  return <ExternalLink className="h-4 w-4" />;
+  const icon = name.includes("instagram")
+    ? "fa-brands fa-instagram"
+    : name.includes("facebook")
+      ? "fa-brands fa-facebook"
+      : name.includes("whatsapp")
+        ? "fa-brands fa-whatsapp"
+        : name.includes("youtube")
+          ? "fa-brands fa-youtube"
+          : name.includes("soundcloud")
+            ? "fa-brands fa-soundcloud"
+            : name.includes("spotify")
+              ? "fa-brands fa-spotify"
+              : "fa-solid fa-globe";
+  return <i className={`${icon} text-[15px] leading-none`} aria-hidden="true" />;
 }
 
 function Catalog({
@@ -99,6 +74,7 @@ function Catalog({
   });
   const latest = productions[0];
   const [photo, setPhoto] = useState(producer.photoUrl || producer.fallbackPhotoUrl);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     void fetch("/api/musicas/session", { cache: "no-store" })
@@ -163,8 +139,8 @@ function Catalog({
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_18%_0%,rgba(0,70,160,0.48),transparent_42%),linear-gradient(180deg,#05070d_0%,#02040a_100%)] font-[family-name:var(--font-barlow)] text-white">
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-        <section className="grid items-stretch gap-4 lg:grid-cols-2">
-          <div className="flex h-full items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-6">
+        <section className="grid items-start gap-4 lg:grid-cols-2">
+          <div className="flex flex-col items-center gap-4">
           <div className="relative aspect-square w-full max-w-[420px]">
             <div className="absolute inset-[6%] z-0 rounded-full">
               {PROFILE_BARS.map((height, index) => (
@@ -182,8 +158,8 @@ function Catalog({
             </div>
             <button
               type="button"
-              onClick={playLatest}
-              aria-label={access.canPlay ? `Ouvir ${producer.name}` : "Entrar para ouvir"}
+              onClick={() => photo && setExpanded(true)}
+              aria-label={photo ? `Ampliar foto de ${producer.name}` : producer.name}
               className="absolute inset-[18%] z-10 overflow-hidden rounded-full border-4 border-[#102033] bg-[#07111c] shadow-[0_0_80px_rgba(0,80,180,0.35)]"
             >
               {photo ? (
@@ -202,12 +178,27 @@ function Catalog({
               )}
             </button>
           </div>
+          <div className="w-full max-w-[420px] rounded-2xl border border-[#7eb6ff]/25 bg-[linear-gradient(160deg,rgba(0,39,118,0.45),rgba(5,7,13,0.55))] px-5 py-4 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7eb6ff]">No catálogo BRS</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-white">{total}</p>
+            <p className="text-sm text-white">{total === 1 ? "faixa publicada" : "faixas publicadas"}</p>
+            {producer.place ? <p className="mt-2 text-sm text-white">{producer.place}</p> : null}
+            {latest ? <p className="mt-3 truncate text-sm text-white">Último lançamento · {latest.title}</p> : null}
           </div>
-          <div className="flex h-full flex-col justify-center rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
+          </div>
+          <div className="flex h-full flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#7eb6ff]">Perfil público · Produtor</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
+            <div className="mt-3 flex items-center gap-3">
+              <h1 className="text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">{producer.name}</h1>
+              <span className="group relative inline-flex shrink-0">
+                <i className="fa-solid fa-circle-check text-2xl text-[#1db954] sm:text-3xl" aria-hidden="true" />
+                <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition group-hover:opacity-100">
+                  Verificado
+                </span>
+              </span>
+            </div>
             {producer.fullName ? <p className="mt-2 text-sm text-zinc-400">{producer.fullName}</p> : null}
-            <p className="mt-5 max-w-xl text-sm leading-7 text-zinc-300 sm:text-base">
+            <p className="mt-5 max-w-xl text-justify text-sm leading-7 text-white sm:text-base">
               {producer.bio || "Catálogo oficial de produções no Brazilian Remix Service."}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
@@ -229,7 +220,7 @@ function Catalog({
                 Ver lançamentos
               </a>
               <button type="button" onClick={() => void shareProfile()} aria-label="Compartilhar perfil" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
-                <Share2 className="h-4 w-4" />
+                <i className="fa-solid fa-share-nodes text-[15px] leading-none" aria-hidden="true" />
               </button>
               {producer.links.map((link) => (
                 <a key={link.href} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/80">
@@ -239,13 +230,24 @@ function Catalog({
             </div>
           </div>
         </section>
+        {expanded && photo ? (
+          <button
+            type="button"
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/85 p-6"
+            aria-label="Fechar foto"
+            onClick={() => setExpanded(false)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photo} alt={producer.name} className="max-h-[86vh] max-w-[86vw] rounded-3xl object-contain shadow-2xl" />
+          </button>
+        ) : null}
 
         <section id="lancamentos" className="scroll-mt-24 pt-12 sm:pt-16">
           <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1ed760]">Catálogo público</p>
               <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Lançamentos</h2>
-              <p className="mt-1 text-sm text-zinc-500">Produções de {producer.name} disponíveis no catálogo BRS.</p>
+              <p className="mt-1 text-sm text-white">Produções de {producer.name} disponíveis no catálogo BRS.</p>
             </div>
             {latest ? (
               <button

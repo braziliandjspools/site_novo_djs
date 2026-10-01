@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS "brs_producers" (
     "soundcloud" TEXT,
     "spotify" TEXT,
     "website" TEXT,
+    "whatsapp" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "brs_producers_pkey" PRIMARY KEY ("id")
@@ -58,6 +59,7 @@ ALTER TABLE "brs_productions" ADD COLUMN IF NOT EXISTS "bpm" TEXT;
 ALTER TABLE "brs_productions" ADD COLUMN IF NOT EXISTS "format" TEXT;
 ALTER TABLE "brs_productions" ADD COLUMN IF NOT EXISTS "bitrate" TEXT;
 ALTER TABLE "brs_productions" ADD COLUMN IF NOT EXISTS "cover_file_id" TEXT;
+ALTER TABLE "brs_producers" ADD COLUMN IF NOT EXISTS "whatsapp" TEXT;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "brs_productions_slug_key" ON "brs_productions"("slug");
 CREATE INDEX IF NOT EXISTS "brs_productions_is_published_published_at_idx" ON "brs_productions"("is_published", "published_at");

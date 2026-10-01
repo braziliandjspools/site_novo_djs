@@ -18,6 +18,7 @@ type Producer = {
   soundcloud: string | null;
   spotify: string | null;
   website: string | null;
+  whatsapp: string | null;
   _count: { productions: number };
 };
 
@@ -34,6 +35,7 @@ const blank = {
   soundcloud: "",
   spotify: "",
   website: "",
+  whatsapp: "",
 };
 
 export function AdminProducers() {
@@ -138,6 +140,7 @@ export function AdminProducers() {
       soundcloud: item.soundcloud ?? "",
       spotify: item.spotify ?? "",
       website: item.website ?? "",
+      whatsapp: item.whatsapp ?? "",
     });
     setOpen(true);
   }
@@ -156,6 +159,7 @@ export function AdminProducers() {
         <input className="site-input" placeholder="País" value={form.country} onChange={(e) => setForm((current) => ({ ...current, country: e.target.value }))} />
         <input className="site-input" placeholder="Instagram" value={form.instagram} onChange={(e) => setForm((current) => ({ ...current, instagram: e.target.value }))} />
         <input className="site-input" placeholder="Facebook" value={form.facebook} onChange={(e) => setForm((current) => ({ ...current, facebook: e.target.value }))} />
+        <input className="site-input" placeholder="WhatsApp +5551935052274" value={form.whatsapp} onChange={(e) => setForm((current) => ({ ...current, whatsapp: e.target.value }))} />
         <input className="site-input" placeholder="YouTube" value={form.youtube} onChange={(e) => setForm((current) => ({ ...current, youtube: e.target.value }))} />
         <input className="site-input" placeholder="SoundCloud" value={form.soundcloud} onChange={(e) => setForm((current) => ({ ...current, soundcloud: e.target.value }))} />
         <input className="site-input" placeholder="Spotify" value={form.spotify} onChange={(e) => setForm((current) => ({ ...current, spotify: e.target.value }))} />

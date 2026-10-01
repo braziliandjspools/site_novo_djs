@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProducerCatalog } from "../../components/ProducerCatalog";
 import { catalogMediaUrl } from "../../lib/catalog-media";
-import { getProducerPage } from "../../lib/brs-productions";
+import { getProducerPage, producerWhatsappLink } from "../../lib/brs-productions";
 import { findKnownArtistBySlug } from "../../lib/vip-known-artists";
 
 type PageProps = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
@@ -10,6 +10,7 @@ type PageProps = { params: Promise<{ slug: string }>; searchParams: Promise<{ pa
 const SOCIAL = [
   ["instagram", "Instagram"],
   ["facebook", "Facebook"],
+  ["whatsapp", "WhatsApp"],
   ["youtube", "YouTube"],
   ["soundcloud", "SoundCloud"],
   ["spotify", "Spotify"],
@@ -54,7 +55,9 @@ export default async function ProducerPage({ params, searchParams }: PageProps) 
           fallbackPhotoUrl,
           place,
           links: SOCIAL.flatMap(([key, label]) => {
-            const href = producer[key];
+            const raw = producer[key];
+            if (!raw) return [];
+            const href = key === "whatsapp" ? producerWhatsappLink(raw) : raw;
             return href ? [{ href, label }] : [];
           }),
         }}

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthorizedAdminRequest } from "../../../../lib/admin-auth";
 import { prisma } from "../../../../lib/prisma";
-import { uniqueProducerSlug } from "../../../../lib/brs-productions";
+import { normalizeProducerWhatsapp, uniqueProducerSlug } from "../../../../lib/brs-productions";
 
 function unauthorized() {
   return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -17,6 +17,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const name = body ? clean(body.name) : "";
   if (!name) return NextResponse.json({ error: "Informe o nome artístico." }, { status: 400 });
+  const whatsapp = normalizeProducerWhatsapp(body?.whatsapp);
+  if (whatsapp.error) return NextResponse.json({ error: whatsapp.error }, { status: 400 });
   const item = await prisma.brsProducer.update({
     where: { id },
     data: {
@@ -33,6 +35,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       soundcloud: clean(body?.soundcloud) || null,
       spotify: clean(body?.spotify) || null,
       website: clean(body?.website) || null,
+      whatsapp: whatsapp.phone,
     },
   });
   await prisma.brsProduction.updateMany({ where: { producerId: id }, data: { producer: name } });

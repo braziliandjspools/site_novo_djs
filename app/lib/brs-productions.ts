@@ -199,6 +199,21 @@ export async function uniqueProductionSlug(title: string, ignoreId?: string) {
   return slug;
 }
 
+export function normalizeProducerWhatsapp(value: unknown) {
+  const raw = typeof value === "string" ? value.trim().replace(/[\s()-]/g, "") : "";
+  if (!raw) return { phone: null as string | null };
+  const phone = `+${raw.replace(/\D/g, "")}`;
+  if (!/^\+\d{10,15}$/.test(phone)) {
+    return { phone: null as string | null, error: "WhatsApp no formato +5551935052274." };
+  }
+  return { phone };
+}
+
+export function producerWhatsappLink(phone: string | null | undefined) {
+  const digits = phone?.replace(/\D/g, "") ?? "";
+  return digits ? `https://wa.me/${digits}` : null;
+}
+
 export async function uniqueProducerSlug(name: string, ignoreId?: string) {
   const base = slugifyFolderName(name) || "produtor";
   let slug = base;

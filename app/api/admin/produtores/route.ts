@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthorizedAdminRequest } from "../../../lib/admin-auth";
 import { prisma } from "../../../lib/prisma";
-import { uniqueProducerSlug } from "../../../lib/brs-productions";
+import { normalizeProducerWhatsapp, uniqueProducerSlug } from "../../../lib/brs-productions";
 
 function unauthorized() {
   return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -11,7 +11,7 @@ function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function producerData(body: Record<string, unknown>, slug: string) {
+function producerData(body: Record<string, unknown>, slug: string, whatsapp: string | null) {
   const name = clean(body.name);
   return {
     name,
@@ -27,6 +27,7 @@ function producerData(body: Record<string, unknown>, slug: string) {
     soundcloud: clean(body.soundcloud) || null,
     spotify: clean(body.spotify) || null,
     website: clean(body.website) || null,
+    whatsapp,
   };
 }
 
@@ -60,9 +61,11 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const name = body ? clean(body.name) : "";
   if (!name) return NextResponse.json({ error: "Informe o nome artístico." }, { status: 400 });
+  const whatsapp = normalizeProducerWhatsapp(body?.whatsapp);
+  if (whatsapp.error) return NextResponse.json({ error: whatsapp.error }, { status: 400 });
   try {
     const item = await prisma.brsProducer.create({
-      data: producerData(body!, await uniqueProducerSlug(name)),
+      data: producerData(body!, await uniqueProducerSlug(name), whatsapp.phone),
     });
     return NextResponse.json({ item }, { status: 201 });
   } catch (error) {

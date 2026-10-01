@@ -528,6 +528,7 @@ model BrsProducer {
   soundcloud  String?
   spotify     String?
   website     String?
+  whatsapp    String?
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
   productions BrsProduction[]
