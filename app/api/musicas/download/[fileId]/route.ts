@@ -13,6 +13,7 @@ import {
 } from "../../../../lib/drive-audio-stream";
 import { requireVipMusicAccess } from "../../../../lib/vip-music-access";
 import { getSendNowDirectUrl, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
+import { decodeR2AudioFileId, isR2AudioFileId, readR2Audio } from "../../../../lib/music-studio/storage";
 
 export const dynamic = "force-dynamic";
 /** Streams longos no Dokploy/Node — só no modo ?proxy=1. */
@@ -44,6 +45,27 @@ export async function GET(request: Request, context: RouteContext) {
   const fileId = (await context.params).fileId;
   if (!fileId || !/^[a-zA-Z0-9_-]+$/.test(fileId)) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+  }
+
+  if (isR2AudioFileId(fileId)) {
+    const key = decodeR2AudioFileId(fileId);
+    if (!key) return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    try {
+      const upstream = await readR2Audio(key, request);
+      const requestedName = searchParams.get("name");
+      const filename = ensureAudioExtension(requestedName ?? key.split("/").pop() ?? "faixa.mp3");
+      const headers = new Headers();
+      headers.set("Content-Type", contentTypeForFilename(filename));
+      headers.set("Content-Disposition", contentDispositionAttachment(filename));
+      headers.set("Accept-Ranges", "bytes");
+      const length = upstream.headers.get("content-length");
+      const range = upstream.headers.get("content-range");
+      if (length) headers.set("Content-Length", length);
+      if (range) headers.set("Content-Range", range);
+      return new NextResponse(upstream.body, { status: range ? 206 : 200, headers });
+    } catch {
+      return NextResponse.json({ error: "Áudio não encontrado." }, { status: 404 });
+    }
   }
 
   if (isSendNowFileId(fileId)) {
