@@ -224,9 +224,9 @@ export function ProductionRail({
         }
       `}</style>
     <div>
-      {headerTitle ? (
-        <div className="mb-3 flex items-center justify-between gap-4">
-          <h2 className="min-w-0 font-display text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{headerTitle}</h2>
+      {headerTitle !== undefined ? (
+        <div className="mb-3 flex min-h-10 w-full items-center justify-between gap-4">
+          <h2 className="!m-0 block whitespace-nowrap font-display text-2xl font-semibold leading-tight tracking-[-0.03em] text-white sm:text-4xl">{headerTitle}</h2>
           {renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
         </div>
       ) : renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
