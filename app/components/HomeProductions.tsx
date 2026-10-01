@@ -86,8 +86,8 @@ function ProductionCard({
   }
 
   return (
-    <article className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
-      <div className={`rounded-xl bg-gradient-to-br p-[1.5px] ${tone.frame}`}>
+    <article className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-1.5 sm:p-2.5 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
+      <div className={`rounded-xl bg-gradient-to-br p-[1px] sm:p-[1.5px] ${tone.frame}`}>
       <div className="group relative aspect-square overflow-hidden rounded-[11px] bg-[#161816]">
         <Image
           src={production.coverUrl}
@@ -103,8 +103,8 @@ function ProductionCard({
           className={`absolute inset-0 flex items-center justify-center transition ${playing ? "bg-black/35" : "bg-gradient-to-t from-black/35 via-transparent to-transparent group-hover:bg-black/35"}`}
           aria-label={playing ? `Pausar ${production.title}` : access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
         >
-          <span className={`flex h-14 w-14 items-center justify-center rounded-full bg-[#1db954] text-black shadow-[0_12px_35px_rgba(29,185,84,0.38)] transition duration-300 ${playing ? "scale-100 opacity-100" : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"}`}>
-            {playing ? <Pause className="h-5 w-5" fill="currentColor" /> : <Play className="ml-0.5 h-5 w-5" fill="currentColor" />}
+          <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-[#1db954] text-black shadow-[0_12px_35px_rgba(29,185,84,0.38)] transition duration-300 ${playing ? "scale-100 opacity-100" : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"}`}>
+            {playing ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" /> : <Play className="ml-0.5 h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" />}
           </span>
         </button>
         {production.isFeatured || production.isNew ? (
@@ -118,11 +118,11 @@ function ProductionCard({
         </span>
       </div>
       </div>
-      <div className="flex flex-1 flex-col px-1.5 pb-1 pt-4">
-        <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[15px] font-bold leading-none tracking-[-0.01em] text-white transition hover:text-[#1ed760]">
+      <div className="flex flex-1 flex-col px-1 pb-1 pt-2.5 sm:px-1.5 sm:pt-4">
+        <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[12px] font-bold leading-tight tracking-[-0.01em] text-white transition hover:text-[#1ed760] sm:text-[15px] sm:leading-none">
           {production.title}
         </Link>
-        <p className="mt-1.5 flex min-w-0 items-center gap-1.5 whitespace-nowrap text-xs text-zinc-400">
+        <p className="mt-1 flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] text-zinc-400 sm:mt-1.5 sm:gap-1.5 sm:text-xs">
           <span className="truncate">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
@@ -132,27 +132,27 @@ function ProductionCard({
               production.producer
             )}
           </span>
-          <span className="shrink-0 rounded-md bg-[#002776] px-1.5 py-0.5 text-[10px] font-bold text-[#d7e7ff]">
+          <span className="shrink-0 rounded-md bg-[#002776] px-1 py-0.5 text-[8px] font-bold text-[#d7e7ff] sm:px-1.5 sm:text-[10px]">
             {production.versionType}
           </span>
         </p>
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <span className={`truncate rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.13em] ${tone.chip}`}>
+        <div className="mt-2 flex items-center justify-between gap-1 sm:mt-4 sm:gap-2">
+          <span className={`truncate rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] ${tone.chip} sm:px-2.5 sm:py-1 sm:text-[9px] sm:tracking-[0.13em]`}>
             {production.categoryLabel}
           </span>
           <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-white">{dateLabel}</span>
         </div>
-        <div className="mt-auto flex gap-2 border-t border-white/[0.07] pt-3.5">
-          <button type="button" onClick={play} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.035] text-[10px] font-bold text-white transition hover:border-[#1db954]/45 hover:bg-[#1db954]/[0.06]">
+        <div className="mt-auto flex gap-1.5 border-t border-white/[0.07] pt-2 sm:gap-2 sm:pt-3.5">
+          <button type="button" onClick={play} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.035] text-[9px] font-bold text-white transition hover:border-[#1db954]/45 hover:bg-[#1db954]/[0.06] sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
             <Play className="h-3 w-3" fill="currentColor" />
             {access.canPlay ? "Ouvir" : "Entrar"}
           </button>
           {access.canDownload ? (
-            <button type="button" onClick={download} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#1db954] text-[10px] font-extrabold text-[#06150b] shadow-[0_8px_24px_-10px_rgba(29,185,84,0.9)] transition hover:bg-[#1ed760]">
+            <button type="button" onClick={download} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#1db954] text-[9px] font-extrabold text-[#06150b] shadow-[0_8px_24px_-10px_rgba(29,185,84,0.9)] transition hover:bg-[#1ed760] sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
               <Download className="h-3 w-3" /> Baixar
             </button>
           ) : (
-            <button type="button" onClick={download} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.035] text-[10px] font-bold text-zinc-400 transition hover:border-[#1db954]/35">
+            <button type="button" onClick={download} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.035] text-[9px] font-bold text-zinc-400 transition hover:border-[#1db954]/35 sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
               <Lock className="h-3 w-3" />
               {access.authenticated ? "Membros" : "Entrar"}
             </button>
