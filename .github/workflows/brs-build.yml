@@ -3,6 +3,7 @@ name: BRS build verification
 on:
   push:
     branches:
+      - feat/brs-mobile-drive-access
       - feat/brs-djcity-modernizacao
   pull_request:
     branches:
