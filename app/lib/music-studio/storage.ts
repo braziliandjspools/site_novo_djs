@@ -78,7 +78,7 @@ async function putObjectR2(key: string, body: Buffer, contentType: string) {
   }
 }
 
-export async function uploadCatalogImage(file: File, folder: "capas" | "perfis") {
+export async function uploadCatalogImage(file: File, folder: "capas" | "perfis" | "banners") {
   if (!r2Configured()) {
     throw new Error("R2 não está configurado. Defina R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY e R2_BUCKET_NAME.");
   }
