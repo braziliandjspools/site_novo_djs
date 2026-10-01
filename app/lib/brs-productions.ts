@@ -154,6 +154,28 @@ export async function listPublishedProductions(limit = 12) {
   return rows.map(toPublicProduction);
 }
 
+export async function listPublishedProductionsPage(page = 1, pageSize = 50) {
+  const safePage = Math.max(1, Math.floor(page));
+  const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize)));
+  const [rows, total] = await Promise.all([
+    prisma.brsProduction.findMany({
+      where: { isPublished: true },
+      include: publishedInclude,
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
+      skip: (safePage - 1) * safePageSize,
+      take: safePageSize,
+    }),
+    prisma.brsProduction.count({ where: { isPublished: true } }),
+  ]);
+  return {
+    items: rows.map(toPublicProduction),
+    total,
+    page: safePage,
+    pageSize: safePageSize,
+    totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+  };
+}
+
 export async function getPublishedProductionBySlug(slug: string) {
   const row = await prisma.brsProduction.findFirst({
     where: { slug, isPublished: true },
