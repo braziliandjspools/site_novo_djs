@@ -122,7 +122,12 @@ function ProductionCard({
         <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[12px] font-bold leading-tight tracking-[-0.01em] text-white transition hover:text-[#1ed760] sm:text-[15px] sm:leading-none">
           {production.title}
         </Link>
-        <p className="mt-1 flex min-w-0 items-center gap-1 whitespace-nowrap text-[10px] text-zinc-400 sm:mt-1.5 sm:gap-1.5 sm:text-xs">
+        <div className="mt-0.5 flex justify-end">
+          <span className="rounded-md bg-[#002776] px-1.5 py-0.5 text-[8px] font-bold leading-none text-[#d7e7ff] sm:px-2 sm:text-[10px]">
+            {production.versionType}
+          </span>
+        </div>
+        <p className="mt-1 flex min-w-0 items-center whitespace-nowrap text-[10px] text-zinc-400 sm:mt-1.5 sm:text-xs">
           <span className="truncate">
             {production.producerSlug ? (
               <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
@@ -131,9 +136,6 @@ function ProductionCard({
             ) : (
               production.producer
             )}
-          </span>
-          <span className="shrink-0 rounded-md bg-[#002776] px-1 py-0.5 text-[8px] font-bold text-[#d7e7ff] sm:px-1.5 sm:text-[10px]">
-            {production.versionType}
           </span>
         </p>
         <div className="mt-2 flex items-center justify-between gap-1 sm:mt-4 sm:gap-2">
