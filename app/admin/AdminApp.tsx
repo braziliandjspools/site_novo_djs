@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Bell, LayoutDashboard, Music2, ScrollText, UsersRound } from "lucide-react";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminLogin } from "./AdminLogin";
 import { AdminMusicProducerDeliveries } from "./AdminMusicProducerDeliveries";
@@ -47,19 +48,21 @@ export function AdminApp() {
 
   return (
     <div className="w-full min-w-0 space-y-6">
-      <div className="flex w-full min-w-0 flex-wrap gap-2 border-b border-white/10 pb-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider sm:px-4 ${
-              activeTab === tab.id ? "bg-[#FFDF00] text-black" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#090b0d] shadow-2xl">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 p-2">
+          <Link href="/admin" className="inline-flex items-center gap-2 rounded-xl bg-white/[0.06] px-3 py-2.5 text-xs font-bold text-white"><LayoutDashboard className="h-4 w-4" /> Painel</Link>
+          <Link href="/admin/producoes" className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white"><Music2 className="h-4 w-4" /> Produções</Link>
+          <Link href="/admin/produtores" className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white"><UsersRound className="h-4 w-4" /> Produtores</Link>
+          <Link href="/admin/scripts" className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white"><ScrollText className="h-4 w-4" /> Scripts</Link>
+          <div className="ml-auto flex gap-1">
+            {tabs.filter((tab) => tab.id !== "dashboard").map((tab) => (
+              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`rounded-xl px-3 py-2.5 text-xs font-bold ${activeTab === tab.id ? "bg-[#1db954] text-black" : "text-white/40 hover:text-white"}`}>
+                {tab.id === "users" ? <UsersRound className="inline h-4 w-4" /> : <Bell className="inline h-4 w-4" />}
+                <span className="ml-1 hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {activeTab === "dashboard" ? (
@@ -72,20 +75,6 @@ export function AdminApp() {
         <AdminNotices onLogout={() => setAuthenticated(false)} />
       )}
 
-      <div className="border-t border-white/10 pt-4">
-        <Link
-          href="/admin/producoes"
-          className="mr-3 inline-flex min-h-10 items-center rounded-lg border border-white/15 px-4 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/5"
-        >
-          Produções BRS
-        </Link>
-        <Link
-          href="/admin/scripts"
-          className="inline-flex min-h-10 items-center rounded-lg border border-[#1db954]/25 px-4 text-xs font-bold uppercase tracking-wider text-[#1db954] transition hover:bg-[#1db954]/10"
-        >
-          Gerenciar scripts do portal
-        </Link>
-      </div>
     </div>
   );
 }
