@@ -280,13 +280,10 @@ export function HomeProductions({
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
       <div className="mx-auto max-w-6xl">
-        <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
-          <h2 className="min-w-0 font-display text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{heading}</h2>
-        </div>
-        <div className="mt-6">
-          <ProductionRail
+        <ProductionRail
             productions={productions}
             embedded={embedded}
+            headerTitle={heading}
             renderHeaderActions={({ previous, next }) => (
               <div className="flex shrink-0 items-center gap-1">
                 <button type="button" aria-label="Produções anteriores" onClick={previous} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
@@ -298,7 +295,6 @@ export function HomeProductions({
               </div>
             )}
           />
-        </div>
       </div>
     </section>
   );
