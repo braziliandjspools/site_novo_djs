@@ -352,20 +352,20 @@ export default async function Home() {
             </div>
             <div className="space-y-4 text-justify text-sm leading-7 text-gray-400 sm:text-[15px] sm:leading-7 lg:text-base lg:leading-8">
               <h3 className="font-display text-left text-2xl font-semibold leading-tight text-white sm:text-3xl">
-                🚀 Baixe as novidades de forma organizada com o BRS Downloader! 🎧
+                Baixe organizado com o BRS Downloader
               </h3>
               <p>
-                Agora ficou muito mais fácil baixar seus pools sem perder nada. O BRS Downloader foi pensado para deixar o processo rápido e organizado, principalmente para quem acompanha as novidades de vários pools e precisa manter o acervo do computador sempre em ordem.
+                Baixe seus pools de forma rápida e organizada. O BRS Downloader foi pensado para deixar o processo rápido e organizado, principalmente para quem acompanha as novidades de vários pools e precisa manter o acervo do computador sempre em ordem.
               </p>
               <p>
-                📁 Copie o link da pasta e cole no BRS Downloader. O programa identifica as opções disponíveis e você escolhe o <strong className="font-semibold text-gray-200">📅 dia</strong>, a <strong className="font-semibold text-gray-200">🎵 pool</strong> e os <strong className="font-semibold text-gray-200">🎶 estilos</strong> que deseja baixar. Depois, é só clicar para iniciar o download. ⬇️
+                Copie o link da pasta e cole no BRS Downloader. O programa identifica as opções disponíveis e você escolhe o <strong className="font-semibold text-gray-200">dia</strong>, a <strong className="font-semibold text-gray-200">pool</strong> e os <strong className="font-semibold text-gray-200">estilos</strong> que deseja baixar. Depois, é só iniciar o download.
               </p>
               <p>
-                ✨ O BRS Downloader faz toda a organização automaticamente, salvando as músicas nas pastas corretas. Assim, você baixa as novidades por pool e por dia sem precisar ficar organizando tudo manualmente depois.
+                O BRS Downloader faz toda a organização automaticamente, salvando as músicas nas pastas corretas. Assim, você baixa as novidades por pool e por dia sem precisar organizar tudo manualmente depois.
               </p>
               <p className="font-semibold text-gray-200">
                 Mais praticidade. Mais organização. Menos trabalho.<br />
-                💗 BRS Downloader — sua música organizada do jeito certo!
+                BRS Downloader — sua música organizada do jeito certo.
               </p>
             </div>
           </div>
