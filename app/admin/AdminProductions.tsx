@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, ExternalLink, Filter, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ExternalLink, Filter, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { categoryLabel } from "../lib/brs-productions";
 import { formatStyleNameForDisplay } from "../lib/style-display";
@@ -42,14 +42,6 @@ export function AdminProductions() {
     void load();
   }, []);
 
-  async function toggle(item: Row) {
-    await fetch(`/api/admin/producoes/${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...item, isPublished: !item.isPublished, publishedAt: item.publishedAt }),
-    });
-    await load();
-  }
 
   const filteredItems = items.filter((item) => {
     const needle = query.trim().toLowerCase();
