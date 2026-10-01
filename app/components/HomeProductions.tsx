@@ -109,43 +109,72 @@ function ProductionCard({
             {playing ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" /> : <Play className="ml-0.5 h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" />}
           </span>
         </button>
-        {production.isFeatured || production.isNew ? (
+        {!list && (production.isFeatured || production.isNew) ? (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#1db954]/30 bg-black/80 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-[#72e89c] backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-[#1db954] shadow-[0_0_8px_#1db954]" />
             {production.isFeatured ? "Destaque" : "Novo"}
           </span>
         ) : null}
-        <span className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-[#009739] via-[#1db954] to-[#ffe566] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-black shadow-[0_8px_18px_rgba(0,0,0,0.35)]">
-          Exclusiva BRS
-        </span>
+        {!list ? (
+          <span className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-[#009739] via-[#1db954] to-[#ffe566] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-black shadow-[0_8px_18px_rgba(0,0,0,0.35)]">
+            Exclusiva BRS
+          </span>
+        ) : null}
       </div>
       </div>
       <div className={`flex min-w-0 flex-1 flex-col px-1 pb-1 pt-2.5 sm:px-1.5 sm:pt-4 ${list ? "justify-center pl-3 sm:pl-5" : ""}`}>
         <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[12px] font-bold leading-tight tracking-[-0.01em] text-white transition hover:text-[#1ed760] sm:text-[15px] sm:leading-none">
           {production.title}
         </Link>
-        <div className="mt-0.5 flex justify-end">
-          <span className="rounded-md bg-[#002776] px-1.5 py-0.5 text-[8px] font-bold leading-none text-[#d7e7ff] sm:px-2 sm:text-[10px]">
-            {production.versionType}
-          </span>
-        </div>
-        <p className="mt-1 flex min-w-0 items-center whitespace-nowrap text-[10px] text-zinc-400 sm:mt-1.5 sm:text-xs">
-          <span className="truncate">
-            {production.producerSlug ? (
-              <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
-                {production.producer}
-              </Link>
-            ) : (
-              production.producer
-            )}
-          </span>
-        </p>
-        <div className="mt-2 flex items-center justify-between gap-1 sm:mt-4 sm:gap-2">
-          <span className={`truncate rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] ${tone.chip} sm:px-2.5 sm:py-1 sm:text-[9px] sm:tracking-[0.13em]`}>
-            {production.categoryLabel}
-          </span>
-          <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-white">{dateLabel}</span>
-        </div>
+        {!list ? (
+          <>
+            <div className="mt-0.5 flex justify-end">
+              <span className="rounded-md bg-[#002776] px-1.5 py-0.5 text-[8px] font-bold leading-none text-[#d7e7ff] sm:px-2 sm:text-[10px]">
+                {production.versionType}
+              </span>
+            </div>
+            <p className="mt-1 flex min-w-0 items-center whitespace-nowrap text-[10px] text-zinc-400 sm:mt-1.5 sm:text-xs">
+              <span className="truncate">
+                {production.producerSlug ? (
+                  <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
+                    {production.producer}
+                  </Link>
+                ) : (
+                  production.producer
+                )}
+              </span>
+            </p>
+            <div className="mt-2 flex items-center justify-between gap-1 sm:mt-4 sm:gap-2">
+              <span className={`truncate rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] ${tone.chip} sm:px-2.5 sm:py-1 sm:text-[9px] sm:tracking-[0.13em]`}>
+                {production.categoryLabel}
+              </span>
+              <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-white">{dateLabel}</span>
+            </div>
+          </>
+        ) : (
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:mt-4 sm:grid-cols-5 sm:gap-4 sm:text-xs">
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Autor:</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.artist || production.producer}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Gênero:</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.genre || "—"}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">BPM:</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.bpm || "—"}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Duração:</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.duration || "—"}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Versão:</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.versionType || "—"}</span>
+            </div>
+          </div>
+        )}
         <div className="mt-auto flex gap-1.5 border-t border-white/[0.07] pt-2 sm:gap-2 sm:pt-3.5">
           <button type="button" onClick={play} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.035] text-[9px] font-bold text-white transition hover:border-[#1db954]/45 hover:bg-[#1db954]/[0.06] sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
             <Play className="h-3 w-3" fill="currentColor" />
@@ -310,10 +339,10 @@ export function HomeProductions({
         <div className="mt-5 flex justify-center sm:mt-6">
           <Link
             href="/discover"
-            className="group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border border-[#1db954]/35 bg-[#1db954]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#8ef0b0] transition hover:-translate-y-0.5 hover:border-[#1db954] hover:bg-[#1db954]/15 hover:text-white"
+            className="group relative inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full text-center border border-[#1db954]/35 bg-[#1db954]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#8ef0b0] transition hover:-translate-y-0.5 hover:border-[#1db954] hover:bg-[#1db954]/15 hover:text-white"
           >
             Descobrir e baixar todas as produções
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            <ChevronRight className="absolute right-4 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>
