@@ -167,7 +167,6 @@ function Catalog({
             <p className="mt-2 text-3xl font-semibold tracking-tight text-white">{total}</p>
             <p className="text-sm text-white">{total === 1 ? "faixa publicada" : "faixas publicadas"}</p>
             {producer.place ? <p className="mt-2 text-sm text-white">{producer.place}</p> : null}
-            {latest ?  : null}
           </div>
           </div>
           <div className="flex h-full flex-col justify-start rounded-[28px] border border-white/10 bg-black/25 p-6 sm:p-8">
