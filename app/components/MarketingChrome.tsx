@@ -9,7 +9,10 @@ import { WhatsAppFloat } from "./WhatsAppFloat";
 export function MarketingChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const standalone =
-    pathname.startsWith("/portal") || pathname.startsWith("/admin") || pathname.startsWith("/musicas");
+    pathname.startsWith("/portal") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/musicas") ||
+    pathname.startsWith("/discover");
 
   if (standalone) {
     return <SiteToastProvider>{children}</SiteToastProvider>;
