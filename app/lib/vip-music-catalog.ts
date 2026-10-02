@@ -248,18 +248,15 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
     })),
   );
   if (targetId === rootId && isSendNowConfigured()) {
-    try {
-      const listed = await listSendNowFolder(sendNowRootStorageId() === "sendnow-root" ? "root" : sendNowFldIdFromStorageId(sendNowRootStorageId()));
-      folders.push({
-        id: sendNowRootStorageId(),
-        name: sendNowFolderLabel(),
-        isNew: false,
-        modifiedAt: null,
-      });
-      void listed;
-    } catch {
-      // O acervo Google Drive continua funcionando mesmo se o send.now estiver indisponível.
-    }
+    // O acervo SEND.NOW aparece sempre como uma raiz separada quando as
+    // credenciais estão configuradas. A listagem real só acontece ao abrir
+    // a pasta, evitando que uma falha temporária da API esconda o acervo.
+    folders.push({
+      id: sendNowRootStorageId(),
+      name: sendNowFolderLabel(),
+      isNew: false,
+      modifiedAt: null,
+    });
   }
   return folders;
 }
