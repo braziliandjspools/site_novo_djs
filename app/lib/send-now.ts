@@ -80,25 +80,13 @@ export function sendNowFldIdFromStorageId(folderId: string) {
 
 async function resolveSendNowFolderId(folderId: string) {
   if (/^\d+$/.test(folderId)) return folderId;
-  const url = sendNowFolderUrl();
-  if (!url) return sendNowFolderId();
-  const response = await fetch(url, {
-    headers: { "User-Agent": "BRS/1.0 Send.now integration" },
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error("Não foi possível acessar a pasta do send.now (" + response.status + ").");
-  const html = await response.text();
-  const patterns = [
-    /["']fld_id["']\s*[:=]\s*["']?(\d+)/i,
-    /["']folder[_-]?id["']\s*[:=]\s*["']?(\d+)/i,
-    /[?&]fld_id=(\d+)/i,
-    /fld_id[=/](\d+)/i,
-  ];
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match?.[1]) return match[1];
-  }
-  throw new Error("Não foi possível identificar o ID da pasta do send.now a partir de SEND_NOW_FOLDER_URL.");
+
+  // SEND_NOW_FOLDER_URL é o link público da pasta (/s/...), não um endpoint
+  // JSON da API. Não fazemos fetch dessa página aqui: além de ser HTML, ela
+  // pode passar por proteção/redirect e causar o erro "HTML em vez de JSON".
+  // Se o ID numérico não estiver explicitamente configurado, usamos o ID
+  // padrão da pasta BRS definida nesta integração.
+  return sendNowFolderId();
 }
 
 export function sendNowFileStorageId(fileCode: string) {
