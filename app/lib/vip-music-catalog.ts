@@ -247,17 +247,8 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
       modifiedAt: folder.modifiedTime ?? folder.createdTime ?? null,
     })),
   );
-  if (targetId === rootId && isSendNowConfigured()) {
-    // O acervo SEND.NOW aparece sempre como uma raiz separada quando as
-    // credenciais estão configuradas. A listagem real só acontece ao abrir
-    // a pasta, evitando que uma falha temporária da API esconda o acervo.
-    folders.push({
-      id: sendNowRootStorageId(),
-      name: sendNowFolderLabel(),
-      isNew: false,
-      modifiedAt: null,
-    });
-  }
+  // Send.now permanece implementado no backend, mas fica oculto do acervo
+  // enquanto SEND_NOW_ENABLED não estiver explicitamente ativo.
   return folders;
 }
 
