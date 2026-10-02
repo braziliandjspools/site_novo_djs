@@ -44,6 +44,7 @@ import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
+import { isSendNowFileId } from "../../lib/send-now";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
@@ -630,7 +631,14 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const titleBlock = (
     <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
-        <MobilePlayingTitle title={display.title} active={isPlaying} />
+        <span className="flex min-w-0 items-center gap-2">
+          <MobilePlayingTitle title={display.title} active={isPlaying} />
+          {track.source === "sendnow" ? (
+            <span className="hidden shrink-0 rounded border border-white/15 bg-white/[0.04] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-white/55 sm:inline">
+              SEND.NOW
+            </span>
+          ) : null}
+        </span>
         <span
           className={`hidden truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] md:block ${
             isActive || isPlaying ? "text-[#1db954]" : "text-white"
@@ -1571,7 +1579,7 @@ export function VipMusicTrackList({
           }}
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
-          showDriveButton={showDriveButton && /^[a-zA-Z0-9_-]+$/.test(track.id)}
+          showDriveButton={showDriveButton && !isSendNowFileId(track.id) && /^[a-zA-Z0-9_-]+$/.test(track.id)}
           onPoolFilter={(slug) => writeCatalogQuery({ pool: slug, style: "" })}
           onStyleFilter={(slug) => writeCatalogQuery({ style: slug })}
         />
