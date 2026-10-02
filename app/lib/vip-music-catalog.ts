@@ -372,6 +372,12 @@ async function getFolderNavStats(
 }> {
   try {
     if (isSendNowFolderStorageId(folderId)) {
+      // O card da raiz do SEND.NOW não deve bloquear o /tree caso a API
+      // esteja indisponível; a listagem real acontece ao abrir o acervo.
+      if (folderId === sendNowRootStorageId()) {
+        return { folderCount: 0, trackCount: 0, coverUrl: null };
+      }
+
       const listed = await listSendNowFolder(sendNowFldIdFromStorageId(folderId));
       return {
         folderCount: listed.folders.length,
