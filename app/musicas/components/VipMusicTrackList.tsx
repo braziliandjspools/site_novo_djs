@@ -634,7 +634,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         <span className="flex min-w-0 items-center gap-2">
           <MobilePlayingTitle title={display.title} active={isPlaying} />
           {track.source === "sendnow" ? (
-            <span className="hidden shrink-0 rounded border border-white/15 bg-white/[0.04] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-white/55 sm:inline">
+            <span className="inline-flex shrink-0 rounded border border-white/15 bg-white/[0.04] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-white/55 sm:inline">
               SEND.NOW
             </span>
           ) : null}
