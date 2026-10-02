@@ -13,7 +13,6 @@ import {
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
-import { isSendNowFolderStorageId } from "../../lib/send-now";
 import {
   clearMusicasCache,
   fetchMusicasJson,
@@ -74,7 +73,6 @@ function AcervoCard({
   const hasFolderStats = typeof folderCount === "number" && folderCount > 0;
   const hasTrackStats = typeof trackCount === "number" && trackCount > 0;
   const { label: statusLabel, status } = parseMonthStatus(folder.name);
-  const isSendNow = isSendNowFolderStorageId(folder.id);
   const badge = isNew ? "Novo" : statusLabel || null;
 
   function prefetch() {
