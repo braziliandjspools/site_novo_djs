@@ -37,6 +37,8 @@ export type PreviewTrack = {
   poolFolderId?: string | null;
   /** Tamanho do arquivo em bytes (Drive API `size`). */
   sizeBytes?: number | null;
+  /** Origem do acervo — usado para diferenciar Google Drive e send.now na tabela. */
+  source?: "drive" | "sendnow";
   /** Key Camelot (ex.: 11A, 12B) extraída do nome. */
   musicalKey: string | null;
   bpm: string | null;
