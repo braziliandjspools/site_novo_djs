@@ -63,6 +63,8 @@ export function MusicSearchPage() {
   const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const requestIdRef = useRef(0);
+  const showToastRef = useRef(showToast);
+  showToastRef.current = showToast;
 
   useEffect(() => {
     const handle = window.setTimeout(() => setQuery(draft.trim()), DEBOUNCE_MS);
@@ -110,11 +112,26 @@ export function MusicSearchPage() {
       setCurrentTime(0);
     };
 
+    const onError = () => {
+      const code = audio.error?.code;
+      const detail =
+        code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+          ? "Formato ou URL de áudio não suportados."
+          : code === MediaError.MEDIA_ERR_NETWORK
+            ? "Falha de rede ao carregar o áudio."
+            : "Não foi possível reproduzir esta faixa.";
+      showToastRef.current(detail, "error");
+      setPlayingId(null);
+      setPlayingTrack(null);
+      setIsPlaying(false);
+    };
+
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("loadedmetadata", onMeta);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("error", onError);
 
     return () => {
       audio.pause();
@@ -122,9 +139,10 @@ export function MusicSearchPage() {
       audio.load();
       audio.removeEventListener("timeupdate", onTime);
       audio.removeEventListener("loadedmetadata", onMeta);
-      audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("play", onPlay);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
       audioRef.current = null;
     };
   }, []);

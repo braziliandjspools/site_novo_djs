@@ -803,6 +803,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 layout="table"
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
+                updateDays={data.updateDays}
                 hasMore={tracksHasMore}
                 onLoadMore={loadMoreTracks}
                 continueContext={
@@ -846,6 +847,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {!error && data && showingTracks && (
         <MusicLibraryBrowseShell
+          hideSidebar
           slugSegments={slugSegments}
           resolvedPath={data.resolvedPath}
           rootPacks={months}
@@ -941,6 +943,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 layout="table"
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
+                updateDays={data.updateDays}
                 hasMore={tracksHasMore}
                 onLoadMore={loadMoreTracks}
                 continueContext={

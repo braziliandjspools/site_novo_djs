@@ -240,6 +240,20 @@ export async function fetchDriveAudioUpstream(
   };
 }
 
+/** WebView/Chrome rejeitam application/octet-stream como fonte de <audio>. */
+function normalizeAudioContentType(contentType: string): string {
+  const raw = (contentType || "").split(";")[0]?.trim().toLowerCase() ?? "";
+  if (!raw || raw === "application/octet-stream" || raw === "binary/octet-stream") {
+    return "audio/mpeg";
+  }
+  if (raw.startsWith("audio/")) return raw;
+  if (raw.includes("mpeg") || raw.includes("mp3")) return "audio/mpeg";
+  if (raw.includes("wav")) return "audio/wav";
+  if (raw.includes("flac")) return "audio/flac";
+  if (raw.includes("mp4") || raw.includes("m4a") || raw.includes("aac")) return "audio/mp4";
+  return "audio/mpeg";
+}
+
 export function driveAudioResponseHeaders(
   upstream: {
     contentType: string;
@@ -250,7 +264,7 @@ export function driveAudioResponseHeaders(
   options?: { inline?: boolean; previewSeconds?: number | null },
 ) {
   const headers = new Headers();
-  headers.set("Content-Type", upstream.contentType);
+  headers.set("Content-Type", normalizeAudioContentType(upstream.contentType));
   headers.set("Cache-Control", "private, no-store, no-cache");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Content-Disposition", "inline");

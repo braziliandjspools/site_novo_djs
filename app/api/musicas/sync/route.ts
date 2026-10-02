@@ -4,6 +4,7 @@ import { GOOGLE_DRIVE_CACHE_TAG, withDriveForceRefresh } from "../../../lib/driv
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 import { refreshVipMusicCatalog } from "../../../lib/vip-music-catalog";
 import { clearVipMusicInventoryCache } from "../../../lib/vip-music-inventory";
+import { clearVipMusicSearchCaches } from "../../../lib/vip-music-search";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export async function POST() {
   try {
     revalidateTag(GOOGLE_DRIVE_CACHE_TAG, { expire: 0 });
     clearVipMusicInventoryCache();
+    clearVipMusicSearchCaches();
 
     const snapshot = await withDriveForceRefresh(() => refreshVipMusicCatalog());
     const syncedAt = new Date().toISOString();

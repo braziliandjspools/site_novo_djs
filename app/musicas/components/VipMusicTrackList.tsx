@@ -98,6 +98,8 @@ type VipMusicTrackListProps = {
   filterPools?: { slug: string; name: string }[];
   /** Estilos da pasta inteira, mesmo os que ainda não têm faixa carregada. */
   filterStyles?: { slug: string; name: string }[];
+  /** Dias de atualização (antes na sidebar). */
+  updateDays?: { slug: string; label: string }[];
 }
 
 function trackCatalogSlugs(track: PreviewTrack) {
@@ -1051,6 +1053,7 @@ export function VipMusicTrackList({
   showDriveButton = false,
   filterPools,
   filterStyles,
+  updateDays = [],
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
   const sync = useDownloaderSync();
@@ -1531,6 +1534,18 @@ export function VipMusicTrackList({
     [pathname, searchParams, showToast],
   );
 
+  const dayOptions = useMemo(() => {
+    return updateDays
+      .map((day) => {
+        const key =
+          parseUpdateDateFolder(day.label)?.key ||
+          parseUpdateDateFolder(day.slug)?.key ||
+          day.slug;
+        return { key, label: day.label };
+      })
+      .filter((day, index, list) => list.findIndex((item) => item.key === day.key) === index);
+  }, [updateDays]);
+
   if (tracks.length === 0) return null;
 
   const useStreaming = layout === "table" || layout === "default";
@@ -1541,6 +1556,8 @@ export function VipMusicTrackList({
   const panelClass = layout === "table"
     ? "musicas-track-panel overflow-hidden !rounded-none border border-[#60cdff]/15 bg-[#202020] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
+  const hasCatalogFilters =
+    useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || filterOptions.styles.length > 0);
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
@@ -1661,7 +1678,86 @@ export function VipMusicTrackList({
   return (
     <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
       {useStreaming ? (
-        <div className="border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
+        <div className="space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
+          {hasCatalogFilters ? (
+            <div className="rounded-xl border border-[#60cdff]/20 bg-black/40 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#60cdff]">Filtros</p>
+                {poolFilterSlug || styleFilterSlug || dayFilterKey ? (
+                  <button
+                    type="button"
+                    onClick={() => writeCatalogQuery({ pool: "", style: "", dia: "" })}
+                    className="text-[11px] font-semibold text-white/50 transition hover:text-white"
+                  >
+                    Limpar filtros
+                  </button>
+                ) : null}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {dayOptions.length > 0 ? (
+                  <label className="block min-w-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                      Dia
+                    </span>
+                    <select
+                      value={dayFilterKey}
+                      onChange={(event) =>
+                        writeCatalogQuery({ dia: event.target.value, pool: "", style: "" })
+                      }
+                      className="h-10 w-full appearance-none rounded-lg border border-white/10 bg-[#171717] px-3 text-sm text-white outline-none focus:border-[#60cdff]/50"
+                    >
+                      <option value="">Mês inteiro</option>
+                      {dayOptions.map((day) => (
+                        <option key={day.key} value={day.key}>
+                          {day.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                {filterOptions.pools.length > 0 ? (
+                  <label className="block min-w-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                      Pool
+                    </span>
+                    <select
+                      value={poolFilterSlug}
+                      onChange={(event) =>
+                        writeCatalogQuery({ pool: event.target.value, style: "" })
+                      }
+                      className="h-10 w-full appearance-none rounded-lg border border-white/10 bg-[#171717] px-3 text-sm text-white outline-none focus:border-[#60cdff]/50"
+                    >
+                      <option value="">Todos os pools</option>
+                      {filterOptions.pools.map(([slug, name]) => (
+                        <option key={slug} value={slug}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                {filterOptions.styles.length > 0 ? (
+                  <label className="block min-w-0">
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                      Estilo
+                    </span>
+                    <select
+                      value={styleFilterSlug}
+                      onChange={(event) => writeCatalogQuery({ style: event.target.value })}
+                      className="h-10 w-full appearance-none rounded-lg border border-white/10 bg-[#171717] px-3 text-sm text-white outline-none focus:border-[#60cdff]/50"
+                    >
+                      <option value="">Todos os estilos</option>
+                      {filterOptions.styles.map(([slug, name]) => (
+                        <option key={slug} value={slug}>
+                          {formatStyleNameForDisplay(name)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#60cdff]" aria-hidden />
             <input

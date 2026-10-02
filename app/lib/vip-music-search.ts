@@ -1,4 +1,4 @@
-import { listDriveFolderChildren, parseTrackMeta } from "./google-drive";
+import { listDriveFolderChildrenLite, parseTrackMeta } from "./google-drive";
 import { getTrackDisplayMetadata } from "./track-display-metadata";
 import { isDriveAudioFile } from "./folder-cover";
 import { mapPool } from "./map-pool";
@@ -32,9 +32,24 @@ export type VipMusicSearchHit = {
   relativePath?: string;
 };
 
+export type VipMusicSearchOptions = {
+  /** Só retorna faixas (Downloader). */
+  tracksOnly?: boolean;
+  /** Quantos meses mais recentes varrer na 1ª passagem. */
+  recentMonths?: number;
+  /** Quantos dias mais recentes varrer na 1ª passagem. */
+  recentDays?: number;
+};
+
 const FOLDER_MIME = "application/vnd.google-apps.folder";
-const STYLE_SCAN_CONCURRENCY = 10;
+const STYLE_SCAN_CONCURRENCY = 14;
 const DEFAULT_LIMIT = 36;
+const QUERY_CACHE_TTL_MS = 90_000;
+const STYLE_INDEX_TTL_MS = 5 * 60_000;
+const DEFAULT_RECENT_MONTHS = 2;
+const DEFAULT_RECENT_DAYS = 14;
+const EXPAND_RECENT_MONTHS = 6;
+const EXPAND_RECENT_DAYS = 40;
 
 function normalize(text: string) {
   return text
@@ -68,11 +83,20 @@ type StyleScanTarget = {
   weekSlug?: string;
   weekLabel?: string;
   relativePath: string;
+  /** Ordenação: dias/meses mais novos primeiro. */
+  sortKey: string;
 };
 
-function childrenAreDateFolders(
-  folders: { name: string }[],
-): boolean {
+type FolderHitSeed = VipMusicSearchHit;
+
+type StyleIndex = {
+  styles: StyleScanTarget[];
+  folderHits: FolderHitSeed[];
+};
+
+const queryCache = new Map<string, { expiresAt: number; results: VipMusicSearchHit[] }>();
+
+function childrenAreDateFolders(folders: { name: string }[]): boolean {
   if (folders.length === 0) return false;
   const dates = folders.filter((folder) => isUpdateDateFolderName(folder.name)).length;
   return dates >= Math.max(1, Math.ceil(folders.length * 0.5));
@@ -122,118 +146,95 @@ async function listVipMonthFolders() {
   return sortMonthsNewestFirst(months);
 }
 
-/**
- * Busca no acervo VIP de Atualizações.
- * Hierarquias suportadas:
- * - mês → dia (29-SET-2026) → pool → estilo → faixas
- * - mês → semana → estilo → faixas
- * - mês → estilo → faixas
- */
-export async function searchVipMusic(query: string, limit = DEFAULT_LIMIT): Promise<VipMusicSearchHit[]> {
-  const q = query.trim();
-  if (q.length < 2) return [];
+async function buildStyleIndex(options?: {
+  maxMonths?: number;
+  maxDays?: number;
+}): Promise<StyleIndex> {
+  const maxMonths = options?.maxMonths ?? 24;
+  const maxDays = options?.maxDays ?? 80;
+  const styles: StyleScanTarget[] = [];
+  const folderHits: FolderHitSeed[] = [];
+  const months = (await listVipMonthFolders()).slice(0, maxMonths);
+  let daysCollected = 0;
 
-  const max = Math.min(Math.max(limit, 1), 60);
-  const results: VipMusicSearchHit[] = [];
-  const styleTargets: StyleScanTarget[] = [];
+  // Meses em série (já limitados) para poder parar ao atingir maxDays.
+  for (const month of months) {
+    if (daysCollected >= maxDays) break;
 
-  const months = await listVipMonthFolders();
-
-  const monthTrees = await mapPool(months, 6, async (month) => {
     const monthSlug = slugifyFolderName(month.name);
     const monthLabel = displayFolderName(month.name);
     const monthChildren = await listVipMusicFolders(month.id);
-    return { month, monthSlug, monthLabel, monthChildren };
-  });
 
-  for (const { month, monthSlug, monthLabel, monthChildren } of monthTrees) {
-    if (results.length >= max && styleTargets.length > 80) break;
+    folderHits.push({
+      type: "month",
+      id: month.id,
+      label: monthLabel,
+      path: "Acervo VIP",
+      monthSlug,
+    });
 
-    if (matches(month.name, q) || matches(monthLabel, q)) {
-      if (results.length < max) {
-        results.push({
-          type: "month",
-          id: month.id,
-          label: monthLabel,
-          path: "Acervo VIP",
-          monthSlug,
-        });
-      }
-    }
-
-    // Hierarquia atual: mês → dias → pools → estilos
     if (childrenAreDateFolders(monthChildren)) {
-      const dateFolders = sortDatesNewestFirst(monthChildren);
-      const dateTrees = await mapPool(dateFolders.slice(0, 40), 6, async (dateFolder) => {
+      const remainingDays = Math.max(0, maxDays - daysCollected);
+      const dateFolders = sortDatesNewestFirst(monthChildren).slice(0, remainingDays);
+      daysCollected += dateFolders.length;
+
+      const dateTrees = await mapPool(dateFolders, 6, async (dateFolder) => {
         const dateLabel = displayFolderName(dateFolder.name);
+        const dateKey = parseUpdateDateFolder(dateFolder.name)?.key ?? dateFolder.name;
         const pools = await listVipMusicFolders(dateFolder.id);
-        return { dateFolder, dateLabel, pools };
+        return { dateFolder, dateLabel, dateKey, pools };
       });
 
-      for (const { dateFolder, dateLabel, pools } of dateTrees) {
-        if (matches(dateFolder.name, q) || matches(dateLabel, q)) {
-          if (results.length < max) {
-            results.push({
-              type: "week",
-              id: dateFolder.id,
-              label: dateLabel,
-              path: monthLabel,
-              monthSlug,
-              weekSlug: slugifyFolderName(dateFolder.name),
-            });
-          }
-        }
-
-        const poolTrees = await mapPool(pools, 6, async (pool) => {
-          const poolLabel = displayFolderName(pool.name);
-          const styles = await listVipMusicFolders(pool.id);
-          return { pool, poolLabel, styles };
+      for (const { dateFolder, dateLabel, dateKey, pools } of dateTrees) {
+        folderHits.push({
+          type: "week",
+          id: dateFolder.id,
+          label: dateLabel,
+          path: monthLabel,
+          monthSlug,
+          weekSlug: slugifyFolderName(dateFolder.name),
         });
 
-        for (const { pool, poolLabel, styles } of poolTrees) {
-          if (matches(pool.name, q) || matches(poolLabel, q)) {
-            if (results.length < max) {
-              results.push({
-                type: "style",
-                id: pool.id,
-                label: poolLabel,
-                path: `${monthLabel} · ${dateLabel}`,
-                monthSlug,
-                weekSlug: slugifyFolderName(dateFolder.name),
-                styleSlug: slugifyFolderName(pool.name),
-                styleFolderId: pool.id,
-              });
-            }
-          }
+        const poolTrees = await mapPool(pools, 8, async (pool) => {
+          const poolLabel = displayFolderName(pool.name);
+          const poolStyles = await listVipMusicFolders(pool.id);
+          return { pool, poolLabel, styles: poolStyles };
+        });
 
-          for (const style of styles) {
+        for (const { pool, poolLabel, styles: poolStyles } of poolTrees) {
+          folderHits.push({
+            type: "style",
+            id: pool.id,
+            label: poolLabel,
+            path: `${monthLabel} · ${dateLabel}`,
+            monthSlug,
+            weekSlug: slugifyFolderName(dateFolder.name),
+            styleSlug: slugifyFolderName(pool.name),
+            styleFolderId: pool.id,
+          });
+
+          for (const style of poolStyles) {
             const styleSlug = slugifyFolderName(style.name);
             const styleLabel = displayFolderName(style.name);
-            const relativePath = `${monthLabel}/${dateLabel}/${poolLabel}/${styleLabel}`.slice(0, 900);
-
-            if (matches(style.name, q) || matches(styleLabel, q)) {
-              if (results.length < max) {
-                results.push({
-                  type: "style",
-                  id: style.id,
-                  label: styleLabel,
-                  path: `${monthLabel} · ${dateLabel} · ${poolLabel}`,
-                  monthSlug,
-                  weekSlug: slugifyFolderName(dateFolder.name),
-                  styleSlug,
-                  styleFolderId: style.id,
-                });
-              }
-            }
-
-            styleTargets.push({
+            folderHits.push({
+              type: "style",
+              id: style.id,
+              label: styleLabel,
+              path: `${monthLabel} · ${dateLabel} · ${poolLabel}`,
+              monthSlug,
+              weekSlug: slugifyFolderName(dateFolder.name),
+              styleSlug,
+              styleFolderId: style.id,
+            });
+            styles.push({
               id: style.id,
               name: style.name,
               monthSlug,
               monthLabel,
               weekSlug: slugifyFolderName(dateFolder.name),
               weekLabel: dateLabel,
-              relativePath,
+              relativePath: `${monthLabel}/${dateLabel}/${poolLabel}/${styleLabel}`.slice(0, 900),
+              sortKey: `${dateKey}|${poolLabel}|${styleLabel}`,
             });
           }
         }
@@ -241,47 +242,38 @@ export async function searchVipMusic(query: string, limit = DEFAULT_LIMIT): Prom
       continue;
     }
 
-    // Hierarquia legada: mês → semanas → estilos
     if (childrenAreWeekFolders(monthChildren)) {
       const weekTrees = await mapPool(monthChildren, 6, async (week) => {
         const weekSlug = slugifyFolderName(week.name);
         const weekLabel = displayFolderName(week.name);
-        const styles = await listVipMusicFolders(week.id);
-        return { week, weekSlug, weekLabel, styles };
+        const weekStyles = await listVipMusicFolders(week.id);
+        return { week, weekSlug, weekLabel, styles: weekStyles };
       });
 
-      for (const { week, weekSlug, weekLabel, styles } of weekTrees) {
-        if (matches(week.name, q) || matches(weekLabel, q)) {
-          if (results.length < max) {
-            results.push({
-              type: "week",
-              id: week.id,
-              label: weekLabel,
-              path: monthLabel,
-              monthSlug,
-              weekSlug,
-            });
-          }
-        }
+      for (const { week, weekSlug, weekLabel, styles: weekStyles } of weekTrees) {
+        folderHits.push({
+          type: "week",
+          id: week.id,
+          label: weekLabel,
+          path: monthLabel,
+          monthSlug,
+          weekSlug,
+        });
 
-        for (const style of styles) {
+        for (const style of weekStyles) {
           const styleSlug = slugifyFolderName(style.name);
           const styleLabel = displayFolderName(style.name);
-          if (matches(style.name, q) || matches(styleLabel, q)) {
-            if (results.length < max) {
-              results.push({
-                type: "style",
-                id: style.id,
-                label: styleLabel,
-                path: `${monthLabel} · ${weekLabel}`,
-                monthSlug,
-                weekSlug,
-                styleSlug,
-                styleFolderId: style.id,
-              });
-            }
-          }
-          styleTargets.push({
+          folderHits.push({
+            type: "style",
+            id: style.id,
+            label: styleLabel,
+            path: `${monthLabel} · ${weekLabel}`,
+            monthSlug,
+            weekSlug,
+            styleSlug,
+            styleFolderId: style.id,
+          });
+          styles.push({
             id: style.id,
             name: style.name,
             monthSlug,
@@ -289,49 +281,125 @@ export async function searchVipMusic(query: string, limit = DEFAULT_LIMIT): Prom
             weekSlug,
             weekLabel,
             relativePath: `${monthLabel}/${weekLabel}/${styleLabel}`.slice(0, 900),
+            sortKey: `${monthSlug}|${weekSlug}|${styleLabel}`,
           });
         }
       }
       continue;
     }
 
-    // Fallback: estilos direto no mês
     for (const style of monthChildren) {
       if (!isMonthFolderName(month.name) && isYearFolderName(month.name)) continue;
       const styleSlug = slugifyFolderName(style.name);
       const styleLabel = displayFolderName(style.name);
-      if (matches(style.name, q) || matches(styleLabel, q)) {
-        if (results.length < max) {
-          results.push({
-            type: "style",
-            id: style.id,
-            label: styleLabel,
-            path: monthLabel,
-            monthSlug,
-            styleSlug,
-            styleFolderId: style.id,
-          });
-        }
-      }
-      styleTargets.push({
+      folderHits.push({
+        type: "style",
+        id: style.id,
+        label: styleLabel,
+        path: monthLabel,
+        monthSlug,
+        styleSlug,
+        styleFolderId: style.id,
+      });
+      styles.push({
         id: style.id,
         name: style.name,
         monthSlug,
         monthLabel,
         relativePath: `${monthLabel}/${styleLabel}`.slice(0, 900),
+        sortKey: `${monthSlug}|${styleLabel}`,
       });
     }
   }
 
-  if (styleTargets.length > 0) {
-    const remaining = Math.max(max - results.filter((item) => item.type === "track").length, max);
-    const trackHits = await scanStyleTracks(styleTargets, q, Math.min(remaining, max));
-    // Faixas primeiro — o Downloader e a UI de busca priorizam músicas
-    const folders = results.filter((item) => item.type !== "track");
-    return [...trackHits, ...folders].slice(0, max);
+  styles.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+  return { styles, folderHits };
+}
+
+type IndexMemo = { value: StyleIndex; expiresAt: number };
+const styleIndexByScope = new Map<string, IndexMemo>();
+const styleIndexInflightByScope = new Map<string, Promise<StyleIndex>>();
+
+async function getStyleIndex(maxMonths: number, maxDays: number): Promise<StyleIndex> {
+  const scope = `${maxMonths}:${maxDays}`;
+  const memo = styleIndexByScope.get(scope);
+  if (memo && memo.expiresAt > Date.now()) return memo.value;
+
+  const inflight = styleIndexInflightByScope.get(scope);
+  if (inflight) return inflight;
+
+  const promise = buildStyleIndex({ maxMonths, maxDays })
+    .then((value) => {
+      styleIndexByScope.set(scope, { value, expiresAt: Date.now() + STYLE_INDEX_TTL_MS });
+      return value;
+    })
+    .finally(() => {
+      styleIndexInflightByScope.delete(scope);
+    });
+
+  styleIndexInflightByScope.set(scope, promise);
+  return promise;
+}
+
+/**
+ * Busca no acervo VIP de Atualizações.
+ * Usa índice em memória (5 min) + listagem leve do Drive + saída antecipada.
+ */
+export async function searchVipMusic(
+  query: string,
+  limit = DEFAULT_LIMIT,
+  options?: VipMusicSearchOptions,
+): Promise<VipMusicSearchHit[]> {
+  const q = query.trim();
+  if (q.length < 2) return [];
+
+  const max = Math.min(Math.max(limit, 1), 60);
+  const tracksOnly = Boolean(options?.tracksOnly);
+  const recentMonths = options?.recentMonths ?? DEFAULT_RECENT_MONTHS;
+  const recentDays = options?.recentDays ?? DEFAULT_RECENT_DAYS;
+  const cacheKey = `${tracksOnly ? "t" : "a"}:${recentMonths}:${recentDays}:${max}:${normalize(q)}`;
+  const cached = queryCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.results;
   }
 
-  return results.slice(0, max);
+  // Índice só do recorte recente — evita varrer o Drive inteiro a cada busca.
+  const index = await getStyleIndex(recentMonths, recentDays);
+  const folderHits: VipMusicSearchHit[] = tracksOnly
+    ? []
+    : index.folderHits.filter((hit) => matches(hit.label, q) || matches(hit.path, q)).slice(0, max);
+
+  let trackHits = await scanStyleTracks(index.styles, q, max);
+
+  // Poucos resultados → amplia janela (índice maior, ainda com early-exit).
+  if (trackHits.length < Math.min(8, max)) {
+    const expanded = await getStyleIndex(EXPAND_RECENT_MONTHS, EXPAND_RECENT_DAYS);
+    const seenIds = new Set(trackHits.map((hit) => hit.id));
+    const seenStyles = new Set(index.styles.map((style) => style.id));
+    const extraTargets = expanded.styles.filter((style) => !seenStyles.has(style.id));
+    const extra = await scanStyleTracks(extraTargets, q, max - trackHits.length);
+    for (const hit of extra) {
+      if (seenIds.has(hit.id)) continue;
+      seenIds.add(hit.id);
+      trackHits.push(hit);
+      if (trackHits.length >= max) break;
+    }
+    if (!tracksOnly) {
+      for (const hit of expanded.folderHits) {
+        if (folderHits.length >= max) break;
+        if (!(matches(hit.label, q) || matches(hit.path, q))) continue;
+        if (folderHits.some((existing) => existing.id === hit.id)) continue;
+        folderHits.push(hit);
+      }
+    }
+  }
+
+  const results = tracksOnly
+    ? trackHits.slice(0, max)
+    : [...trackHits, ...folderHits].slice(0, max);
+
+  queryCache.set(cacheKey, { expiresAt: Date.now() + QUERY_CACHE_TTL_MS, results });
+  return results;
 }
 
 async function scanStyleTracks(
@@ -348,7 +416,7 @@ async function scanStyleTracks(
     if (stop || hits.length >= limit) return;
 
     try {
-      const children = await listDriveFolderChildren(style.id);
+      const children = await listDriveFolderChildrenLite(style.id);
       if (stop || hits.length >= limit) return;
 
       const styleSlug = slugifyFolderName(style.name);
@@ -402,13 +470,20 @@ async function scanStyleTracks(
         if (stop) return;
       }
 
-      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 12);
-      if (nestedFolders.length === 0 || hits.length >= limit) return;
+      // Nested só se a pasta de estilo não tinha áudio direto e ainda precisamos de hits.
+      if (hits.length >= limit) return;
+      const hasDirectAudio = children.some((item) =>
+        isDriveAudioFile({ name: item.name, mimeType: item.mimeType ?? "" }),
+      );
+      if (hasDirectAudio) return;
+
+      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 8);
+      if (nestedFolders.length === 0) return;
 
       await mapPool(nestedFolders, 4, async (folder) => {
         if (stop || hits.length >= limit) return;
         try {
-          const nested = await listDriveFolderChildren(folder.id);
+          const nested = await listDriveFolderChildrenLite(folder.id);
           const nestedLabel = displayFolderName(folder.name);
           for (const file of nested) {
             considerFile(file, nestedLabel);
@@ -424,4 +499,10 @@ async function scanStyleTracks(
   });
 
   return hits.slice(0, limit);
+}
+
+export function clearVipMusicSearchCaches() {
+  queryCache.clear();
+  styleIndexByScope.clear();
+  styleIndexInflightByScope.clear();
 }

@@ -49,8 +49,12 @@ export async function searchDownloaderTracks(
   const results: DownloaderSearchTrack[] = [];
   const seen = new Set<string>();
 
-  // Prioridade: acervo de Atualizações (mesmo catálogo do site)
-  const vip = await searchVipUpdateTracks(q, max);
+  // VIP + produções em paralelo; prioriza Atualizações na montagem do resultado.
+  const [vip, productions] = await Promise.all([
+    searchVipUpdateTracks(q, max),
+    searchBrsProductions(q, max),
+  ]);
+
   for (const item of vip) {
     if (seen.has(item.trackId)) continue;
     seen.add(item.trackId);
@@ -59,7 +63,6 @@ export async function searchDownloaderTracks(
   }
 
   if (results.length < max) {
-    const productions = await searchBrsProductions(q, max - results.length);
     for (const item of productions) {
       if (seen.has(item.trackId)) continue;
       seen.add(item.trackId);
@@ -74,8 +77,11 @@ export async function searchDownloaderTracks(
 async function searchVipUpdateTracks(q: string, limit: number): Promise<DownloaderSearchTrack[]> {
   if (limit <= 0) return [];
   try {
-    const hits = await searchVipMusic(q, Math.max(limit * 2, 36));
-    const tracks = hits.filter((hit) => hit.type === "track");
+    const tracks = await searchVipMusic(q, limit, {
+      tracksOnly: true,
+      recentMonths: 2,
+      recentDays: 14,
+    });
 
     return tracks.slice(0, limit).map((hit) => {
       const title = hit.title?.trim() || hit.label.split(" — ")[0]?.trim() || hit.label;

@@ -838,10 +838,12 @@ export async function listDriveAudioInFolder(folderId: string): Promise<DriveFil
 
 /** Dedup in-flight + cache curto no processo (irmãos resolve/tree no mesmo deploy). */
 const childrenMemo = new Map<string, { promise: Promise<DriveFile[]>; expiresAt: number }>();
+const childrenLiteMemo = new Map<string, { promise: Promise<DriveFile[]>; expiresAt: number }>();
+const CHILDREN_MEMO_TTL_MS = 300_000;
 
 export async function listDriveFolderChildren(folderId: string): Promise<DriveFile[]> {
   if (isDriveForceRefresh()) {
-    return listDriveFolderChildrenUncached(folderId);
+    return listDriveFolderChildrenUncached(folderId, true);
   }
 
   const cached = childrenMemo.get(folderId);
@@ -849,7 +851,7 @@ export async function listDriveFolderChildren(folderId: string): Promise<DriveFi
     return cached.promise;
   }
 
-  const promise = listDriveFolderChildrenUncached(folderId).catch((error) => {
+  const promise = listDriveFolderChildrenUncached(folderId, true).catch((error) => {
     childrenMemo.delete(folderId);
     throw error;
   });
@@ -859,17 +861,47 @@ export async function listDriveFolderChildren(folderId: string): Promise<DriveFi
   // para não refazer dezenas de chamadas ao Drive a cada página.
   childrenMemo.set(folderId, {
     promise,
-    expiresAt: Date.now() + 300_000,
+    expiresAt: Date.now() + CHILDREN_MEMO_TTL_MS,
   });
 
   return promise;
 }
 
-async function listDriveFolderChildrenUncached(folderId: string): Promise<DriveFile[]> {
+/**
+ * Listagem leve (sem enrich de createdTime/modifiedTime por arquivo).
+ * Usada pela busca — o enrich por MP3 torna a pesquisa inutilizável.
+ */
+export async function listDriveFolderChildrenLite(folderId: string): Promise<DriveFile[]> {
+  if (isDriveForceRefresh()) {
+    return listDriveFolderChildrenUncached(folderId, false);
+  }
+
+  const cached = childrenLiteMemo.get(folderId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.promise;
+  }
+
+  const promise = listDriveFolderChildrenUncached(folderId, false).catch((error) => {
+    childrenLiteMemo.delete(folderId);
+    throw error;
+  });
+
+  childrenLiteMemo.set(folderId, {
+    promise,
+    expiresAt: Date.now() + CHILDREN_MEMO_TTL_MS,
+  });
+
+  return promise;
+}
+
+async function listDriveFolderChildrenUncached(
+  folderId: string,
+  enrichTimes: boolean,
+): Promise<DriveFile[]> {
   if (GOOGLE_DRIVE_API_KEY) {
     try {
       const viaApi = await listChildrenViaApi(folderId, GOOGLE_DRIVE_API_KEY);
-      return await enrichDriveFileTimes(viaApi, GOOGLE_DRIVE_API_KEY);
+      return enrichTimes ? await enrichDriveFileTimes(viaApi, GOOGLE_DRIVE_API_KEY) : viaApi;
     } catch {
       /* fallback abaixo */
     }
@@ -886,7 +918,7 @@ async function listDriveFolderChildrenUncached(folderId: string): Promise<DriveF
       ...folders.map((folder) => ({ id: folder.id, name: folder.name, mimeType: FOLDER_MIME })),
       ...audioMap.values(),
     ];
-    if (GOOGLE_DRIVE_API_KEY) {
+    if (enrichTimes && GOOGLE_DRIVE_API_KEY) {
       files = await enrichDriveFileTimes(files, GOOGLE_DRIVE_API_KEY);
     }
     return files;

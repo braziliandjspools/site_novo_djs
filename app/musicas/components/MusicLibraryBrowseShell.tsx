@@ -7,6 +7,8 @@ import type { AtualizacoesBrowseNavSidebarProps } from "./AtualizacoesBrowseNavS
 
 type MusicLibraryBrowseShellProps = AtualizacoesBrowseNavSidebarProps & {
   children: ReactNode;
+  /** Tabela de faixas: filtros vão no topo da lista; sem nav lateral. */
+  hideSidebar?: boolean;
 };
 
 /**
@@ -15,6 +17,7 @@ type MusicLibraryBrowseShellProps = AtualizacoesBrowseNavSidebarProps & {
  */
 export function MusicLibraryBrowseShell({
   children,
+  hideSidebar = false,
   ...navProps
 }: MusicLibraryBrowseShellProps) {
   const [open, setOpen] = useState(false);
@@ -32,6 +35,10 @@ export function MusicLibraryBrowseShell({
   useEffect(() => {
     setOpen(false);
   }, [slugKey]);
+
+  if (hideSidebar) {
+    return <div className="min-w-0">{children}</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)] lg:items-start lg:gap-6">
