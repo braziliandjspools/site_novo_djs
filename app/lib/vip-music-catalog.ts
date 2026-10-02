@@ -24,6 +24,8 @@ import {
   sendNowFileStorageId,
   sendNowFldIdFromStorageId,
   sendNowFolderStorageId,
+  sendNowRootStorageId,
+  sendNowFolderLabel,
 } from "./send-now";
 
 function updateDayLinks(folders: { name: string }[]) {
@@ -162,6 +164,7 @@ function toPreviewTrack(
     ...parseTrackMeta(file.name),
     modifiedAt: file.createdTime ?? file.modifiedTime ?? null,
     sizeBytes: parseDriveSizeBytes(file.size),
+    source: "drive",
     updateDate: context.updateDate ?? null,
     styleName: context.styleName ?? null,
     poolName: context.poolName ?? null,
@@ -244,6 +247,19 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
       modifiedAt: folder.modifiedTime ?? folder.createdTime ?? null,
     })),
   );
+  if (targetId === rootId && isSendNowConfigured()) {
+    try {
+      const listed = await listSendNowFolder(sendNowFolderStorageId(sendNowRootStorageId()).replace("sendnow-", ""));
+      folders.push({
+        id: sendNowRootStorageId(),
+        name: sendNowFolderLabel(),
+        isNew: false,
+      });
+      void listed;
+    } catch {
+      // O acervo Google Drive continua funcionando mesmo se o send.now estiver indisponível.
+    }
+  }
   return folders;
 }
 
@@ -970,6 +986,7 @@ async function getSendNowCatalog(
       pack: folderName,
       fileName,
       ...meta,
+      source: "sendnow",
       title: meta.title || fileName,
       modifiedAt,
       sizeBytes: Number.isFinite(size) && size && size > 0 ? size : null,
