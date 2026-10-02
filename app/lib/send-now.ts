@@ -10,9 +10,10 @@
 
 const API_BASE = "https://send.now/api";
 const DEFAULT_FOLDER_ID = "468669";
-const DEFAULT_FOLDER_NAME = "SENDNOW";
+const DEFAULT_FOLDER_NAME = "SEND.NOW";
 export const SEND_NOW_FILE_PREFIX = "sn-";
 export const SEND_NOW_FOLDER_PREFIX = "sendnow-";
+export const SEND_NOW_ROOT_STORAGE_ID = "sendnow-root";
 
 const AUDIO_EXTENSIONS = /\.(mp3|wav|flac|m4a|aac|ogg)$/i;
 
@@ -52,8 +53,16 @@ export function sendNowFolderId() {
   return /^\d+$/.test(configured) ? configured : DEFAULT_FOLDER_ID;
 }
 
+export function sendNowFolderUrl() {
+  return process.env.SEND_NOW_FOLDER_URL?.trim() || "";
+}
+
 export function isSendNowConfigured() {
-  return Boolean(sendNowApiKey());
+  return Boolean(sendNowApiKey() && (sendNowFolderUrl() || sendNowFolderId()));
+}
+
+export function sendNowRootStorageId() {
+  return sendNowFolderUrl() ? SEND_NOW_ROOT_STORAGE_ID : sendNowFolderStorageId(sendNowFolderId());
 }
 
 export function sendNowFolderStorageId(fldId = sendNowFolderId()) {
@@ -66,6 +75,29 @@ export function isSendNowFolderStorageId(folderId: string) {
 
 export function sendNowFldIdFromStorageId(folderId: string) {
   return folderId.slice(SEND_NOW_FOLDER_PREFIX.length);
+}
+
+async function resolveSendNowFolderId(folderId: string) {
+  if (/^\d+$/.test(folderId)) return folderId;
+  const url = sendNowFolderUrl();
+  if (!url) return sendNowFolderId();
+  const response = await fetch(url, {
+    headers: { "User-Agent": "BRS/1.0 Send.now integration" },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Não foi possível acessar a pasta do send.now (" + response.status + ").");
+  const html = await response.text();
+  const patterns = [
+    /["']fld_id["']\s*[:=]\s*["']?(\d+)/i,
+    /["']folder[_-]?id["']\s*[:=]\s*["']?(\d+)/i,
+    /[?&]fld_id=(\d+)/i,
+    /fld_id[=/](\d+)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+  throw new Error("Não foi possível identificar o ID da pasta do send.now a partir de SEND_NOW_FOLDER_URL.");
 }
 
 export function sendNowFileStorageId(fileCode: string) {
@@ -103,7 +135,11 @@ async function sendNowGet<T>(path: string, params: Record<string, string>): Prom
 }
 
 export async function listSendNowFolder(fldId: string) {
-  const payload = await sendNowGet<FolderListResponse>("folder/list", { fld_id: fldId });
+  const resolvedFldId =
+    fldId === "root" || fldId === SEND_NOW_ROOT_STORAGE_ID
+      ? await resolveSendNowFolderId("root")
+      : await resolveSendNowFolderId(fldId);
+  const payload = await sendNowGet<FolderListResponse>("folder/list", { fld_id: resolvedFldId });
   const folders = (payload.result?.folders ?? []).filter((folder) => folder.fld_id != null && folder.name);
   const files = (payload.result?.files ?? []).filter(
     (file) => file.file_code && file.name && AUDIO_EXTENSIONS.test(file.name),
