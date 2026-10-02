@@ -166,7 +166,16 @@ export async function listPublishedProductionsPage(
   const sort = filters?.sort === "oldest" || filters?.sort === "az" ? filters.sort : "recent";
   const where = {
     isPublished: true,
-    ...(query ? { title: { contains: query, mode: "insensitive" as const } } : {}),
+    ...(query
+      ? {
+          OR: [
+            { title: { contains: query, mode: "insensitive" as const } },
+            { artist: { contains: query, mode: "insensitive" as const } },
+            { producer: { contains: query, mode: "insensitive" as const } },
+            { producerRef: { name: { contains: query, mode: "insensitive" as const } } },
+          ],
+        }
+      : {}),
     ...(genre ? { genre } : {}),
   };
   const orderBy =

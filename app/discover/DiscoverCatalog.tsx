@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Crown, Download, Heart, Lock, Pause, Play } from "lucide-react";
+import { Crown, Download, Lock, Pause, Play } from "lucide-react";
 import type { PublicBrsProduction } from "../lib/brs-productions";
 import { productionDownloadTrack, productionToPreviewTrack } from "../lib/brs-productions";
 import { startBrowserTrackDownload } from "../musicas/lib/browser-download-file";
@@ -30,6 +30,7 @@ function DiscoverRow({
   const track = productionToPreviewTrack(production);
   const playing = player.playingId === track.id && player.isPlaying;
   const exclusive = production.isFeatured || production.isNew;
+  const version = production.versionLabel || production.versionType || null;
 
   function play() {
     if (!access.canPlay) {
@@ -76,7 +77,7 @@ function DiscoverRow({
           className="object-cover"
         />
         <span className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 transition hover:opacity-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#b6f03a] text-black">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-black">
             {playing ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />}
           </span>
         </span>
@@ -86,21 +87,24 @@ function DiscoverRow({
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Link
             href={`/m/${production.slug}`}
-            className="truncate text-[14px] font-bold leading-tight text-white hover:text-[#b6f03a] sm:text-[15px]"
+            className="truncate text-[14px] font-bold leading-tight text-white transition hover:text-[#60cdff] sm:text-[15px]"
             title={production.title}
           >
             {production.title}
           </Link>
           {exclusive ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-orange-400/50 bg-orange-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-orange-300">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#60cdff]/45 bg-[#60cdff]/12 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-[#60cdff]">
               <Crown className="h-3 w-3" />
-              Exclusiva CLUB
+              Exclusivas BRS
             </span>
           ) : null}
         </div>
-        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-[#9a9a9a] sm:text-xs">
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 text-[11px] text-[#9a9a9a] sm:text-xs">
           {production.producerSlug ? (
-            <Link href={`/p/${production.producerSlug}`} className="font-medium text-[#c8c8c8] hover:text-white hover:underline">
+            <Link
+              href={`/p/${production.producerSlug}`}
+              className="font-medium text-[#c8c8c8] transition hover:text-[#60cdff]"
+            >
               {production.producer}
             </Link>
           ) : (
@@ -112,39 +116,24 @@ function DiscoverRow({
               <span>{production.genre}</span>
             </>
           ) : null}
-          {production.bpm ? (
-            <>
-              <span>·</span>
-              <span>{production.bpm} BPM</span>
-            </>
-          ) : null}
           {production.duration ? (
             <>
               <span>·</span>
               <span>{production.duration}</span>
             </>
           ) : null}
-          {production.versionLabel || production.versionType ? (
-            <span className="rounded-md border border-white/10 px-1.5 py-0.5 text-[9px] font-medium text-[#8f8f8f]">
-              {production.versionLabel || production.versionType}
-            </span>
-          ) : null}
         </div>
+        {version ? (
+          <p className="mt-0.5 text-[11px] text-[#6f6f6f]">{version}</p>
+        ) : null}
       </div>
 
-      <div className="col-span-2 flex items-center justify-end gap-2 sm:col-span-1 sm:gap-3">
-        <button
-          type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#8f8f8f] transition hover:bg-white/5 hover:text-white"
-          aria-label="Favoritar"
-        >
-          <Heart className="h-4 w-4" />
-        </button>
+      <div className="col-span-2 flex items-center justify-end sm:col-span-1">
         {access.canDownload ? (
           <button
             type="button"
             onClick={download}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#b6f03a] px-4 text-[12px] font-extrabold text-black transition hover:bg-[#c6ff4d]"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#60cdff] px-4 text-[12px] font-extrabold text-black transition hover:bg-[#60cdff]/75"
           >
             <Download className="h-4 w-4" />
             Download
@@ -153,7 +142,7 @@ function DiscoverRow({
           <button
             type="button"
             onClick={download}
-            className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-[#222] px-4 text-[12px] font-bold text-white transition hover:bg-[#2c2c2c]"
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#60cdff]/35 bg-[#60cdff]/10 px-4 text-[12px] font-bold text-[#60cdff] transition hover:bg-[#60cdff]/18"
           >
             <Lock className="h-3.5 w-3.5" />
             {access.authenticated ? "Assinar" : "Entrar"}
@@ -170,7 +159,7 @@ export function DiscoverCatalog({ productions }: { productions: PublicBrsProduct
   useEffect(() => {
     void fetch("/api/musicas/session", { cache: "no-store" })
       .then((res) => res.json())
-      .then((body: { authenticated?: boolean; canPlay?: boolean; hasVip?: boolean; planExpired?: boolean }) => {
+      .then((body: { authenticated?: boolean; canPlay?: boolean; planExpired?: boolean }) => {
         const activePlan = Boolean(body.authenticated && body.canPlay && !body.planExpired);
         setAccess({
           authenticated: Boolean(body.authenticated),

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDownToLine, Bell, ChevronDown, Crown, LogIn, Search, UserRound } from "lucide-react";
-import { BrsLogo } from "../components/BrsLogo";
+import { ChevronDown, Crown, Search } from "lucide-react";
 import { listPublishedProductionGenres, listPublishedProductionsPage } from "../lib/brs-productions";
+import { getDownloaderReleaseManifest } from "../lib/downloader-updates";
 import { DiscoverCatalog } from "./DiscoverCatalog";
+import { DiscoverHeader } from "./DiscoverHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,8 @@ const DISCOVER_BANNER =
 
 export const metadata: Metadata = {
   title: "Descobrir | Brazilian Remix Service",
-  description: "Descubra, ouça e baixe as produções publicadas do Brazilian Remix Service.",
+  description:
+    "Descubra, ouça e encontre remixes, edits, versões exclusivas e produções do Brazilian Remix Service para o seu set.",
 };
 
 type SearchParams = Promise<{
@@ -64,6 +66,11 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
   const sort = normalizeSort(params.sort);
   const clubOnly = params.club === "1" || params.club === "true";
 
+  const release = getDownloaderReleaseManifest();
+  const downloadUrl =
+    release?.downloadUrl ??
+    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.27_x64-setup.exe";
+
   const [firstResult, genres] = await Promise.all([
     listPublishedProductionsPage(requestedPage, 50, { query, genre, sort }),
     listPublishedProductionGenres(),
@@ -97,33 +104,7 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
 
   return (
     <main className="discover-theme min-h-screen bg-[#0b0b0b] text-white">
-      <header className="sticky top-0 z-50 h-[64px] border-b border-white/[0.08] bg-[#101010]/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-full max-w-[1120px] items-center gap-4 px-4 sm:px-6">
-          <BrsLogo href="/" className="h-8 w-auto max-w-[145px] shrink-0" sizes="145px" priority />
-          <div className="relative hidden min-w-0 flex-1 items-center sm:flex">
-            <Search className="absolute left-3.5 h-4 w-4 text-[#8f8f8f]" />
-            <div className="w-full max-w-[560px] rounded-xl border border-white/[0.1] bg-[#171717] py-2.5 pl-10 pr-4 text-sm text-[#9a9a9a]">
-              Buscar músicas ou produtores
-            </div>
-          </div>
-          <Link
-            href="/musicas"
-            className="hidden items-center gap-2 rounded-xl border border-white/[0.1] bg-[#1a1a1a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#242424] md:flex"
-          >
-            <ArrowDownToLine className="h-4 w-4" />
-            Downloader
-          </Link>
-          <Bell className="hidden h-4 w-4 text-[#8f8f8f] sm:block" />
-          <Link
-            href="/musicas/entrar?return=%2Fdiscover"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.1] bg-[#1a1a1a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#242424]"
-          >
-            <UserRound className="h-4 w-4" />
-            <span className="hidden sm:inline">Entrar</span>
-            <LogIn className="h-4 w-4 sm:hidden" />
-          </Link>
-        </div>
-      </header>
+      <DiscoverHeader initialQuery={query} downloadUrl={downloadUrl} />
 
       <section className="mx-auto max-w-[1120px] px-4 pb-16 pt-5 sm:px-6 sm:pt-6">
         <div className="relative mb-7 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
@@ -139,16 +120,35 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
         </div>
 
         <div className="mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#b6f03a]">Catálogo</p>
-          <h1 className="mt-2 text-[34px] font-semibold tracking-[-0.04em] text-white sm:text-[42px]">Descobrir</h1>
-          <p className="mt-2 max-w-2xl text-sm text-[#9a9a9a]">
-            Explore as músicas mais relevantes da semana ou filtre por gênero e Exclusivas CLUB.
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#60cdff]">Catálogo</p>
+          <h1 className="mt-2 hidden text-[34px] font-semibold tracking-[-0.04em] text-white sm:block sm:text-[42px]">
+            DESCUBRA NOVOS SONS PARA O SEU SET
+          </h1>
+          <h1 className="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-white sm:hidden">
+            DESCUBRA. OUÇA. ENCONTRE. TOQUE.
+          </h1>
+          <div className="mt-3 hidden max-w-3xl space-y-3 text-sm leading-relaxed text-[#9a9a9a] sm:block">
+            <p>
+              Explore o catálogo do Brazilian Remix Service e encontre remixes, edits, versões exclusivas e
+              produções criadas para DJs e produtores. Pesquise por título, navegue pelos gêneros e descubra
+              novos artistas e produtores em um só lugar.
+            </p>
+            <p>Novas versões, novas ideias e novos sons para deixar cada set diferente.</p>
+            <p className="text-[13px] text-[#7a7a7a]">
+              Encontre sua próxima faixa favorita. Do clássico ao lançamento, do remix ao edit exclusivo:
+              explore o catálogo, conheça os produtores e encontre versões prontas para ganhar espaço no seu
+              set.
+            </p>
+          </div>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#9a9a9a] sm:hidden">
+            Remixes, edits, versões exclusivas e produções de DJs e produtores parceiros do Brazilian Remix
+            Service. Explore por gênero, pesquise por título e descubra novos sons para o seu próximo set.
           </p>
         </div>
 
         <form method="get" action="/discover" className="mb-6 flex flex-col gap-2 lg:flex-row">
           {clubOnly ? <input type="hidden" name="club" value="1" /> : null}
-          <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-[#b6f03a]/55 bg-[#121212] px-3.5 ring-1 ring-[#b6f03a]/15">
+          <div className="flex h-12 min-w-0 flex-1 items-center rounded-xl border border-[#60cdff]/45 bg-[#121212] px-3.5 ring-1 ring-[#60cdff]/10">
             <Search className="mr-2.5 h-4 w-4 shrink-0 text-[#8f8f8f]" />
             <input
               name="q"
@@ -194,17 +194,17 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
             href={clubHref}
             className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-bold transition ${
               clubOnly
-                ? "border-orange-400/50 bg-orange-400/15 text-orange-200"
-                : "border-white/[0.1] bg-[#171717] text-white hover:bg-[#222]"
+                ? "border-[#60cdff]/55 bg-[#60cdff]/15 text-[#60cdff]"
+                : "border-white/[0.1] bg-[#171717] text-white hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#60cdff]"
             }`}
           >
             <Crown className="h-4 w-4" />
-            Exclusivas CLUB
+            Exclusivas BRS
           </Link>
 
           <button
             type="submit"
-            className="h-12 rounded-xl bg-[#b6f03a] px-5 text-sm font-extrabold text-black transition hover:bg-[#c6ff4d]"
+            className="h-12 rounded-xl bg-[#60cdff] px-5 text-sm font-extrabold text-black transition hover:bg-[#60cdff]/80"
           >
             Buscar
           </button>
@@ -234,13 +234,13 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
                 Anterior
               </span>
             )}
-            <span className="rounded-xl border border-[#b6f03a]/30 bg-[#b6f03a]/10 px-4 py-2 text-xs font-bold text-[#b6f03a]">
+            <span className="rounded-xl border border-[#60cdff]/30 bg-[#60cdff]/10 px-4 py-2 text-xs font-bold text-[#60cdff]">
               {catalog.page} / {catalog.totalPages}
             </span>
             {nextHref ? (
               <Link
                 href={nextHref}
-                className="rounded-xl bg-[#b6f03a] px-4 py-2 text-xs font-extrabold text-black hover:bg-[#c6ff4d]"
+                className="rounded-xl bg-[#60cdff] px-4 py-2 text-xs font-extrabold text-black hover:bg-[#60cdff]/80"
               >
                 Próxima
               </Link>

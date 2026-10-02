@@ -116,8 +116,8 @@ function ProductionCard({
           </span>
         ) : null}
         {!list ? (
-          <span className="absolute bottom-3 left-3 rounded-full bg-gradient-to-r from-[#009739] via-[#1db954] to-[#ffe566] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-black shadow-[0_8px_18px_rgba(0,0,0,0.35)]">
-            Exclusiva BRS
+          <span className="absolute bottom-3 left-3 inline-flex items-center rounded-full border border-[#60cdff]/45 bg-[#0b1520]/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#60cdff] shadow-[0_8px_18px_rgba(0,0,0,0.35)] backdrop-blur-md">
+            Exclusivas BRS
           </span>
         ) : null}
       </div>
