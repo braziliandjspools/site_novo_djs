@@ -154,18 +154,36 @@ export async function listPublishedProductions(limit = 12) {
   return rows.map(toPublicProduction);
 }
 
-export async function listPublishedProductionsPage(page = 1, pageSize = 50) {
+export async function listPublishedProductionsPage(
+  page = 1,
+  pageSize = 50,
+  filters?: { query?: string; genre?: string; sort?: "recent" | "oldest" | "az" },
+) {
   const safePage = Math.max(1, Math.floor(page));
   const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize)));
+  const query = filters?.query?.trim() ?? "";
+  const genre = filters?.genre?.trim() ?? "";
+  const sort = filters?.sort === "oldest" || filters?.sort === "az" ? filters.sort : "recent";
+  const where = {
+    isPublished: true,
+    ...(query ? { title: { contains: query, mode: "insensitive" as const } } : {}),
+    ...(genre ? { genre } : {}),
+  };
+  const orderBy =
+    sort === "az"
+      ? [{ title: "asc" as const }, { publishedAt: "desc" as const }]
+      : sort === "oldest"
+        ? [{ publishedAt: "asc" as const }, { createdAt: "asc" as const }]
+        : [{ isFeatured: "desc" as const }, { publishedAt: "desc" as const }, { createdAt: "desc" as const }];
   const [rows, total] = await Promise.all([
     prisma.brsProduction.findMany({
-      where: { isPublished: true },
+      where,
       include: publishedInclude,
-      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
+      orderBy,
       skip: (safePage - 1) * safePageSize,
       take: safePageSize,
     }),
-    prisma.brsProduction.count({ where: { isPublished: true } }),
+    prisma.brsProduction.count({ where }),
   ]);
   return {
     items: rows.map(toPublicProduction),
@@ -174,6 +192,16 @@ export async function listPublishedProductionsPage(page = 1, pageSize = 50) {
     pageSize: safePageSize,
     totalPages: Math.max(1, Math.ceil(total / safePageSize)),
   };
+}
+
+export async function listPublishedProductionGenres() {
+  const rows = await prisma.brsProduction.findMany({
+    where: { isPublished: true, genre: { not: null } },
+    select: { genre: true },
+    distinct: ["genre"],
+    orderBy: { genre: "asc" },
+  });
+  return rows.map((row) => row.genre).filter((genre): genre is string => Boolean(genre?.trim()));
 }
 
 export async function getPublishedProductionBySlug(slug: string) {
