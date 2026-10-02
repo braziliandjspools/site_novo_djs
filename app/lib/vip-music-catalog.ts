@@ -254,6 +254,7 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
         id: sendNowRootStorageId(),
         name: sendNowFolderLabel(),
         isNew: false,
+        modifiedAt: null,
       });
       void listed;
     } catch {
