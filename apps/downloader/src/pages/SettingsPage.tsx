@@ -743,6 +743,18 @@ export function SettingsPage() {
           </div>
         </dl>
 
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-[#141414] px-3 py-3">
+          <img
+            src="/images/cloudflare.png"
+            alt="Cloudflare"
+            className="h-10 w-auto shrink-0 object-contain"
+          />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-white">{t("settingsCloudflareTitle")}</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">{t("settingsCloudflareDesc")}</p>
+          </div>
+        </div>
+
         <p className="mt-4 text-xs leading-relaxed text-zinc-400">{t("settingsRustNote")}</p>
 
         <div className="mt-5">

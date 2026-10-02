@@ -319,6 +319,8 @@ export const messagesEs = {
   settingsWebuiVersion: "Versión de la interfaz",
   settingsCoreVersion: "Versión actual",
   settingsRustcVersion: "Versión de Rust",
+  settingsCloudflareTitle: "Protegido con Cloudflare",
+  settingsCloudflareDesc: "El sitio y la plataforma BRS usan la tecnología Cloudflare para seguridad y rendimiento.",
   settingsChangelog: "Changelog",
   settingsPrivacy: "Privacidad",
   settingsCookies: "Cookies",

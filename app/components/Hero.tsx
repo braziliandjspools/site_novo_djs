@@ -4,6 +4,52 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+const HERO_TYPEWRITER_WORDS = [
+  "a sua pista.",
+  "seu set.",
+  "a noite.",
+  "sua festa.",
+  "o seu show.",
+];
+
+function TypewriterWords({ words }: { words: string[] }) {
+  const [index, setIndex] = useState(0);
+  const [text, setText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const full = words[index] ?? "";
+    const typingMs = deleting ? 36 : 70;
+    const pauseMs = deleting ? 220 : 1600;
+
+    if (!deleting && text === full) {
+      const pause = window.setTimeout(() => setDeleting(true), pauseMs);
+      return () => window.clearTimeout(pause);
+    }
+    if (deleting && text.length === 0) {
+      const next = window.setTimeout(() => {
+        setDeleting(false);
+        setIndex((current) => (current + 1) % words.length);
+      }, pauseMs);
+      return () => window.clearTimeout(next);
+    }
+
+    const tick = window.setTimeout(() => {
+      setText((current) =>
+        deleting ? full.slice(0, Math.max(0, current.length - 1)) : full.slice(0, current.length + 1),
+      );
+    }, typingMs);
+    return () => window.clearTimeout(tick);
+  }, [deleting, index, text, words]);
+
+  return (
+    <span className="inline-block min-w-[7ch] text-left">
+      {text}
+      <span className="ml-0.5 inline-block h-[0.9em] w-[0.08em] translate-y-[0.08em] animate-pulse bg-current align-middle" aria-hidden />
+    </span>
+  );
+}
+
 type ParallaxLayer = {
   depth: number;
   className: string;
@@ -249,7 +295,10 @@ export function Hero() {
               Pools · Curadoria · Remix Services
             </span>
             <h1 className="font-display break-words text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl md:text-7xl">
-              O repertório que move <span className="bg-gradient-to-r from-[#1ed760] via-[#1ed760] to-[#1db954] bg-clip-text text-transparent">a sua pista.</span>
+              O repertório que move{" "}
+              <span className="bg-gradient-to-r from-[#1ed760] via-[#1ed760] to-[#1db954] bg-clip-text text-transparent">
+                <TypewriterWords words={HERO_TYPEWRITER_WORDS} />
+              </span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base text-gray-300 sm:text-lg">
               Remixes, DJ pools, versões extended e intro edits em um só lugar. Descubra novos sons, organize seu repertório e prepare sets para qualquer pista.

@@ -325,6 +325,8 @@ export const messagesPtBR = {
   settingsWebuiVersion: "Versão da interface",
   settingsCoreVersion: "Versão atual",
   settingsRustcVersion: "Versão do Rust",
+  settingsCloudflareTitle: "Protegido com Cloudflare",
+  settingsCloudflareDesc: "O site e a plataforma BRS usam a tecnologia Cloudflare para segurança e performance.",
   settingsChangelog: "Changelog",
   settingsPrivacy: "Privacidade",
   settingsCookies: "Cookies",

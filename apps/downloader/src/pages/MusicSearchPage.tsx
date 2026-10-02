@@ -14,7 +14,6 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
-import { Panel } from "../components/ui/Panel";
 import { useToast } from "../components/ui/Toast";
 import { useAuth } from "../context/AuthContext";
 import { useDownloadManager } from "../context/DownloadManagerContext";
@@ -36,6 +35,8 @@ import { useLocale } from "../i18n/LocaleContext";
 
 const DEBOUNCE_MS = 420;
 const PAGE_SIZE = 24;
+const SEARCH_BANNER_URL =
+  "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/cf5a5a0a-a57e-4b94-9e2a-fa5bc1488305.png";
 
 function metaLine(track: MusicSearchTrack) {
   const bits: string[] = [];
@@ -328,15 +329,35 @@ export function MusicSearchPage() {
 
   return (
     <div className="space-y-4">
-      <Panel title={t("searchTitle")} description={t("searchSubtitle")}>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121212] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <img
+          src={SEARCH_BANNER_URL}
+          alt="Pesquise no Downloader"
+          className="h-auto w-full object-cover object-center"
+        />
+      </div>
+
+      <section className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 sm:p-5">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">Catálogo BRS</p>
+            <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">{t("searchTitle").replace(/^🔎\s*/, "")}</h2>
+            <p className="mt-1 text-xs leading-relaxed text-white/50">{t("searchSubtitle")}</p>
+          </div>
+          {results.length > 0 ? (
+            <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-white/70">
+              {results.length}
+            </span>
+          ) : null}
+        </div>
         <label className="relative block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-subtle)]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
           <input
             type="search"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("searchPlaceholder")}
-            className="w-full rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--bg-control)] py-2.5 pl-10 pr-10 text-[0.875rem] text-white outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)]/45 focus:bg-[#333]"
+            className="w-full rounded-xl border border-white/12 bg-[#101010] py-3 pl-11 pr-11 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/35 focus:bg-[#141414]"
             autoFocus
           />
           {draft ? (
@@ -344,37 +365,37 @@ export function MusicSearchPage() {
               type="button"
               aria-label={t("searchClear")}
               onClick={() => setDraft("")}
-              className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-subtle)] hover:bg-white/10 hover:text-white"
+              className="absolute right-2.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-white/45 hover:bg-white/10 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
           ) : null}
         </label>
-      </Panel>
+      </section>
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--bg-card)] px-4 py-12 text-sm text-[var(--text-subtle)]">
-          <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
+        <div className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-12 text-sm text-white/50">
+          <Loader2 className="h-4 w-4 animate-spin text-white" />
           {t("searchSearching")}
         </div>
       ) : null}
 
       {!loading && error ? (
-        <div className="rounded-[var(--radius-lg)] border border-red-400/25 bg-[#3a2020] px-4 py-6 text-center text-sm text-[#ffb3ba]">
+        <div className="rounded-2xl border border-red-400/25 bg-[#3a2020] px-4 py-6 text-center text-sm text-[#ffb3ba]">
           {error}
         </div>
       ) : null}
 
       {!loading && !error && query.length < 2 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--line)] bg-white/[0.02] px-4 py-12 text-center text-sm text-[var(--text-subtle)]">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-[#141414] px-4 py-12 text-center text-sm text-white/45">
           {t("searchIdle")}
         </div>
       ) : null}
 
       {!loading && !error && query.length >= 2 && results.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--bg-card)] px-4 py-10 text-center">
-          <p className="text-sm text-[var(--text-subtle)]">{t("searchEmpty", { query })}</p>
-          <p className="mx-auto mt-2 max-w-md text-xs text-[var(--text-muted)]">{t("searchEmptyHint")}</p>
+        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-10 text-center">
+          <p className="text-sm text-white/60">{t("searchEmpty", { query })}</p>
+          <p className="mx-auto mt-2 max-w-md text-xs text-white/40">{t("searchEmptyHint")}</p>
           <a
             href={whatsappHref}
             target="_blank"
@@ -383,7 +404,7 @@ export function MusicSearchPage() {
               event.preventDefault();
               void openPlatform(whatsappHref);
             }}
-            className="mt-5 inline-flex h-10 items-center gap-2 rounded-[var(--radius-md)] bg-[#25D366] px-4 text-sm font-bold text-[#052e16] transition hover:bg-[#3be07a]"
+            className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-bold text-[#052e16] transition hover:bg-[#3be07a]"
           >
             <MessageCircle className="h-4 w-4" />
             {t("searchRequestWhatsApp")}
@@ -393,15 +414,15 @@ export function MusicSearchPage() {
 
       {!loading && results.length > 0 ? (
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--bg-card)] px-3 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#1a1a1a] px-3 py-2.5">
             <button
               type="button"
               onClick={toggleSelectAll}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] px-2 py-1.5 text-xs font-semibold text-[var(--text-muted)] transition hover:bg-white/5 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold text-white/55 transition hover:bg-white/5 hover:text-white"
             >
               {selectedCount > 0 &&
               results.filter((track) => track.downloadAvailable).every((track) => selectedIds.has(track.trackId)) ? (
-                <CheckSquare className="h-4 w-4 text-[var(--accent)]" />
+                <CheckSquare className="h-4 w-4 text-white" />
               ) : (
                 <Square className="h-4 w-4" />
               )}
@@ -418,8 +439,8 @@ export function MusicSearchPage() {
             </Button>
           </div>
 
-          <ul className="space-y-2">
-            {results.map((track) => {
+          <ul className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+            {results.map((track, index) => {
               const cover = resolveCoverUrl(track.coverUrl, apiBase);
               const catalogUrl = resolveCatalogUrl(track.catalogPath, apiBase);
               const playing = playingId === track.trackId && isPlaying;
@@ -431,11 +452,9 @@ export function MusicSearchPage() {
               return (
                 <li
                   key={`${track.source}-${track.trackId}`}
-                  className={`rounded-[var(--radius-lg)] border bg-[var(--bg-card)] p-3 transition ${
-                    active
-                      ? "border-[var(--accent)]/45 bg-[var(--accent)]/[0.06]"
-                      : "border-[var(--line)] hover:border-[var(--line-strong)] hover:bg-[var(--bg-hover)]"
-                  }`}
+                  className={`border-white/8 px-3 py-3 transition ${
+                    index > 0 ? "border-t" : ""
+                  } ${active ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"}`}
                 >
                   <div className="flex items-start gap-3">
                     <button
@@ -443,31 +462,26 @@ export function MusicSearchPage() {
                       aria-label={selected ? t("searchClearSelection") : t("searchSelectAll")}
                       onClick={() => toggleSelected(track.trackId)}
                       disabled={!track.downloadAvailable}
-                      className="mt-2 inline-flex h-5 w-5 shrink-0 items-center justify-center text-[var(--text-muted)] disabled:opacity-30"
+                      className="mt-2 inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/45 disabled:opacity-30"
                     >
-                      {selected ? (
-                        <CheckSquare className="h-4 w-4 text-[var(--accent)]" />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
+                      {selected ? <CheckSquare className="h-4 w-4 text-white" /> : <Square className="h-4 w-4" />}
                     </button>
                     <CoverArt track={track} apiBase={apiBase} cover={cover} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[0.9rem] font-semibold text-white">{track.title}</p>
-                      <p className="truncate text-xs text-[var(--text-muted)]">{track.artist}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-[var(--text-subtle)]">
+                      <p className="truncate text-[0.92rem] font-semibold text-white">{track.title}</p>
+                      <p className="truncate text-xs text-white/55">{track.artist}</p>
+                      <p className="mt-0.5 truncate text-[11px] text-white/35">
                         {[track.version, metaLine(track)].filter(Boolean).join(" · ")}
                       </p>
                       <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="truncate text-[11px] text-[var(--text-subtle)]">
-                          <span className="font-semibold text-[var(--text-muted)]">{t("searchCollection")}:</span>{" "}
-                          {collection}
+                        <span className="truncate text-[11px] text-white/40">
+                          <span className="font-semibold text-white/60">{t("searchCollection")}:</span> {collection}
                         </span>
                         {catalogUrl ? (
                           <button
                             type="button"
                             onClick={() => void openPlatform(catalogUrl)}
-                            className="inline-flex items-center gap-1 rounded-md border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-[var(--accent)] transition hover:bg-[var(--accent)]/20"
+                            className="inline-flex items-center gap-1 rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white/80 transition hover:bg-white/10"
                           >
                             <ExternalLink className="h-3 w-3" />
                             {t("searchOpenCatalog")}
@@ -503,17 +517,17 @@ export function MusicSearchPage() {
                   </div>
 
                   {active && playingTrack ? (
-                    <div className="mt-3 rounded-[var(--radius-md)] border border-[var(--line)] bg-black/25 px-3 py-3">
+                    <div className="mt-3 rounded-xl border border-white/10 bg-black/40 px-3 py-3">
                       <div className="flex items-center gap-3">
                         <CoverArt track={playingTrack} apiBase={apiBase} size="md" />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-white">{playingTrack.title}</p>
-                          <p className="truncate text-xs text-[var(--text-subtle)]">{playingTrack.artist}</p>
+                          <p className="truncate text-xs text-white/45">{playingTrack.artist}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => void playTrack(playingTrack)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--bg-control)] text-white hover:bg-[var(--bg-control-hover)]"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-[#2a2a2a] text-white hover:bg-[#333]"
                           aria-label={isPlaying ? t("searchPause") : t("searchPlay")}
                         >
                           {isPlaying ? (
@@ -525,7 +539,7 @@ export function MusicSearchPage() {
                         <button
                           type="button"
                           onClick={() => setMuted((value) => !value)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--bg-control)] text-[var(--text-muted)] hover:text-white"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/12 bg-[#222] text-white/60 hover:text-white"
                           aria-label={muted ? t("searchUnmute") : t("searchMute")}
                         >
                           {muted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -540,20 +554,20 @@ export function MusicSearchPage() {
                             setMuted(false);
                             setVolume(Number(event.target.value));
                           }}
-                          className="hidden w-24 accent-[var(--accent)] sm:block"
+                          className="hidden w-24 accent-white sm:block"
                           aria-label={t("searchVolume")}
                         />
                         <button
                           type="button"
                           onClick={stopPlayback}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--bg-control)] text-[var(--text-subtle)] hover:text-white"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/12 bg-[#222] text-white/45 hover:text-white"
                           aria-label={t("searchStop")}
                         >
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                       <div className="mt-3 flex items-center gap-3">
-                        <span className="w-10 text-[10px] tabular-nums text-[var(--text-subtle)]">
+                        <span className="w-10 text-[10px] tabular-nums text-white/40">
                           {formatTrackDuration(currentTime) ?? "0:00"}
                         </span>
                         <input
@@ -569,11 +583,11 @@ export function MusicSearchPage() {
                             audio.currentTime = next;
                             setCurrentTime(next);
                           }}
-                          className="h-1.5 flex-1 accent-[var(--accent)]"
+                          className="h-1.5 flex-1 accent-white"
                           aria-label={t("searchProgress")}
                           style={{ backgroundSize: `${progress}% 100%` }}
                         />
-                        <span className="w-10 text-right text-[10px] tabular-nums text-[var(--text-subtle)]">
+                        <span className="w-10 text-right text-[10px] tabular-nums text-white/40">
                           {formatTrackDuration(duration) ?? "--:--"}
                         </span>
                       </div>

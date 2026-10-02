@@ -319,6 +319,8 @@ export const messagesEn = {
   settingsWebuiVersion: "Interface version",
   settingsCoreVersion: "Current version",
   settingsRustcVersion: "Rust version",
+  settingsCloudflareTitle: "Powered by Cloudflare",
+  settingsCloudflareDesc: "The BRS website and platform use Cloudflare technology for security and performance.",
   settingsChangelog: "Changelog",
   settingsPrivacy: "Privacy",
   settingsCookies: "Cookies",

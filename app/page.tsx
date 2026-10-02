@@ -22,7 +22,6 @@ import Link from "next/link";
 import { Hero } from "./components/Hero";
 import { HomeProductions } from "./components/HomeProductions";
 import { listPublishedProductions } from "./lib/brs-productions";
-import { HomeLatestPacks } from "./components/HomeLatestPacks";
 import { IconBox } from "./components/IconBox";
 import { SectionHeading } from "./components/SectionHeading";
 import { SiteImage } from "./components/SiteImage";
@@ -208,8 +207,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      <HomeLatestPacks />
 
       {/* Curadoria — 2 colunas (texto + imagem) + marquee de pools */}
       <section id="curadoria" className="border-y border-white/5 site-section-blue py-12 md:py-20">
