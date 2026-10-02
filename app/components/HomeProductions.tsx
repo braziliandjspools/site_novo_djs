@@ -196,6 +196,115 @@ function ProductionCard({
   );
 }
 
+
+function DiscoverProductionRow({
+  production,
+  access,
+}: {
+  production: PublicBrsProduction;
+  access: Access;
+}) {
+  const player = useVipMusicPlayer();
+  const router = useRouter();
+  const playing = player.playingId === production.audioFileId && player.isPlaying;
+
+  function play() {
+    if (!access.canPlay) {
+      router.push(loginHref(production.slug));
+      return;
+    }
+    const track = productionToPreviewTrack(production);
+    player.registerTrackMeta(track);
+    player.setFolderPlayback(FOLDER_ID, {
+      tracks: [track],
+      hasMore: false,
+      loadMore: async () => undefined,
+      coverUrl: production.coverUrl,
+      albumTitle: "Produções BRS",
+    });
+    void player.toggleTrack(FOLDER_ID, track.id);
+  }
+
+  function download() {
+    if (!access.authenticated) {
+      router.push(loginHref(production.slug));
+      return;
+    }
+    if (!access.canDownload) {
+      router.push("/plans");
+      return;
+    }
+    startBrowserTrackDownload(productionDownloadTrack(production));
+  }
+
+  return (
+    <article className="grid min-w-0 grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.08] px-4 py-3 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5">
+      <button
+        type="button"
+        onClick={play}
+        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#171917] sm:h-[72px] sm:w-[72px]"
+        aria-label={playing ? "Pausar " + production.title : access.canPlay ? "Reproduzir " + production.title : "Entrar para ouvir"}
+      >
+        <Image
+          src={production.coverUrl}
+          alt=""
+          fill
+          unoptimized={!production.coverUrl.startsWith("/")}
+          sizes="72px"
+          className="object-cover"
+        />
+        <span className="absolute inset-0 flex items-center justify-center bg-black/0">
+          <span className={"flex h-8 w-8 items-center justify-center rounded-full bg-[#1db954] text-black " + (playing ? "opacity-100" : "opacity-0 hover:opacity-100")}>
+            {playing ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />}
+          </span>
+        </span>
+      </button>
+
+      <div className="min-w-0">
+        <Link
+          href={"/m/" + production.slug}
+          className="block truncate text-[13px] font-bold leading-5 text-white hover:text-[#1ed760] sm:text-[14px]"
+          title={production.title}
+        >
+          {production.title}
+        </Link>
+        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] sm:text-xs">
+          {production.producerSlug ? (
+            <Link
+              href={"/p/" + production.producerSlug}
+              className="truncate font-medium text-zinc-300 hover:text-[#1ed760] hover:underline"
+            >
+              {production.producer}
+            </Link>
+          ) : (
+            <span className="truncate font-medium text-zinc-300">{production.producer}</span>
+          )}
+          {production.genre ? <span className="text-zinc-600">•</span> : null}
+          {production.genre ? <span className="truncate text-zinc-500">{production.genre}</span> : null}
+          {production.bpm ? <span className="text-zinc-600">•</span> : null}
+          {production.bpm ? <span className="text-zinc-500">{production.bpm} BPM</span> : null}
+          {production.duration ? <span className="text-zinc-600">•</span> : null}
+          {production.duration ? <span className="text-zinc-500">{production.duration}</span> : null}
+          {production.versionType ? (
+            <span className="rounded-full border border-white/10 px-1.5 py-0.5 text-[9px] font-medium text-zinc-500">
+              {production.versionType}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={download}
+        className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#1db954] px-3.5 text-[11px] font-extrabold text-[#06150b] hover:bg-[#1ed760] sm:px-4 sm:text-xs"
+      >
+        <Download className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">{access.canDownload ? "Baixar" : access.authenticated ? "Assinar" : "Entrar"}</span>
+      </button>
+    </article>
+  );
+}
+
 export function ProductionRail({
   productions,
   embedded = false,
@@ -282,9 +391,13 @@ export function ProductionRail({
             ? "flex flex-col gap-3 sm:gap-4"
             : "flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-1 pb-3 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5"}`}
       >
-        {productions.map((production) => (
-          <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid" || layout === "list"} list={layout === "list"} />
-        ))}
+        {productions.map((production) =>
+          layout === "list" ? (
+            <DiscoverProductionRow key={production.id} production={production} access={access} />
+          ) : (
+            <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
+          ),
+        )}
       </div>
     </div>
     </>
