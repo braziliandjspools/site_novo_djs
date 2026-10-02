@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.23";
-export const APP_CORE_VERSION = "1.0.23";
+export const WEBUI_VERSION = "1.0.25";
+export const APP_CORE_VERSION = "1.0.25";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,22 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.25",
+    date: "2026-10-02",
+    items: [
+      "Visual Windows 11: tema escuro minimalista, botões escuros e tipografia Segoe",
+      "Buscador de músicas no catálogo BRS com preview e download pela fila atual",
+    ],
+  },
+  {
+    version: "1.0.24",
+    date: "2026-10-02",
+    items: [
+      "Preparação do buscador de músicas (desligado por padrão; teste local via flag)",
+      "Área isolada de pesquisa/preview sem alterar o fluxo de download atual",
+    ],
+  },
   {
     version: "1.0.23",
     date: "2026-09-30",

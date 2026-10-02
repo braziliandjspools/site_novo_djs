@@ -9,6 +9,7 @@ const VALID_ROUTES = new Set<AppRoute>([
   "completed",
   "history",
   "portal",
+  "search",
   "settings",
 ]);
 

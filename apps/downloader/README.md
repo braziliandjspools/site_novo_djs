@@ -79,6 +79,7 @@ Variáveis em `.env`:
 
 - `VITE_API_BASE_URL` — API Next.js (padrão `http://localhost:3000`)
 - `VITE_BP_SITE_URL` — link “Abrir Brazilian Packs”
+- `VITE_BRS_MUSIC_SEARCH_ENABLED` — buscador de músicas (ligado por padrão; `false` desliga). No site, `BRS_MUSIC_SEARCH_ENABLED=false` desliga a API.
 
 ## Estado atual
 

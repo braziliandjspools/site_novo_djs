@@ -33,6 +33,7 @@ const PRODUCTION_ENV = {
   VITE_BP_SITE_URL: process.env.VITE_BP_SITE_URL ?? `${PRODUCTION_SITE}/musicas/atualizacoes`,
   VITE_APP_VERSION: readVersion(),
   VITE_UPDATER_ENABLED: "false",
+  VITE_BRS_MUSIC_SEARCH_ENABLED: process.env.VITE_BRS_MUSIC_SEARCH_ENABLED ?? "true",
 };
 
 function readVersion() {

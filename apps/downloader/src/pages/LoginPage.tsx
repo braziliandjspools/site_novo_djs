@@ -15,9 +15,9 @@ import { LanguagePicker } from "../i18n/LanguagePicker";
 const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 
 const inputClassName =
-  "w-full rounded-2xl border border-white/[0.08] bg-black/45 px-3.5 py-2.5 text-[0.8rem] font-semibold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#ff2ea6]/55 focus:bg-black/60 focus:ring-2 focus:ring-[#ff2ea6]/15";
+  "w-full rounded-[var(--radius-md)] border border-[var(--line)] bg-[#1f1f1f] px-3.5 py-2.5 text-[0.8125rem] font-medium text-white outline-none transition-colors placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)]/50 focus:bg-[#252525]";
 
-const labelClassName = "mb-1.5 block text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-zinc-500";
+const labelClassName = "mb-1.5 block text-[0.68rem] font-semibold tracking-[0.04em] text-[var(--text-subtle)]";
 
 export function LoginPage() {
   const { login, error: authError, refreshSession, sessionToken } = useAuth();
@@ -141,9 +141,9 @@ export function LoginPage() {
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
         draggable={false}
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/75 via-black/60 to-black/80" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/85" aria-hidden />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(29,185,84,0.16),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(96,205,255,0.12),transparent_55%)]"
         aria-hidden
       />
 
@@ -159,30 +159,30 @@ export function LoginPage() {
           <div className="flex justify-center">
             <BrsLogo className="h-11 w-auto max-w-[240px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]" />
           </div>
-          <p className="mt-2 text-[0.75rem] font-bold tracking-wide text-zinc-300 drop-shadow">
+          <p className="mt-2 text-[0.75rem] font-semibold tracking-wide text-white/85 drop-shadow">
             {DOWNLOADER_NAME}
           </p>
         </div>
 
         <form
           onSubmit={(event) => void handleSubmit(event)}
-          className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0f16]/90 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-md"
+          className="glass-panel overflow-hidden rounded-[var(--radius-lg)]"
         >
           <div className="br-stripe-thin" />
           <div className="p-5">
-          <p className="mb-1 text-[0.62rem] font-extrabold uppercase tracking-[0.14em] text-[#ff2ea6]">
+          <p className="mb-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-subtle)]">
             {t("loginVipAccount")}
           </p>
-          <h1 className="font-display text-[1.2rem] font-extrabold tracking-tight text-white">
+          <h1 className="font-display text-[1.2rem] font-semibold tracking-tight text-white">
             {t("loginTitle")}
           </h1>
-          <p className="mt-1.5 text-[0.75rem] leading-relaxed text-zinc-500">
+          <p className="mt-1.5 text-[0.75rem] leading-relaxed text-[var(--text-subtle)]">
             {t("loginSubtitle", { site: SITE_NAME })}
           </p>
 
           {sessionToken && (
-            <div className="mt-3 rounded-2xl border border-[#ff2ea6]/25 bg-[#ff2ea6]/10 px-3 py-2.5">
-              <p className="text-[0.75rem] text-zinc-200">
+            <div className="mt-3 rounded-[var(--radius-md)] border border-[var(--line)] bg-white/[0.04] px-3 py-2.5">
+              <p className="text-[0.75rem] text-[var(--text-muted)]">
                 {reconnecting ? t("loginRestoringSession") : t("loginSavedSessionHint")}
               </p>
               <Button
@@ -247,13 +247,13 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => setShowAdvanced((current) => !current)}
-              className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold text-zinc-500 hover:text-zinc-300"
+              className="inline-flex items-center gap-1.5 text-[0.7rem] font-medium text-[var(--text-subtle)] hover:text-white"
             >
               <Server className="h-3.5 w-3.5" />
               {showAdvanced ? t("loginHideServer") : t("loginAdvancedServer")}
             </button>
             {showAdvanced && (
-              <div className="mt-3 space-y-2 rounded-lg border border-zinc-800 bg-black/30 p-3">
+              <div className="mt-3 space-y-2 rounded-[var(--radius-md)] border border-[var(--line)] bg-black/25 p-3">
                 <label htmlFor="apiBaseUrl" className={labelClassName}>
                   {t("loginApiUrl")}
                 </label>
@@ -284,7 +284,7 @@ export function LoginPage() {
                   {t("loginTestConnection")}
                 </Button>
                 {serverStatus && (
-                  <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[#ff2ea6]" : "text-zinc-400"}`}>
+                  <p className={`text-xs ${serverStatus.startsWith("Servidor respondeu") ? "text-[var(--accent)]" : "text-[var(--text-subtle)]"}`}>
                     {serverStatus}
                   </p>
                 )}
@@ -293,7 +293,7 @@ export function LoginPage() {
           </div>
 
           {displayError && (
-            <p className="mt-3 rounded-2xl bg-red-500/10 px-3 py-2 text-[0.75rem] text-red-400">{displayError}</p>
+            <p className="mt-3 rounded-[var(--radius-md)] border border-red-400/25 bg-[#3a2020] px-3 py-2 text-[0.75rem] text-[#ffb3ba]">{displayError}</p>
           )}
 
           <Button type="submit" disabled={submitting} className="mt-5 w-full py-2">
@@ -303,31 +303,31 @@ export function LoginPage() {
           </div>
         </form>
 
-        <p className="mt-5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center text-[0.68rem] text-zinc-400 drop-shadow">
+        <p className="mt-5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center text-[0.68rem] text-[var(--text-subtle)] drop-shadow">
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_DOWNLOADER_URL)}
-            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#ff2ea6] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+            className="text-white/80 underline-offset-2 transition-colors hover:text-white hover:underline"
           >
             {t("loginPrivacy")}
           </button>
-          <span className="text-zinc-600" aria-hidden>
+          <span className="text-white/25" aria-hidden>
             ·
           </span>
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_COOKIES_URL)}
-            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#ff2ea6] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+            className="text-white/80 underline-offset-2 transition-colors hover:text-white hover:underline"
           >
             {t("loginCookies")}
           </button>
-          <span className="text-zinc-600" aria-hidden>
+          <span className="text-white/25" aria-hidden>
             ·
           </span>
           <button
             type="button"
             onClick={() => void openPlatform(BP_PRIVACY_CONDUCT_URL)}
-            className="text-zinc-300 underline-offset-2 transition-colors hover:text-[#ff2ea6] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff2ea6]"
+            className="text-white/80 underline-offset-2 transition-colors hover:text-white hover:underline"
           >
             {t("loginConduct")}
           </button>

@@ -49,7 +49,6 @@ export function AppShell({
 
   return (
     <div className="flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
-      <div className="br-rail flex-shrink-0" aria-hidden />
       <UpdateAvailableModal />
       <Sidebar
         activeRoute={activeRoute}
@@ -63,11 +62,11 @@ export function AppShell({
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="relative z-50 flex flex-shrink-0 items-center justify-between gap-4 border-b border-white/[0.06] bg-[var(--bg-sidebar)] px-6 py-4">
+        <header className="relative z-50 flex flex-shrink-0 items-center justify-between gap-4 border-b border-[var(--line)] bg-[var(--bg-sidebar)] px-5 py-3">
           <div className="min-w-0">
-            <h1 className="truncate text-[1.2rem] font-semibold tracking-[-0.03em] text-white">{title}</h1>
+            <h1 className="truncate text-[1.05rem] font-semibold tracking-tight text-white">{title}</h1>
             {subtitle && (
-              <p className="mt-0.5 max-w-2xl truncate text-[0.82rem] leading-snug text-[var(--text-muted)]">
+              <p className="mt-0.5 max-w-2xl truncate text-[0.78rem] leading-snug text-[var(--text-subtle)]">
                 {subtitle}
               </p>
             )}
@@ -78,7 +77,7 @@ export function AppShell({
               onClick={() => void openPlatform(supportWhatsAppUrl())}
               title={t("settingsSupportWhatsApp")}
               aria-label={t("settingsSupportWhatsApp")}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[0.75rem] font-semibold text-white transition-colors hover:border-[#25D366]/40 hover:text-[#25D366]"
+              className="inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--bg-control)] px-2.5 text-[0.72rem] font-medium text-white transition-colors hover:bg-[var(--bg-control-hover)]"
             >
               <MessageCircle className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">WhatsApp</span>
@@ -90,7 +89,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-8">
+        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
           <div key={activeRoute} className="animate-fade-up">{children}</div>
         </main>
       </div>

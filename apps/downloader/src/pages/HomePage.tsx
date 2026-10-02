@@ -7,6 +7,7 @@ import {
   History,
   ListOrdered,
   RefreshCw,
+  Search,
   Settings,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
@@ -20,6 +21,7 @@ import { HomeActivity } from "../components/downloads/HomeActivity";
 import { formatSpeed } from "../lib/download/progress-tracker";
 import { ImportPackPanel } from "../components/ImportPackPanel";
 import { useLocale, type MessageKey } from "../i18n/LocaleContext";
+import { isMusicSearchEnabled } from "../lib/features";
 
 type HomePageProps = {
   userName: string;
@@ -42,54 +44,42 @@ const QUICK_LINKS: {
   labelKey: MessageKey;
   descriptionKey: MessageKey;
   icon: typeof Download;
-  accent: string;
-  iconBg: string;
-  borderHover: string;
 }[] = [
   {
     route: "downloads",
     labelKey: "navDownloads",
     descriptionKey: "homeQuickDownloadsDesc",
     icon: Download,
-    accent: "text-sky-300",
-    iconBg: "bg-sky-500/15 text-sky-300",
-    borderHover: "hover:border-sky-400/40 hover:bg-sky-500/5",
   },
   {
     route: "queue",
     labelKey: "navQueue",
     descriptionKey: "homeQuickQueueDesc",
     icon: ListOrdered,
-    accent: "text-teal-300",
-    iconBg: "bg-teal-500/15 text-teal-300",
-    borderHover: "hover:border-teal-400/40 hover:bg-teal-500/5",
   },
   {
     route: "completed",
     labelKey: "navCompleted",
     descriptionKey: "homeQuickCompletedDesc",
     icon: CheckCircle2,
-    accent: "text-[#ff2ea6]",
-    iconBg: "bg-[#ff2ea6]/15 text-[#ff2ea6]",
-    borderHover: "hover:border-[#ff2ea6]/40 hover:bg-[#ff2ea6]/5",
   },
   {
     route: "history",
     labelKey: "navHistory",
     descriptionKey: "homeQuickHistoryDesc",
     icon: History,
-    accent: "text-amber-300",
-    iconBg: "bg-amber-500/15 text-amber-300",
-    borderHover: "hover:border-amber-400/40 hover:bg-amber-500/5",
+  },
+  {
+    route: "search",
+    labelKey: "navSearch",
+    descriptionKey: "pagesSearchSubtitle",
+    icon: Search,
   },
   {
     route: "settings",
     labelKey: "navSettings",
     descriptionKey: "homeQuickSettingsDesc",
     icon: Settings,
-    accent: "text-rose-300",
-    iconBg: "bg-rose-500/15 text-rose-300",
-    borderHover: "hover:border-rose-400/40 hover:bg-rose-500/5",
   },
 ];
 
@@ -178,28 +168,24 @@ export function HomePage({ onNavigate }: HomePageProps) {
           label={t("homeStatDownloading")}
           value={counts.downloading}
           hint={t("homeStatDownloadingHint", { count: activeJobIds.length })}
-          tone="sky"
           onClick={() => onNavigate("downloads")}
         />
         <StatCard
           label={t("homeStatsQueue")}
           value={counts.queue || pendingCount}
           hint={t("homeStatQueueHint")}
-          tone="teal"
           onClick={() => onNavigate("queue")}
         />
         <StatCard
           label={t("homeStatsCompleted")}
           value={counts.completed}
           hint={t("homeStatCompletedHint")}
-          tone="green"
           onClick={() => onNavigate("completed")}
         />
         <StatCard
           label={t("homeStatConnection")}
           value={isOffline ? t("commonOffline") : connectionState === "connecting" ? t("connectionConnecting") : t("commonOnline")}
           hint={isOffline ? t("homeStatConnectionOffline") : connectionState === "connecting" ? t("connectionConnecting") : t("homeStatConnectionOnline")}
-          tone={connectionState !== "online" ? "amber" : "emerald"}
           onClick={handleSync}
         />
       </div>
@@ -209,12 +195,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <section>
         <div className="mb-3.5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">{t("navMenu")}</p>
-            <h2 className="text-xl font-bold text-white">{t("homeQuickAccess")}</h2>
+            <p className="text-eyebrow text-[var(--text-subtle)]">{t("navMenu")}</p>
+            <h2 className="text-lg font-semibold text-white">{t("homeQuickAccess")}</h2>
           </div>
         </div>
-        <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-          {QUICK_LINKS.map(({ route, labelKey, descriptionKey, icon: Icon, accent, iconBg, borderHover }) => {
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {QUICK_LINKS.filter((item) => item.route !== "search" || isMusicSearchEnabled).map(({ route, labelKey, descriptionKey, icon: Icon }) => {
             const badge =
               route === "downloads"
                 ? counts.downloading
@@ -229,25 +215,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 key={route}
                 type="button"
                 onClick={() => onNavigate(route)}
-                className={`studio-shortcut group flex min-h-[148px] flex-col rounded-xl border border-white/[0.06] bg-[var(--bg-card)] p-5 text-left transition-colors ${borderHover}`}
+                className="studio-shortcut group flex min-h-[132px] flex-col rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--bg-card)] p-4 text-left"
               >
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}>
-                    <Icon className="h-5 w-5" />
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--bg-control)] text-white">
+                    <Icon className="h-4.5 w-4.5" />
                   </div>
                   {badge > 0 && (
-                    <span className="rounded-md bg-[#ff2ea6] px-2.5 py-1 text-xs font-bold text-black">
+                    <span className="rounded-[4px] bg-white/10 px-2 py-0.5 text-[0.68rem] font-semibold text-white">
                       {badge}
                     </span>
                   )}
                 </div>
-                <h3 className="text-[1.05rem] font-bold text-white">{t(labelKey)}</h3>
-                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">{t(descriptionKey)}</p>
-                <span
-                  className={`mt-4 inline-flex items-center gap-1.5 text-sm font-medium ${accent}`}
-                >
+                <h3 className="text-[0.95rem] font-semibold text-white">{t(labelKey)}</h3>
+                <p className="mt-1 flex-1 text-[0.78rem] leading-relaxed text-[var(--text-subtle)]">{t(descriptionKey)}</p>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-[0.78rem] font-medium text-[var(--text-muted)] group-hover:text-white">
                   {t("commonOpen")}
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </button>
             );
@@ -260,53 +244,26 @@ export function HomePage({ onNavigate }: HomePageProps) {
   );
 }
 
-const STAT_TONES = {
-  sky: {
-    card: "border-sky-500/25 bg-gradient-to-br from-sky-500/15 to-[var(--bg-card)]",
-    label: "text-sky-300/80",
-    value: "text-sky-200",
-  },
-  teal: {
-    card: "border-teal-500/25 bg-gradient-to-br from-teal-500/15 to-[var(--bg-card)]",
-    label: "text-teal-300/80",
-    value: "text-teal-200",
-  },
-  green: {
-    card: "border-[#ff2ea6]/25 bg-gradient-to-br from-[#ff2ea6]/15 to-[var(--bg-card)]",
-    label: "text-[#ff2ea6]/80",
-    value: "text-[#ff2ea6]",
-  },
-  emerald: {
-    card: "border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 to-[var(--bg-card)]",
-    label: "text-emerald-300/80",
-    value: "text-emerald-300",
-  },
-  amber: {
-    card: "border-amber-500/25 bg-gradient-to-br from-amber-500/15 to-[var(--bg-card)]",
-    label: "text-amber-300/80",
-    value: "text-amber-300",
-  },
-} as const;
-
 function StatCard({
   label,
   value,
   hint,
-  tone,
   onClick,
 }: {
   label: string;
   value: string | number;
   hint: string;
-  tone: keyof typeof STAT_TONES;
   onClick: () => void;
 }) {
-  const colors = STAT_TONES[tone];
   return (
-    <button type="button" onClick={onClick} className={`studio-stat rounded-2xl border px-5 py-5 text-left ${colors.card}`}>
-      <p className={`text-[0.7rem] font-extrabold uppercase tracking-[0.12em] ${colors.label}`}>{label}</p>
-      <p className={`mt-2 text-3xl font-black tracking-tight ${colors.value}`}>{value}</p>
-      <p className="mt-1.5 text-sm text-zinc-500">{hint}</p>
+    <button
+      type="button"
+      onClick={onClick}
+      className="studio-stat rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--bg-card)] px-4 py-4 text-left"
+    >
+      <p className="text-eyebrow text-[var(--text-subtle)]">{label}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</p>
+      <p className="mt-1.5 text-[0.78rem] text-[var(--text-subtle)]">{hint}</p>
     </button>
   );
 }

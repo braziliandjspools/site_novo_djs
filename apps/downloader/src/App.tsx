@@ -13,6 +13,7 @@ import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
 import { JobsSectionPage } from "./pages/JobsSectionPage";
 import { LoginPage } from "./pages/LoginPage";
+import { MusicSearchPage } from "./pages/MusicSearchPage";
 import { PortalPage } from "./pages/PortalPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { useWindowsIntegration } from "./hooks/useWindowsIntegration";
@@ -22,6 +23,7 @@ import { LocaleProvider, useLocale, type MessageKey } from "./i18n/LocaleContext
 import { ToastProvider, useToast } from "./components/ui/Toast";
 import { OneSignalProvider } from "./components/OneSignalProvider";
 import type { DownloadJob } from "./lib/api/jobs";
+import { isMusicSearchEnabled } from "./lib/features";
 
 const PAGE_META: Record<AppRoute, { title: MessageKey; subtitle: MessageKey }> = {
   home: {
@@ -47,6 +49,10 @@ const PAGE_META: Record<AppRoute, { title: MessageKey; subtitle: MessageKey }> =
   portal: {
     title: "pagesPortalTitle",
     subtitle: "pagesPortalSubtitle",
+  },
+  search: {
+    title: "pagesSearchTitle",
+    subtitle: "pagesSearchSubtitle",
   },
   settings: {
     title: "pagesSettingsTitle",
@@ -139,11 +145,12 @@ function AuthenticatedApp() {
     }} />;
   }
 
-  const meta = PAGE_META[route];
+  const meta = PAGE_META[route === "search" && !isMusicSearchEnabled ? "home" : route];
+  const activeRoute = route === "search" && !isMusicSearchEnabled ? "home" : route;
 
   return (
     <AppShell
-      activeRoute={route}
+      activeRoute={activeRoute}
       onNavigate={setRoute}
       title={t(meta.title)}
       subtitle={t(meta.subtitle)}
@@ -155,13 +162,14 @@ function AuthenticatedApp() {
       counts={counts}
       onLogout={() => void logout()}
     >
-      {route === "home" && <HomePage userName={user.name} onNavigate={setRoute} />}
-      {route === "downloads" && <JobsSectionPage section="downloads" />}
-      {route === "queue" && <JobsSectionPage section="queue" />}
-      {route === "completed" && <CompletedPage />}
-      {route === "history" && <HistoryPage />}
-      {route === "portal" && <PortalPage />}
-      {route === "settings" && <SettingsPage />}
+      {activeRoute === "home" && <HomePage userName={user.name} onNavigate={setRoute} />}
+      {activeRoute === "downloads" && <JobsSectionPage section="downloads" />}
+      {activeRoute === "queue" && <JobsSectionPage section="queue" />}
+      {activeRoute === "completed" && <CompletedPage />}
+      {activeRoute === "history" && <HistoryPage />}
+      {activeRoute === "portal" && <PortalPage />}
+      {activeRoute === "search" && isMusicSearchEnabled && <MusicSearchPage />}
+      {activeRoute === "settings" && <SettingsPage />}
     </AppShell>
   );
 }

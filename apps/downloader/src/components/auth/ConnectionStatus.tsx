@@ -16,27 +16,27 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
 
   return (
     <div
-      className={`rounded-2xl border px-3 py-2.5 ${
+      className={`rounded-[var(--radius-lg)] border px-3 py-2.5 ${
         isOffline || error
-          ? "border-red-500/20 bg-red-500/[0.06]"
-          : "border-[#ff2ea6]/20 bg-[#ff2ea6]/[0.06]"
+          ? "border-red-400/25 bg-[#3a2020]/60"
+          : "border-[var(--line)] bg-[var(--bg-card)]"
       }`}
     >
-      <p className="text-[0.6rem] font-extrabold tracking-[0.14em] text-zinc-500 uppercase">
+      <p className="text-[0.62rem] font-semibold tracking-[0.06em] text-[var(--text-subtle)] uppercase">
         {DOWNLOADER_NAME}
       </p>
       <p
-        className={`mt-1.5 flex items-center gap-1.5 text-[0.72rem] font-extrabold ${
-          isOffline ? "text-red-400" : isConnecting ? "text-zinc-400" : "text-[#ff2ea6]"
+        className={`mt-1.5 flex items-center gap-1.5 text-[0.75rem] font-semibold ${
+          isOffline ? "text-[#ffb3ba]" : isConnecting ? "text-[var(--text-muted)]" : "text-white"
         }`}
       >
         <span
           className={`inline-block h-1.5 w-1.5 rounded-full ${
             isOffline
-              ? "bg-red-400"
+              ? "bg-[#ff99a4]"
               : isConnecting
-                ? "animate-soft-pulse bg-zinc-500"
-                : "bg-[#ff2ea6] shadow-[0_0_0_3px_rgba(30,215,96,0.18)]"
+                ? "animate-soft-pulse bg-[var(--text-subtle)]"
+                : "bg-[var(--success)]"
           }`}
           aria-hidden
         />
@@ -46,9 +46,9 @@ export function ConnectionStatus({ device, connectionState, error }: ConnectionS
             ? t("connectionConnecting")
             : t("connectionConnected")}
       </p>
-      <p className="mt-1.5 truncate text-[0.72rem] font-bold text-white">{device.deviceName}</p>
-      <p className="text-[0.65rem] text-zinc-500">{device.platformLabel}</p>
-      {error && <p className="mt-1.5 text-[0.65rem] leading-relaxed text-red-400">{error}</p>}
+      <p className="mt-1.5 truncate text-[0.75rem] font-medium text-white">{device.deviceName}</p>
+      <p className="text-[0.68rem] text-[var(--text-subtle)]">{device.platformLabel}</p>
+      {error && <p className="mt-1.5 text-[0.68rem] leading-relaxed text-[#ffb3ba]">{error}</p>}
     </div>
   );
 }
