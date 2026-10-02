@@ -21,9 +21,11 @@ function loginHref(returnTo = "/discover") {
 function DiscoverRow({
   production,
   access,
+  allTracks,
 }: {
   production: PublicBrsProduction;
   access: Access;
+  allTracks: ReturnType<typeof productionToPreviewTrack>[];
 }) {
   const router = useRouter();
   const player = useVipMusicPlayer();
@@ -39,7 +41,7 @@ function DiscoverRow({
     }
     player.registerTrackMeta(track);
     player.setFolderPlayback(FOLDER_ID, {
-      tracks: [track],
+      tracks: allTracks,
       hasMore: false,
       loadMore: async () => undefined,
       coverUrl: production.coverUrl,
@@ -61,7 +63,11 @@ function DiscoverRow({
   }
 
   return (
-    <article className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-3.5 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5">
+    <article
+      className={`group/card grid min-w-0 grid-cols-[56px_minmax(0,1fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-3.5 transition sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5 ${
+        playing ? "bg-[#60cdff]/[0.06]" : "hover:bg-white/[0.02]"
+      }`}
+    >
       <button
         type="button"
         onClick={play}
@@ -76,9 +82,17 @@ function DiscoverRow({
           sizes="64px"
           className="object-cover"
         />
-        <span className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 transition hover:opacity-100">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-black">
-            {playing ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />}
+        <span
+          className={`absolute inset-0 flex items-center justify-center bg-black/40 transition ${
+            playing ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"
+          }`}
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-black shadow-[0_8px_20px_rgba(96,205,255,0.35)]">
+            {playing ? (
+              <Pause className="h-3.5 w-3.5" fill="currentColor" />
+            ) : (
+              <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />
+            )}
           </span>
         </span>
       </button>
@@ -87,7 +101,9 @@ function DiscoverRow({
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Link
             href={`/m/${production.slug}`}
-            className="truncate text-[14px] font-bold leading-tight text-white transition hover:text-[#60cdff] sm:text-[15px]"
+            className={`truncate text-[14px] font-bold leading-tight transition hover:text-[#60cdff] sm:text-[15px] ${
+              playing ? "text-[#60cdff]" : "text-white"
+            }`}
             title={production.title}
           >
             {production.title}
@@ -124,7 +140,9 @@ function DiscoverRow({
           ) : null}
         </div>
         {version ? (
-          <p className="mt-0.5 text-[11px] text-[#6f6f6f]">{version}</p>
+          <p className="mt-1 inline-flex rounded-md bg-[#141414] px-2 py-0.5 text-[11px] font-semibold text-white">
+            {version}
+          </p>
         ) : null}
       </div>
 
@@ -155,6 +173,7 @@ function DiscoverRow({
 
 export function DiscoverCatalog({ productions }: { productions: PublicBrsProduction[] }) {
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
+  const allTracks = productions.map(productionToPreviewTrack);
 
   useEffect(() => {
     void fetch("/api/musicas/session", { cache: "no-store" })
@@ -174,7 +193,12 @@ export function DiscoverCatalog({ productions }: { productions: PublicBrsProduct
     <VipMusicPlayerProvider canPlayFull={access.canPlay}>
       <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
         {productions.map((production) => (
-          <DiscoverRow key={production.id} production={production} access={access} />
+          <DiscoverRow
+            key={production.id}
+            production={production}
+            access={access}
+            allTracks={allTracks}
+          />
         ))}
       </div>
     </VipMusicPlayerProvider>

@@ -168,20 +168,21 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
           <ProductionRail
             productions={more}
             embedded
+            variant="premium"
             headerTitle="Do mesmo produtor"
             renderHeaderActions={({ previous, next }) => (
               <div className="flex shrink-0 items-center gap-1">
-                <button type="button" aria-label="Produções anteriores" onClick={previous} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
+                <button type="button" aria-label="Produções anteriores" onClick={previous} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#60cdff]/40 hover:text-white">
                   <span className="text-lg leading-none">‹</span>
                 </button>
-                <button type="button" aria-label="Próximas produções" onClick={next} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
+                <button type="button" aria-label="Próximas produções" onClick={next} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#60cdff]/40 hover:text-white">
                   <span className="text-lg leading-none">›</span>
                 </button>
               </div>
             )}
           />
           <div className="mt-4 flex justify-end">
-            <Link href={`/p/${production.producerSlug}`} className="text-xs font-bold uppercase tracking-[0.14em] text-[#9ef7c0] hover:text-white">Ver perfil do produtor</Link>
+            <Link href={`/p/${production.producerSlug}`} className="text-xs font-bold uppercase tracking-[0.14em] text-[#9adfff] hover:text-white">Ver perfil do produtor</Link>
           </div>
         </section>
       ) : null}

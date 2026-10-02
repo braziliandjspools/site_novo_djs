@@ -18,45 +18,31 @@ function loginHref(slug: string) {
   return `/musicas/entrar?return=${encodeURIComponent(`/m/${slug}`)}`;
 }
 
-function catalogTone(category: string) {
-  if (category === "EQUIPE_BRS") {
-    return {
-      frame: "from-[#7eb6ff] via-[#1db954] to-[#ffe566]",
-      chip: "border-[#7eb6ff]/45 bg-[#002776]/70 text-[#d7e7ff]",
-      glow: "hover:shadow-[0_28px_70px_-28px_rgba(107,159,255,0.55)]",
-    };
-  }
-  if (category === "DJ_PARCEIRO") {
-    return {
-      frame: "from-[#ffe566] via-[#ffb703] to-[#1db954]",
-      chip: "border-[#ffe566]/50 bg-[#3a3200]/80 text-[#ffe566]",
-      glow: "hover:shadow-[0_28px_70px_-28px_rgba(255,223,0,0.42)]",
-    };
-  }
-  return {
-    frame: "from-[#1ed760] via-[#ffe566] to-[#009739]",
-    chip: "border-[#1db954]/40 bg-[#063318]/80 text-[#9ef7c0]",
-    glow: "hover:shadow-[0_28px_70px_-28px_rgba(29,185,84,0.5)]",
-  };
-}
+type CardVariant = "premium" | "producer";
 
 function ProductionCard({
   production,
   access,
   fill = false,
   list = false,
+  variant = "premium",
 }: {
   production: PublicBrsProduction;
   access: Access;
   fill?: boolean;
   list?: boolean;
+  variant?: CardVariant;
 }) {
   const player = useVipMusicPlayer();
   const router = useRouter();
   const playing = player.playingId === production.audioFileId && player.isPlaying;
-  const tone = catalogTone(production.category);
   const date = new Date(production.publishedAt);
-  const dateLabel = date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
+  const dateLabel = date
+    .toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+    .replace(".", "");
+  const isProducer = variant === "producer";
+  const exclusive = production.isFeatured || production.isNew;
+  const version = production.versionLabel || production.versionType || null;
 
   function play() {
     if (!access.canPlay) {
@@ -87,105 +73,193 @@ function ProductionCard({
     startBrowserTrackDownload(productionDownloadTrack(production));
   }
 
+  if (list) {
+    return (
+      <article className="brs-production-card group/card flex w-full flex-row items-stretch overflow-hidden rounded-2xl border border-white/10 bg-[#0d0f12] p-2 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.9)]">
+        <div className="relative w-24 shrink-0 self-stretch overflow-hidden rounded-xl bg-[#161816] sm:w-32">
+          <Image
+            src={production.coverUrl}
+            alt=""
+            fill
+            unoptimized={!production.coverUrl.startsWith("/")}
+            sizes="128px"
+            className="object-cover"
+          />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col justify-center px-3 sm:px-5">
+          <Link
+            href={`/m/${production.slug}`}
+            title={production.title}
+            className="block truncate text-[15px] font-bold text-white transition hover:text-[#60cdff]"
+          >
+            {production.title}
+          </Link>
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:grid-cols-5 sm:text-xs">
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Autor</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">
+                {production.artist || production.producer}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Gênero</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.genre || "—"}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">BPM</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.bpm || "—"}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Duração</span>
+              <span className="mt-0.5 block truncate font-semibold text-white">{production.duration || "—"}</span>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Versão</span>
+              <span className="mt-0.5 inline-flex rounded-md bg-[#141414] px-2 py-0.5 font-semibold text-white">
+                {version || "—"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   return (
-    <article className={`brs-production-card group/card relative flex h-full min-w-0 overflow-hidden rounded-2xl border border-white/[0.12] bg-[#101311] p-1.5 sm:p-2 shadow-[0_22px_60px_-35px_rgba(0,0,0,0.95)] transition duration-300 hover:-translate-y-1 ${tone.glow} ${list ? "w-full flex-row items-stretch" : "flex-col"} ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}>
-      <div className={`rounded-xl bg-gradient-to-br p-[1px] sm:p-[1.5px] ${tone.frame} ${list ? "w-24 shrink-0 self-stretch sm:w-32" : ""}`}>
-      <div className={`group relative overflow-hidden rounded-[11px] bg-[#161816] ${list ? "h-full min-h-24 sm:min-h-32" : "aspect-square"}`}>
+    <article
+      className={`brs-production-card group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-[22px] border transition duration-300 hover:-translate-y-1 ${
+        isProducer
+          ? "border-[#7eb6ff]/20 bg-[linear-gradient(165deg,#0a1220_0%,#070b14_55%,#05070d_100%)] shadow-[0_24px_60px_-28px_rgba(0,60,140,0.55)] hover:border-[#7eb6ff]/45 hover:shadow-[0_30px_70px_-24px_rgba(80,150,255,0.35)]"
+          : "border-white/[0.08] bg-[linear-gradient(180deg,#12151a_0%,#0a0c10_100%)] shadow-[0_24px_60px_-30px_rgba(0,0,0,0.95)] hover:border-[#60cdff]/35 hover:shadow-[0_30px_70px_-24px_rgba(96,205,255,0.28)]"
+      } ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}
+    >
+      <div className="relative aspect-square overflow-hidden">
         <Image
           src={production.coverUrl}
           alt=""
           fill
           unoptimized={!production.coverUrl.startsWith("/")}
           sizes="(max-width: 640px) 46vw, (max-width: 1024px) 44vw, 220px"
-          className="object-cover transition duration-500 group-hover:scale-[1.05]"
+          className="object-cover transition duration-700 group-hover/card:scale-[1.06]"
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
         <button
           type="button"
           onClick={play}
-          className={`absolute inset-0 flex items-center justify-center transition ${playing ? "bg-black/35" : "bg-gradient-to-t from-black/35 via-transparent to-transparent group-hover:bg-black/35"}`}
-          aria-label={playing ? `Pausar ${production.title}` : access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
+          className="absolute inset-0 flex items-center justify-center"
+          aria-label={
+            playing
+              ? `Pausar ${production.title}`
+              : access.canPlay
+                ? `Reproduzir ${production.title}`
+                : "Entrar para ouvir"
+          }
         >
-          <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-[#1db954] text-black shadow-[0_12px_35px_rgba(29,185,84,0.38)] transition duration-300 ${playing ? "scale-100 opacity-100" : "scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"}`}>
-            {playing ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" /> : <Play className="ml-0.5 h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" />}
+          <span
+            className={`flex h-12 w-12 items-center justify-center rounded-full text-black shadow-[0_12px_30px_rgba(0,0,0,0.45)] transition duration-300 ${
+              isProducer ? "bg-[#7eb6ff]" : "bg-[#60cdff]"
+            } ${playing ? "scale-100 opacity-100" : "scale-90 opacity-0 group-hover/card:scale-100 group-hover/card:opacity-100"}`}
+          >
+            {playing ? (
+              <Pause className="h-5 w-5" fill="currentColor" />
+            ) : (
+              <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
+            )}
           </span>
         </button>
-        {!list && (production.isFeatured || production.isNew) ? (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#1db954]/30 bg-black/80 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-[#72e89c] backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1db954] shadow-[0_0_8px_#1db954]" />
-            {production.isFeatured ? "Destaque" : "Novo"}
-          </span>
-        ) : null}
-        {!list ? (
-          <span className="absolute bottom-3 left-3 inline-flex items-center rounded-full border border-[#60cdff]/45 bg-[#0b1520]/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-[#60cdff] shadow-[0_8px_18px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        {exclusive ? (
+          <span
+            className={`absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] backdrop-blur-md ${
+              isProducer
+                ? "border-[#7eb6ff]/40 bg-[#07111c]/90 text-[#9ec8ff]"
+                : "border-[#60cdff]/45 bg-[#0b1520]/90 text-[#60cdff]"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${isProducer ? "bg-[#7eb6ff]" : "bg-[#60cdff]"}`}
+            />
             Exclusivas BRS
           </span>
         ) : null}
+        {version ? (
+          <span className="absolute bottom-3 left-3 inline-flex items-center rounded-md bg-[#141414] px-2.5 py-1 text-[10px] font-semibold text-white shadow-[0_8px_20px_rgba(0,0,0,0.45)]">
+            {version}
+          </span>
+        ) : null}
       </div>
-      </div>
-      <div className={`flex min-w-0 flex-1 flex-col px-1 pb-1 pt-2.5 sm:px-1.5 sm:pt-4 ${list ? "justify-center pl-3 sm:pl-5" : ""}`}>
-        <Link href={`/m/${production.slug}`} title={production.title} className="block truncate whitespace-nowrap text-[12px] font-bold leading-tight tracking-[-0.01em] text-white transition hover:text-[#1ed760] sm:text-[15px] sm:leading-none">
+
+      <div className="flex min-w-0 flex-1 flex-col px-3.5 pb-3.5 pt-3.5">
+        <Link
+          href={`/m/${production.slug}`}
+          title={production.title}
+          className={`block truncate text-[14px] font-bold leading-tight tracking-[-0.02em] text-white transition sm:text-[15px] ${
+            isProducer ? "hover:text-[#7eb6ff]" : "hover:text-[#60cdff]"
+          }`}
+        >
           {production.title}
         </Link>
-        {!list ? (
-          <>
-            <div className="mt-0.5 flex justify-end">
-              <span className="rounded-md bg-[#002776] px-1.5 py-0.5 text-[8px] font-bold leading-none text-[#d7e7ff] sm:px-2 sm:text-[10px]">
-                {production.versionType}
-              </span>
-            </div>
-            <p className="mt-1 flex min-w-0 items-center whitespace-nowrap text-[10px] text-zinc-400 sm:mt-1.5 sm:text-xs">
-              <span className="truncate">
-                {production.producerSlug ? (
-                  <Link href={`/p/${production.producerSlug}`} className="hover:text-[#1ed760]">
-                    {production.producer}
-                  </Link>
-                ) : (
-                  production.producer
-                )}
-              </span>
-            </p>
-            <div className="mt-2 flex items-center justify-between gap-1 sm:mt-4 sm:gap-2">
-              <span className={`truncate rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] ${tone.chip} sm:px-2.5 sm:py-1 sm:text-[9px] sm:tracking-[0.13em]`}>
-                {production.categoryLabel}
-              </span>
-              <span className="shrink-0 text-[9px] font-medium uppercase tracking-wider text-white">{dateLabel}</span>
-            </div>
-          </>
-        ) : (
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:mt-4 sm:grid-cols-5 sm:gap-4 sm:text-xs">
-            <div className="min-w-0">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Autor:</span>
-              <span className="mt-0.5 block truncate font-semibold text-white">{production.artist || production.producer}</span>
-            </div>
-            <div className="min-w-0">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Gênero:</span>
-              <span className="mt-0.5 block truncate font-semibold text-white">{production.genre || "—"}</span>
-            </div>
-            <div className="min-w-0">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">BPM:</span>
-              <span className="mt-0.5 block truncate font-semibold text-white">{production.bpm || "—"}</span>
-            </div>
-            <div className="min-w-0">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Duração:</span>
-              <span className="mt-0.5 block truncate font-semibold text-white">{production.duration || "—"}</span>
-            </div>
-            <div className="min-w-0">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-white/35">Versão:</span>
-              <span className="mt-0.5 block truncate font-semibold text-white">{production.versionType || "—"}</span>
-            </div>
-          </div>
-        )}
-        <div className="mt-auto flex gap-1.5 border-t border-white/[0.07] pt-2 sm:gap-2 sm:pt-3.5">
-          <button type="button" onClick={play} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.035] text-[9px] font-bold text-white transition hover:border-[#1db954]/45 hover:bg-[#1db954]/[0.06] sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
-            <Play className="h-3 w-3" fill="currentColor" />
-            {access.canPlay ? "Ouvir" : "Entrar"}
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-[12px] text-white/55">
+            {production.producerSlug ? (
+              <Link
+                href={`/p/${production.producerSlug}`}
+                className={isProducer ? "hover:text-[#7eb6ff]" : "hover:text-[#60cdff]"}
+              >
+                {production.producer}
+              </Link>
+            ) : (
+              production.producer
+            )}
+          </p>
+          {version ? (
+            <span className="shrink-0 rounded-md bg-[#141414] px-2 py-0.5 text-[10px] font-semibold text-white">
+              {version}
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span
+            className={`truncate rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${
+              isProducer
+                ? "border-[#7eb6ff]/30 bg-[#7eb6ff]/10 text-[#9ec8ff]"
+                : "border-white/10 bg-white/[0.04] text-white/70"
+            }`}
+          >
+            {production.categoryLabel}
+          </span>
+          <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-white/40">
+            {dateLabel}
+          </span>
+        </div>
+        <div className="mt-auto flex gap-2 border-t border-white/[0.06] pt-3">
+          <button
+            type="button"
+            onClick={play}
+            className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[10px] font-bold text-white transition ${
+              isProducer
+                ? "border-[#7eb6ff]/25 bg-[#7eb6ff]/10 hover:bg-[#7eb6ff]/18"
+                : "border-white/10 bg-white/[0.04] hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10"
+            }`}
+          >
+            {playing ? <Pause className="h-3 w-3" fill="currentColor" /> : <Play className="h-3 w-3" fill="currentColor" />}
+            {playing ? "Pausar" : access.canPlay ? "Ouvir" : "Entrar"}
           </button>
           {access.canDownload ? (
-            <button type="button" onClick={download} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#1db954] text-[9px] font-extrabold text-[#06150b] shadow-[0_8px_24px_-10px_rgba(29,185,84,0.9)] transition hover:bg-[#1ed760] sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
+            <button
+              type="button"
+              onClick={download}
+              className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-[10px] font-extrabold text-black transition ${
+                isProducer ? "bg-[#7eb6ff] hover:bg-[#7eb6ff]/80" : "bg-[#60cdff] hover:bg-[#60cdff]/75"
+              }`}
+            >
               <Download className="h-3 w-3" /> Baixar
             </button>
           ) : (
-            <button type="button" onClick={download} className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.035] text-[9px] font-bold text-zinc-400 transition hover:border-[#1db954]/35 sm:h-9 sm:gap-1.5 sm:rounded-xl sm:text-[10px]">
+            <button
+              type="button"
+              onClick={download}
+              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] text-[10px] font-bold text-zinc-400 transition hover:border-white/20"
+            >
               <Lock className="h-3 w-3" />
               {access.authenticated ? "Membros" : "Entrar"}
             </button>
@@ -237,8 +311,10 @@ function DiscoverProductionRow({
     startBrowserTrackDownload(productionDownloadTrack(production));
   }
 
+  const version = production.versionLabel || production.versionType || null;
+
   return (
-    <article className="grid min-w-0 grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.08] px-4 py-3 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5">
+    <article className="group/card grid min-w-0 grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.08] px-4 py-3 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5">
       <button
         type="button"
         onClick={play}
@@ -253,8 +329,12 @@ function DiscoverProductionRow({
           sizes="72px"
           className="object-cover"
         />
-        <span className="absolute inset-0 flex items-center justify-center bg-black/0">
-          <span className={"flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[#2f2f2f] text-white " + (playing ? "opacity-100" : "opacity-0 hover:opacity-100")}>
+        <span
+          className={`absolute inset-0 flex items-center justify-center bg-black/40 transition ${
+            playing ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"
+          }`}
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-black">
             {playing ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />}
           </span>
         </span>
@@ -285,9 +365,9 @@ function DiscoverProductionRow({
           {production.bpm ? <span className="text-[#9b9b9b]">{production.bpm} BPM</span> : null}
           {production.duration ? <span className="text-[#9b9b9b]">•</span> : null}
           {production.duration ? <span className="text-[#9b9b9b]">{production.duration}</span> : null}
-          {production.versionType ? (
-            <span className="rounded-[4px] border border-white/10 px-1.5 py-0.5 text-[9px] font-medium text-[#9b9b9b]">
-              {production.versionType}
+          {version ? (
+            <span className="rounded-md bg-[#141414] px-1.5 py-0.5 text-[9px] font-semibold text-white">
+              {version}
             </span>
           ) : null}
         </div>
@@ -311,12 +391,14 @@ export function ProductionRail({
   layout = "carousel",
   renderHeaderActions,
   headerTitle,
+  variant = "premium",
 }: {
   productions: PublicBrsProduction[];
   embedded?: boolean;
   layout?: "carousel" | "grid" | "list";
   renderHeaderActions?: (actions: { previous: () => void; next: () => void }) => React.ReactNode;
   headerTitle?: string;
+  variant?: CardVariant;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
@@ -395,7 +477,13 @@ export function ProductionRail({
           layout === "list" ? (
             <DiscoverProductionRow key={production.id} production={production} access={access} />
           ) : (
-            <ProductionCard key={production.id} production={production} access={access} fill={layout === "grid"} />
+            <ProductionCard
+              key={production.id}
+              production={production}
+              access={access}
+              fill={layout === "grid"}
+              variant={variant}
+            />
           ),
         )}
       </div>
@@ -430,29 +518,43 @@ export function HomeProductions({
 }) {
   if (productions.length === 0) return null;
   return (
-    <section id="producoes-brs" className="relative isolate overflow-hidden border-y border-white/[0.07] bg-[#070908] px-4 py-14 font-[family-name:var(--font-barlow)] sm:px-6 md:py-20">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_8%_0%,rgba(29,185,84,0.18),transparent_34%),radial-gradient(ellipse_at_92%_8%,rgba(255,223,0,0.1),transparent_28%),radial-gradient(ellipse_at_70%_100%,rgba(0,39,118,0.24),transparent_36%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent" />
+    <section
+      id="producoes-brs"
+      className="relative isolate overflow-hidden border-y border-white/[0.06] bg-[#06080c] px-4 py-14 font-[family-name:var(--font-barlow)] sm:px-6 md:py-20"
+    >
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_12%_0%,rgba(96,205,255,0.14),transparent_36%),radial-gradient(ellipse_at_88%_10%,rgba(126,182,255,0.1),transparent_30%),radial-gradient(ellipse_at_50%_100%,rgba(0,0,0,0.55),transparent_45%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#60cdff]/40 to-transparent" />
       <div className="mx-auto max-w-6xl">
         <ProductionRail
-            productions={productions}
-            embedded={embedded}
-            headerTitle={heading}
-            renderHeaderActions={({ previous, next }) => (
-              <div className="flex shrink-0 items-center gap-1">
-                <button type="button" aria-label="Produções anteriores" onClick={previous} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button type="button" aria-label="Próximas produções" onClick={next} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#1db954]/40 hover:text-white">
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-          />
+          productions={productions}
+          embedded={embedded}
+          variant="premium"
+          headerTitle={heading}
+          renderHeaderActions={({ previous, next }) => (
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                aria-label="Produções anteriores"
+                onClick={previous}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#60cdff]/40 hover:text-white"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Próximas produções"
+                onClick={next}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#60cdff]/40 hover:text-white"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+        />
         <div className="mt-5 flex justify-center sm:mt-6">
           <Link
             href="/discover"
-            className="group relative inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full text-center border border-[#1db954]/35 bg-[#1db954]/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#8ef0b0] transition hover:-translate-y-0.5 hover:border-[#1db954] hover:bg-[#1db954]/15 hover:text-white"
+            className="group relative inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-[#9adfff] transition hover:-translate-y-0.5 hover:border-[#60cdff] hover:bg-[#60cdff]/15 hover:text-white"
           >
             Descobrir e baixar todas as produções
             <ChevronRight className="absolute right-4 h-4 w-4 transition-transform group-hover:translate-x-0.5" />

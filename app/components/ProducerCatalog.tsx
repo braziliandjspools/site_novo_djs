@@ -225,18 +225,19 @@ function Catalog({
           </button>
         ) : null}
 
-        <section id="lancamentos" className="scroll-mt-24 pt-12 sm:pt-16">
-          <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <section id="lancamentos" className="relative scroll-mt-24 overflow-hidden rounded-[28px] border border-[#7eb6ff]/15 bg-[linear-gradient(165deg,#0a1220_0%,#070b14_55%,#05070d_100%)] px-4 py-10 sm:px-6 sm:py-12">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(126,182,255,0.16),transparent_40%),radial-gradient(ellipse_at_90%_100%,rgba(0,60,140,0.18),transparent_42%)]" />
+          <div className="relative flex flex-col gap-3 border-b border-[#7eb6ff]/15 pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1ed760]">Catálogo público</p>
-              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Lançamentos</h2>
-              <p className="mt-1 text-sm text-white">Produções de {producer.name} disponíveis no catálogo BRS.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7eb6ff]">Catálogo do produtor</p>
+              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Lançamentos</h2>
+              <p className="mt-1 text-sm text-white/65">Produções de {producer.name} disponíveis no catálogo BRS.</p>
             </div>
             {latest ? (
               <button
                 type="button"
                 onClick={playLatest}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#1ed760]/30 bg-[#1ed760]/10 px-4 text-xs font-black uppercase tracking-[0.1em] text-[#1ed760] transition hover:bg-[#1ed760]/15"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#7eb6ff]/35 bg-[#7eb6ff]/12 px-4 text-xs font-black uppercase tracking-[0.1em] text-[#9ec8ff] transition hover:bg-[#7eb6ff]/20"
               >
                 <Play className="h-3.5 w-3.5" fill="currentColor" />
                 Tocar catálogo
@@ -245,17 +246,17 @@ function Catalog({
           </div>
 
           {productions.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] px-5 py-12 text-center text-sm text-zinc-500">
+            <div className="relative mt-7 rounded-2xl border border-[#7eb6ff]/15 bg-black/20 px-5 py-12 text-center text-sm text-zinc-500">
               Nenhuma música publicada ainda.
             </div>
           ) : (
-            <div className="mt-7">
-              <ProductionRail productions={productions} layout="grid" embedded />
+            <div className="relative mt-7">
+              <ProductionRail productions={productions} layout="grid" embedded variant="producer" />
             </div>
           )}
 
           {pages > 1 ? (
-            <nav className="mt-10 flex items-center justify-center gap-3" aria-label="Paginação dos lançamentos">
+            <nav className="relative mt-10 flex items-center justify-center gap-3" aria-label="Paginação dos lançamentos">
               {page > 1 ? (
                 <Link
                   className="rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-white/65 transition hover:text-white"

@@ -11,8 +11,7 @@ export function MarketingChrome({ children }: { children: React.ReactNode }) {
   const standalone =
     pathname.startsWith("/portal") ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/musicas") ||
-    pathname.startsWith("/discover");
+    pathname.startsWith("/musicas");
 
   if (standalone) {
     return <SiteToastProvider>{children}</SiteToastProvider>;

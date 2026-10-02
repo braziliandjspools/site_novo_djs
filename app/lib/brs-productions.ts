@@ -157,26 +157,36 @@ export async function listPublishedProductions(limit = 12) {
 export async function listPublishedProductionsPage(
   page = 1,
   pageSize = 50,
-  filters?: { query?: string; genre?: string; sort?: "recent" | "oldest" | "az" },
+  filters?: {
+    query?: string;
+    genre?: string;
+    sort?: "recent" | "oldest" | "az";
+    exclusiveOnly?: boolean;
+  },
 ) {
   const safePage = Math.max(1, Math.floor(page));
   const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize)));
   const query = filters?.query?.trim() ?? "";
   const genre = filters?.genre?.trim() ?? "";
   const sort = filters?.sort === "oldest" || filters?.sort === "az" ? filters.sort : "recent";
+  const andFilters: Record<string, unknown>[] = [];
+  if (query) {
+    andFilters.push({
+      OR: [
+        { title: { contains: query, mode: "insensitive" as const } },
+        { artist: { contains: query, mode: "insensitive" as const } },
+        { producer: { contains: query, mode: "insensitive" as const } },
+        { producerRef: { name: { contains: query, mode: "insensitive" as const } } },
+      ],
+    });
+  }
+  if (genre) andFilters.push({ genre });
+  if (filters?.exclusiveOnly) {
+    andFilters.push({ OR: [{ isFeatured: true }, { isNew: true }] });
+  }
   const where = {
     isPublished: true,
-    ...(query
-      ? {
-          OR: [
-            { title: { contains: query, mode: "insensitive" as const } },
-            { artist: { contains: query, mode: "insensitive" as const } },
-            { producer: { contains: query, mode: "insensitive" as const } },
-            { producerRef: { name: { contains: query, mode: "insensitive" as const } } },
-          ],
-        }
-      : {}),
-    ...(genre ? { genre } : {}),
+    ...(andFilters.length > 0 ? { AND: andFilters } : {}),
   };
   const orderBy =
     sort === "az"

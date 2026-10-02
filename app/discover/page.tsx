@@ -3,9 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, Crown, Search } from "lucide-react";
 import { listPublishedProductionGenres, listPublishedProductionsPage } from "../lib/brs-productions";
-import { getDownloaderReleaseManifest } from "../lib/downloader-updates";
 import { DiscoverCatalog } from "./DiscoverCatalog";
-import { DiscoverHeader } from "./DiscoverHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +56,14 @@ function discoverHref({
   return queryString ? `/discover?${queryString}` : "/discover";
 }
 
+function pageWindow(current: number, total: number) {
+  const start = Math.max(1, current - 2);
+  const end = Math.min(total, current + 2);
+  const pages: number[] = [];
+  for (let page = start; page <= end; page += 1) pages.push(page);
+  return pages;
+}
+
 export default async function DiscoveryPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const requestedPage = normalizePage(params.page);
@@ -66,24 +72,28 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
   const sort = normalizeSort(params.sort);
   const clubOnly = params.club === "1" || params.club === "true";
 
-  const release = getDownloaderReleaseManifest();
-  const downloadUrl =
-    release?.downloadUrl ??
-    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.27_x64-setup.exe";
-
   const [firstResult, genres] = await Promise.all([
-    listPublishedProductionsPage(requestedPage, 50, { query, genre, sort }),
+    listPublishedProductionsPage(requestedPage, 50, {
+      query,
+      genre,
+      sort,
+      exclusiveOnly: clubOnly,
+    }),
     listPublishedProductionGenres(),
   ]);
 
   const catalog =
     firstResult.totalPages > 0 && firstResult.page > firstResult.totalPages
-      ? await listPublishedProductionsPage(firstResult.totalPages, 50, { query, genre, sort })
+      ? await listPublishedProductionsPage(firstResult.totalPages, 50, {
+          query,
+          genre,
+          sort,
+          exclusiveOnly: clubOnly,
+        })
       : firstResult;
 
-  const items = clubOnly
-    ? catalog.items.filter((item) => item.isFeatured || item.isNew)
-    : catalog.items;
+  const items = catalog.items;
+  const pages = pageWindow(catalog.page, catalog.totalPages);
 
   const previousHref =
     catalog.page > 1
@@ -104,9 +114,7 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
 
   return (
     <main className="discover-theme min-h-screen bg-[#0b0b0b] text-white">
-      <DiscoverHeader initialQuery={query} downloadUrl={downloadUrl} />
-
-      <section className="mx-auto max-w-[1120px] px-4 pb-16 pt-5 sm:px-6 sm:pt-6">
+      <section className="mx-auto max-w-[1120px] px-4 pb-16 pt-8 sm:px-6 sm:pt-10">
         <div className="relative mb-7 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
           <Image
             src={DISCOVER_BANNER}
@@ -127,20 +135,20 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
           <h1 className="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-white sm:hidden">
             DESCUBRA. OUÇA. ENCONTRE. TOQUE.
           </h1>
-          <div className="mt-3 hidden max-w-3xl space-y-3 text-sm leading-relaxed text-[#9a9a9a] sm:block">
+          <div className="mt-4 hidden max-w-3xl space-y-3.5 text-[17px] leading-relaxed text-[#b8b8b8] sm:block">
             <p>
               Explore o catálogo do Brazilian Remix Service e encontre remixes, edits, versões exclusivas e
               produções criadas para DJs e produtores. Pesquise por título, navegue pelos gêneros e descubra
               novos artistas e produtores em um só lugar.
             </p>
             <p>Novas versões, novas ideias e novos sons para deixar cada set diferente.</p>
-            <p className="text-[13px] text-[#7a7a7a]">
+            <p className="text-[16px] text-[#a0a0a0]">
               Encontre sua próxima faixa favorita. Do clássico ao lançamento, do remix ao edit exclusivo:
               explore o catálogo, conheça os produtores e encontre versões prontas para ganhar espaço no seu
               set.
             </p>
           </div>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#9a9a9a] sm:hidden">
+          <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-[#b8b8b8] sm:hidden">
             Remixes, edits, versões exclusivas e produções de DJs e produtores parceiros do Brazilian Remix
             Service. Explore por gênero, pesquise por título e descubra novos sons para o seu próximo set.
           </p>
@@ -221,7 +229,7 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
         )}
 
         {catalog.totalPages > 1 ? (
-          <nav aria-label="Paginação" className="mt-6 flex items-center justify-center gap-2">
+          <nav aria-label="Paginação" className="mt-8 flex flex-wrap items-center justify-center gap-2">
             {previousHref ? (
               <Link
                 href={previousHref}
@@ -234,9 +242,60 @@ export default async function DiscoveryPage({ searchParams }: { searchParams: Se
                 Anterior
               </span>
             )}
-            <span className="rounded-xl border border-[#60cdff]/30 bg-[#60cdff]/10 px-4 py-2 text-xs font-bold text-[#60cdff]">
-              {catalog.page} / {catalog.totalPages}
-            </span>
+
+            {pages[0] !== 1 ? (
+              <>
+                <Link
+                  href={discoverHref({ page: 1, query, genre, sort, club: clubOnly })}
+                  className="rounded-xl border border-white/[0.1] bg-[#171717] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#222]"
+                >
+                  1
+                </Link>
+                {pages[0]! > 2 ? <span className="px-1 text-xs text-white/35">…</span> : null}
+              </>
+            ) : null}
+
+            {pages.map((page) => {
+              const href = discoverHref({ page, query, genre, sort, club: clubOnly });
+              const active = page === catalog.page;
+              return active ? (
+                <span
+                  key={page}
+                  className="rounded-xl border border-[#60cdff]/40 bg-[#60cdff]/15 px-3.5 py-2 text-xs font-bold text-[#60cdff]"
+                >
+                  {page}
+                </span>
+              ) : (
+                <Link
+                  key={page}
+                  href={href}
+                  className="rounded-xl border border-white/[0.1] bg-[#171717] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#222]"
+                >
+                  {page}
+                </Link>
+              );
+            })}
+
+            {pages[pages.length - 1] !== catalog.totalPages ? (
+              <>
+                {pages[pages.length - 1]! < catalog.totalPages - 1 ? (
+                  <span className="px-1 text-xs text-white/35">…</span>
+                ) : null}
+                <Link
+                  href={discoverHref({
+                    page: catalog.totalPages,
+                    query,
+                    genre,
+                    sort,
+                    club: clubOnly,
+                  })}
+                  className="rounded-xl border border-white/[0.1] bg-[#171717] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#222]"
+                >
+                  {catalog.totalPages}
+                </Link>
+              </>
+            ) : null}
+
             {nextHref ? (
               <Link
                 href={nextHref}
