@@ -143,3 +143,25 @@ export async function getSendNowDirectUrl(fileCode: string) {
   if (!url) throw new Error("send.now não devolveu o link direto.");
   return url;
 }
+
+/**
+ * Busca o arquivo diretamente no servidor Send.now, preservando Range.
+ * Isso permite que o player e o gerenciador de downloads do navegador
+ * recebam uma resposta HTTP normal, sem depender do 302 da CDN.
+ */
+export async function fetchSendNowAudio(fileCode: string, request: Request) {
+  const url = await getSendNowDirectUrl(fileCode);
+  const headers = new Headers();
+  const range = request.headers.get("range");
+  if (range) headers.set("Range", range);
+  const response = await fetch(url, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+    redirect: "follow",
+  });
+  if (!response.ok && response.status !== 206) {
+    throw new Error(`send.now arquivo HTTP ${response.status}`);
+  }
+  return response;
+}
