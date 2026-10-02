@@ -48,7 +48,8 @@ export async function GET(request: Request, context: RouteContext) {
       const headers = new Headers();
       headers.set("Content-Type", upstream.headers.get("content-type") || "audio/mpeg");
       headers.set("Accept-Ranges", "bytes");
-      headers.set("Cache-Control", "private, no-store");
+      headers.set("Cache-Control", "private, no-store, max-age=0");
+      headers.set("X-Accel-Buffering", "no");
       const length = upstream.headers.get("content-length");
       const range = upstream.headers.get("content-range");
       if (length) headers.set("Content-Length", length);
