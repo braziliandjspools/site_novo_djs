@@ -12,7 +12,7 @@ import {
   publicDriveDownloadNeedsOwnerProxy,
 } from "../../../../lib/drive-audio-stream";
 import { requireVipMusicAccess } from "../../../../lib/vip-music-access";
-import { getSendNowDirectUrl, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
+import { fetchSendNowAudio, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
 import { decodeR2AudioFileId, isR2AudioFileId, readR2Audio } from "../../../../lib/music-studio/storage";
 
 export const dynamic = "force-dynamic";
@@ -72,7 +72,18 @@ export async function GET(request: Request, context: RouteContext) {
 
   if (isSendNowFileId(fileId)) {
     try {
-      return NextResponse.redirect(await getSendNowDirectUrl(sendNowFileCode(fileId)), 302);
+      const upstream = await fetchSendNowAudio(sendNowFileCode(fileId), request);
+      const requestedName = searchParams.get("name");
+      const filename = ensureAudioExtension(requestedName ?? "faixa.mp3");
+      const headers = new Headers();
+      headers.set("Content-Type", contentTypeForFilename(filename));
+      headers.set("Content-Disposition", contentDispositionAttachment(filename));
+      headers.set("Accept-Ranges", "bytes");
+      const length = upstream.headers.get("content-length");
+      const range = upstream.headers.get("content-range");
+      if (length) headers.set("Content-Length", length);
+      if (range) headers.set("Content-Range", range);
+      return new NextResponse(upstream.body, { status: upstream.status, headers });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Falha no send.now.";
       return NextResponse.json({ error: message }, { status: 502 });
