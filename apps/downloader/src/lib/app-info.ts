@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.27";
-export const APP_CORE_VERSION = "1.0.27";
+export const WEBUI_VERSION = "1.0.28";
+export const APP_CORE_VERSION = "1.0.28";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,17 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.28",
+    date: "2026-10-02",
+    items: [
+      "Player abre abaixo da faixa e avança para a próxima da pesquisa ao terminar",
+      "Seleção múltipla para baixar várias músicas de uma vez",
+      "Mostra o acervo de cada faixa com botão para ver no catálogo",
+      "WhatsApp para pedir inclusão quando a busca não encontra resultados",
+      "Capa da tag da música (fallback para capa padrão BRS)",
+    ],
+  },
   {
     version: "1.0.27",
     date: "2026-10-02",

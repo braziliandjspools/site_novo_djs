@@ -1,6 +1,8 @@
 import { apiFetch } from "./client";
 import { resolveApiBaseUrl } from "./config";
 
+export const DEFAULT_TRACK_COVER = "/images/brs-default-cover.png";
+
 export type MusicSearchTrack = {
   trackId: string;
   previewTrackId?: string;
@@ -14,6 +16,8 @@ export type MusicSearchTrack = {
   year: number | null;
   coverUrl: string | null;
   relativePath: string;
+  collectionLabel?: string | null;
+  catalogPath?: string | null;
   provider: string;
   source: "vip" | "brs_production";
   previewAvailable: boolean;
@@ -46,10 +50,17 @@ export async function buildAuthorizedStreamUrl(trackId: string, accessToken: str
 }
 
 export function resolveCoverUrl(coverUrl: string | null | undefined, apiBaseUrl: string) {
-  if (!coverUrl?.trim()) return null;
-  if (coverUrl.startsWith("http://") || coverUrl.startsWith("https://")) return coverUrl;
-  if (coverUrl.startsWith("/")) return `${apiBaseUrl}${coverUrl}`;
-  return `${apiBaseUrl}/${coverUrl}`;
+  const value = coverUrl?.trim() || DEFAULT_TRACK_COVER;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  if (value.startsWith("/")) return `${apiBaseUrl}${value}`;
+  return `${apiBaseUrl}/${value}`;
+}
+
+export function resolveCatalogUrl(catalogPath: string | null | undefined, apiBaseUrl: string) {
+  if (!catalogPath?.trim()) return null;
+  if (catalogPath.startsWith("http://") || catalogPath.startsWith("https://")) return catalogPath;
+  if (catalogPath.startsWith("/")) return `${apiBaseUrl}${catalogPath}`;
+  return `${apiBaseUrl}/${catalogPath}`;
 }
 
 export function formatTrackDuration(seconds: number | null | undefined) {

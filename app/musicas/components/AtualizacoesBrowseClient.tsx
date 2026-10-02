@@ -26,6 +26,8 @@ import { startBrowserTrackDownload } from "../lib/browser-download-file";
 import { sendPackSlugToDownloader } from "../lib/send-to-downloader";
 import { isDownloaderSendCancelled } from "./DownloaderBulkConfirm";
 import { autoSyncDriveOnEnter } from "../lib/auto-drive-sync";
+import { resolveAtualizacoesMonthBanner } from "../lib/atualizacoes-month-banners";
+import { AtualizacoesFolderBanner } from "./AtualizacoesFolderBanner";
 import { AtualizacoesMonthFooterNav } from "./AtualizacoesMonthFooterNav";
 import { AtualizacoesDriveSyncButton } from "./AtualizacoesDriveSyncButton";
 import { AtualizacoesMonthHero } from "./AtualizacoesMonthHero";
@@ -454,6 +456,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const packPlaying = Boolean(
     showingTracks && data && playingFolderId === data.folderId && playingId && isPlaying,
   );
+  const monthBannerUrl = useMemo(
+    () => resolveAtualizacoesMonthBanner(slugSegments),
+    [slugSegments],
+  );
+  const showFolderBanner = Boolean(
+    showingTracks &&
+      data &&
+      directTracks.length > 0 &&
+      (monthBannerUrl || isMonthFolderName(data.folderName)),
+  );
 
   const packStats = useMemo((): PackHeroStat[] => {
     if (!showingTracks) return [];
@@ -861,6 +873,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           newChildIds={newChildIds}
         >
           <div className="min-w-0 space-y-4">
+            {showFolderBanner ? (
+              <AtualizacoesFolderBanner
+                title={currentTitle}
+                trackCount={directTracks.length}
+                hasMore={tracksHasMore}
+                imageUrl={monthBannerUrl}
+              />
+            ) : null}
             {directTracks.length > 0 ? (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#60cdff]/20 bg-[#161616] px-4 py-3">
                 <div className="min-w-0">

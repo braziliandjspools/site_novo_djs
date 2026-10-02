@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "./prisma";
 import { catalogMediaUrl } from "./catalog-media";
+import { folderHref } from "./vip-music-slugs";
 import { searchVipMusic } from "./vip-music-search";
 
 export type DownloaderSearchTrack = {
@@ -17,11 +18,31 @@ export type DownloaderSearchTrack = {
   year: number | null;
   coverUrl: string | null;
   relativePath: string;
+  /** Caminho legível do acervo no site (ex.: SETEMBRO 2026 · Pool · Funk). */
+  collectionLabel: string;
+  /** URL relativa no site para abrir a música no catálogo. */
+  catalogPath: string;
   provider: "google_drive";
   source: "vip" | "brs_production";
   previewAvailable: boolean;
   downloadAvailable: boolean;
 };
+
+function vipCatalogPath(input: {
+  monthSlug: string;
+  weekSlug?: string;
+  styleSlug?: string;
+  trackId: string;
+}) {
+  const segments: string[] = [];
+  const year = input.monthSlug.match(/-(20\d{2})$/)?.[1];
+  if (year) segments.push(year);
+  if (input.monthSlug) segments.push(input.monthSlug);
+  if (input.weekSlug) segments.push(input.weekSlug);
+  if (input.styleSlug) segments.push(input.styleSlug);
+  const base = segments.length > 0 ? folderHref(segments) : "/musicas/atualizacoes";
+  return `${base}?faixa=${encodeURIComponent(input.trackId)}`;
+}
 
 const DEFAULT_LIMIT = 24;
 
@@ -89,6 +110,7 @@ async function searchVipUpdateTracks(q: string, limit: number): Promise<Download
         hit.artist?.trim() ||
         (hit.label.includes(" — ") ? hit.label.split(" — ").slice(1).join(" — ").trim() : "BRS");
       const fileName = hit.fileName?.trim() || `${title}.mp3`;
+      const collectionLabel = hit.path?.trim() || hit.relativePath || "Atualizações VIP";
       return {
         trackId: hit.id,
         previewTrackId: hit.id,
@@ -100,8 +122,15 @@ async function searchVipUpdateTracks(q: string, limit: number): Promise<Download
         bpm: hit.bpm ?? null,
         duration: null,
         year: null,
-        coverUrl: null,
+        coverUrl: `/api/musicas/tag-cover/${encodeURIComponent(hit.id)}`,
         relativePath: hit.relativePath || hit.path || "Atualizações",
+        collectionLabel,
+        catalogPath: vipCatalogPath({
+          monthSlug: hit.monthSlug,
+          weekSlug: hit.weekSlug,
+          styleSlug: hit.styleSlug,
+          trackId: hit.id,
+        }),
         provider: "google_drive" as const,
         source: "vip" as const,
         previewAvailable: true,
@@ -141,6 +170,7 @@ async function searchBrsProductions(q: string, limit: number): Promise<Downloade
       const producerSlug = row.producerRef?.slug || row.producerRef?.name || row.producer;
       const previewId = row.audioFileId;
       const downloadId = row.downloadFileId?.trim() || row.audioFileId;
+      const collectionLabel = `Produções BRS · ${row.producer || producerSlug}`;
       return {
         trackId: downloadId,
         previewTrackId: previewId,
@@ -152,8 +182,13 @@ async function searchBrsProductions(q: string, limit: number): Promise<Downloade
         bpm: Number.isFinite(bpm) ? bpm : null,
         duration: durationToSeconds(row.duration),
         year: row.publishedAt.getUTCFullYear(),
-        coverUrl: catalogMediaUrl(row.coverFileId) || row.coverUrl || null,
+        coverUrl:
+          catalogMediaUrl(row.coverFileId) ||
+          row.coverUrl ||
+          `/api/musicas/tag-cover/${encodeURIComponent(previewId)}`,
         relativePath: `Produções BRS/${producerSlug}`.slice(0, 900),
+        collectionLabel,
+        catalogPath: `/m/${encodeURIComponent(row.slug)}`,
         provider: "google_drive" as const,
         source: "brs_production" as const,
         previewAvailable: true,

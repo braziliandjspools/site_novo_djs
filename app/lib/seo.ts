@@ -202,13 +202,15 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
   "musicas-atualizacoes": {
     key: "musicas-atualizacoes",
     path: "/musicas/atualizacoes",
-    title: `Atualizações para DJs | ${SITE_NAME}`,
+    title: `Brazilian Remixes - Atualizações | ${SITE_NAME}`,
     description:
-      "Atualizações para DJs com remix services, DJ pools, packs, extended mixes, intro edits, funk, sertanejo, eletrônico, flashback e muito mais. Explore o acervo BRS.",
+      "Brazilian Remixes: atualizações para DJs com remix services, DJ pools, packs, extended mixes, intro edits, funk, sertanejo, eletrônico, flashback e muito mais. Explore o acervo BRS.",
     ogImage: "musicas-atualizacoes",
     keywords: [
       ...SHARED_KEYWORDS,
+      "Brazilian Remixes",
       "atualizações VIP DJ",
+      "atualizações para DJs",
       "extended mix",
       "intro edit",
     ],
@@ -771,33 +773,154 @@ export async function buildFullSitemap(): Promise<
   return [...staticEntries, ...dynamic];
 }
 
+/** Prefixo de marca usado nos títulos SEO das pastas de atualizações. */
+export const ATUALIZACOES_SEO_BRAND = "Brazilian Remixes";
+
+const MONTH_LABELS: Record<string, string> = {
+  janeiro: "Janeiro",
+  fevereiro: "Fevereiro",
+  marco: "Março",
+  março: "Março",
+  abril: "Abril",
+  maio: "Maio",
+  junho: "Junho",
+  julho: "Julho",
+  agosto: "Agosto",
+  setembro: "Setembro",
+  outubro: "Outubro",
+  novembro: "Novembro",
+  dezembro: "Dezembro",
+};
+
+/** Label legível (Title Case) a partir de um segmento de URL de atualizações. */
+export function displayFolderLabelFromSlug(segment: string) {
+  const raw = decodeURIComponent(segment || "")
+    .replace(/_/g, "-")
+    .trim();
+  if (!raw) return "";
+
+  const week = raw.match(/^semana-0*(\d+)$/i);
+  if (week) return `Semana ${String(Number(week[1])).padStart(2, "0")}`;
+
+  if (/^\d{4}$/.test(raw)) return raw;
+
+  const parts = raw
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .split("-")
+    .filter(Boolean);
+
+  return parts
+    .map((part) => {
+      if (/^\d{4}$/.test(part)) return part;
+      if (/^\d+$/.test(part)) return part;
+      return MONTH_LABELS[part] ?? part.charAt(0).toLocaleUpperCase("pt-BR") + part.slice(1);
+    })
+    .join(" ");
+}
+
+function titleCaseFolderLabel(label: string) {
+  return displayFolderLabelFromSlug(label.replace(/\s+/g, "-").toLocaleLowerCase("pt-BR"));
+}
+
+function resolveAtualizacoesTopic(segments: string[], folderLabel: string) {
+  const labels = segments.map(displayFolderLabelFromSlug);
+  const current = titleCaseFolderLabel(folderLabel) || labels[labels.length - 1] || "Atualizações";
+  const yearSeg = segments.find((segment) => /^\d{4}$/.test(segment));
+  const monthSeg = [...segments]
+    .reverse()
+    .find((segment) => Object.keys(MONTH_LABELS).some((month) => segment.toLowerCase().includes(month)));
+  const monthLabel = monthSeg ? displayFolderLabelFromSlug(monthSeg) : null;
+  const weekSeg = [...segments].reverse().find((segment) => /^semana-0*\d+$/i.test(segment));
+  const weekLabel = weekSeg ? displayFolderLabelFromSlug(weekSeg) : null;
+
+  if (segments.length === 1 && yearSeg) {
+    return {
+      topic: `Atualizações ${yearSeg}`,
+      headline: `Atualizações ${yearSeg}`,
+      context: yearSeg,
+    };
+  }
+
+  if (monthLabel && segments.length <= 2) {
+    return {
+      topic: `Atualizações ${monthLabel}`,
+      headline: `Atualizações ${monthLabel}`,
+      context: [monthLabel, yearSeg].filter(Boolean).join(" "),
+    };
+  }
+
+  if (weekLabel && monthLabel) {
+    return {
+      topic: `Atualizações ${weekLabel} ${monthLabel}`,
+      headline: `${weekLabel} · ${monthLabel}`,
+      context: [weekLabel, monthLabel, yearSeg].filter(Boolean).join(" "),
+    };
+  }
+
+  if (monthLabel) {
+    return {
+      topic: `Atualizações ${current} ${monthLabel}`,
+      headline: `${current} · ${monthLabel}`,
+      context: [current, monthLabel, yearSeg].filter(Boolean).join(" "),
+    };
+  }
+
+  if (yearSeg) {
+    return {
+      topic: `Atualizações ${current} ${yearSeg}`,
+      headline: `${current} · ${yearSeg}`,
+      context: [current, yearSeg].filter(Boolean).join(" "),
+    };
+  }
+
+  return {
+    topic: `Atualizações ${current}`,
+    headline: current,
+    context: labels.join(" › "),
+  };
+}
+
 /** Metadata dinâmica para pastas de /musicas/atualizacoes/[...slug]. */
 export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel: string) {
-  const path = `/musicas/atualizacoes/${segments.map(encodeURIComponent).join("/")}`;
-  const trailLabels = segments.map((segment) =>
-    displayFolderLabelFromSlug(segment),
-  );
+  const cleanSegments = segments.map((segment) => decodeURIComponent(segment)).filter(Boolean);
+  const path = `/musicas/atualizacoes/${cleanSegments.map(encodeURIComponent).join("/")}`;
+  const trailLabels = cleanSegments.map(displayFolderLabelFromSlug);
   const trail = trailLabels.join(" › ");
-  const yearFromTrail = trail.match(/\b(20\d{2})\b/);
-  const yearMatch = folderLabel.match(/\b(20\d{2})\b/) ?? yearFromTrail;
-  const isPackRoot = segments.length === 1;
-  const isStyleLeaf = segments.length >= 3;
-  const title = isPackRoot
-    ? yearMatch
-      ? `Packs para DJs ${yearMatch[1]} | ${SITE_NAME}`
-      : `${folderLabel} – Packs e Remixes | ${SITE_NAME}`
-    : isStyleLeaf
-      ? `${folderLabel} – ${trailLabels[0] ?? "Atualizações"} | ${SITE_NAME}`
-      : `${folderLabel} – Atualizações | ${SITE_NAME}`;
-  const description = isPackRoot
-    ? yearMatch
-      ? `Packs para DJs atualizados em ${yearMatch[1]} com remixes, versões extended, intro edits, funk, sertanejo, eletrônico, open format e muito mais no acervo BRS.`
-      : `Explore ${folderLabel} no acervo BRS: packs, remixes, extended mixes, intro edits e pastas organizadas para DJs.`
-    : `Confira ${folderLabel} em ${trail} nas atualizações BRS: DJ pools, remix services, edits, remixes e versões para DJs.`;
+  const currentLabel =
+    titleCaseFolderLabel(folderLabel) || trailLabels[trailLabels.length - 1] || "Atualizações";
+  const { topic, headline, context } = resolveAtualizacoesTopic(cleanSegments, folderLabel);
+  const title = `${ATUALIZACOES_SEO_BRAND} - ${topic}`;
+  const yearMatch = context.match(/\b(20\d{2})\b/);
+  const isYearRoot = cleanSegments.length === 1 && /^\d{4}$/.test(cleanSegments[0] ?? "");
+  const description = isYearRoot
+    ? `Brazilian Remixes: atualizações para DJs em ${yearMatch?.[1] ?? currentLabel} com packs, remixes, extended mixes, intro edits, funk, sertanejo, eletrônico, flashback e open format no acervo BRS.`
+    : `Brazilian Remixes: ${headline} no acervo VIP. Explore remixes, edits, DJ pools e versões exclusivas de ${context || trail} para o seu set. Ouça no site e baixe com o BRS Downloader.`;
+
+  const keywords = [
+    ...SHARED_KEYWORDS,
+    ATUALIZACOES_SEO_BRAND,
+    "atualizações DJ",
+    "atualizações para DJs",
+    currentLabel,
+    ...trailLabels,
+    ...(yearMatch ? [`packs ${yearMatch[1]}`, `remixes ${yearMatch[1]}`] : []),
+    "extended mix",
+    "intro edit",
+    "DJ pool Brasil",
+  ].filter((value, index, all) => Boolean(value) && all.indexOf(value) === index);
+
+  const ogImage = absoluteUrl(resolveOgImagePath("musicas-atualizacoes"));
 
   return {
     title: { absolute: title },
     description,
+    keywords,
+    authors: [{ name: SITE_NAME, url: SITE_URL }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
+    category: "music",
     alternates: { canonical: path },
     openGraph: {
       type: "website" as const,
@@ -808,7 +931,7 @@ export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel:
       description,
       images: [
         {
-          url: absoluteUrl(resolveOgImagePath("musicas-atualizacoes")),
+          url: ogImage,
           width: 1200,
           height: 630,
           alt: title,
@@ -819,21 +942,20 @@ export function buildAtualizacoesFolderMetadata(segments: string[], folderLabel:
       card: "summary_large_image" as const,
       title,
       description,
-      images: [absoluteUrl(resolveOgImagePath("musicas-atualizacoes"))],
+      images: [ogImage],
     },
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large" as const,
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
   };
-}
-
-function displayFolderLabelFromSlug(segment: string) {
-  return segment
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 export function collectionPageJsonLd(input: {

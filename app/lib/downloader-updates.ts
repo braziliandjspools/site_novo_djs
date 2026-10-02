@@ -2,8 +2,8 @@
  * Manifesto de release do Downloader.
  * Fonte da verdade = FALLBACK_* no código (sempre sobe no deploy).
  * Env no Vercel só sobrescreve se a versão for **estritamente maior** que o fallback.
- * - DOWNLOADER_LATEST_VERSION=1.0.27
- * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.27_x64-setup.exe
+ * - DOWNLOADER_LATEST_VERSION=1.0.28
+ * - DOWNLOADER_DOWNLOAD_URL=https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.28_x64-setup.exe
  */
 
 export type DownloaderReleaseManifest = {
@@ -14,12 +14,12 @@ export type DownloaderReleaseManifest = {
   platform: "windows";
 };
 
-const FALLBACK_VERSION = "1.0.27";
+const FALLBACK_VERSION = "1.0.28";
 const FALLBACK_DOWNLOAD_URL =
-  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.27_x64-setup.exe";
+  "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.28_x64-setup.exe";
 const FALLBACK_NOTES =
-  "BRS Downloader 1.0.27: corrige preview do buscador (CSP media-src) e busca mais rápida.";
-const FALLBACK_PUBLISHED_AT = "2026-10-02T22:15:00.000Z";
+  "BRS Downloader 1.0.28: player sob a faixa, download em lote, acervo no catálogo, WhatsApp sem resultado e capa da tag.";
+const FALLBACK_PUBLISHED_AT = "2026-10-02T23:30:00.000Z";
 
 function cleanEnv(value: string | undefined) {
   const trimmed = value?.trim() ?? "";

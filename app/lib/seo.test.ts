@@ -37,10 +37,20 @@ test("áreas privadas não aparecem no sitemap", () => {
 });
 
 test("links de pastas possuem canonical e imagem compartilhável", () => {
-  const metadata = buildAtualizacoesFolderMetadata(["atualizacoes", "setembro-2026"], "Setembro 2026");
-  assert.match(metadata.title.absolute, /Setembro 2026.*Brazilian Remix Service$/);
-  assert.equal(metadata.alternates.canonical, "/musicas/atualizacoes/atualizacoes/setembro-2026");
+  const metadata = buildAtualizacoesFolderMetadata(["2026", "setembro-2026"], "Setembro 2026");
+  assert.equal(metadata.title.absolute, "Brazilian Remixes - Atualizações Setembro 2026");
+  assert.equal(metadata.alternates.canonical, "/musicas/atualizacoes/2026/setembro-2026");
+  assert.match(String(metadata.description), /Brazilian Remixes/);
+  assert.ok(Array.isArray(metadata.keywords));
+  assert.ok(metadata.keywords.includes("Setembro 2026"));
   assert.match(String(metadata.openGraph.images[0].url), /\/og\/musicas-atualizacoes$/);
+  assert.equal(metadata.robots.index, true);
+
+  const yearMeta = buildAtualizacoesFolderMetadata(["2026"], "2026");
+  assert.equal(yearMeta.title.absolute, "Brazilian Remixes - Atualizações 2026");
+
+  const styleMeta = buildAtualizacoesFolderMetadata(["2026", "setembro-2026", "funk"], "Funk");
+  assert.equal(styleMeta.title.absolute, "Brazilian Remixes - Atualizações Funk Setembro 2026");
 });
 
 test("cartão social é PNG 1200 × 630 acessível sem login", async () => {

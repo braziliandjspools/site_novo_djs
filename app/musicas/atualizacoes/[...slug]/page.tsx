@@ -3,19 +3,21 @@ import { redirect } from "next/navigation";
 import { AtualizacoesBrowseClient } from "../../components/AtualizacoesBrowseClient";
 import { JsonLd } from "../../../components/JsonLd";
 import {
+  ATUALIZACOES_SEO_BRAND,
   breadcrumbJsonLd,
   buildAtualizacoesFolderMetadata,
   collectionPageJsonLd,
+  displayFolderLabelFromSlug,
 } from "../../../lib/seo";
 import { listVipMusicFolders } from "../../../lib/vip-music-catalog";
-import { displayFolderName, folderHref, slugifyFolderName } from "../../../lib/vip-music-slugs";
+import { folderHref, slugifyFolderName } from "../../../lib/vip-music-slugs";
 
 type PageProps = {
   params: Promise<{ slug: string[] }>;
 };
 
 function labelFromSegment(segment: string) {
-  return displayFolderName(segment.replace(/-/g, " "));
+  return displayFolderLabelFromSlug(segment);
 }
 
 export async function generateStaticParams() {
@@ -54,6 +56,10 @@ export default async function AtualizacoesSlugPage({ params }: PageProps) {
   const meta = buildAtualizacoesFolderMetadata(segments, label);
   const description = typeof meta.description === "string" ? meta.description : label;
   const path = folderHref(segments);
+  const pageTitle =
+    typeof meta.title === "object" && meta.title && "absolute" in meta.title
+      ? String(meta.title.absolute)
+      : `${ATUALIZACOES_SEO_BRAND} - Atualizações ${label}`;
 
   const crumbs = [
     { name: "Início", path: "/" },
@@ -70,7 +76,7 @@ export default async function AtualizacoesSlugPage({ params }: PageProps) {
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       <JsonLd
         data={collectionPageJsonLd({
-          name: label,
+          name: pageTitle,
           description,
           path,
         })}
