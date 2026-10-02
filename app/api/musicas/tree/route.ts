@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       const folders = await listVipMusicFoldersWithNav(folderId);
       return NextResponse.json({ folders, ...access });
     };
-    return forceRefresh ? withDriveForceRefresh(run) : run();
+    return forceRefresh ? await withDriveForceRefresh(run) : await run();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao carregar pastas.";
     return NextResponse.json({ error: message }, { status: 500 });
