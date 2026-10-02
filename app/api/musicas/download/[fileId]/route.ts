@@ -60,6 +60,8 @@ export async function GET(request: Request, context: RouteContext) {
       headers.set("Content-Type", contentTypeForFilename(filename));
       headers.set("Content-Disposition", contentDispositionAttachment(filename));
       headers.set("Accept-Ranges", "bytes");
+      headers.set("Cache-Control", "private, no-store, max-age=0");
+      headers.set("X-Accel-Buffering", "no");
       const length = upstream.headers.get("content-length");
       const range = upstream.headers.get("content-range");
       if (length) headers.set("Content-Length", length);
