@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       });
     };
 
-    return forceRefresh ? withDriveForceRefresh(run) : run();
+    return forceRefresh ? await withDriveForceRefresh(run) : await run();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao resolver pasta.";
     return NextResponse.json({ error: message }, { status: 500 });
