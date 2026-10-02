@@ -249,7 +249,7 @@ export async function listVipMusicFolders(parentFolderId?: string): Promise<VipM
   );
   if (targetId === rootId && isSendNowConfigured()) {
     try {
-      const listed = await listSendNowFolder(sendNowFolderStorageId(sendNowRootStorageId()).replace("sendnow-", ""));
+      const listed = await listSendNowFolder(sendNowRootStorageId() === "sendnow-root" ? "root" : sendNowFldIdFromStorageId(sendNowRootStorageId()));
       folders.push({
         id: sendNowRootStorageId(),
         name: sendNowFolderLabel(),
