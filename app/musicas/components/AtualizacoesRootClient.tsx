@@ -82,7 +82,7 @@ function AcervoCard({
   }
 
   return (
-    <article className={`group/acervo min-w-0 overflow-hidden rounded-[20px] border border-white/[0.09] bg-[#111] transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#182018] hover:shadow-[0_18px_45px_-20px_rgba(29,185,84,0.45)] ${view === "list" ? "flex items-center gap-3 p-2.5 sm:gap-5 sm:p-3" : "flex flex-col"}`}
+    <article className={`group/acervo min-w-0 overflow-hidden rounded-[20px] border border-white/[0.09] bg-[#111] transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#151515] hover:shadow-[0_18px_45px_-20px_rgba(0,0,0,0.65)] ${view === "list" ? "flex items-center gap-3 p-2.5 sm:gap-5 sm:p-3" : "flex flex-col"}`}
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}>
       <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch}
         aria-label={`Abrir acervo ${title}`}
