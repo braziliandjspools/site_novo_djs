@@ -129,7 +129,7 @@ export const messagesEs = {
   folderRequiredHint: "Elige una carpeta para empezar a descargar.",
 
   // home
-  homeWelcome: "Bienvenido de nuevo, {name}",
+  homeWelcome: "BIENVENIDO, {name}",
   homeSyncOk: "Sincronizado con el sitio",
   homeSyncError: "No se pudo sincronizar con el sitio",
   homeShortcuts: "Accesos rápidos",
@@ -396,7 +396,7 @@ export const messagesEs = {
   commonItems: "{count} elemento(s)",
 
   // home (extras)
-  homeWelcomeEyebrow: "Bienvenido de nuevo",
+  homeWelcomeEyebrow: "BIENVENIDO",
   homeIntro:
     "Añade canciones desde {site}, sigue la cola aquí y mantén tu colección siempre al día.",
   homeSync: "Sincronizar",

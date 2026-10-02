@@ -110,7 +110,7 @@ export function Sidebar({
             >
               <Icon
                 className={`h-4 w-4 flex-shrink-0 ${
-                  active ? "text-white" : "text-[var(--text-subtle)] group-hover:text-[var(--text-muted)]"
+                  active ? "text-white" : "text-[var(--text-subtle)] group-hover:text-white"
                 }`}
               />
               <span className="flex-1">{t(labelKey)}</span>

@@ -14,7 +14,7 @@ export function CompletedPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffffff]">
             {t("completedTitle")}
           </p>
           <p className="mt-1 text-sm text-zinc-500">
@@ -33,7 +33,7 @@ export function CompletedPage() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#ff2ea6]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#ffffff]" />
         </div>
       ) : jobs.length === 0 ? (
         <EmptyQueueState offline={false} />

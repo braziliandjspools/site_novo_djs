@@ -78,7 +78,7 @@ export function DownloadOrgToolbar({
                   [key]: event.target.value || null,
                 })
               }
-              className="rounded-lg border border-white/[0.08] bg-[#121212] px-2.5 py-2 text-xs text-white outline-none focus:border-[#ff2ea6]/50"
+              className="rounded-lg border border-white/[0.08] bg-[#121212] px-2.5 py-2 text-xs text-white outline-none focus:border-[#ffffff]/50"
             >
               <option value="">{t("jobsFilterAll")}</option>
               {facets[key].map((value) => (
@@ -104,7 +104,7 @@ export function DownloadOrgToolbar({
               onClick={() => onGroupByChange(key)}
               className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
                 active
-                  ? "bg-[#ff2ea6]/15 text-[#ff2ea6] ring-1 ring-[#ff2ea6]/35"
+                  ? "bg-[#ffffff]/15 text-[#ffffff] ring-1 ring-[#ffffff]/35"
                   : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-200"
               }`}
               aria-pressed={active}

@@ -42,7 +42,7 @@ export function OneSignalProvider({ children }: Props) {
             className="w-full max-w-md rounded-2xl border border-white/10 bg-[#12161c] p-5 shadow-2xl"
           >
             <div className="flex items-start gap-3">
-              <div className="rounded-full bg-[#ff2ea6]/15 p-2 text-[#ff2ea6]">
+              <div className="rounded-[6px] bg-[#2f2f2f]/15 p-2 text-[#ffffff]">
                 <Bell className="h-5 w-5" />
               </div>
               <div className="min-w-0">
@@ -55,7 +55,7 @@ export function OneSignalProvider({ children }: Props) {
             <button
               type="button"
               onClick={dismiss}
-              className="mt-5 w-full rounded-full bg-[#ff2ea6] px-4 py-2.5 text-sm font-bold text-black"
+              className="mt-5 w-full rounded-[6px] bg-[#2f2f2f] px-4 py-2.5 text-sm font-bold text-black"
             >
               {t("onesignalGotIt")}
             </button>

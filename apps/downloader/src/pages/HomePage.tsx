@@ -83,7 +83,7 @@ const QUICK_LINKS: {
   },
 ];
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({ userName, onNavigate }: HomePageProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
   const { jobs, connectionState, activeJobIds, pendingCount, syncNow, workerError, jobMetrics } = useDownloadManager();
@@ -93,6 +93,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [syncing, setSyncing] = useState(false);
   const lastOfflineToast = useRef(false);
   const lastWorkerError = useRef<string | null>(null);
+  const firstName = (userName.split(" ")[0] ?? userName).trim() || "DJ";
 
   useEffect(() => {
     if (!syncing) return;
@@ -142,6 +143,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="br-stripe-thin absolute inset-x-0 top-0 z-10" />
 
         <div className="relative z-10 flex min-h-[280px] flex-col justify-end gap-4 p-5 sm:p-6">
+          <div>
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-white/70">
+              {t("homeWelcomeEyebrow")}
+            </p>
+            <h2 className="mt-1 font-display text-[1.75rem] font-semibold uppercase tracking-[-0.02em] text-white sm:text-[2.1rem]">
+              {t("homeWelcome", { name: firstName })}
+            </h2>
+          </div>
           <ImportPackPanel embedded />
           <div className="flex flex-shrink-0 flex-wrap gap-2">
             <Button onClick={() => void openPlatform()}>

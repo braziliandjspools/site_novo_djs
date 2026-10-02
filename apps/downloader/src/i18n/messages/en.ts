@@ -129,7 +129,7 @@ export const messagesEn = {
   folderRequiredHint: "Pick a folder to start downloading.",
 
   // home
-  homeWelcome: "Welcome back, {name}",
+  homeWelcome: "WELCOME, {name}",
   homeSyncOk: "Synced with the site",
   homeSyncError: "Couldn't sync with the site",
   homeShortcuts: "Quick shortcuts",
@@ -396,7 +396,7 @@ export const messagesEn = {
   commonItems: "{count} item(s)",
 
   // home (extras)
-  homeWelcomeEyebrow: "Welcome back",
+  homeWelcomeEyebrow: "WELCOME",
   homeIntro:
     "Add tracks from {site}, follow the queue here and keep your library always up to date.",
   homeSync: "Sync",

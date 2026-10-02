@@ -143,7 +143,7 @@ export function LoginPage() {
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/85" aria-hidden />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(96,205,255,0.12),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08),transparent_55%)]"
         aria-hidden
       />
 

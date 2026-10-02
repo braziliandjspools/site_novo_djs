@@ -31,11 +31,11 @@ export function LanguageOnboardingPage({ onConfirmed }: LanguageOnboardingPagePr
 
   return (
     <div className="auth-atmosphere relative flex h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff2ea6]/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ffffff]/40 to-transparent" />
       <div className="relative z-10 w-full max-w-xl animate-fade-up">
         <BrsLogo className="mx-auto mb-8 h-12 w-auto max-w-[260px] object-contain" />
 
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ff2ea6]/25 bg-[#ff2ea6]/10 text-[#ff2ea6] shadow-[0_0_40px_rgba(29,185,84,0.15)]">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ffffff]/25 bg-[#ffffff]/10 text-[#ffffff] shadow-[0_0_40px_rgba(29,185,84,0.15)]">
           <Globe className="h-8 w-8" strokeWidth={1.75} />
         </div>
 

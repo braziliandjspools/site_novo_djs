@@ -136,7 +136,7 @@ export const messagesPtBR = {
   folderRequiredHint: "Selecione uma pasta para começar a baixar.",
 
   // home
-  homeWelcome: "Bem-vindo de volta, {name}",
+  homeWelcome: "BEM-VINDO, {name}",
   homeSyncOk: "Sincronizado com o site",
   homeSyncError: "Falha ao sincronizar com o site",
   homeShortcuts: "Atalhos rápidos",
@@ -402,7 +402,7 @@ export const messagesPtBR = {
   commonItems: "{count} item(ns)",
 
   // home (extras)
-  homeWelcomeEyebrow: "Bem-vindo de volta",
+  homeWelcomeEyebrow: "BEM-VINDO",
   homeIntro:
     "Adicione músicas pelo {site}, acompanhe a fila aqui e mantenha seu acervo sempre atualizado.",
   homeSync: "Sincronizar",

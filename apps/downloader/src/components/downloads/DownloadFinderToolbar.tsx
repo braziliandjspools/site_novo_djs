@@ -8,7 +8,7 @@ import {
 import { useLocale } from "../../i18n/LocaleContext";
 
 const SEARCH_INPUT_CLASS =
-  "w-full rounded-xl border border-white/[0.08] bg-[#121212] py-2.5 pl-10 pr-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#ff2ea6]/50 focus:ring-1 focus:ring-[#ff2ea6]/25";
+  "w-full rounded-xl border border-white/[0.08] bg-[#121212] py-2.5 pl-10 pr-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-[#ffffff]/50 focus:ring-1 focus:ring-[#ffffff]/25";
 
 type DownloadFinderToolbarProps = {
   query: string;
@@ -54,13 +54,13 @@ export function DownloadFinderToolbar({
               onClick={() => onFilterChange(key)}
               className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
                 active
-                  ? "bg-[#ff2ea6]/15 text-[#ff2ea6] ring-1 ring-[#ff2ea6]/35"
+                  ? "bg-[#ffffff]/15 text-[#ffffff] ring-1 ring-[#ffffff]/35"
                   : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-200"
               }`}
               aria-pressed={active}
             >
               <span>{t(FINDER_FILTER_LABEL_KEYS[key])}</span>
-              <span className={`ml-1.5 tabular-nums ${active ? "text-[#ff2ea6]" : "text-zinc-500"}`}>
+              <span className={`ml-1.5 tabular-nums ${active ? "text-[#ffffff]" : "text-zinc-500"}`}>
                 {count}
               </span>
             </button>

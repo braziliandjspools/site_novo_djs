@@ -93,7 +93,7 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-black px-6 text-center">
-      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#ff2ea6]/10 text-[#ff2ea6]">
+      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-[6px] bg-[#2f2f2f]/10 text-[#ffffff]">
         <FolderOpen className="h-8 w-8" strokeWidth={1.75} />
       </div>
       <h1 className="max-w-md text-2xl font-bold text-white">{t("folderChooseTitle")}</h1>
@@ -111,11 +111,11 @@ export function ChooseDownloadFolderPage({ onConfigured }: ChooseDownloadFolderP
           <p className="mt-2 break-all text-sm text-zinc-300">{suggestedPath}</p>
           {selectedPath && (
             <>
-              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]">
+              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffffff]">
                 {t("folderSelected")}
               </p>
               <p className="mt-2 flex items-start gap-2 break-all text-sm text-white">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ff2ea6]" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ffffff]" />
                 {selectedPath}
               </p>
             </>

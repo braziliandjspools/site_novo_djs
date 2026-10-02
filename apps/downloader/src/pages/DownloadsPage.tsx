@@ -32,7 +32,7 @@ export function DownloadsPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">Fila</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffffff]">Fila</p>
           <p className="mt-1 text-sm text-zinc-500">
             {pendingCount === 0
               ? "Nenhum item aguardando download"

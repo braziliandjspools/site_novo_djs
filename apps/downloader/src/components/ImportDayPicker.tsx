@@ -135,11 +135,11 @@ export function ImportDayPicker({
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-pick-title"
-        className="flex max-h-[calc(100dvh-3rem)] w-[min(920px,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-[#ff2ea6]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+        className="flex max-h-[calc(100dvh-3rem)] w-[min(920px,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-[#ffffff]/50 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
       >
-      <header className="flex shrink-0 items-center gap-3 border-b border-[#ff2ea6]/30 bg-[#070707] px-4 py-3">
+      <header className="flex shrink-0 items-center gap-3 border-b border-[#ffffff]/30 bg-[#070707] px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff2ea6]">Dias</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ffffff]">Dias</p>
           <h2 id="import-pick-title" className="truncate text-sm font-bold text-white">
             {t("importPickTitle")}
           </h2>
@@ -148,13 +148,13 @@ export function ImportDayPicker({
           type="button"
           onClick={onClose}
           aria-label={t("importPickCancel")}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-300 hover:bg-[#ff2ea6] hover:text-black"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-300 hover:bg-[#3a3a3a] hover:text-white"
         >
           <X className="h-4 w-4" />
         </button>
       </header>
       <div className="flex min-h-0 flex-1">
-        <aside className="flex w-[220px] flex-shrink-0 flex-col border-r border-[#ff2ea6]/30 bg-[#070707]">
+        <aside className="flex w-[220px] flex-shrink-0 flex-col border-r border-[#ffffff]/30 bg-[#070707]">
           <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
             {dates.map((date) => {
               const on = date.key === active?.key;
@@ -164,7 +164,7 @@ export function ImportDayPicker({
                   type="button"
                   onClick={() => void loadDay(date)}
                   className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left font-mono text-sm ${
-                    on ? "bg-[#ff2ea6] font-bold text-black" : "text-zinc-300 hover:bg-[#ff2ea6]/15"
+                    on ? "bg-[#2f2f2f] font-bold text-white" : "text-zinc-300 hover:bg-[#ffffff]/15"
                   }`}
                 >
                   {date.label}
@@ -175,9 +175,9 @@ export function ImportDayPicker({
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col bg-black">
-          <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[#ff2ea6]/30 px-5 py-4">
+          <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[#ffffff]/30 px-5 py-4">
             <div>
-              <p className="font-mono text-2xl font-black tracking-tight text-[#ff2ea6]">{active?.label}</p>
+              <p className="font-mono text-2xl font-black tracking-tight text-[#ffffff]">{active?.label}</p>
               <p className="mt-1 text-sm text-zinc-300">
                 {loading === active?.key ? (
                   "Contando faixas e pools…"
@@ -194,7 +194,7 @@ export function ImportDayPicker({
 
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
             {loading === active?.key && (
-              <p className="flex items-center gap-2 text-sm text-[#ff2ea6]">
+              <p className="flex items-center gap-2 text-sm text-[#ffffff]">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t("importPickLoadingDay")}
               </p>
@@ -202,7 +202,7 @@ export function ImportDayPicker({
             {day && (
               <button
                 type="button"
-                className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#ff2ea6]"
+                className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#ffffff]"
                 onClick={() => {
                   const ids = [
                     ...day.pools.flatMap((pool) => pool.styles.map((style) => style.folderId)),
@@ -222,13 +222,13 @@ export function ImportDayPicker({
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-white">
                       {styleLabel(pool.name)}
-                      <span className="ml-2 font-mono text-[10px] font-semibold text-[#ff2ea6]">
+                      <span className="ml-2 font-mono text-[10px] font-semibold text-[#ffffff]">
                         {pool.trackCount ?? 0} tracks
                       </span>
                     </p>
                     <button
                       type="button"
-                      className="text-[11px] font-bold uppercase tracking-wider text-[#ff2ea6]"
+                      className="text-[11px] font-bold uppercase tracking-wider text-[#ffffff]"
                       onClick={() => mark(ids, !allOn)}
                     >
                       {t("importPickAllStyles")}
@@ -239,7 +239,7 @@ export function ImportDayPicker({
                       <label key={style.folderId} className="flex items-start gap-2 text-xs text-zinc-200">
                         <input
                           type="checkbox"
-                          className="mt-0.5 accent-[#ff2ea6]"
+                          className="mt-0.5 accent-[#ffffff]"
                           checked={Boolean(selected[style.folderId])}
                           onChange={(event) => mark([style.folderId], event.target.checked)}
                         />
@@ -259,7 +259,7 @@ export function ImportDayPicker({
                   <label key={style.folderId} className="flex items-start gap-2 text-xs text-zinc-200">
                     <input
                       type="checkbox"
-                      className="mt-0.5 accent-[#ff2ea6]"
+                      className="mt-0.5 accent-[#ffffff]"
                       checked={Boolean(selected[style.folderId])}
                       onChange={(event) => mark([style.folderId], event.target.checked)}
                     />
@@ -271,10 +271,10 @@ export function ImportDayPicker({
                 ))}
               </div>
             )}
-            {error && <p className="rounded-lg bg-[#ff2ea6]/10 px-3 py-2 text-xs text-[#ff8ac8]">{error}</p>}
+            {error && <p className="rounded-lg bg-[#ffffff]/10 px-3 py-2 text-xs text-[#ffb3ba]">{error}</p>}
           </div>
 
-          <div className="flex shrink-0 gap-2 border-t border-[#ff2ea6]/30 px-5 py-4">
+          <div className="flex shrink-0 gap-2 border-t border-[#ffffff]/30 px-5 py-4">
             <button
               type="button"
               onClick={onClose}
@@ -285,7 +285,7 @@ export function ImportDayPicker({
             <button
               type="button"
               onClick={confirm}
-              className="flex-1 rounded-full bg-[#ff2ea6] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-black"
+              className="flex-1 rounded-full bg-[#2f2f2f] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white"
             >
               {t("importPickConfirm")}
             </button>

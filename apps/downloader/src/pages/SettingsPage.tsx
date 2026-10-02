@@ -78,7 +78,7 @@ function PreferenceToggle({
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="mt-1 h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-[#ff2ea6] focus:ring-[#ff2ea6]"
+        className="mt-1 h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-[#ffffff] focus:ring-[#ffffff]"
       />
       <span>
         <span className="block text-sm font-semibold text-white">{label}</span>
@@ -284,7 +284,7 @@ export function SettingsPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <Panel title={t("settingsAccount")} description={t("settingsAccountDesc")}>
         <div className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-black/40 p-4">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#ff2ea6]/10 text-[#ff2ea6]">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[6px] bg-[#2f2f2f]/10 text-[#ffffff]">
             <User className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
@@ -401,7 +401,7 @@ export function SettingsPage() {
                     name="existingFileBehavior"
                     checked={prefs.existingFileBehavior === option.value}
                     onChange={() => void updatePreference({ existingFileBehavior: option.value })}
-                    className="mt-1 h-4 w-4 border-zinc-600 bg-zinc-900 text-[#ff2ea6] focus:ring-[#ff2ea6]"
+                    className="mt-1 h-4 w-4 border-zinc-600 bg-zinc-900 text-[#ffffff] focus:ring-[#ffffff]"
                   />
                   <span>
                     <span className="block text-sm text-white">{t(option.labelKey)}</span>
@@ -452,7 +452,7 @@ export function SettingsPage() {
                   {t("settingsConcurrencyDesc")}
                 </p>
               </div>
-              <span className="flex-shrink-0 rounded-md border border-[#ff2ea6]/40 bg-[#ff2ea6]/10 px-2.5 py-1 text-sm font-bold text-[#ff2ea6]">
+              <span className="flex-shrink-0 rounded-md border border-[#ffffff]/40 bg-[#ffffff]/10 px-2.5 py-1 text-sm font-bold text-[#ffffff]">
                 {prefs.maxConcurrentDownloads}
               </span>
             </div>
@@ -483,7 +483,7 @@ export function SettingsPage() {
                   });
                 }
               }}
-              className="mt-4 w-full accent-[#ff2ea6]"
+              className="mt-4 w-full accent-[#ffffff]"
               aria-label={t("settingsConcurrency")}
             />
             <div className="mt-2 flex justify-between text-[10px] font-medium uppercase tracking-wider text-zinc-600">
@@ -522,7 +522,7 @@ export function SettingsPage() {
                         scheduleStart: event.target.value || "00:00",
                       });
                     }}
-                    className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ff2ea6]"
+                    className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ffffff]"
                   />
                 </div>
                 <div>
@@ -545,7 +545,7 @@ export function SettingsPage() {
                         scheduleEnd: event.target.value || "07:00",
                       });
                     }}
-                    className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ff2ea6]"
+                    className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ffffff]"
                   />
                 </div>
               </div>
@@ -575,7 +575,7 @@ export function SettingsPage() {
               onClick={() => void handleSpeedLimitMode(option.value)}
               className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
                 prefs.speedLimitMode === option.value
-                  ? "border-[#ff2ea6] bg-[#ff2ea6]/10 text-[#ff2ea6]"
+                  ? "border-[#ffffff] bg-[#ffffff]/10 text-[#ffffff]"
                   : "border-zinc-800 bg-black/40 text-zinc-400 hover:border-zinc-700 hover:text-white"
               }`}
             >
@@ -608,7 +608,7 @@ export function SettingsPage() {
                     event.currentTarget.blur();
                   }
                 }}
-                className="w-32 rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ff2ea6]"
+                className="w-32 rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ffffff]"
               />
               <span className="text-xs text-zinc-500">MB/s</span>
             </div>
@@ -700,7 +700,7 @@ export function SettingsPage() {
                 setCachedApiBaseUrl(value || DEFAULT_API_BASE_URL);
               });
             }}
-            className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ff2ea6]"
+            className="w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#ffffff]"
           />
           <p className="mt-2 text-xs text-zinc-600">
             {t("settingsApiDefaultHint", { url: DEFAULT_API_BASE_URL })}
@@ -712,7 +712,7 @@ export function SettingsPage() {
         <button
           type="button"
           onClick={() => void openPlatform(BP_MUSICAS_URL)}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff2ea6] px-5 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-[#ff2ea6]"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-[6px] border border-white/15 bg-[#2f2f2f] px-5 py-3 text-sm font-bold tracking-wide text-white transition-colors hover:bg-[#3a3a3a]"
         >
           <ExternalLink className="h-4 w-4" />
           {t("settingsAppOnline")}
@@ -746,7 +746,7 @@ export function SettingsPage() {
         <p className="mt-4 text-xs leading-relaxed text-zinc-400">{t("settingsRustNote")}</p>
 
         <div className="mt-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff2ea6]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffffff]">
             {t("settingsChangelog")}
           </p>
           <div className="mt-3 space-y-4">
@@ -759,7 +759,7 @@ export function SettingsPage() {
                 <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-zinc-400">
                   {(entry.itemKeys ? entry.itemKeys.map((key) => t(key)) : entry.items).map((item) => (
                     <li key={item} className="flex gap-2">
-                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-[#ff2ea6]" />
+                      <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-[6px] bg-[#2f2f2f]" />
                       <span>{item}</span>
                     </li>
                   ))}

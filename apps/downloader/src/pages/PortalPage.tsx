@@ -34,7 +34,7 @@ export function PortalPage() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                 {t("portalPlan")}
               </p>
-              <p className="mt-1.5 text-sm font-bold text-[#ff2ea6]">{planLabel}</p>
+              <p className="mt-1.5 text-sm font-bold text-[#ffffff]">{planLabel}</p>
               <p className="mt-1 text-xs text-zinc-500">
                 {billing?.nextDueLabel
                   ? t("portalNextDue", { date: billing.nextDueLabel })
@@ -54,10 +54,10 @@ export function PortalPage() {
                 {t("portalActiveServices")}
               </p>
               <ul className="mt-2 space-y-1.5 text-sm text-zinc-300">
-                <li className={services.poolsVip ? "text-[#ff2ea6]" : "text-zinc-600"}>
+                <li className={services.poolsVip ? "text-[#ffffff]" : "text-zinc-600"}>
                   {services.poolsVip ? "●" : "○"} {t("portalPoolsVip")}
                 </li>
-                <li className={services.allavsoft ? "text-[#ff2ea6]" : "text-zinc-600"}>
+                <li className={services.allavsoft ? "text-[#ffffff]" : "text-zinc-600"}>
                   {services.allavsoft ? "●" : "○"} {t("portalAllavsoft")}
                 </li>
               </ul>
@@ -76,7 +76,7 @@ export function PortalPage() {
               })}
             </p>
           ) : (
-            <p className="rounded-xl border border-[#ff2ea6]/20 bg-[#ff2ea6]/10 px-4 py-3 text-sm text-[#ff2ea6]">
+            <p className="rounded-xl border border-[#ffffff]/20 bg-[#ffffff]/10 px-4 py-3 text-sm text-[#ffffff]">
               {t("portalOkNotice")}
             </p>
           )}
@@ -90,11 +90,11 @@ export function PortalPage() {
 
           <ul className="space-y-2 text-sm text-zinc-400">
             <li className="flex items-start gap-2">
-              <CreditCard className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ff2ea6]" />
+              <CreditCard className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ffffff]" />
               {t("portalPaymentHint")}
             </li>
             <li className="flex items-start gap-2">
-              <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ff2ea6]" />
+              <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#ffffff]" />
               {t("portalServicesHint")}
             </li>
           </ul>

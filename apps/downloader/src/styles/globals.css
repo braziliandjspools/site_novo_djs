@@ -14,9 +14,9 @@
   --bg-control-active: #454545;
   --text-muted: #cfcfcf;
   --text-subtle: #9b9b9b;
-  --accent: #60cdff;
-  --accent-hover: #8ad4ff;
-  --accent-dim: rgba(96, 205, 255, 0.16);
+  --accent: #ffffff;
+  --accent-hover: #eaeaea;
+  --accent-dim: rgba(255, 255, 255, 0.12);
   --accent-text: #ffffff;
   --success: #6ccb5f;
   --danger: #ff99a4;
@@ -73,7 +73,7 @@ body {
 }
 
 ::selection {
-  background: rgba(96, 205, 255, 0.35);
+  background: rgba(255, 255, 255, 0.28);
   color: #fff;
 }
 
@@ -111,13 +111,13 @@ body {
 
 .app-mesh {
   background:
-    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(96, 205, 255, 0.04), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(255, 255, 255, 0.04), transparent 50%),
     var(--background);
 }
 
 .auth-atmosphere {
   background:
-    radial-gradient(ellipse 55% 40% at 50% 0%, rgba(96, 205, 255, 0.1), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 50% 0%, rgba(255, 255, 255, 0.08), transparent 58%),
     #171717;
 }
 

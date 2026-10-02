@@ -29,7 +29,7 @@ function severityClass(severity: AppNotification["severity"]) {
     case "warning":
       return "border-amber-500/20 bg-amber-500/10 text-amber-200";
     case "success":
-      return "border-[#ff2ea6]/20 bg-[#ff2ea6]/10 text-[#ff2ea6]";
+      return "border-[#ffffff]/20 bg-[#ffffff]/10 text-[#ffffff]";
     default:
       return "border-white/[0.06] bg-white/[0.03] text-zinc-300";
   }

@@ -244,7 +244,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff2ea6]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffffff]">
             {t(copy.eyebrowKey)}
           </p>
           <p className="mt-1 text-sm text-zinc-400">
@@ -291,7 +291,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
               {t("jobsSectionQueue")}
             </p>
-            <p className="mt-1.5 text-lg font-bold tabular-nums text-[#ff2ea6]">
+            <p className="mt-1.5 text-lg font-bold tabular-nums text-[#ffffff]">
               {formatQueueLabel(liveQueueBytes, managerJobs, t("jobsNoSizeInfo"))}
             </p>
           </div>
@@ -303,7 +303,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
             {t("jobsQueueEstimated")}
           </p>
-          <p className="mt-1.5 text-lg font-bold tabular-nums text-[#ff2ea6]">
+          <p className="mt-1.5 text-lg font-bold tabular-nums text-[#ffffff]">
             {formatQueueLabel(liveQueueBytes, managerJobs, t("jobsNoSizeInfo"))}
           </p>
         </div>
@@ -417,7 +417,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
 
       {isDownloads && serverLoading && catalog.length === 0 && zipTasks.length === 0 ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#ff2ea6]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#ffffff]" />
         </div>
       ) : filteredJobs.length === 0 ? (
         isDownloads && activeJobIds.length > 0 && !deferredQuery && statusFilter === "all" ? (
