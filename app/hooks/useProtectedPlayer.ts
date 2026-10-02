@@ -189,37 +189,10 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
       // Pausar sem zerar o src: limpar src demove a notificação Media Session no Android.
       audio.pause();
 
-      // Probe rápido: se a API devolver JSON (cota/502), mostra a mensagem real.
-      if (!id.startsWith("/")) {
-        try {
-          const probe = await fetch(src, {
-            method: "GET",
-            headers: { Range: "bytes=0-1" },
-            cache: "no-store",
-          });
-          const contentType = probe.headers.get("content-type") ?? "";
-          // O probe só valida a resposta; nunca deve manter o stream de bytes aberto.
-          // Isso evita disputar a conexão com o <audio>, principalmente em pastas profundas.
-          void probe.body?.cancel();
-          if (!probe.ok || contentType.includes("application/json")) {
-            let message = "Não foi possível carregar a faixa.";
-            try {
-              const payload = (await probe.json()) as { error?: string };
-              if (payload.error?.trim()) message = payload.error.trim();
-            } catch {
-              if (probe.status === 429) {
-                message =
-                  "Cota de download do Google Drive excedida. Tente novamente mais tarde.";
-              }
-            }
-            failLoad(id, message);
-            return false;
-          }
-        } catch {
-          /* segue para o <audio> — rede pode ter falhado só no probe */
-        }
-      }
-
+      // O próprio <audio> faz a requisição correta (inclusive Range/206).
+      // Não fazemos um GET de "probe" antes: no Send.now isso cria uma segunda
+      // solicitação ao arquivo e pode consumir um slot de download/Direct Link,
+      // fazendo o navegador pausar o áudio ou o download seguinte.
       audio.src = src;
       audio.currentTime = 0;
 
