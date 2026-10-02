@@ -56,7 +56,7 @@ export function MusicasPageHeader({ title, subtitle }: { title: string; subtitle
           />
         </div>
         <div className="min-w-0 flex-1 text-center sm:text-left">
-          <p className="text-eyebrow text-[#1db954]/90">Brazilian Remix Service</p>
+          <p className="text-eyebrow text-[#60cdff]/90">Brazilian Remix Service</p>
           <h1 className="text-page-title mt-2 text-white">{title}</h1>
           {subtitle && <p className="text-secondary mt-2 max-w-2xl">{subtitle}</p>}
           {clock ? (
@@ -64,7 +64,7 @@ export function MusicasPageHeader({ title, subtitle }: { title: string; subtitle
               <p className="text-base capitalize text-zinc-200 sm:text-lg md:text-xl">
                 {clock.datePart}
               </p>
-              <p className="font-mono text-2xl font-semibold tabular-nums tracking-tight text-[#1db954] sm:text-3xl md:text-4xl">
+              <p className="font-mono text-2xl font-semibold tabular-nums tracking-tight text-[#60cdff] sm:text-3xl md:text-4xl">
                 {clock.timePart}
               </p>
             </div>

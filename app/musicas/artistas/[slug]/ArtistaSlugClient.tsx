@@ -125,7 +125,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
         </p>
       ) : (
         <>
-          <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(ellipse_at_80%_0%,rgba(29,185,84,0.22),transparent_46%),linear-gradient(180deg,#121212,#0c0c0c)]">
+          <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(ellipse_at_80%_0%,rgba(96,205,255,0.22),transparent_46%),linear-gradient(180deg,#121212,#0c0c0c)]">
             <div className="pointer-events-none absolute inset-0" aria-hidden>
               <Image
                 src={cover}
@@ -153,7 +153,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#1db954]">
+                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#60cdff]">
                   <Mic2 className="h-3.5 w-3.5" />
                   Perfil público · Artista
                 </p>
@@ -192,7 +192,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                     {(profile?.trackCount ?? 0) === 1 ? "faixa" : "faixas"}
                   </span>
                   {hasVip ? (
-                    <span className="rounded-full border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-1.5 text-xs font-semibold text-[#1db954]">
+                    <span className="rounded-full border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 py-1.5 text-xs font-semibold text-[#60cdff]">
                       Premium ativo
                     </span>
                   ) : (
@@ -213,7 +213,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
                       href={profile.spotifyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-[#1db954]/35 hover:text-[#1db954]"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 transition-colors hover:border-[#60cdff]/35 hover:text-[#60cdff]"
                     >
                       Spotify
                       <ExternalLink className="h-3 w-3" />
@@ -228,7 +228,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
               {bioParagraphs.length > 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-5 py-5">
-                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#60cdff]">
                     Sobre
                   </h2>
                   <div className="mt-3 space-y-3 text-sm leading-relaxed text-white/70">
@@ -240,7 +240,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
               ) : null}
               {notableWorks.length > 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-5 py-5">
-                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
+                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#60cdff]">
                     <Music2 className="h-3.5 w-3.5" />
                     Obras de referência
                   </h2>
@@ -268,7 +268,7 @@ export function ArtistaSlugClient({ slug }: { slug: string }) {
           {!authenticated && <VipUpgradeBanner />}
 
           <div id="lancamentos" className="scroll-mt-24">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1db954]">Catálogo público</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#60cdff]">Catálogo público</p>
             <h2 className="mt-2 mb-4 font-display text-3xl font-semibold text-white">Lançamentos</h2>
             {tracks.length === 0 ? (
               <p className="rounded-2xl border border-white/10 bg-[#1a1a1a] px-4 py-10 text-center text-sm text-white/50">

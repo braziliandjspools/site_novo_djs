@@ -61,7 +61,7 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
   return (
     <div id="downloader-panel" className={`min-w-0 rounded-lg border border-zinc-800 bg-[#121212] p-3 ${className}`}>
       <div className="flex min-w-0 items-center gap-2">
-        <MonitorDown className="h-4 w-4 flex-shrink-0 text-[#1db954]" />
+        <MonitorDown className="h-4 w-4 flex-shrink-0 text-[#60cdff]" />
         <p className="min-w-0 truncate text-sm font-semibold tracking-[-0.01em] text-white">
           BRS Downloader
         </p>
@@ -82,7 +82,7 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
       ) : onlineDevices.length === 1 ? (
         <div className="mt-2 min-w-0 space-y-1">
           <p className="min-w-0 break-words text-xs text-zinc-300">
-            <span className="mr-1 inline-block h-2 w-2 flex-shrink-0 rounded-full bg-[#1db954]" />
+            <span className="mr-1 inline-block h-2 w-2 flex-shrink-0 rounded-full bg-[#60cdff]" />
             <span className="break-words">{onlineDevices[0]!.deviceName}</span> conectado
           </p>
           <p className="break-words text-[11px] text-zinc-500">
@@ -96,7 +96,7 @@ export function DownloaderDevicePanel({ className = "mx-3 mb-4" }: { className?:
         <div className="mt-2 min-w-0 space-y-2">
           {onlineDevices.map((device) => (
             <p key={device.deviceId} className="min-w-0 break-words text-xs text-zinc-300">
-              <span className="mr-1 inline-block h-2 w-2 flex-shrink-0 rounded-full bg-[#1db954]" />
+              <span className="mr-1 inline-block h-2 w-2 flex-shrink-0 rounded-full bg-[#60cdff]" />
               <span className="break-words">{device.deviceName}</span> · fila {device.queueCount}
             </p>
           ))}

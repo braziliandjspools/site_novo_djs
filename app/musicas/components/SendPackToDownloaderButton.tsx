@@ -113,7 +113,7 @@ export function SendPackToDownloaderButton({
         disabled={sending}
         title={label}
         aria-label={label}
-        className={`inline-flex max-w-[90%] cursor-pointer items-center justify-center gap-1.5 rounded-full bg-[#1db954] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-lg shadow-black/40 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3.5 sm:text-[11px] ${className}`}
+        className={`inline-flex max-w-[90%] cursor-pointer items-center justify-center gap-1.5 rounded-full bg-[#60cdff] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-lg shadow-black/40 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3.5 sm:text-[11px] ${className}`}
       >
         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
         <span className="truncate">{sending ? "Enviando…" : "Downloader"}</span>
@@ -129,7 +129,7 @@ export function SendPackToDownloaderButton({
         disabled={sending}
         title={label}
         aria-label={label}
-        className={`flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#1db954]/45 bg-[#1db954]/20 text-[#1db954] transition-colors hover:bg-[#1db954]/35 hover:text-[#86efac] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#60cdff]/45 bg-[#60cdff]/20 text-[#60cdff] transition-colors hover:bg-[#60cdff]/35 hover:text-[#86efac] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
       </button>,
@@ -141,7 +141,7 @@ export function SendPackToDownloaderButton({
       type="button"
       onClick={(event) => void handleClick(event)}
       disabled={sending}
-      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[#1db954]/40 bg-[#1db954]/10 px-5 py-2.5 text-xs font-bold text-[#1db954] transition-colors hover:border-[#1db954] hover:bg-[#1db954]/20 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[#60cdff]/40 bg-[#60cdff]/10 px-5 py-2.5 text-xs font-bold text-[#60cdff] transition-colors hover:border-[#60cdff] hover:bg-[#60cdff]/20 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
       {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
       <span>{sending ? "Enviando…" : label}</span>

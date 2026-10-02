@@ -5,7 +5,7 @@ import { displayFolderName, parseMonthStatus, type MonthStatus } from "../../lib
 import { MUSICAS_HERO_BG_SRC, MUSICAS_HERO_COVER_SRC } from "../lib/musicas-hero-art";
 
 export function monthStatusClass(status: MonthStatus) {
-  if (status === "completo") return "text-[#1db954]";
+  if (status === "completo") return "text-[#60cdff]";
   if (status === "em-atualizacao") return "text-amber-300";
   if (status === "em-breve") return "text-zinc-500";
   return "text-zinc-600";
@@ -81,7 +81,7 @@ export function AtualizacoesMonthHero({
   const countText = `${itemCount.toLocaleString("pt-BR")} ${countLabel}`;
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#17191d] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
+    <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#2b2b2b] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         {hasFolderCover ? (
           <>
@@ -112,7 +112,7 @@ export function AtualizacoesMonthHero({
           </>
         )}
       </div>
-      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1db954] via-[#1db954]/40 to-transparent" />
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#60cdff] via-[#60cdff]/40 to-transparent" />
 
       <div className="relative z-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:gap-7 sm:p-7 lg:p-8">
         <div className="mx-auto w-full max-w-[160px] flex-shrink-0 sm:mx-0 sm:max-w-[200px] lg:max-w-[220px]">
@@ -165,7 +165,7 @@ export function AtualizacoesMonthHero({
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                   hasVip
-                    ? "border-[#1db954]/30 bg-[#1db954]/10 text-[#1db954]"
+                    ? "border-[#60cdff]/30 bg-[#60cdff]/10 text-[#60cdff]"
                     : "border-white/10 bg-black/35 text-white/75"
                 }`}
               >

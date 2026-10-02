@@ -66,7 +66,7 @@ export function MusicasTopNav({
     <header className={`${APP_TOP_CHROME} z-40`}>
       <div className="br-stripe" />
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/45 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
         aria-hidden
       />
 
@@ -81,20 +81,20 @@ export function MusicasTopNav({
         <div className="mx-1 hidden h-7 w-px bg-white/10 md:block" aria-hidden />
 
         <nav className="hidden min-w-0 flex-1 items-center md:flex">
-          <div className="inline-flex items-center gap-0.5 rounded-full border border-white/[0.07] bg-white/[0.02] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div className="inline-flex items-center gap-0.5 rounded-[8px] border border-white/[0.08] bg-[#252525] p-1">
             {PLATFORM_NAV.map(({ href, label, icon: Icon }) => {
               const active = navActive(pathname, href);
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-all lg:px-4 lg:text-[14px] ${
+                  className={`inline-flex items-center gap-2 rounded-[6px] px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition-colors lg:px-4 lg:text-[14px] ${
                     active
-                      ? "bg-[#1db954] text-black shadow-[0_0_24px_rgba(29,185,84,0.35)]"
-                      : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+                      ? "bg-white/[0.1] text-white"
+                      : "text-[#cfcfcf] hover:bg-white/[0.05] hover:text-white"
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${active ? "text-black" : ""}`} />
+                  <Icon className={`h-3.5 w-3.5 ${active ? "text-[#60cdff]" : ""}`} />
                   <span className="hidden lg:inline">{label}</span>
                   <span className="lg:hidden">{label.split(" ")[0]}</span>
                 </Link>
@@ -106,10 +106,10 @@ export function MusicasTopNav({
                 type="button"
                 onClick={() => setSiteOpen((open) => !open)}
                 aria-expanded={siteOpen}
-                className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-all lg:px-4 lg:text-[14px] ${
+                className={`inline-flex cursor-pointer items-center gap-1.5 rounded-[6px] px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition-colors lg:px-4 lg:text-[14px] ${
                   siteOpen
                     ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+                    : "text-[#cfcfcf] hover:bg-white/[0.05] hover:text-white"
                 }`}
               >
                 Site
@@ -118,20 +118,20 @@ export function MusicasTopNav({
                 />
               </button>
               {siteOpen && (
-                <div className="absolute left-0 top-[calc(100%+0.65rem)] z-50 min-w-[240px] overflow-hidden rounded-2xl border border-white/10 bg-[#121414] py-2 shadow-2xl shadow-black/60 ring-1 ring-[#1db954]/10">
+                <div className="absolute left-0 top-[calc(100%+0.65rem)] z-50 min-w-[240px] overflow-hidden rounded-[8px] border border-white/[0.08] bg-[#2b2b2b] py-2 shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
                   {SITE_PRIMARY_NAV.map(({ href, label, icon: Icon }) => (
                     <Link
                       key={href}
                       href={href}
                       onClick={() => setSiteOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#1db954]/10 hover:text-white"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#cfcfcf] transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
-                      <Icon className="h-4 w-4 text-[#1db954]/80" />
+                      <Icon className="h-4 w-4 text-[#60cdff]" />
                       {label}
                     </Link>
                   ))}
-                  <div className="my-1.5 border-t border-white/5" />
-                  <p className="px-4 pb-1 pt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                  <div className="my-1.5 border-t border-white/[0.08]" />
+                  <p className="px-4 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9b9b9b]">
                     {SITE_TOOLS_MENU.label}
                   </p>
                   {SITE_TOOLS_MENU.items.map(({ href, label, icon: Icon }) => (
@@ -139,9 +139,9 @@ export function MusicasTopNav({
                       key={href}
                       href={href}
                       onClick={() => setSiteOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#1db954]/10 hover:text-white"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#cfcfcf] transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
-                      <Icon className="h-4 w-4 text-[#1db954]/80" />
+                      <Icon className="h-4 w-4 text-[#60cdff]" />
                       {label}
                     </Link>
                   ))}
@@ -167,7 +167,7 @@ export function MusicasTopNav({
           {!hasVip && (
             <a
               href={checkoutUrl("VIP")}
-              className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#1db954] px-3.5 py-2 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_20px_rgba(29,185,84,0.25)] transition-transform hover:scale-[1.03] hover:bg-[#2dff7a] sm:px-4"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#60cdff] px-3.5 py-2 text-sm font-bold tracking-[-0.01em] text-black shadow-[0_0_20px_rgba(96,205,255,0.25)] transition-transform hover:scale-[1.03] hover:bg-[#2dff7a] sm:px-4"
             >
               Assinar VIP
             </a>
@@ -201,7 +201,7 @@ export function MusicasTopNav({
                   onClick={() => onMobileOpenChange(false)}
                   className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold tracking-[-0.01em] ${
                     active
-                      ? "bg-[#1db954] text-black shadow-[0_0_20px_rgba(29,185,84,0.25)]"
+                      ? "bg-[#60cdff] text-black shadow-[0_0_20px_rgba(96,205,255,0.25)]"
                       : "text-zinc-300 hover:bg-white/5"
                   }`}
                 >
@@ -223,7 +223,7 @@ export function MusicasTopNav({
                 onClick={() => onMobileOpenChange(false)}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 hover:bg-white/5 hover:text-white"
               >
-                <Icon className="h-4 w-4 text-[#1db954]/70" />
+                <Icon className="h-4 w-4 text-[#60cdff]/70" />
                 {label}
               </Link>
             ))}
@@ -240,7 +240,7 @@ export function MusicasTopNav({
                 onClick={() => onMobileOpenChange(false)}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-[-0.01em] text-zinc-400 hover:bg-white/5 hover:text-white"
               >
-                <Icon className="h-4 w-4 text-[#1db954]/70" />
+                <Icon className="h-4 w-4 text-[#60cdff]/70" />
                 {label}
               </Link>
             ))}
@@ -251,7 +251,7 @@ export function MusicasTopNav({
               <span className="font-semibold text-white">{firstName}</span>
               {" · "}
               {hasVip ? (
-                <span className="text-[#1db954]">Premium</span>
+                <span className="text-[#60cdff]">Premium</span>
               ) : authenticated ? (
                 "Sem VIP"
               ) : (

@@ -58,7 +58,7 @@ function TrackFavoriteToggle({
       aria-label={favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
       aria-pressed={favorite}
       className={`absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition hover:bg-black/60 ${
-        favorite ? "text-[#1db954]" : "text-white/70"
+        favorite ? "text-[#60cdff]" : "text-white/70"
       }`}
     >
       <Heart className="h-3.5 w-3.5" fill={favorite ? "currentColor" : "none"} aria-hidden />

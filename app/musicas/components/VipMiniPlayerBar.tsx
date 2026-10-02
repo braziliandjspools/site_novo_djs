@@ -98,7 +98,7 @@ export function VipMiniPlayerBar() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={coverSrc} alt="" onError={handleArtworkError} className="h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a1210]/95 via-[#0e1a16]/88 to-[#121816]/92" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1db954]/50 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#60cdff]/50 to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:gap-4 sm:px-6 sm:py-3.5">
@@ -137,7 +137,7 @@ export function VipMiniPlayerBar() {
                 void player.toggleTrack(player.playingFolderId, track.id);
               }
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#2dff7a] to-[#1db954] text-black shadow-[0_8px_24px_rgba(29,185,84,0.4)] transition-transform hover:scale-[1.05] active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#2dff7a] to-[#60cdff] text-black shadow-[0_8px_24px_rgba(96,205,255,0.4)] transition-transform hover:scale-[1.05] active:scale-95"
             aria-label={isPlaying ? "Pausar" : "Tocar"}
           >
             {isPlaying ? (
@@ -176,7 +176,7 @@ export function VipMiniPlayerBar() {
           >
             <ArtistNameLink
               artist={display.artist}
-              className="text-white/70 hover:text-[#1db954]"
+              className="text-white/70 hover:text-[#60cdff]"
               splitCredits={false}
             />
             {albumOrPack ? <span className="text-white/35"> · {albumOrPack}</span> : null}
@@ -194,7 +194,7 @@ export function VipMiniPlayerBar() {
               }}
             >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#00b4d8] via-[#1db954] to-[#2dff7a] transition-[width] duration-75"
+                className="h-full rounded-full bg-gradient-to-r from-[#00b4d8] via-[#60cdff] to-[#2dff7a] transition-[width] duration-75"
                 style={{ width: `${player.progress}%` }}
               />
               <span
@@ -228,7 +228,7 @@ export function VipMiniPlayerBar() {
               setMuted(next === 0);
               player.setVolume(next);
             }}
-            className="player-volume h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-white/15 accent-[#1db954]"
+            className="player-volume h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-white/15 accent-[#60cdff]"
             aria-label="Volume"
           />
         </div>
@@ -238,7 +238,7 @@ export function VipMiniPlayerBar() {
             <>
               <Link
                 href={`/api/musicas/download/${track.id}`}
-                className="rounded-xl border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition hover:border-[#1db954]/40 hover:text-white"
+                className="rounded-xl border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition hover:border-[#60cdff]/40 hover:text-white"
                 title="Baixar faixa"
               >
                 <Download className="h-4 w-4" />
@@ -247,7 +247,7 @@ export function VipMiniPlayerBar() {
                 type="button"
                 disabled={sending}
                 onClick={() => void handleSend()}
-                className="rounded-xl border border-[#1db954]/35 bg-[#1db954]/15 p-2 text-[#1db954] transition hover:bg-[#1db954]/25 disabled:opacity-50"
+                className="rounded-xl border border-[#60cdff]/35 bg-[#60cdff]/15 p-2 text-[#60cdff] transition hover:bg-[#60cdff]/25 disabled:opacity-50"
                 title="Enviar ao Downloader"
               >
                 <MonitorDown className="h-4 w-4" />

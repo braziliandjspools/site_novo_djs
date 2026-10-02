@@ -46,7 +46,7 @@ function SidebarSection({
         className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-[#1db954]/25 bg-[#1db954]/10 text-[#1db954]">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-[#60cdff]/25 bg-[#60cdff]/10 text-[#60cdff]">
           <Icon className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
         </span>
         <h3 className="min-w-0 flex-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
@@ -76,9 +76,9 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-2.5 rounded-lg border border-transparent bg-white/[0.02] px-2.5 py-2 transition-colors hover:border-[#1db954]/30 hover:bg-[rgba(29,185,84,0.06)]"
+      className="group flex items-start gap-2.5 rounded-lg border border-transparent bg-white/[0.02] px-2.5 py-2 transition-colors hover:border-[#60cdff]/30 hover:bg-[rgba(96,205,255,0.06)]"
     >
-      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#1db954]/70 opacity-70 group-hover:opacity-100" />
+      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#60cdff]/70 opacity-70 group-hover:opacity-100" />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13px] font-semibold leading-snug text-white/90 group-hover:text-white">
           {title}
@@ -127,7 +127,7 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
 
   if (loading && !home) {
     return (
-      <aside className="rounded-2xl border border-[#1db954]/20 bg-[#17191d] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
+      <aside className="rounded-2xl border border-[#60cdff]/20 bg-[#2b2b2b] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
         <SidebarSkeleton />
       </aside>
     );
@@ -140,9 +140,9 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
   const news = home?.newsBanner;
 
   return (
-    <aside className="rounded-2xl border border-[#1db954]/20 bg-[#17191d] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
-      <div className="mb-3.5 rounded-xl border border-white/[0.06] bg-gradient-to-br from-[#1db954]/10 via-transparent to-transparent px-3.5 py-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1db954]/90">Atalhos</p>
+    <aside className="rounded-2xl border border-[#60cdff]/20 bg-[#2b2b2b] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] sm:p-4">
+      <div className="mb-3.5 rounded-xl border border-white/[0.06] bg-gradient-to-br from-[#60cdff]/10 via-transparent to-transparent px-3.5 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#60cdff]/90">Atalhos</p>
         <h2 className="mt-1 text-[15px] font-bold tracking-tight text-white">Seu fluxo rápido</h2>
         <p className="mt-1 text-[11px] leading-relaxed text-white/45">
           Recentes, estilos e pastas sem perder o ritmo.
@@ -150,7 +150,7 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
         {news ? (
           <Link
             href={news.href}
-            className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1db954] transition-colors hover:bg-[#1db954]/20"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#60cdff] transition-colors hover:bg-[#60cdff]/20"
           >
             Ver novidades
           </Link>
@@ -195,7 +195,7 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
                 <Link
                   key={`${genre.styleFolderId}-${genre.slug}`}
                   href={genre.href}
-                  className="rounded-md border border-[#1db954]/25 bg-[rgba(29,185,84,0.07)] px-2.5 py-1 text-[11px] font-semibold text-white/80 transition-colors hover:border-[#1db954]/45 hover:bg-[#1db954]/15 hover:text-white"
+                  className="rounded-md border border-[#60cdff]/25 bg-[rgba(96,205,255,0.07)] px-2.5 py-1 text-[11px] font-semibold text-white/80 transition-colors hover:border-[#60cdff]/45 hover:bg-[#60cdff]/15 hover:text-white"
                 >
                   {formatStyleNameForDisplay(genre.name)}
                   {genre.trackCount > 0 ? (

@@ -4,19 +4,19 @@ export const poolPanelClass =
   "overflow-hidden rounded-[var(--radius-panel)] border border-white/[0.08] bg-[#0d0d0d]";
 
 export const poolPanelHeaderClass =
-  "flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#141414] px-3 py-3 sm:px-4";
+  "flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4";
 
 /** Alias: headers de pasta. */
 export const poolPanelHeaderBrClass = poolPanelHeaderClass;
 
 export const poolTableHeadClass =
-  "grid items-center gap-x-3 border-b border-white/10 bg-[#141414] px-3 py-2.5 text-[11px] font-medium tracking-[-0.01em] text-zinc-500 sm:px-4";
+  "grid items-center gap-x-3 border-b border-white/10 bg-[#202020] px-3 py-2.5 text-[11px] font-medium tracking-[-0.01em] text-zinc-500 sm:px-4";
 
 export const poolRowBaseClass =
   "grid items-center gap-x-3 border-b border-white/10 px-3 py-2.5 transition-colors last:border-b-0 sm:px-4";
 
 export const folderActionSendClass =
-  "flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#1db954]/45 bg-[#1db954]/20 text-[#1db954] transition-colors hover:bg-[#1db954]/35 hover:text-[#86efac] disabled:cursor-not-allowed disabled:opacity-50";
+  "flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#60cdff]/45 bg-[#60cdff]/20 text-[#60cdff] transition-colors hover:bg-[#60cdff]/35 hover:text-[#86efac] disabled:cursor-not-allowed disabled:opacity-50";
 
 export const folderActionCopyClass =
   "flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50";
@@ -34,10 +34,10 @@ export const packListRowBorderClass = "border-b border-white/10 last:border-b-0"
  */
 export function poolRowTone(index: number, active = false) {
   if (active) {
-    return `${packListRowBorderClass} bg-[#1db954]/12 hover:bg-[#1db954]/16`;
+    return `${packListRowBorderClass} bg-[#60cdff]/12 hover:bg-[#60cdff]/16`;
   }
   return index % 2 === 0
-    ? `${packListRowBorderClass} bg-[#0a0a0a] hover:bg-[#151515]`
+    ? `${packListRowBorderClass} bg-[#202020] hover:bg-[#151515]`
     : `${packListRowBorderClass} bg-[#1c1c1c] hover:bg-[#242424]`;
 }
 

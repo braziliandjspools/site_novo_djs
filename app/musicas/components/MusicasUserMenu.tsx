@@ -53,7 +53,7 @@ export function MusicasUserMenu({ userName, hasVip, onLogout }: MusicasUserMenuP
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-zinc-800 bg-[#141414] shadow-2xl shadow-black/50"
+          className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-zinc-800 bg-[#202020] shadow-2xl shadow-black/50"
         >
           <div className="border-b border-zinc-800 bg-[#1a1a1a] px-4 py-4">
             <p className="truncate text-sm font-bold text-white">{userName}</p>

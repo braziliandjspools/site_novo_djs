@@ -3,7 +3,7 @@
  * Inclui classes para Window Controls Overlay (PWA no Windows).
  */
 export const APP_TOP_CHROME =
-  "app-top-chrome sticky top-0 z-50 w-full min-w-0 border-b border-white/10 bg-[#0e0e0e]/92 backdrop-blur-xl";
+  "app-top-chrome sticky top-0 z-50 w-full min-w-0 border-b border-white/[0.08] bg-[#1c1c1c]/94 backdrop-blur-xl";
 
 export const APP_TOP_CHROME_ROW =
   "app-top-chrome-row relative mx-auto flex w-full min-w-0 items-center gap-3 px-4";

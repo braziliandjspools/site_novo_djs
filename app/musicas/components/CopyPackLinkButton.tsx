@@ -48,12 +48,12 @@ export function CopyPackLinkButton({
       disabled={busy || slugSegments.length === 0}
       title={label}
       aria-label={label}
-      className={`flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#1db954]/45 bg-[#1db954]/20 text-[#1db954] transition-colors hover:bg-[#1db954]/35 hover:text-[#86efac] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-md border border-[#60cdff]/45 bg-[#60cdff]/20 text-[#60cdff] transition-colors hover:bg-[#60cdff]/35 hover:text-[#86efac] disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     >
       {busy ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
       ) : copied ? (
-        <Check className="h-3.5 w-3.5 text-[#1db954]" />
+        <Check className="h-3.5 w-3.5 text-[#60cdff]" />
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}

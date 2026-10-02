@@ -242,7 +242,7 @@ function DiscoverProductionRow({
       <button
         type="button"
         onClick={play}
-        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#171917] sm:h-[72px] sm:w-[72px]"
+        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[6px] bg-[#252525] sm:h-[72px] sm:w-[72px]"
         aria-label={playing ? "Pausar " + production.title : access.canPlay ? "Reproduzir " + production.title : "Entrar para ouvir"}
       >
         <Image
@@ -254,7 +254,7 @@ function DiscoverProductionRow({
           className="object-cover"
         />
         <span className="absolute inset-0 flex items-center justify-center bg-black/0">
-          <span className={"flex h-8 w-8 items-center justify-center rounded-full bg-[#1db954] text-black " + (playing ? "opacity-100" : "opacity-0 hover:opacity-100")}>
+          <span className={"flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[#2f2f2f] text-white " + (playing ? "opacity-100" : "opacity-0 hover:opacity-100")}>
             {playing ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="ml-0.5 h-3.5 w-3.5" fill="currentColor" />}
           </span>
         </span>
@@ -263,7 +263,7 @@ function DiscoverProductionRow({
       <div className="min-w-0">
         <Link
           href={"/m/" + production.slug}
-          className="block truncate text-[13px] font-bold leading-5 text-white hover:text-[#1ed760] sm:text-[14px]"
+          className="block truncate text-[13px] font-semibold leading-5 text-white hover:text-[#60cdff] sm:text-[14px]"
           title={production.title}
         >
           {production.title}
@@ -272,21 +272,21 @@ function DiscoverProductionRow({
           {production.producerSlug ? (
             <Link
               href={"/p/" + production.producerSlug}
-              className="truncate font-medium text-zinc-300 hover:text-[#1ed760] hover:underline"
+              className="truncate font-medium text-[#cfcfcf] hover:text-[#60cdff] hover:underline"
             >
               {production.producer}
             </Link>
           ) : (
-            <span className="truncate font-medium text-zinc-300">{production.producer}</span>
+            <span className="truncate font-medium text-[#cfcfcf]">{production.producer}</span>
           )}
-          {production.genre ? <span className="text-zinc-600">•</span> : null}
-          {production.genre ? <span className="truncate text-zinc-500">{production.genre}</span> : null}
-          {production.bpm ? <span className="text-zinc-600">•</span> : null}
-          {production.bpm ? <span className="text-zinc-500">{production.bpm} BPM</span> : null}
-          {production.duration ? <span className="text-zinc-600">•</span> : null}
-          {production.duration ? <span className="text-zinc-500">{production.duration}</span> : null}
+          {production.genre ? <span className="text-[#9b9b9b]">•</span> : null}
+          {production.genre ? <span className="truncate text-[#9b9b9b]">{production.genre}</span> : null}
+          {production.bpm ? <span className="text-[#9b9b9b]">•</span> : null}
+          {production.bpm ? <span className="text-[#9b9b9b]">{production.bpm} BPM</span> : null}
+          {production.duration ? <span className="text-[#9b9b9b]">•</span> : null}
+          {production.duration ? <span className="text-[#9b9b9b]">{production.duration}</span> : null}
           {production.versionType ? (
-            <span className="rounded-full border border-white/10 px-1.5 py-0.5 text-[9px] font-medium text-zinc-500">
+            <span className="rounded-[4px] border border-white/10 px-1.5 py-0.5 text-[9px] font-medium text-[#9b9b9b]">
               {production.versionType}
             </span>
           ) : null}
@@ -296,7 +296,7 @@ function DiscoverProductionRow({
       <button
         type="button"
         onClick={download}
-        className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#1db954] px-3.5 text-[11px] font-extrabold text-[#06150b] hover:bg-[#1ed760] sm:px-4 sm:text-xs"
+        className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[6px] border border-white/[0.1] bg-[#2f2f2f] px-3.5 text-[11px] font-semibold text-white hover:bg-[#3a3a3a] sm:px-4 sm:text-xs"
       >
         <Download className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">{access.canDownload ? "Baixar" : access.authenticated ? "Assinar" : "Entrar"}</span>

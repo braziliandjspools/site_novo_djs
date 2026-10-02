@@ -115,7 +115,7 @@ export function DownloaderConfirmProvider({ children }: { children: ReactNode })
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="border-b border-white/[0.06] px-5 py-4">
-                  <div className="flex items-center gap-2 text-[#1db954]">
+                  <div className="flex items-center gap-2 text-[#60cdff]">
                     <MonitorDown className="h-5 w-5" />
                     <p id="dl-confirm-title" className="text-sm font-bold uppercase tracking-[0.12em]">
                       Confirmar envio
@@ -145,7 +145,7 @@ export function DownloaderConfirmProvider({ children }: { children: ReactNode })
                   <button
                     type="button"
                     onClick={() => request.resolve(true)}
-                    className="inline-flex flex-1 items-center justify-center rounded-full bg-[#1db954] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
+                    className="inline-flex flex-1 items-center justify-center rounded-full bg-[#60cdff] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
                   >
                     Sim, enviar
                   </button>
@@ -215,7 +215,7 @@ export function DownloaderBulkConfirmDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="border-b border-white/[0.06] px-5 py-4">
-          <div className="flex items-center gap-2 text-[#1db954]">
+          <div className="flex items-center gap-2 text-[#60cdff]">
             <MonitorDown className="h-5 w-5" />
             <p id="dl-bulk-confirm-title" className="text-sm font-bold uppercase tracking-[0.12em]">
               Confirmar download
@@ -231,7 +231,7 @@ export function DownloaderBulkConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="inline-flex flex-1 items-center justify-center rounded-full bg-[#1db954] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
+            className="inline-flex flex-1 items-center justify-center rounded-full bg-[#60cdff] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
           >
             Sim, baixar
           </button>

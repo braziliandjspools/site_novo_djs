@@ -84,7 +84,7 @@ function AcervoCard({
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}>
       <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch}
         aria-label={`Abrir acervo ${title}`}
-        className={`relative block shrink-0 overflow-hidden rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#1db954] ${view === "list" ? "h-20 w-20 sm:h-24 sm:w-24" : "aspect-[5/4] w-full rounded-b-none"}`}>
+        className={`relative block shrink-0 overflow-hidden rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#60cdff] ${view === "list" ? "h-20 w-20 sm:h-24 sm:w-24" : "aspect-[5/4] w-full rounded-b-none"}`}>
         {cover ? (
           <Image src={cover} alt="" fill sizes={view === "list" ? "96px" : "(max-width:480px) 50vw, (max-width:1024px) 33vw, 220px"}
             className="object-cover transition duration-500 group-hover/acervo:scale-105" unoptimized={cover.startsWith("/api/")} />
@@ -94,7 +94,7 @@ function AcervoCard({
           </div>
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#121212]/75 via-transparent to-transparent" />
-        {badge ? <span className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${isNew ? "border border-emerald-300/40 bg-emerald-500/85 text-white" : "border border-[#1ed760]/25 bg-[#142018]/85 text-white/70"}`}>{badge}</span> : null}
+        {badge ? <span className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${isNew ? "border border-emerald-300/40 bg-emerald-500/85 text-white" : "border border-[#8ad4ff]/25 bg-[#142018]/85 text-white/70"}`}>{badge}</span> : null}
         <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-90 shadow-lg transition group-hover/acervo:scale-110" aria-hidden><ArrowRight className="h-4 w-4" /></span>
       </Link>
       <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-1 flex-col px-3 pb-3 pt-3 sm:px-4"}`}>
@@ -226,7 +226,7 @@ export function AtualizacoesRootClient() {
             Explore os packs e as últimas atualizações do acervo BRS. Encontre suas faixas, descubra novidades e prepare sua próxima apresentação.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <a href="#acervos" className="inline-flex items-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#1db954]">
+            <a href="#acervos" className="inline-flex items-center gap-2 rounded-full bg-[#60cdff] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#60cdff]">
               Explorar acervos <ArrowRight className="h-4 w-4" />
             </a>
             <Link href="/musicas/artistas" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.12]">
@@ -242,7 +242,7 @@ export function AtualizacoesRootClient() {
                 <Music2 className="mr-1.5 inline h-3.5 w-3.5 text-white/45" />{trackCount.toLocaleString("pt-BR")} faixas
               </span>
             ) : null}
-            <span className={`rounded-xl border px-3 py-2 text-xs font-semibold ${hasVip ? "border-[#1db954]/30 bg-[#1db954]/10 text-white" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
+            <span className={`rounded-xl border px-3 py-2 text-xs font-semibold ${hasVip ? "border-[#60cdff]/30 bg-[#60cdff]/10 text-white" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
               {hasVip ? "Premium ativo" : "Só navegação"}
             </span>
             {updatedLabel ? <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400"><RefreshCw className="h-3.5 w-3.5" />Atualizado {updatedLabel}</span> : null}
@@ -280,7 +280,7 @@ export function AtualizacoesRootClient() {
               className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-white/25" />
           </label>
           <button type="button" onClick={() => setShowOnlyNew((value) => !value)} aria-pressed={showOnlyNew}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition ${showOnlyNew ? "border-[#1db954] bg-[#1db954]/20 text-white" : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-[#1db954]/40"}`}>
+            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition ${showOnlyNew ? "border-[#60cdff] bg-[#60cdff]/20 text-white" : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-[#60cdff]/40"}`}>
             <Sparkles className="h-4 w-4" /> Somente novidades
           </button>
           <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#0b0b0b] p-1" aria-label="Visualização do catálogo">

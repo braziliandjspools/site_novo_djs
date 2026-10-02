@@ -46,7 +46,7 @@ export function MusicLibraryBrowseShell({
             onClick={() => setOpen(true)}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
           >
-            <FolderTree className="h-4 w-4 text-[#1db954]" aria-hidden />
+            <FolderTree className="h-4 w-4 text-[#60cdff]" aria-hidden />
             Explorar pastas
           </button>
         </div>

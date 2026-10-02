@@ -96,7 +96,7 @@ export function UpdatesHero({
   }
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#17191d] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
+    <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#2b2b2b] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <Image
           src={MUSICAS_HERO_BG_SRC}
@@ -109,7 +109,7 @@ export function UpdatesHero({
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/25" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-black/10" />
       </div>
-      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#1db954] via-[#1db954]/40 to-transparent" />
+      <div className="relative z-20 h-px w-full bg-gradient-to-r from-[#60cdff] via-[#60cdff]/40 to-transparent" />
 
       <div className="relative z-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:gap-7 sm:p-7 lg:p-8">
         <div className="mx-auto w-full max-w-[160px] flex-shrink-0 sm:mx-0 sm:max-w-[200px] lg:max-w-[220px]">
@@ -149,7 +149,7 @@ export function UpdatesHero({
                   key={stat.label}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm tabular-nums ${
                     stat.accent
-                      ? "border-[#1db954]/30 bg-[#1db954]/10 text-[#1db954]"
+                      ? "border-[#60cdff]/30 bg-[#60cdff]/10 text-[#60cdff]"
                       : "border-white/10 bg-black/35 text-white/75"
                   }`}
                 >
@@ -181,7 +181,7 @@ export function UpdatesHero({
             <button
               type="button"
               onClick={explore}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-[#1fdf67] sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#60cdff] px-5 text-sm font-bold text-black transition-transform hover:scale-[1.01] hover:bg-[#1fdf67] sm:w-auto"
             >
               Explorar agora
             </button>
@@ -196,7 +196,7 @@ export function UpdatesHero({
 export function UpdatesHeroSkeleton() {
   return (
     <section
-      className="relative mb-8 overflow-hidden rounded-[28px] bg-[#17191d] p-5 ring-1 ring-white/[0.06] sm:p-7 lg:p-8"
+      className="relative mb-8 overflow-hidden rounded-[28px] bg-[#2b2b2b] p-5 ring-1 ring-white/[0.06] sm:p-7 lg:p-8"
       aria-busy="true"
       aria-label="Carregando acervo"
     >

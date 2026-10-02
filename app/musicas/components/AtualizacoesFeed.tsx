@@ -89,7 +89,7 @@ export function AtualizacoesFeed({ canPlay }: AtualizacoesFeedProps) {
                 <li key={folder.id}>
                   <Link
                     href={folderHref([slug])}
-                    className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-zinc-200 hover:bg-white/[0.04] hover:text-[#1db954]"
+                    className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-zinc-200 hover:bg-white/[0.04] hover:text-[#60cdff]"
                   >
                     <span className="min-w-0 truncate">{displayFolderName(folder.name)}</span>
                     <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600" />
@@ -104,7 +104,7 @@ export function AtualizacoesFeed({ canPlay }: AtualizacoesFeedProps) {
       <div className="order-2 min-w-0">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]">Atualizações</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#60cdff]">Atualizações</p>
             <h1 className="mt-1 text-2xl font-bold text-white">Packs recentes</h1>
           </div>
           <AtualizacoesDriveSyncButton
@@ -140,7 +140,7 @@ export function AtualizacoesFeed({ canPlay }: AtualizacoesFeedProps) {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
                     className={`h-8 min-w-8 rounded-full px-2.5 text-xs font-bold tabular-nums ${
-                      item === page ? "bg-[#1db954] text-black" : "border border-white/10 text-zinc-300 hover:border-white/30"
+                      item === page ? "bg-[#60cdff] text-black" : "border border-white/10 text-zinc-300 hover:border-white/30"
                     }`}
                   >
                     {item}

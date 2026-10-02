@@ -7,7 +7,7 @@ import { Crown, Lock, LogIn, Sparkles } from "lucide-react";
 import { checkoutUrl } from "../lib/site";
 import { useMusicasSession } from "./components/MusicasSessionContext";
 
-const SPOTIFY_GREEN = "#1db954";
+const SPOTIFY_GREEN = "#60cdff";
 
 function loginHref(pathname: string, mode?: "login" | "register") {
   const params = new URLSearchParams({ return: pathname || "/musicas" });
@@ -20,11 +20,11 @@ export function MusicasGuestBanner() {
 
   return (
     <section className="relative z-10 mb-8 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a3264] via-[#121212] to-[#0a0a0a] p-6 sm:p-8">
-      <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#1db954]/20 blur-3xl" />
+      <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#60cdff]/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 left-10 h-32 w-32 rounded-full bg-[#FFDF00]/10 blur-3xl" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
-          <p className="text-eyebrow mb-2 flex items-center gap-2 text-[#1db954]">
+          <p className="text-eyebrow mb-2 flex items-center gap-2 text-[#60cdff]">
             <Sparkles className="h-4 w-4" />
             Acervo VIP
           </p>
@@ -69,11 +69,11 @@ export function VipUpgradeBanner() {
   const pathname = usePathname();
 
   return (
-    <div className="relative z-10 mb-6 overflow-hidden rounded-2xl border border-[#1db954]/20 bg-gradient-to-r from-[#1db954]/10 via-[#181818] to-[#181818] px-4 py-4 sm:px-5">
-      <div className="pointer-events-none absolute -right-6 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-[#1db954]/15 blur-2xl" />
+    <div className="relative z-10 mb-6 overflow-hidden rounded-2xl border border-[#60cdff]/20 bg-gradient-to-r from-[#60cdff]/10 via-[#181818] to-[#181818] px-4 py-4 sm:px-5">
+      <div className="pointer-events-none absolute -right-6 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-[#60cdff]/15 blur-2xl" />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#1db954]/15 text-[#1db954] ring-1 ring-[#1db954]/25">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#60cdff]/15 text-[#60cdff] ring-1 ring-[#60cdff]/25">
             <Crown className="h-5 w-5" />
           </div>
           <div>
@@ -136,10 +136,10 @@ export function VipLockedPlayHint({
       {children}
       <div
         role="tooltip"
-        className={`pointer-events-none absolute z-50 w-[min(16.5rem,70vw)] origin-center scale-95 rounded-2xl border border-[#1db954]/25 bg-[#121212]/95 p-3 opacity-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-md transition-all duration-200 ease-out group-hover/locked:pointer-events-auto group-hover/locked:scale-100 group-hover/locked:opacity-100 group-focus-within/locked:pointer-events-auto group-focus-within/locked:scale-100 group-focus-within/locked:opacity-100 ${positionClass}`}
+        className={`pointer-events-none absolute z-50 w-[min(16.5rem,70vw)] origin-center scale-95 rounded-2xl border border-[#60cdff]/25 bg-[#121212]/95 p-3 opacity-0 shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-md transition-all duration-200 ease-out group-hover/locked:pointer-events-auto group-hover/locked:scale-100 group-hover/locked:opacity-100 group-focus-within/locked:pointer-events-auto group-focus-within/locked:scale-100 group-focus-within/locked:opacity-100 ${positionClass}`}
       >
         <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#1db954]/15 text-[#1db954]">
+          <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#60cdff]/15 text-[#60cdff]">
             <Lock className="h-3.5 w-3.5" />
           </span>
           <div className="min-w-0">
@@ -179,7 +179,7 @@ export function VipUpgradeGate() {
     <div className="flex min-h-screen items-center justify-center bg-black px-4 py-12">
       <div className="w-full max-w-lg rounded-xl bg-[#181818] p-8 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-zinc-800">
-          <Crown className="h-8 w-8 text-[#1db954]" />
+          <Crown className="h-8 w-8 text-[#60cdff]" />
         </div>
         <h1 className="mt-6 text-2xl font-bold text-white">Libere o acervo completo</h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">

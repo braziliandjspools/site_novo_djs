@@ -71,7 +71,7 @@ export function BrowserPackDownloadConfirm({
             serão baixadas pelo navegador. Isso exige alto processamento da máquina e pode
             deixar o navegador lento.
           </p>
-          <p className="mt-3 flex items-start gap-2 rounded-xl border border-[#1db954]/25 bg-[#1db954]/10 px-3 py-2.5 text-xs leading-relaxed text-[#1db954]">
+          <p className="mt-3 flex items-start gap-2 rounded-xl border border-[#60cdff]/25 bg-[#60cdff]/10 px-3 py-2.5 text-xs leading-relaxed text-[#60cdff]">
             <MonitorDown className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
               Prefira o <strong className="font-semibold">BRS Downloader</strong> para baixar
@@ -91,7 +91,7 @@ export function BrowserPackDownloadConfirm({
             <button
               type="button"
               onClick={onPreferDownloader}
-              className="inline-flex flex-1 items-center justify-center rounded-full bg-[#1db954] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-[#60cdff] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-black transition-opacity hover:opacity-90"
             >
               Usar Downloader
             </button>

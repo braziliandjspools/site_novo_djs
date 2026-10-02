@@ -108,7 +108,7 @@ export function WeekFolderGrid({
         monthDate ? (
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#1a2332] to-[#14181E] px-4 py-3 ring-1 ring-white/5">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#60cdff]">
                 Calendário
               </p>
               <p className="mt-1 text-sm font-semibold capitalize text-white">
@@ -118,7 +118,7 @@ export function WeekFolderGrid({
                 Semana 01 = dias 1–7 · Semana 02 = 8–14…
               </p>
             </div>
-            <p className="rounded-lg bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#1db954] ring-1 ring-[#1db954]/25">
+            <p className="rounded-lg bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tabular-nums text-[#60cdff] ring-1 ring-[#60cdff]/25">
               {formatLiveClock(now)}
             </p>
           </div>

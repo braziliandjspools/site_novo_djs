@@ -121,7 +121,7 @@ function formatMeta(folderCount: number, trackCount: number, detail?: string | n
 function badgeClass(tone: LibraryFolderItem["badgeTone"]) {
   if (tone === "amber") return "text-amber-300";
   if (tone === "muted") return "text-zinc-500";
-  return "text-[#1db954]";
+  return "text-[#60cdff]";
 }
 
 const FolderDownloaderButton = memo(function FolderDownloaderButton({
@@ -206,10 +206,10 @@ const FolderDownloaderButton = memo(function FolderDownloaderButton({
       aria-label={isDone ? `${label} · já enviada` : label}
       className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-80 ${
         isDone
-          ? "border-[#1db954]/50 bg-[#1db954]/20 text-[#1db954]"
+          ? "border-[#60cdff]/50 bg-[#60cdff]/20 text-[#60cdff]"
           : onDark
             ? "border-white/15 bg-white/[0.06] text-white/80 hover:bg-white/[0.1] hover:text-white"
-            : "border-[#1db954]/40 bg-[#1db954]/10 text-[#1db954] hover:bg-[#1db954]/20"
+            : "border-[#60cdff]/40 bg-[#60cdff]/10 text-[#60cdff] hover:bg-[#60cdff]/20"
       }`}
     >
       {sending ? (
@@ -390,7 +390,7 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
       }}
       onMouseEnter={prefetch}
       onFocus={prefetch}
-      className="group/folder relative cursor-pointer border-b border-[#1db954]/15 bg-[#0f1012] transition-[background-color,transform,box-shadow] duration-200 ease-out last:border-b-0 hover:bg-[rgba(0,255,110,0.05)] hover:shadow-[inset_3px_0_0_0_#1db954]"
+      className="group/folder relative cursor-pointer border-b border-[#60cdff]/15 bg-[#0f1012] transition-[background-color,transform,box-shadow] duration-200 ease-out last:border-b-0 hover:bg-[rgba(0,255,110,0.05)] hover:shadow-[inset_3px_0_0_0_#60cdff]"
       aria-label={`Abrir ${label}`}
     >
       <div className="px-3 py-3 transition-transform duration-200 ease-out group-hover/folder:translate-x-0.5 md:hidden">
@@ -398,14 +398,14 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
           <FolderIcon
             className={`mt-0.5 h-5 w-5 flex-shrink-0 transition-all duration-200 ease-out group-hover/folder:scale-110 ${
               hasSubfolders
-                ? "text-[#1db954]/80 group-hover/folder:text-[#1db954]"
-                : "text-white/40 group-hover/folder:text-[#1db954]/80"
+                ? "text-[#60cdff]/80 group-hover/folder:text-[#60cdff]"
+                : "text-white/40 group-hover/folder:text-[#60cdff]/80"
             }`}
             aria-hidden
           />
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
-              <span className="truncate text-[14px] font-medium text-white transition-colors duration-200 group-hover/folder:text-[#1db954]">
+              <span className="truncate text-[14px] font-medium text-white transition-colors duration-200 group-hover/folder:text-[#60cdff]">
                 {label}
               </span>
               {badge ? (
@@ -458,15 +458,15 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
           <FolderIcon
             className={`h-5 w-5 transition-all duration-200 ease-out group-hover/folder:scale-110 ${
               hasSubfolders
-                ? "text-[#1db954]/80 group-hover/folder:text-[#1db954]"
-                : "text-white/40 group-hover/folder:text-[#1db954]/80"
+                ? "text-[#60cdff]/80 group-hover/folder:text-[#60cdff]"
+                : "text-white/40 group-hover/folder:text-[#60cdff]/80"
             }`}
             aria-hidden
           />
         </span>
         <span className="min-w-0">
           <span className="flex min-w-0 items-center gap-2">
-            <span className="truncate text-[14px] font-medium text-white transition-colors duration-200 group-hover/folder:text-[#1db954]">
+            <span className="truncate text-[14px] font-medium text-white transition-colors duration-200 group-hover/folder:text-[#60cdff]">
               {label}
             </span>
             {badge ? (
@@ -491,7 +491,7 @@ const LibraryFolderRow = memo(function LibraryFolderRow({
             ? `${folderCount} ${folderCount === 1 ? "subpasta" : "subpastas"}`
             : null}
         </span>
-        <span className="flex items-center justify-center text-white/30 transition-all duration-200 group-hover/folder:translate-x-0.5 group-hover/folder:text-[#1db954]">
+        <span className="flex items-center justify-center text-white/30 transition-all duration-200 group-hover/folder:translate-x-0.5 group-hover/folder:text-[#60cdff]">
           <ChevronRight className="h-4 w-4" aria-hidden />
         </span>
 
@@ -576,23 +576,23 @@ export function LibraryFolderList({
         {before}
         <section className={`mx-auto w-full ${fillColumn ? "max-w-none" : "max-w-[1440px]"}`}>
           {sectionTitle ? (
-            <div className="relative mb-7 overflow-hidden rounded-3xl border border-[#1db954]/20 bg-gradient-to-br from-[#15241e] via-[#101612] to-[#0a0c0b] px-5 py-7 text-center shadow-[0_20px_60px_rgba(0,0,0,0.45)] sm:mb-8 sm:px-8 sm:py-9">
+            <div className="relative mb-7 overflow-hidden rounded-3xl border border-[#60cdff]/20 bg-gradient-to-br from-[#15241e] via-[#101612] to-[#0a0c0b] px-5 py-7 text-center shadow-[0_20px_60px_rgba(0,0,0,0.45)] sm:mb-8 sm:px-8 sm:py-9">
               <div
-                className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-[#1db954]/20 blur-3xl"
+                className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-[#60cdff]/20 blur-3xl"
                 aria-hidden
               />
               <div
                 className="pointer-events-none absolute -right-8 bottom-0 h-36 w-36 rounded-full bg-[#00b4d8]/15 blur-3xl"
                 aria-hidden
               />
-              <p className="relative text-[11px] font-bold uppercase tracking-[0.28em] text-[#1db954]/90">
+              <p className="relative text-[11px] font-bold uppercase tracking-[0.28em] text-[#60cdff]/90">
                 Acervo VIP
               </p>
               <h2 className="relative mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-[2.75rem]">
                 {sectionTitle}
               </h2>
               <div
-                className="relative mx-auto mt-3 h-1 w-20 rounded-full bg-gradient-to-r from-[#00b4d8] via-[#1db954] to-[#2dff7a]"
+                className="relative mx-auto mt-3 h-1 w-20 rounded-full bg-gradient-to-r from-[#00b4d8] via-[#60cdff] to-[#2dff7a]"
                 aria-hidden
               />
               {sectionDescription ? (
@@ -600,7 +600,7 @@ export function LibraryFolderList({
                   {sectionDescription}
                 </p>
               ) : null}
-              <div className="relative mx-auto mt-6 max-w-3xl rounded-2xl border border-[#1db954]/30 bg-black/30 px-4 py-4 text-center backdrop-blur-sm sm:px-6 sm:py-5">
+              <div className="relative mx-auto mt-6 max-w-3xl rounded-2xl border border-[#60cdff]/30 bg-black/30 px-4 py-4 text-center backdrop-blur-sm sm:px-6 sm:py-5">
                 <p className="text-[13px] leading-relaxed text-white/80 sm:text-sm sm:leading-[1.6]">
                   Bem-vindo ao nosso acervo exclusivo. Usuários VIP têm downloads ilimitados.
                   Visitantes navegam livremente — assine um plano para baixar e ouvir sem limites.
@@ -642,7 +642,7 @@ export function LibraryFolderList({
                     ) : null}
                     <CollectionContextMenu
                       label={`Opções · ${titleLabel}`}
-                      buttonClassName="!h-8 !w-8 rounded-lg border border-[#1db954]/35 bg-[#121212] text-white/75 hover:border-[#1db954]/55 hover:bg-[#0f1012] hover:text-white"
+                      buttonClassName="!h-8 !w-8 rounded-lg border border-[#60cdff]/35 bg-[#121212] text-white/75 hover:border-[#60cdff]/55 hover:bg-[#0f1012] hover:text-white"
                       actions={[
                         {
                           id: "open",
@@ -722,14 +722,14 @@ export function LibraryFolderList({
       return (
         <div
           key={folder.id}
-          className={`group/folderbtn relative mx-auto flex w-full items-center gap-2 overflow-hidden rounded-lg border bg-[#17191d] px-3.5 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition-[transform,box-shadow,border-color,background-color] duration-200 sm:gap-3 sm:px-5 sm:py-3.5 ${
+          className={`group/folderbtn relative mx-auto flex w-full items-center gap-2 overflow-hidden rounded-lg border bg-[#2b2b2b] px-3.5 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition-[transform,box-shadow,border-color,background-color] duration-200 sm:gap-3 sm:px-5 sm:py-3.5 ${
             muted
               ? "border-white/10 bg-[#121212]/70 opacity-55"
               : isNew
-                ? "border-[#1db954]/55 bg-[rgba(29,185,84,0.06)] hover:-translate-y-0.5 hover:border-[#1db954]/70 hover:bg-[rgba(29,185,84,0.1)]"
+                ? "border-[#60cdff]/55 bg-[rgba(96,205,255,0.06)] hover:-translate-y-0.5 hover:border-[#60cdff]/70 hover:bg-[rgba(96,205,255,0.1)]"
                 : badgeTone === "amber"
-                  ? "border-[#1db954]/40 hover:-translate-y-0.5 hover:border-amber-300/55 hover:bg-[#121212]"
-                  : "border-[#1db954]/35 hover:-translate-y-0.5 hover:border-[#1db954]/55 hover:bg-[#121212]"
+                  ? "border-[#60cdff]/40 hover:-translate-y-0.5 hover:border-amber-300/55 hover:bg-[#121212]"
+                  : "border-[#60cdff]/35 hover:-translate-y-0.5 hover:border-[#60cdff]/55 hover:bg-[#121212]"
           }`}
         >
           <Link
@@ -755,7 +755,7 @@ export function LibraryFolderList({
             }`}
           >
             <Download
-              className={`h-4 w-4 flex-shrink-0 ${muted ? "text-white/40" : isNew ? "text-[#1db954]" : "text-white/75"}`}
+              className={`h-4 w-4 flex-shrink-0 ${muted ? "text-white/40" : isNew ? "text-[#60cdff]" : "text-white/75"}`}
               strokeWidth={2.4}
               aria-hidden
             />
@@ -772,7 +772,7 @@ export function LibraryFolderList({
                   muted
                     ? "text-white/35"
                     : isNew || badgeTone === "green"
-                      ? "text-[#1db954]"
+                      ? "text-[#60cdff]"
                       : badgeTone === "amber"
                         ? "text-amber-300/90"
                         : "text-white/55"
@@ -840,7 +840,7 @@ export function LibraryFolderList({
               <h2 className="text-xl font-extrabold uppercase tracking-[0.08em] text-white sm:text-2xl">
                 {sectionTitle}
               </h2>
-              <div className="mx-auto mt-2 h-0.5 w-16 rounded-full bg-[#1db954]/50" aria-hidden />
+              <div className="mx-auto mt-2 h-0.5 w-16 rounded-full bg-[#60cdff]/50" aria-hidden />
               {sectionDescription ? (
                 <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/50 sm:text-[15px]">
                   {sectionDescription}
@@ -859,11 +859,11 @@ export function LibraryFolderList({
                 {group.title ? (
                   <div
                     className={`flex items-center gap-2 px-1 ${
-                      group.id === "new" ? "text-[#1db954]" : "text-white/50"
+                      group.id === "new" ? "text-[#60cdff]" : "text-white/50"
                     }`}
                   >
                     {group.id === "new" ? (
-                      <span className="rounded-full bg-[#1db954] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-black">
+                      <span className="rounded-full bg-[#60cdff] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-black">
                         Novo
                       </span>
                     ) : null}
