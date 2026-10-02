@@ -58,7 +58,8 @@ export function sendNowFolderUrl() {
 }
 
 export function isSendNowConfigured() {
-  return Boolean(sendNowApiKey() && (sendNowFolderUrl() || sendNowFolderId()));
+  const explicitFolderId = process.env.SEND_NOW_FOLDER_ID?.trim() || "";
+  return Boolean(sendNowApiKey() && (sendNowFolderUrl() || /^\d+$/.test(explicitFolderId)));
 }
 
 export function sendNowRootStorageId() {
