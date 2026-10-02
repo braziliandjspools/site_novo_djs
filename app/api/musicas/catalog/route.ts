@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         ...access,
       });
     };
-    return forceRefresh ? withDriveForceRefresh(run) : run();
+    return forceRefresh ? await withDriveForceRefresh(run) : await run();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao carregar o acervo.";
     return NextResponse.json({ error: message }, { status: 500 });
