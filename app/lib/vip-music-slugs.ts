@@ -122,6 +122,16 @@ export function findFolderBySlug(folders: VipMusicFolder[], slug: string): VipMu
   const exact = folders.find((folder) => slugifyFolderName(folder.name) === normalized);
   if (exact) return exact;
 
+  // Dias de atualização: 25-set-2026 ≡ 25-09-2026 ≡ 25.09.2026
+  const dateFromSlug = parseUpdateDateFolder(normalized);
+  if (dateFromSlug) {
+    const dateMatch = folders.find((folder) => {
+      const parsed = parseUpdateDateFolder(folder.name);
+      return parsed?.key === dateFromSlug.key;
+    });
+    if (dateMatch) return dateMatch;
+  }
+
   const weekNum = parseWeekNumberFromSlug(normalized);
   if (weekNum != null) {
     const weekMatch = folders.find((folder) => parseWeekNumber(folder.name) === weekNum);

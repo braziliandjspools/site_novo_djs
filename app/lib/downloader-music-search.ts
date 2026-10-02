@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "./prisma";
 import { catalogMediaUrl } from "./catalog-media";
-import { folderHref } from "./vip-music-slugs";
+import { folderHref, isUpdateDateFolderName } from "./vip-music-slugs";
 import { searchVipMusic } from "./vip-music-search";
 
 export type DownloaderSearchTrack = {
@@ -28,6 +28,10 @@ export type DownloaderSearchTrack = {
   downloadAvailable: boolean;
 };
 
+/**
+ * Pastas de dia (ex.: 25-set-2026 / 25-09-2026) abrem a tabela de faixas no site.
+ * Não dá para anexar /pop ou /pool depois — esses níveis não existem na URL.
+ */
 function vipCatalogPath(input: {
   monthSlug: string;
   weekSlug?: string;
@@ -38,8 +42,20 @@ function vipCatalogPath(input: {
   const year = input.monthSlug.match(/-(20\d{2})$/)?.[1];
   if (year) segments.push(year);
   if (input.monthSlug) segments.push(input.monthSlug);
-  if (input.weekSlug) segments.push(input.weekSlug);
-  if (input.styleSlug) segments.push(input.styleSlug);
+
+  const weekSlug = input.weekSlug?.trim() || "";
+  if (weekSlug) {
+    segments.push(weekSlug);
+    // Dia de atualização → linka no dia (site agrega pools/estilos na tabela).
+    if (isUpdateDateFolderName(weekSlug)) {
+      return `${folderHref(segments)}?faixa=${encodeURIComponent(input.trackId)}`;
+    }
+    // Semana / subpasta navegável → inclui o estilo quando existir.
+    if (input.styleSlug) segments.push(input.styleSlug);
+  } else if (input.styleSlug) {
+    segments.push(input.styleSlug);
+  }
+
   const base = segments.length > 0 ? folderHref(segments) : "/musicas/atualizacoes";
   return `${base}?faixa=${encodeURIComponent(input.trackId)}`;
 }
