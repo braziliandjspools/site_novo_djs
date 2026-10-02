@@ -13,6 +13,7 @@ import {
   slugifyFolderName,
 } from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
+import { isSendNowFolderStorageId } from "../../lib/send-now";
 import {
   clearMusicasCache,
   fetchMusicasJson,
@@ -73,6 +74,7 @@ function AcervoCard({
   const hasFolderStats = typeof folderCount === "number" && folderCount > 0;
   const hasTrackStats = typeof trackCount === "number" && trackCount > 0;
   const { label: statusLabel, status } = parseMonthStatus(folder.name);
+  const isSendNow = isSendNowFolderStorageId(folder.id);
   const badge = isNew ? "Novo" : statusLabel || null;
 
   function prefetch() {
@@ -98,7 +100,9 @@ function AcervoCard({
         <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-90 shadow-lg transition group-hover/acervo:scale-110" aria-hidden><ArrowRight className="h-4 w-4" /></span>
       </Link>
       <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-1 flex-col px-3 pb-3 pt-3 sm:px-4"}`}>
-        <p className="mb-1 text-[9px] font-extrabold uppercase tracking-[0.17em] text-white/45">{statusLabel || (isNew ? "Adicionado recentemente" : "BRS · DJ Pool")}</p>
+        <p className={`mb-1 text-[9px] font-extrabold uppercase tracking-[0.17em] ${isSendNow ? "text-[#1db954]" : "text-white/45"}`}>
+          {isSendNow ? "SEND.NOW · ACERVO SEPARADO" : (statusLabel || (isNew ? "Adicionado recentemente" : "BRS · DJ Pool"))}
+        </p>
         <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="outline-none focus-visible:text-white/45">
           <h3 className="line-clamp-2 text-[13px] font-extrabold leading-snug text-white transition group-hover/acervo:text-white sm:text-[15px]">{title}</h3>
         </Link>
