@@ -3,6 +3,7 @@ import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music
 import { searchVipMusic } from "../../../lib/vip-music-search";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const session = await getVipMusicSession();

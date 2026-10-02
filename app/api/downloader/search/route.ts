@@ -5,6 +5,7 @@ import { BRS_MUSIC_SEARCH_ENABLED } from "../../../lib/feature-flags";
 import { searchDownloaderTracks } from "../../../lib/downloader-music-search";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function OPTIONS(request: Request) {
   return handleDownloaderCorsPreflight(request) ?? new NextResponse(null, { status: 405 });
