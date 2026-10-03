@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Disc3,
@@ -11,31 +10,22 @@ import {
   Mic2,
   MonitorDown,
   RefreshCw,
-  Search,
-  Sparkles,
 } from "lucide-react";
 import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
-import {
-  displayFolderName,
-} from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
   getFavoriteTracks,
-  getRecentFolders,
   subscribeFavoriteTracks,
   type ContinueListening,
   type FavoriteTrack,
-  type RecentFolder,
 } from "../lib/music-library-storage";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { FavoriteTracksShelf } from "./FavoriteTracksShelf";
-import { DjPoolDiscovery } from "./DjPoolDiscovery";
-import { LibraryFolderList, type LibraryFolderItem } from "./LibraryFolderGrid";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
-import { MusicLibraryShelf, MusicLibraryTile, libraryTileTone } from "./MusicLibraryTiles";
+import { MusicLibraryShelf } from "./MusicLibraryTiles";
 import { MusicasListSkeleton, MusicasPageSkeleton } from "./MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
@@ -52,56 +42,20 @@ type ArtistListItem = {
 
 export function MusicasHubClient() {
   const { authenticated, hasVip, userName } = useMusicasSession();
-  const { folders, home, loadingTree, loadingHome, error, newFolderIds } = useMusicasLibraryHome();
+  const { folders, home, loadingTree, loadingHome, error } = useMusicasLibraryHome();
   const downloaderSync = useDownloaderSync();
-  const router = useRouter();
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
-  const [recent, setRecent] = useState<RecentFolder[]>([]);
-  const [artists, setArtists] = useState<ArtistListItem[]>([]);
   const [favorites, setFavorites] = useState<FavoriteTrack[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const firstName = userName.trim().split(/\s+/)[0] || "DJ";
 
   useEffect(() => {
     setContinueItem(getContinueListening());
-    setRecent(getRecentFolders());
     setFavorites(getFavoriteTracks());
     const unsubscribe = subscribeFavoriteTracks(() => setFavorites(getFavoriteTracks()));
     void fetch("/api/musicas/artists", { cache: "no-store" })
-      .then(async (res) => {
-        const body = (await res.json()) as { artists?: ArtistListItem[] };
-        setArtists((body.artists ?? []).slice(0, 16));
-      })
-      .catch(() => setArtists([]));
     return unsubscribe;
   }, []);
 
-  function handleSearchSubmit(event: FormEvent) {
-    event.preventDefault();
-    const q = searchQuery.trim();
-    if (!q) return;
-    router.push(`/musicas/atualizacoes?q=${encodeURIComponent(q)}`);
-  }
-
-  const packItems = useMemo((): LibraryFolderItem[] => {
-    return folders.slice(0, 12).map((folder, index) => {
-      const catalog = folder as VipMusicCatalogItem;
-      const isNewest = index === 0;
-      const isNew = newFolderIds.has(folder.id);
-      return {
-        id: folder.id,
-        name: folder.name,
-        title: displayFolderName(folder.name),
-        folderCount: catalog.folderCount,
-        trackCount: catalog.trackCount,
-        badge: isNewest ? "Mais recente" : isNew ? "Novo" : null,
-        badgeTone: isNewest || isNew ? "green" : undefined,
-      };
-    });
-  }, [folders, newFolderIds]);
-
-  const latestTracks = home?.latestTracks?.slice(0, 12) ?? [];
-  const topWeek = home?.topWeek?.slice(0, 10) ?? [];
   const bootLoading = loadingTree && loadingHome && folders.length === 0 && !home;
   const downloaderOnlineCount = downloaderSync?.devices.filter((device) => device.isOnline).length ?? 0;
   const showDownloaderCard = authenticated && hasVip && Boolean(downloaderSync);
@@ -132,18 +86,6 @@ export function MusicasHubClient() {
               ? "Tudo para preparar seu próximo set: descubra lançamentos, encontre seus artistas e organize seus downloads."
               : "Explore packs, remixes e versões para DJs. Descubra o acervo e conheça o BR Downloader."}
           </p>
-          <form onSubmit={handleSearchSubmit} className="mt-6 flex max-w-xl flex-col gap-2 sm:flex-row" role="search">
-            <label className="relative min-w-0 flex-1">
-              <span className="sr-only">Buscar no acervo</span>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8ad4ff]" aria-hidden />
-              <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Música, artista, remix ou estilo..."
-                className="h-12 w-full rounded-xl border border-white/15 bg-black/40 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#60cdff] focus:ring-2 focus:ring-green-500/20" />
-            </label>
-            <button type="submit" disabled={!searchQuery.trim()} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#60cdff] px-5 text-sm font-bold text-white transition hover:bg-[#60cdff] disabled:cursor-not-allowed disabled:opacity-50">
-              <Search className="h-4 w-4" /> Buscar
-            </button>
-          </form>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/musicas/atualizacoes" prefetch={false} className="inline-flex items-center gap-2 rounded-full border border-[#60cdff]/40 bg-[#60cdff]/15 px-4 py-2 text-xs font-bold text-green-100 transition hover:bg-[#60cdff]/25">
               <RefreshCw className="h-4 w-4" /> Atualizações <ArrowRight className="h-3.5 w-3.5" />
@@ -168,8 +110,6 @@ export function MusicasHubClient() {
           </div>
         </div>
       </header>
-
-      <DjPoolDiscovery />
 
       <MusicasProductionsSection />
 
@@ -221,77 +161,10 @@ export function MusicasHubClient() {
         </MusicLibraryShelf>
       ) : null}
 
-      {recent.length > 0 ? (
-        <MusicLibraryShelf title="Continue explorando">
-          {recent.map((folder, index) => (
-            <MusicLibraryTile
-              key={folder.href}
-              href={folder.href}
-              title={folder.name}
-              index={index + 2}
-              size="shelf"
-              icon={Sparkles}
-            />
-          ))}
-        </MusicLibraryShelf>
-      ) : null}
 
       <section id="favoritos" className="scroll-mt-24"><FavoriteTracksShelf tracks={favorites} /></section>
 
-      <div className="rounded-2xl border border-[#60cdff]/15 bg-gradient-to-b from-green-500/[0.07] to-transparent p-3 sm:p-4"><MusicLibraryTrackShelf
-        title="Últimas adicionadas"
-        tracks={latestTracks}
-        actionHref="/musicas/atualizacoes"
-        actionLabel="Biblioteca"
-      /></div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-3 sm:p-4"><MusicLibraryTrackShelf title="Em alta na semana" tracks={topWeek} showRank /></div>
-
-      {artists.length > 0 ? (
-        <MusicLibraryShelf title="Artistas em destaque" actionHref="/musicas/artistas" actionLabel="Ver todos">
-          {artists.map((artist, index) => (
-            <MusicLibraryTile
-              key={artist.slug}
-              href={artist.href}
-              title={artist.name}
-              subtitle={artist.genres?.[0] ?? artist.shortBio}
-              index={index + 6}
-              tone={libraryTileTone(index + 6)}
-              imageUrl={artist.imageUrl}
-              size="shelf"
-              round
-              icon={Mic2}
-            />
-          ))}
-        </MusicLibraryShelf>
-      ) : null}
-
-      {loadingTree && packItems.length === 0 ? (
-        <MusicasListSkeleton rows={8} />
-      ) : packItems.length > 0 ? (
-        <section>
-          <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
-            <h2 className="text-[17px] font-bold tracking-tight text-white sm:text-[19px]">
-              Packs do acervo
-            </h2>
-            <Link
-              href="/musicas/atualizacoes"
-              prefetch={false}
-              className="text-[12px] font-semibold text-[#60cdff] hover:underline"
-            >
-              Ver tudo
-            </Link>
-          </div>
-          <LibraryFolderList
-            folders={packItems}
-            slugSegments={[]}
-            newFolderIds={newFolderIds}
-            layout="buttons"
-            fillColumn
-            emptyMessage="Nenhum pack encontrado."
-          />
-        </section>
-      ) : null}
     </div>
   );
 }
