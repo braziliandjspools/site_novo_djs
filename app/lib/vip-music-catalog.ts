@@ -1108,8 +1108,8 @@ export async function getVipMusicTracksPaginated(
 }
 
 export const VIP_MUSIC_FEED_PAGE_SIZE = 6;
-/** Faixas iniciais por pack no feed / blocos de atualizações (resto via “Carregar mais”). */
-export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 30;
+/** Faixas iniciais por pack no feed / blocos de atualizações (resto via “LOAD MORE”, em lotes de 100). */
+export const VIP_MUSIC_FEED_TRACKS_PAGE_SIZE = 100;
 
 export type VipMusicFeedPack = {
   id: string;
