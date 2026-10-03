@@ -659,7 +659,7 @@ async function getDriveCatalog(
     // O mês é uma tabela contínua: as pastas 29-SET, 28-SET, 27-SET...
     // fornecem apenas a data de cada faixa. Nunca carregamos o mês inteiro
     // de uma vez; a API devolve lotes pequenos para o infinite scroll.
-    const requestedLimit = Math.max(1, Math.min(trackLimit, 50));
+    const requestedLimit = Math.max(1, Math.min(trackLimit, 100));
     const state: TrackPageState = {
       skip: Math.max(0, trackOffset),
       limit: requestedLimit + 1,
