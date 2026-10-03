@@ -1882,7 +1882,7 @@ export function VipMusicTrackList({
                       type="button"
                       disabled={loadingMore}
                       onClick={() => void handleLoadMore()}
-                      className="mx-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
+                      className="mx-auto inline-flex min-h-10 min-w-[180px] items-center justify-center gap-2 rounded-md border border-[#60cdff]/35 bg-[#60cdff]/10 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
                     >
                       {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                       {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
@@ -1928,7 +1928,7 @@ export function VipMusicTrackList({
                       type="button"
                       disabled={loadingMore}
                       onClick={() => void handleLoadMore()}
-                      className="mx-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
+                      className="mx-auto inline-flex min-h-10 min-w-[180px] items-center justify-center gap-2 rounded-md border border-[#60cdff]/35 bg-[#60cdff]/10 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
                     >
                       {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                       {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
