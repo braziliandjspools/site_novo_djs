@@ -1877,7 +1877,7 @@ export function VipMusicTrackList({
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
                 {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
-                  <div className="border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
+                  <div className="flex justify-center border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
                     <button
                       type="button"
                       disabled={loadingMore}
@@ -1923,7 +1923,7 @@ export function VipMusicTrackList({
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
                 {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
-                  <div className="border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
+                  <div className="flex justify-center border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
                     <button
                       type="button"
                       disabled={loadingMore}
