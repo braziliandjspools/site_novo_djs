@@ -1863,7 +1863,7 @@ export function VipMusicTrackList({
           {selectionToolbar ? (
             <div className={`${panelClass} !shadow-none`}>{selectionToolbar}</div>
           ) : null}
-          {visibleTrackSections?.map((section) => (
+          {visibleTrackSections?.map((section, sectionIndex, sections) => (
             <div key={section.id} className={panelClass}>
               <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
                 <h3 className="inline-flex items-center bg-[#60cdff] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
