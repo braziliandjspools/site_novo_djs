@@ -79,7 +79,7 @@ function resolveUrl(
   slugPath: string,
   forceRefresh = false,
   trackOffset?: number,
-  trackLimit = 50,
+  trackLimit = 100,
   day?: string,
 ) {
   const params = new URLSearchParams({ slug: slugPath });
@@ -138,8 +138,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [playBusy, setPlayBusy] = useState(false);
   const [sendingPack, setSendingPack] = useState(false);
   const [downloadingPack, setDownloadingPack] = useState(false);
-  const [loadingMoreTracks, setLoadingMoreTracks] = useState(false);
-  const tracksLoadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreTracksRef = useRef(false);
   const hasTracksRef = useRef(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
@@ -241,8 +239,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {
-      const canonicalUrl = resolveUrl(slugPath, false, undefined, 50, dayFilter);
-      const url = resolveUrl(slugPath, options?.forceRefresh, undefined, 50, dayFilter);
+      const canonicalUrl = resolveUrl(slugPath, false, undefined, 100, dayFilter);
+      const url = resolveUrl(slugPath, options?.forceRefresh, undefined, 100, dayFilter);
       const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
       const keepVisible = Boolean(options?.forceRefresh && hasTracksRef.current);
       if (cached) {
@@ -370,9 +368,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const loadMoreTracks = useCallback(async () => {
     if (!data || data.level !== "tracks" || loadingMoreTracksRef.current || !tracksHasMore) return;
     loadingMoreTracksRef.current = true;
-    setLoadingMoreTracks(true);
     try {
-      const url = resolveUrl(slugPath, false, directTracks.length, 50, dayFilter);
+      const url = resolveUrl(slugPath, false, directTracks.length, 100, dayFilter);
       const body = await fetchMusicasJson<ResolveResponse>(url);
       setData((current) => {
         if (!current) return body;
@@ -386,30 +383,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       showToast(err instanceof Error ? err.message : "Não foi possível carregar mais faixas.", "error");
     } finally {
       loadingMoreTracksRef.current = false;
-      setLoadingMoreTracks(false);
     }
   }, [data, dayFilter, directTracks.length, showToast, slugPath, tracksHasMore]);
 
 
-
-  // Carregamento infinito: quando o usuário se aproxima do fim da lista,
-  // busca automaticamente o próximo lote sem exigir um botão.
-  useEffect(() => {
-    const sentinel = tracksLoadMoreSentinelRef.current;
-    if (!sentinel || !showingTracks || !tracksHasMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          void loadMoreTracks();
-        }
-      },
-      { rootMargin: "900px 0px" },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [loadMoreTracks, showingTracks, tracksHasMore]);
 
   const monthTitle = data?.resolvedPath[0]
     ? displayFolderName(data.resolvedPath[0].name)
@@ -951,6 +928,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 <VipMusicTrackList
                   folderId={data.folderId}
                   groupByDate={true}
+                  embedded
                 tracks={directTracks}
                 canPlay={playbackEnabled}
                 canDownload={downloadEnabled}
@@ -977,13 +955,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     : undefined
                   }
                 />
-                {tracksHasMore ? (
-                  <div
-                    ref={tracksLoadMoreSentinelRef}
-                    className="h-px w-full"
-                    aria-hidden="true"
-                  />
-                ) : null}
+
               </div>
             )}
             {(useSiblingFolderNav || slugSegments.length >= 2) && (
