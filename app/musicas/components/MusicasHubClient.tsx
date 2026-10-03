@@ -11,7 +11,6 @@ import {
   MonitorDown,
   RefreshCw,
 } from "lucide-react";
-import type { VipMusicCatalogItem } from "../../lib/vip-music-catalog";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
@@ -26,19 +25,10 @@ import { FavoriteTracksShelf } from "./FavoriteTracksShelf";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
 import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
 import { MusicLibraryShelf } from "./MusicLibraryTiles";
-import { MusicasListSkeleton, MusicasPageSkeleton } from "./MusicasSkeletons";
+import { MusicasPageSkeleton } from "./MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { MusicasProductionsSection } from "./MusicasProductionsSection";
-
-type ArtistListItem = {
-  slug: string;
-  name: string;
-  href: string;
-  shortBio?: string | null;
-  genres?: string[];
-  imageUrl?: string | null;
-};
 
 export function MusicasHubClient() {
   const { authenticated, hasVip, userName } = useMusicasSession();
@@ -52,7 +42,6 @@ export function MusicasHubClient() {
     setContinueItem(getContinueListening());
     setFavorites(getFavoriteTracks());
     const unsubscribe = subscribeFavoriteTracks(() => setFavorites(getFavoriteTracks()));
-    void fetch("/api/musicas/artists", { cache: "no-store" })
     return unsubscribe;
   }, []);
 
