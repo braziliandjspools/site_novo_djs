@@ -26,8 +26,8 @@ import { useDownloaderSync } from "./DownloaderSyncContext";
 import { useMusicasSession } from "./MusicasSessionContext";
 import { useMusicasToast } from "./MusicasToast";
 
-/** Faixas visíveis por página dentro do acordeão (restante via "Carregar mais"). */
-const ACCORDION_TRACKS_PAGE_SIZE = 35;
+/** Faixas visíveis por página dentro do acordeão (restante via "LOAD MORE"). */
+const ACCORDION_TRACKS_PAGE_SIZE = 100;
 
 type ResolveResponse = {
   folderId: string;
