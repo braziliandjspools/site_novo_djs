@@ -1943,7 +1943,7 @@ export function VipMusicTrackList({
 
 
       {selectionMode && selectedCount > 0 ? (
-        <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#0f1012]/95 px-3.5 py-3 backdrop-blur-md">
+        <div className="sticky bottom-0 z-20 hidden flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#0f1012]/95 px-3.5 py-3 backdrop-blur-md sm:flex">
           <p className="text-xs font-semibold tabular-nums text-white">
             {selectedCount} selecionada{selectedCount === 1 ? "" : "s"}
           </p>
