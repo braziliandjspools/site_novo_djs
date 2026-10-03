@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Disc3, Download, HardDrive, Loader2, Music2 } from "lucide-react";
+import { ArrowRight, CalendarDays, Disc3, Download, HardDrive, Music2 } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import { VIP_MUSIC_FEED_TRACKS_PAGE_SIZE } from "../../lib/vip-music-catalog";
