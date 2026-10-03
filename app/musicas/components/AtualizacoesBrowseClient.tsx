@@ -84,9 +84,9 @@ function resolveUrl(
 ) {
   const params = new URLSearchParams({ slug: slugPath });
   if (forceRefresh) params.set("refresh", "1");
+  params.set("trackLimit", String(trackLimit));
   if (trackOffset != null && trackOffset > 0) {
     params.set("trackOffset", String(trackOffset));
-    params.set("trackLimit", String(trackLimit));
   }
   if (day) params.set("dia", day);
   return `/api/musicas/resolve?${params.toString()}`;
