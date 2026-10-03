@@ -1884,7 +1884,7 @@ export function VipMusicTrackList({
           {selectionToolbar}
           {(visibleTrackSections ?? [
             { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks: filteredTracks },
-          ]).map((section) => (
+          ]).map((section, sectionIndex, sections) => (
             <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
               {trackSections && section.title ? (
                 <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
@@ -1906,25 +1906,25 @@ export function VipMusicTrackList({
               <div className="tablemusic">
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
+                {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
+                  <div className="border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
+                    <button
+                      type="button"
+                      disabled={loadingMore}
+                      onClick={() => void handleLoadMore()}
+                      className="mx-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
+                    >
+                      {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                      {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </section>
           ))}
         </div>
       ) : null}
 
-      {embedded && useStreaming && hasMore && onLoadMore ? (
-        <div className="border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
-          <button
-            type="button"
-            disabled={loadingMore}
-            onClick={() => void handleLoadMore()}
-            className="mx-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
-          >
-            {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-            {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
-          </button>
-        </div>
-      ) : null}
 
       {selectionMode && selectedCount > 0 ? (
         <div className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-white/[0.08] bg-[#0f1012]/95 px-3.5 py-3 backdrop-blur-md">
