@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.28";
-export const APP_CORE_VERSION = "1.0.28";
+export const WEBUI_VERSION = "1.0.29";
+export const APP_CORE_VERSION = "1.0.29";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,14 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.29",
+    date: "2026-10-02",
+    items: [
+      "Pesquisa redesenhada em tema escuro/branco com banner no topo",
+      "Logo Cloudflare no Sobre, indicando a tecnologia usada no site",
+    ],
+  },
   {
     version: "1.0.28",
     date: "2026-10-02",
