@@ -211,17 +211,6 @@ export function AtualizacoesPackBlock({
           />
           <div className="border-t border-white/[0.06] px-4 py-3 text-center">
             {loadError ? <p className="mb-2 text-xs text-red-400">{loadError}</p> : null}
-            {hasMore ? (
-              <button
-                type="button"
-                disabled={loadingMore}
-                onClick={() => void loadMore()}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:border-[#60cdff]/50 hover:bg-[#60cdff]/10 hover:text-[#60cdff] disabled:opacity-50"
-              >
-                {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                Carregar mais
-              </button>
-            ) : null}
             <p className="mt-2 text-[11px] text-zinc-500">
               Mostrando {tracks.length} de {fileCount} faixas
               {!hasMore ? (
