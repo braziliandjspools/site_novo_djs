@@ -1692,6 +1692,9 @@ export function VipMusicTrackList({
         <div className="space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
           {hasCatalogFilters ? (
             <div className="rounded-xl border border-[#60cdff]/20 bg-black/40 p-3">
+              <p className="mb-3 text-[11px] leading-relaxed text-white/45">
+                À medida que você navega pelas músicas, novas <span className="font-semibold text-white/65">Pools</span> e <span className="font-semibold text-white/65">Estilos</span> encontrados serão adicionados automaticamente aos filtros.
+              </p>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#60cdff]">Filtros</p>
                 {poolFilterSlug || styleFilterSlug || dayFilterKey ? (
