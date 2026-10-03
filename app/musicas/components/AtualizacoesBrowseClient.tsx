@@ -698,7 +698,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {showInitialSkeleton && (
         <MusicasCenterLoading
-          label={slugSegments.length >= 2 ? "Carregando a tabela…" : "Carregando acervos…"}
+          label={slugSegments.length >= 2 ? "Estamos organizando a biblioteca, aguarde..." : "Carregando acervos…"}
         />
       )}
 
@@ -915,7 +915,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               </section>
             ) : null}
             {directTracks.length === 0 && loading ? (
-              <MusicasCenterLoading label="Carregando a tabela…" />
+              <MusicasCenterLoading label="Estamos organizando a biblioteca, aguarde..." />
             ) : directTracks.length === 0 ? (
               <div className="overflow-hidden rounded-md border border-[#60cdff]/20 bg-[#0d0d0d]">
                 <div className="h-px w-full bg-gradient-to-r from-[#60cdff]/80 via-[#60cdff]/25 to-transparent" />
