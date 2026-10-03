@@ -1078,6 +1078,7 @@ export function VipMusicTrackList({
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [batchSending, setBatchSending] = useState(false);
   const [batchDownloading, setBatchDownloading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
@@ -1500,6 +1501,16 @@ export function VipMusicTrackList({
     void onLoadMore();
   }, [hasMore, markPickerOpen, markRule, onLoadMore, tracks.length]);
 
+  const handleLoadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || !onLoadMore) return;
+    setLoadingMore(true);
+    try {
+      await onLoadMore();
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasMore, loadingMore, onLoadMore]);
+
   const copyTrackLink = useCallback(
     (track: PreviewTrack) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -1895,6 +1906,20 @@ export function VipMusicTrackList({
               </div>
             </section>
           ))}
+        </div>
+      ) : null}
+
+      {embedded && useStreaming && hasMore && onLoadMore ? (
+        <div className="border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
+          <button
+            type="button"
+            disabled={loadingMore}
+            onClick={() => void handleLoadMore()}
+            className="mx-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
+          >
+            {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
+          </button>
         </div>
       ) : null}
 
