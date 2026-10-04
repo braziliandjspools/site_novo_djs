@@ -575,6 +575,7 @@ model BrsProduction {
   downloadFileId String?      @map("download_file_id")
   fileName       String       @map("file_name")
   description    String?      @db.Text
+  beatportUrl    String?      @map("beatport_url")
   publishedAt    DateTime     @map("published_at")
   isPublished    Boolean      @default(false) @map("is_published")
   isFeatured     Boolean      @default(false) @map("is_featured")
