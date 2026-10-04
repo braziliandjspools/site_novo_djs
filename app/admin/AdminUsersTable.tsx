@@ -83,9 +83,9 @@ const SERVICE_BILLING_ITEMS: Array<{
   { key: "deemix", label: "Deemix", dueRequired: true },
   {
     key: "allavsoft",
-    label: "Allavsoft",
+    label: "Allavsoft — licença vitalícia",
     dueRequired: false,
-    dueHint: "Deixe em branco para licença vitalícia",
+    dueHint: "Pagamento único. Sem mensalidade e sem vencimento.",
   },
 ];
 
@@ -147,7 +147,6 @@ function computeDraftMonthlyValue(
   let total = 0;
   if (services.poolsVip) total += parseBrlInput(billing.poolsVip.value) ?? 0;
   if (services.deemix) total += parseBrlInput(billing.deemix.value) ?? 0;
-  if (services.allavsoft) total += parseBrlInput(billing.allavsoft.value) ?? 0;
   return Math.round(total * 100) / 100;
 }
 
@@ -375,7 +374,7 @@ function UserAccountModal({
             </h3>
             <p className="text-[11px] text-zinc-500">
               Valor e vencimento podem ser editados mesmo com o serviço desligado — o resumo
-              soma apenas os ativos. Allavsoft sem data = vitalícia. Resumo atual:{" "}
+              soma apenas os serviços recorrentes ativos. Allavsoft é pagamento único e não entra na mensalidade. Resumo atual:{" "}
               <span className="font-mono text-zinc-300">{formatBrl(parseBrlInput(draft.monthlyValue) ?? 0)}</span>
               {draft.nextDueAt ? (
                 <>
@@ -413,9 +412,9 @@ function UserAccountModal({
                           inativo — preço não entra no total
                         </span>
                       )}
-                      {enabled && !dueRequired && (
+                      {enabled && key === "allavsoft" && (
                         <span className="text-[10px] font-normal uppercase tracking-wide text-zinc-500">
-                          vitalícia opcional
+                          sem mensalidade
                         </span>
                       )}
                     </label>
@@ -432,11 +431,11 @@ function UserAccountModal({
                         </div>
                       </label>
                       <label className="block text-xs text-gray-400">
-                        {dueRequired ? "Vencimento" : "Vencimento (opcional)"}
+                        {key === "allavsoft" ? "Cobrança" : dueRequired ? "Vencimento" : "Vencimento (opcional)"}
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           <input
                             type="date"
-                            value={line.dueAt}
+                            value={key === "allavsoft" ? "" : line.dueAt}
                             onChange={(e) => patchServiceBilling(key, { dueAt: e.target.value })}
                             className={`${formInputClass} font-mono`}
                           />
