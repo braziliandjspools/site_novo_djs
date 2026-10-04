@@ -1,6 +1,6 @@
 /**
  * Download do Allavsoft (portal /portal/allavsoft).
- * Padrão: mirror Workupload. Sobrescreva com ALLAVSOFT_DOWNLOAD_URL /
+ * Padrão: instalador hospedado no Cloudflare R2 da BRS. Sobrescreva com ALLAVSOFT_DOWNLOAD_URL /
  * NEXT_PUBLIC_ALLAVSOFT_DOWNLOAD_URL se necessário.
  */
 export const ALLAVSOFT_INSTALLER_VERSION = "3.29.6.9765";
