@@ -1059,7 +1059,13 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                           {servicesSummary(draft.services)}
                         </td>
                         <td className={`${sheetCell} font-mono tabular-nums text-zinc-200`}>
-                          {formatBrl(parseBrlInput(draft.monthlyValue) ?? 0)}
+                          {formatBrl(
+                            draft.services.poolsVip || draft.services.deemix
+                              ? computeDraftMonthlyValue(draft.services, draft.serviceBilling)
+                              : draft.services.allavsoft
+                                ? parseBrlInput(draft.serviceBilling.allavsoft.value) ?? 0
+                                : 0,
+                          )}
                         </td>
                         <td className={sheetCell}>
                           <div className="inline-flex items-center gap-1.5">
