@@ -5,6 +5,7 @@ import {
   AlertCircle,
   ChevronDown,
   Download,
+  ExternalLink,
   Loader2,
   Music2,
   Pause,
@@ -22,6 +23,7 @@ type PortalDelivery = {
   orderDateLabel: string;
   releasedAtLabel: string | null;
   downloadUrl: string | null;
+  beatportUrl: string | null;
   downloadApiUrl: string | null;
   playUrl: string | null;
   notes: string | null;
@@ -236,6 +238,17 @@ export function MusicProducerDeliveryCard({ delivery, expanded, onToggle, onUpda
                 {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
                 {playing ? "Pausar" : "Ouvir"}
               </button>
+              {delivery.beatportUrl && (
+                <a
+                  href={delivery.beatportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#94E400]/40 bg-[#94E400]/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#b9f35a] hover:bg-[#94E400]/20"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Beatport
+                </a>
+              )}
               <a
                 href={delivery.downloadApiUrl ?? "#"}
                 download
