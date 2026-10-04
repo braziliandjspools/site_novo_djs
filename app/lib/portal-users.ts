@@ -125,6 +125,9 @@ function mapServiceBilling(user: PrismaPortalUser): ServiceBilling {
 }
 
 function mapUser(user: PrismaPortalUser): PortalUser {
+  const serviceBilling = mapServiceBilling(user);
+  const services = mapServices(user);
+  const recurringMonthlyValue = computeAggregateMonthlyValue(services, serviceBilling);
   const tier = (user as PrismaPortalUser & { downloaderQuotaTier?: string }).downloaderQuotaTier;
   const abuseFields = user as PrismaPortalUser & {
     downloadBannedAt?: Date | null;
@@ -138,9 +141,10 @@ function mapUser(user: PrismaPortalUser): PortalUser {
     email: user.email,
     whatsapp: user.whatsapp,
     plan: user.plan,
-    services: mapServices(user),
-    serviceBilling: mapServiceBilling(user),
-    monthlyValue: Number(user.monthlyValue),
+    services,
+    serviceBilling,
+    // Allavsoft é licença vitalícia/pagamento único e nunca entra na mensalidade.
+    monthlyValue: recurringMonthlyValue,
     nextDueAt: user.nextDueAt,
     active: user.active,
     musicProducerDeliveriesEnabled: user.musicProducerDeliveriesEnabled,
@@ -224,7 +228,6 @@ export function computeAggregateMonthlyValue(services: PortalServices, billing: 
   let total = 0;
   if (services.poolsVip) total += billing.poolsVip.value;
   if (services.deemix) total += billing.deemix.value;
-  if (services.allavsoft) total += billing.allavsoft.value;
   return Math.round(total * 100) / 100;
 }
 
