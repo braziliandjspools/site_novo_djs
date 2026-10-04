@@ -427,7 +427,15 @@ async function collectTracksPageDeep(
   currentFolderName: string | null = null,
   poolFolderId: string | null = null,
 ): Promise<PreviewTrack[]> {
-  if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore || state.collected >= state.limit) {
+  if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore) {
+    return [];
+  }
+  // Ao atingir o limite durante uma pasta folha, não há uma nova chamada
+  // recursiva que possa marcar hasMore. Precisamos sinalizar explicitamente
+  // que ainda pode existir conteúdo para que o LOAD MORE continue para a
+  // próxima pasta/data.
+  if (state.collected >= state.limit) {
+    state.hasMore = true;
     return [];
   }
   seen.add(folderId);
@@ -489,6 +497,11 @@ async function collectTracksPageDeep(
       poolFolderId: resolvedPoolFolderId,
     }));
     state.collected += 1;
+  }
+
+  if (state.collected >= state.limit) {
+    state.hasMore = true;
+    return result;
   }
 
   for (const folder of subfolders) {
