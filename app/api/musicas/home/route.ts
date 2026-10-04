@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { buildVipMusicHomeSnapshot } from "../../../lib/vip-music-home";
 import { withDownloaderCorsJson } from "../../../lib/downloader-cors";
+import { buildVipMusicHomeSnapshot } from "../../../lib/vip-music-home";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
 export async function GET(request: Request) {
@@ -10,6 +10,10 @@ export async function GET(request: Request) {
     return withDownloaderCorsJson(request, data);
   } catch (error) {
     console.error("[musicas/home]", error);
-    return withDownloaderCorsJson(request, { error: "Não foi possível carregar a home." }, { status: 500 });
+    return withDownloaderCorsJson(
+      request,
+      { error: "Não foi possível carregar a home." },
+      { status: 500 },
+    );
   }
 }
