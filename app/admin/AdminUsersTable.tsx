@@ -435,6 +435,7 @@ function UserAccountModal({
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           <input
                             type="date"
+                            disabled={key === "allavsoft"}
                             value={key === "allavsoft" ? "" : line.dueAt}
                             onChange={(e) => patchServiceBilling(key, { dueAt: e.target.value })}
                             className={`${formInputClass} font-mono`}
