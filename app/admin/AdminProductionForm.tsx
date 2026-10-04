@@ -26,6 +26,7 @@ export type ProductionDraft = {
   coverFileId: string;
   coverUrl: string;
   description: string;
+  beatportUrl: string;
   isPublished: boolean;
   isFeatured: boolean;
   isNew: boolean;
@@ -52,6 +53,7 @@ const empty: ProductionDraft = {
   coverFileId: "",
   coverUrl: "",
   description: "",
+  beatportUrl: "",
   isPublished: false,
   isFeatured: false,
   isNew: false,
@@ -288,6 +290,7 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
         <input className="site-input w-full min-w-0 max-w-full" placeholder="Formato" value={form.format} onChange={(e) => set("format", e.target.value)} />
         <input className="site-input w-full min-w-0 max-w-full" placeholder="Bitrate" value={form.bitrate} onChange={(e) => set("bitrate", e.target.value)} />
         <textarea className="site-input min-h-24 w-full min-w-0 max-w-full sm:col-span-2" placeholder="Descrição" value={form.description} onChange={(e) => set("description", e.target.value)} />
+        <input className="site-input w-full min-w-0 max-w-full sm:col-span-2" type="url" placeholder="Beatport (opcional) — https://www.beatport.com/track/..." value={form.beatportUrl} onChange={(e) => set("beatportUrl", e.target.value)} />
       </fieldset>
 
       <div className="flex min-w-0 max-w-full flex-wrap gap-4 text-xs text-white/70">
