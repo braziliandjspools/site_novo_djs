@@ -57,7 +57,7 @@ export function ToolPromoSection({
   return (
     <section
       id={id}
-      className="relative flex min-h-0 flex-col overflow-hidden border-y border-[#002776]/40 bg-[#121212] md:min-h-[100svh]"
+      className="relative flex min-h-0 flex-col overflow-hidden border-y border-white/5 bg-[#101010]"
     >
       <div className="br-stripe" />
 

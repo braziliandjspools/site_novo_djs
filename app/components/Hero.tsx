@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { SiteImage } from "./SiteImage";
+import { PLACEHOLDER } from "../lib/theme";
 
 const HERO_TYPEWRITER_WORDS = [
   "a sua pista.",
@@ -12,12 +14,24 @@ const HERO_TYPEWRITER_WORDS = [
   "o seu show.",
 ];
 
+function subscribeReducedMotion(onStoreChange: () => void) {
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  media.addEventListener("change", onStoreChange);
+  return () => media.removeEventListener("change", onStoreChange);
+}
+
+function readReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 function TypewriterWords({ words }: { words: string[] }) {
   const [index, setIndex] = useState(0);
   const [text, setText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const reduceMotion = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => false);
 
   useEffect(() => {
+    if (reduceMotion) return;
     const full = words[index] ?? "";
     const typingMs = deleting ? 36 : 70;
     const pauseMs = deleting ? 220 : 1600;
@@ -40,7 +54,11 @@ function TypewriterWords({ words }: { words: string[] }) {
       );
     }, typingMs);
     return () => window.clearTimeout(tick);
-  }, [deleting, index, text, words]);
+  }, [deleting, index, reduceMotion, text, words]);
+
+  if (reduceMotion) {
+    return <span>{words[0]}</span>;
+  }
 
   return (
     <span className="inline-block min-w-[7ch] text-left">
@@ -53,36 +71,20 @@ function TypewriterWords({ words }: { words: string[] }) {
 type ParallaxLayer = {
   depth: number;
   className: string;
-  content?: React.ReactNode;
 };
 
 const floatingLayers: ParallaxLayer[] = [
   {
     depth: 0.04,
-    className: "left-[8%] top-[18%] h-48 w-48 rounded-full bg-green-600/30 blur-3xl",
+    className: "left-[6%] top-[12%] h-48 w-48 rounded-full bg-[#1db954]/25 blur-3xl",
   },
   {
     depth: 0.07,
-    className: "right-[10%] top-[22%] h-56 w-56 rounded-full bg-emerald-600/20 blur-3xl",
+    className: "right-[8%] top-[8%] h-56 w-56 rounded-full bg-[#FFDF00]/12 blur-3xl",
   },
   {
     depth: 0.05,
-    className: "bottom-[20%] left-[35%] h-40 w-40 rounded-full bg-green-600/35 blur-3xl",
-  },
-  {
-    depth: 0.1,
-    className:
-      "right-[22%] bottom-[28%] h-32 w-32 rotate-45 rounded-2xl border border-[#FFDF00]/20 bg-[#FFDF00]/5 backdrop-blur-sm",
-  },
-  {
-    depth: 0.08,
-    className:
-      "left-[14%] bottom-[30%] h-24 w-24 rounded-full border border-[#009739]/30 bg-[#009739]/10 backdrop-blur-sm",
-  },
-  {
-    depth: 0.12,
-    className:
-      "top-[32%] right-[8%] h-16 w-16 rounded-full border border-[#6B9FFF]/30 bg-[#002776]/40 backdrop-blur-sm",
+    className: "bottom-[12%] left-[28%] h-40 w-40 rounded-full bg-[#002776]/55 blur-3xl",
   },
 ];
 
@@ -93,26 +95,20 @@ const HERO_STATS = [
     suffix: " GB",
     label: "Acervo VIP",
     color: "text-[#1ed760]",
-    accent: "from-green-500/25 via-transparent to-transparent",
-    ring: "ring-green-400/25",
   },
   {
     target: 739,
     prefix: "",
     suffix: "",
     label: "Pastas",
-    color: "text-emerald-300",
-    accent: "from-emerald-500/20 via-transparent to-transparent",
-    ring: "ring-emerald-400/20",
+    color: "text-[#FFDF00]",
   },
   {
     target: 40012,
     prefix: "+",
     suffix: "",
     label: "Músicas",
-    color: "text-[#1ed760]",
-    accent: "from-green-500/25 via-transparent to-transparent",
-    ring: "ring-green-400/25",
+    color: "text-[#7eb6ff]",
     format: "pt-BR" as const,
   },
 ];
@@ -134,8 +130,6 @@ function StatCounter({
   suffix,
   label,
   color,
-  accent,
-  ring,
   format,
   active,
   delayMs,
@@ -145,8 +139,6 @@ function StatCounter({
   suffix: string;
   label: string;
   color: string;
-  accent: string;
-  ring: string;
   format?: "pt-BR";
   active: boolean;
   delayMs: number;
@@ -157,9 +149,17 @@ function StatCounter({
   useEffect(() => {
     if (!active) return;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const frame = requestAnimationFrame(() => {
+        setValue(target);
+        setDone(true);
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+
     let frame = 0;
     let startAt = 0;
-    const duration = 2200;
+    const duration = 1800;
 
     const tick = (now: number) => {
       if (!startAt) startAt = now + delayMs;
@@ -183,19 +183,10 @@ function StatCounter({
   }, [active, delayMs, target]);
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-3xl border border-white/10 bg-[#101010] p-6 ring-1 transition-all duration-700 sm:p-8 ${ring} ${
-        active ? "translate-y-0 scale-100 opacity-100" : "translate-y-8 scale-[0.97] opacity-0"
-      }`}
-      style={{ transitionDelay: `${delayMs}ms` }}
-    >
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent}`} aria-hidden />
-      <p className="relative text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500 sm:text-[11px]">
-        {label}
-      </p>
+    <div className="min-w-0 px-1 text-center sm:text-left">
       <p
-        className={`relative mt-3 font-display text-5xl font-extrabold tracking-[-0.05em] sm:text-6xl md:text-7xl ${color}`}
-        aria-label={`${prefix}${formatStatValue(target, format)}${suffix} ${label}`}
+        className={`font-display text-3xl font-extrabold tracking-[-0.05em] sm:text-4xl ${color}`}
+        aria-label={`${prefix}${formatStatValue(target, format === "pt-BR" ? "pt-BR" : undefined)}${suffix} ${label}`}
       >
         <span className="tabular-nums">
           {prefix}
@@ -203,17 +194,20 @@ function StatCounter({
           {suffix}
         </span>
         {!done ? (
-          <span className="ml-1 inline-block h-[0.78em] w-[0.1em] animate-pulse bg-current align-[-0.08em] opacity-80" />
+          <span className="ml-1 inline-block h-[0.72em] w-[0.08em] animate-pulse bg-current align-[-0.06em] opacity-80" />
         ) : null}
       </p>
+      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">{label}</p>
     </div>
   );
 }
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
-  const statsRef = useRef<HTMLElement | null>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const statsRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const frameRef = useRef(0);
   const [statsActive, setStatsActive] = useState(false);
 
   useEffect(() => {
@@ -227,18 +221,17 @@ export function Hero() {
           observer.disconnect();
         }
       },
-      { threshold: 0.2, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.2 },
     );
     observer.observe(node);
 
-    // Fallback: se já estiver no viewport no load, anima mesmo assim
     const fallback = window.setTimeout(() => {
       const rect = node.getBoundingClientRect();
       if (rect.top < window.innerHeight && rect.bottom > 0) {
         setStatsActive(true);
         observer.disconnect();
       }
-    }, 500);
+    }, 400);
 
     return () => {
       observer.disconnect();
@@ -247,92 +240,127 @@ export function Hero() {
   }, []);
 
   const handleMouseMove = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
     const section = sectionRef.current;
     if (!section) return;
 
     const rect = section.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    setOffset({ x, y });
+
+    cancelAnimationFrame(frameRef.current);
+    frameRef.current = requestAnimationFrame(() => {
+      floatingLayers.forEach((layer, index) => {
+        const node = layerRefs.current[index];
+        if (!node) return;
+        node.style.transform = `translate(${x * layer.depth * 90}px, ${y * layer.depth * 90}px)`;
+      });
+      if (contentRef.current) {
+        contentRef.current.style.transform = `translate(${x * -8}px, ${y * -5}px)`;
+      }
+    });
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    setOffset({ x: 0, y: 0 });
+    cancelAnimationFrame(frameRef.current);
+    floatingLayers.forEach((_, index) => {
+      const node = layerRefs.current[index];
+      if (node) node.style.transform = "translate(0px, 0px)";
+    });
+    if (contentRef.current) contentRef.current.style.transform = "translate(0px, 0px)";
   }, []);
 
   return (
-    <>
-      <section
-        ref={sectionRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="relative overflow-hidden bg-[#100b1c]"
-      >
-        {floatingLayers.map((layer, index) => (
-          <div
-            key={index}
-            className={`pointer-events-none absolute transition-transform duration-300 ease-out will-change-transform ${layer.className}`}
-            style={{
-              transform: `translate(${offset.x * layer.depth * 120}px, ${offset.y * layer.depth * 120}px)`,
-            }}
-            aria-hidden
-          >
-            {layer.content}
-          </div>
-        ))}
+    <section
+      ref={sectionRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative overflow-hidden bg-[#0b0b0d]"
+    >
+      {floatingLayers.map((layer, index) => (
+        <div
+          key={layer.className}
+          ref={(node) => {
+            layerRefs.current[index] = node;
+          }}
+          className={`pointer-events-none absolute will-change-transform ${layer.className}`}
+          aria-hidden
+        />
+      ))}
 
-        <div className="absolute inset-0 bg-gradient-to-br from-[#102615]/80 via-[#130e21]/90 to-[#0b0a11]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(29,185,84,0.18),transparent_46%),radial-gradient(ellipse_at_80%_20%,rgba(255,223,0,0.08),transparent_32%),linear-gradient(180deg,#10141a_0%,#0b0b0d_72%)]" />
+      <div className="br-pattern pointer-events-none absolute inset-0 opacity-60" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-4 pb-12 pt-16 text-center sm:px-6 md:pb-20 md:pt-24">
-          <div
-            className="animate-fade-in-up transition-transform duration-300 ease-out will-change-transform"
-            style={{
-              transform: `translate(${offset.x * -8}px, ${offset.y * -6}px)`,
-            }}
-          >
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#1db954]/35 bg-[#1db954]/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#86efac]">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Pools · Curadoria · Remix Services
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12 lg:pb-10 lg:pt-24">
+        <div ref={contentRef} className="animate-fade-in-up text-center lg:text-left">
+          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#1db954]/35 bg-[#1db954]/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#86efac]">
+            <span className="h-2 w-2 rounded-full bg-[#1ed760]" />
+            Pools · Curadoria · Remix Services
+          </span>
+          <h1 className="font-display break-words text-[2.15rem] font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[4.15rem]">
+            O repertório que move{" "}
+            <span className="bg-gradient-to-r from-[#1ed760] to-[#b6f5cf] bg-clip-text text-transparent">
+              <TypewriterWords words={HERO_TYPEWRITER_WORDS} />
             </span>
-            <h1 className="font-display break-words text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl md:text-7xl">
-              O repertório que move{" "}
-              <span className="bg-gradient-to-r from-[#1ed760] via-[#1ed760] to-[#1db954] bg-clip-text text-transparent">
-                <TypewriterWords words={HERO_TYPEWRITER_WORDS} />
-              </span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base text-gray-300 sm:text-lg">
-              Remixes, DJ pools, versões extended e intro edits em um só lugar. Descubra novos sons, organize seu repertório e prepare sets para qualquer pista.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-              <a
-                href="/musicas"
-                className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-[#1db954] px-7 py-4 text-sm font-extrabold text-white shadow-[0_12px_35px_-14px_rgba(29,185,84,0.85)] transition hover:bg-[#1db954] sm:w-auto sm:min-w-[245px] sm:text-base"
-              >
-                Explorar a plataforma
-                <ArrowRight className="h-5 w-5" />
-              </a>
-              <Link
-                href="/musicas/atualizacoes"
-                className="inline-flex w-full max-w-md items-center justify-center rounded-full border border-[#1ed760]/35 bg-white/[0.06] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#1db954]/15 sm:w-auto sm:min-w-[260px] sm:text-base"
-              >
-                Ver últimas atualizações
-              </Link>
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-zinc-300 sm:text-lg lg:mx-0">
+            Remixes, DJ pools, versões extended e intro edits em um só lugar. Descubra novos sons, organize seu repertório e prepare sets para qualquer pista.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+            <a
+              href="/musicas"
+              className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-[#1db954] px-7 py-3.5 text-sm font-extrabold text-black shadow-[0_16px_40px_-18px_rgba(29,185,84,0.95)] transition hover:-translate-y-0.5 hover:bg-[#1ed760] sm:w-auto sm:min-w-[230px] sm:text-base"
+            >
+              Explorar a plataforma
+              <ArrowRight className="h-5 w-5" />
+            </a>
+            <Link
+              href="/musicas/atualizacoes"
+              className="inline-flex w-full max-w-md items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-7 py-3.5 text-sm font-bold text-white transition hover:border-[#1ed760]/45 hover:bg-[#1db954]/10 sm:w-auto sm:min-w-[230px] sm:text-base"
+            >
+              Ver últimas atualizações
+            </Link>
+          </div>
+          <Link
+            href="/plans"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#FFDF00] transition hover:text-white"
+          >
+            Ver planos VIP
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#111] shadow-[0_30px_80px_-36px_rgba(0,0,0,0.85)]">
+            <SiteImage
+              src={PLACEHOLDER.musicasPortal}
+              alt="Portal de atualizações Brazilian Remix Service"
+              fill
+              priority
+              quality={75}
+              sizes="(max-width: 1024px) 92vw, 560px"
+              className="object-cover object-[left_center]"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/10" />
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Plataforma VIP</p>
+              <p className="mt-1 font-display text-lg font-semibold text-white sm:text-xl">
+                Atualizações, previews e download no navegador
+              </p>
             </div>
           </div>
         </div>
-        <div className="br-stripe relative z-10" />
-      </section>
+      </div>
 
-      <section
-        ref={statsRef}
-        className="relative z-10 border-b border-[#1db954]/10 bg-[#100d1b] px-4 py-10 sm:px-6 md:-mt-2 md:py-12"
-      >
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
-          {HERO_STATS.map((stat, i) => (
-            <StatCounter key={stat.label} {...stat} active={statsActive} delayMs={i * 180} />
+      <div ref={statsRef} className="relative z-10 mx-auto max-w-6xl px-4 pb-8 sm:px-6 md:pb-10">
+        <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-4 backdrop-blur-md sm:gap-4 sm:px-6 sm:py-5">
+          {HERO_STATS.map((stat, index) => (
+            <StatCounter key={stat.label} {...stat} active={statsActive} delayMs={index * 140} />
           ))}
         </div>
-      </section>
-    </>
+      </div>
+      <div className="br-stripe relative z-10" />
+    </section>
   );
 }

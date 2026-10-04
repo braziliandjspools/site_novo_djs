@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import dynamic from "next/dynamic";
 import {
   ArrowRight,
+  Check,
   ChevronDown,
   Headphones,
   Download,
@@ -33,6 +34,7 @@ import { DOWNLOADER_NAME } from "./lib/branding";
 import { SITE_FAQS } from "./lib/site-faqs";
 import { buildPageMetadata, faqJsonLd } from "./lib/seo";
 import { PLACEHOLDER } from "./lib/theme";
+import { SITE_DRIVE_PLANS } from "./lib/plans";
 import { JsonLd } from "./components/JsonLd";
 
 const AllavsoftPlatformsMarquee = dynamic(
@@ -178,31 +180,108 @@ export default async function Home() {
       <Hero />
 
       {/* Acesso direto às áreas mais utilizadas pelos DJs */}
-      <section aria-label="Comece pela BRS" className="border-b border-violet-400/10 bg-[#100d1b] px-4 pb-12 pt-3 sm:px-6 md:pb-16">
-        <div className="mx-auto grid max-w-6xl gap-3 sm:grid-cols-3 sm:gap-4">
-          {[
-            { href: "/musicas/atualizacoes", icon: RefreshCw, eyebrow: "Sempre em movimento", title: "Últimas atualizações", description: "Novos packs e faixas organizados para sua próxima apresentação." },
-            { href: "/musicas/artistas", icon: Headphones, eyebrow: "Descubra seu som", title: "Explore artistas", description: "Encontre artistas, versões e remixes no acervo BRS." },
-            { href: "#downloader", icon: Download, eyebrow: "Seu acervo no PC", title: "BRS Downloader", description: "Envie suas faixas para o computador e organize seus downloads." },
-          ].map((item) => (
-            <Link key={item.title} href={item.href} className="group relative flex min-h-44 flex-col overflow-hidden rounded-2xl border border-violet-400/15 bg-gradient-to-br from-violet-500/[0.12] via-[#191326] to-[#110e1b] p-5 transition hover:-translate-y-1 hover:border-violet-400/45 hover:shadow-[0_20px_45px_-28px_rgba(139,92,246,0.8)] sm:p-6">
-              <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-violet-400/20 bg-violet-500/15 text-violet-200"><item.icon className="h-5 w-5" /></span>
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-violet-300">{item.eyebrow}</span>
-              <span className="mt-1 text-lg font-extrabold text-white">{item.title}</span>
-              <span className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-400">{item.description}</span>
-              <ArrowRight className="absolute right-5 top-6 h-5 w-5 text-violet-300 transition group-hover:translate-x-1" />
-            </Link>
-          ))}
+      <section aria-label="Comece pela BRS" className="border-b border-white/5 bg-[#0e0e10] px-4 py-10 sm:px-6 md:py-14">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-4 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500 lg:text-left">
+            Comece pela BRS
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+            {[
+              { href: "/musicas/atualizacoes", icon: RefreshCw, eyebrow: "Sempre em movimento", title: "Últimas atualizações", description: "Novos packs e faixas organizados para sua próxima apresentação." },
+              { href: "/musicas/artistas", icon: Headphones, eyebrow: "Descubra seu som", title: "Explore artistas", description: "Encontre artistas, versões e remixes no acervo BRS." },
+              { href: "#downloader", icon: Download, eyebrow: "Seu acervo no PC", title: "BRS Downloader", description: "Envie suas faixas para o computador e organize seus downloads." },
+            ].map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group relative flex min-h-44 flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1db954]/12 via-[#141414] to-[#101010] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#1ed760]/45 hover:shadow-[0_22px_50px_-28px_rgba(29,185,84,0.85)] sm:p-6"
+              >
+                <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-[#1db954]/25 bg-[#1db954]/15 text-[#1ed760] transition group-hover:scale-105">
+                  <item.icon className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-[#86efac]">{item.eyebrow}</span>
+                <span className="mt-1 font-display text-lg font-extrabold text-white">{item.title}</span>
+                <span className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-400">{item.description}</span>
+                <ArrowRight className="absolute right-5 top-6 h-5 w-5 text-[#1ed760] transition group-hover:translate-x-1" />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       <HomeProductions productions={productions} />
 
-      <section id="pools" className="px-4 pb-12 pt-4 br-pattern sm:px-6 md:pb-20">
+      <section id="mais-baixadas" className="border-b border-white/5 bg-[#0c0c0e] px-4 py-12 sm:px-6 md:py-16">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            badge="Acervo"
+            title="Veja pastas e faixas do acervo"
+            subtitle="As mais baixadas em tempo real — toque na capa para ouvir sem login e conhecer o acervo."
+          />
+          <div className="mt-10 md:mt-12">
+            <TopDownloadsTable tracks={topDownloads} />
+          </div>
+        </div>
+      </section>
+
+      <section id="pools" className="px-4 py-12 br-pattern sm:px-6 md:py-20">
         <div className="mx-auto max-w-6xl">
-          <div className="mx-auto grid max-w-md gap-4 sm:max-w-none sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+          <SectionHeading
+            badge="Acervo VIP"
+            title="Tudo que entra na preparação do set"
+            subtitle="Volume, pastas e versões prontas para a rotina do DJ — o mesmo acervo da plataforma."
+          />
+          <div className="mx-auto mt-10 grid max-w-md gap-4 sm:max-w-none sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 md:mt-12">
             {poolHighlights.map((item) => (
               <IconBox key={item.title} icon={item.icon} title={item.title} description={item.description} color={item.color} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="planos-vip" className="border-y border-white/5 bg-[#0b0b0d] px-4 py-12 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <SectionHeading
+            badge="Planos VIP"
+            title="Escolha o tempo de acesso"
+            subtitle="Pagamento único por período, com renovação manual no portal. Os valores são os mesmos publicados na página de planos."
+          />
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4 md:mt-12">
+            {SITE_DRIVE_PLANS.map((plan) => (
+              <article
+                key={plan.id ?? plan.name}
+                className={`flex flex-col rounded-2xl border p-5 transition duration-300 hover:-translate-y-1 ${
+                  plan.highlight
+                    ? "border-[#1ed760]/50 bg-gradient-to-b from-[#1db954]/16 to-[#121212] shadow-[0_24px_50px_-32px_rgba(29,185,84,0.9)]"
+                    : "border-white/10 bg-[#141414] hover:border-white/20"
+                }`}
+              >
+                {plan.badge ? (
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#86efac]">{plan.badge}</p>
+                ) : null}
+                <h3 className="mt-2 font-display text-lg font-semibold leading-snug text-white">{plan.name}</h3>
+                <p className="mt-4 font-display text-3xl font-extrabold tracking-tight text-white">{plan.price}</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-400">{plan.period}</p>
+                {plan.equivalent ? <p className="mt-1 text-xs font-semibold text-[#FFDF00]">{plan.equivalent}</p> : null}
+                <ul className="mt-5 flex-1 space-y-2.5">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm leading-snug text-zinc-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#1ed760]" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/plans"
+                  className={`mt-6 inline-flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em] transition ${
+                    plan.highlight
+                      ? "bg-[#1db954] text-black hover:bg-[#1ed760]"
+                      : "border border-white/15 text-white hover:border-[#1ed760]/50 hover:bg-white/5"
+                  }`}
+                >
+                  Ver planos
+                </Link>
+              </article>
             ))}
           </div>
         </div>
@@ -224,6 +303,16 @@ export default async function Home() {
           <h2 className="font-display mx-auto max-w-4xl text-center text-3xl font-semibold text-white sm:text-4xl xl:text-5xl">
             Seleção pensada para a pista brasileira
           </h2>
+          <ul className="mx-auto mt-5 flex max-w-3xl flex-wrap justify-center gap-2">
+            {["Funk", "Sertanejo", "Pop", "Eletrônico", "House", "Dance", "Flashbacks", "Open format"].map((genre) => (
+              <li
+                key={genre}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-300"
+              >
+                {genre}
+              </li>
+            ))}
+          </ul>
 
           {/* Imagem alinha só com o texto — título fica fora */}
           <div className="mt-6 grid items-stretch gap-6 lg:mt-8 lg:grid-cols-2 lg:gap-8 xl:gap-10">
@@ -255,7 +344,7 @@ export default async function Home() {
               </p>
             </div>
 
-            <div className="relative aspect-[4/5] min-h-[20rem] overflow-hidden rounded-2xl bg-[#0a0a0a] sm:min-h-[24rem] lg:aspect-auto lg:min-h-full">
+            <div className="relative aspect-[4/5] min-h-[20rem] overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#0a0a0a] shadow-[0_24px_60px_-32px_rgba(0,0,0,0.8)] sm:min-h-[24rem] lg:aspect-auto lg:min-h-full">
               <SiteImage
                 src={PLACEHOLDER.curadoria}
                 alt="DJ BRS — Brazilian Remix Service"
@@ -264,6 +353,10 @@ export default async function Home() {
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 560px"
                 className="object-cover object-[center_18%]"
               />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#FFDF00]">DJ BRS</p>
+                <p className="mt-1 text-sm font-semibold text-white">Brazilian Remix Service</p>
+              </div>
             </div>
           </div>
         </div>
@@ -283,7 +376,7 @@ export default async function Home() {
           />
           <div className="mt-10 grid gap-5 md:mt-12 md:grid-cols-2">
             {accessMethods.map((method) => (
-              <article key={method.title} className="site-panel flex flex-col p-6 md:p-8">
+              <article key={method.title} className="site-panel flex flex-col p-6 transition duration-300 hover:-translate-y-1 hover:border-[#1ed760]/35 md:p-8">
                 <div
                   className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl ${
                     method.accent === "green"
@@ -454,20 +547,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Mais baixadas — uma tabela com player */}
-      <section className="border-y border-white/5 site-section-yellow px-4 py-12 sm:px-6 md:py-20">
-        <div className="mx-auto max-w-5xl">
-          <SectionHeading
-            badge="Acervo"
-            title="Veja pastas e faixas do acervo"
-            subtitle="As mais baixadas em tempo real — toque na capa para ouvir sem login e conhecer o acervo."
-          />
-          <div className="mt-10 md:mt-12">
-            <TopDownloadsTable tracks={topDownloads} />
-          </div>
-        </div>
-      </section>
-
       <SpotifyDjSection />
 
       {/* Produção Musical */}
@@ -599,6 +678,27 @@ export default async function Home() {
         accent="green"
       />
 
+      <section className="border-y border-white/5 bg-[radial-gradient(ellipse_at_top,rgba(29,185,84,0.16),transparent_55%)] px-4 py-14 sm:px-6 md:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#86efac]">Próximo set</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold text-white sm:text-4xl">
+            Menos tempo procurando. Mais tempo na pista.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+            O mesmo acervo VIP, com packs organizados, atualizações no site e o BRS Downloader no Windows.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/plans" className="site-btn site-btn-primary w-full sm:w-auto">
+              Ver planos VIP
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="/musicas/atualizacoes" className="site-btn site-btn-ghost w-full sm:w-auto">
+              Abrir plataforma
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Depoimentos */}
       <section id="depoimentos" className="px-4 py-12 sm:px-6 md:py-20">
         <div className="mx-auto max-w-5xl">
@@ -623,12 +723,12 @@ export default async function Home() {
           />
           <div className="mt-12 space-y-3">
             {SITE_FAQS.map((faq) => (
-              <details key={faq.q} className="group rounded-xl border border-white/10 bg-[#282828] p-4 open:border-[#009739]/50">
+              <details key={faq.q} className="group rounded-2xl border border-white/10 bg-[#161616] p-4 transition hover:border-white/20 open:border-[#1db954]/45 open:bg-[#141414]">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
                   {faq.q}
-                  <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform group-open:rotate-180" />
+                  <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform duration-300 group-open:rotate-180" />
                 </summary>
-                <p className="mt-3 text-sm text-gray-400">{faq.a}</p>
+                <p className="mt-3 text-sm leading-relaxed text-gray-400">{faq.a}</p>
               </details>
             ))}
           </div>
