@@ -55,11 +55,31 @@ export function ServicesView({ data, onNavigate }: ServicesViewProps) {
       {renewables.length > 0 && <PortalRenewalPay renewables={renewables} />}
 
       {data.hasSubscriptionPlan && (
-        <p className="text-sm text-zinc-400">
-          <span className="font-medium text-white">{user.servicesLabel}</span>
-          {" · "}
-          Valor mensal: <span className="font-medium text-[#FFDF00]">{user.monthlyValueLabel}</span>
-        </p>
+        <div className="rounded-xl border border-zinc-800 bg-[#0a0a0a] px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">Cobrança da conta</p>
+          <p className="mt-1 text-sm text-zinc-300">
+            {user.services.poolsVip ? (
+              <>
+                <span className="font-medium text-white">Pools VIP:</span>{" "}
+                <span className="font-medium text-[#FFDF00]">{user.serviceBilling.poolsVip.valueLabel}</span>{" "}
+                <span className="text-zinc-500">conforme o período contratado</span>
+              </>
+            ) : null}
+            {user.services.allavsoft ? (
+              <span className={user.services.poolsVip ? "ml-2 text-zinc-500" : ""}>
+                {user.services.poolsVip ? "· " : ""}
+                <span className="font-medium text-white">Allavsoft:</span>{" "}
+                <span className="font-medium text-[#00ff9d]">{user.serviceBilling.allavsoft.valueLabel}</span>{" "}
+                <span className="text-zinc-500">pagamento único, sem mensalidade</span>
+              </span>
+            ) : null}
+          </p>
+          {user.services.allavsoft && !user.services.poolsVip ? (
+            <p className="mt-1 text-xs font-semibold text-[#00ff9d]">Você não possui mensalidade. O Allavsoft é vitalício.</p>
+          ) : user.services.allavsoft && user.services.poolsVip ? (
+            <p className="mt-1 text-xs text-zinc-500">No próximo vencimento, o valor devido é somente o do Pools VIP.</p>
+          ) : null}
+        </div>
       )}
 
       {!data.hasSubscriptionPlan && (
