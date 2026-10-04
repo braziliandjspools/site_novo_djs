@@ -58,6 +58,20 @@ function planProduct(plan: PlanCard): "poolsVip" | "deemix" | "allavsoft" {
   return "poolsVip";
 }
 
+function planPitch(plan: PlanCard) {
+  if (plan.isTestPlan) return "Para conhecer o BRS antes de escolher seu período.";
+  if (plan.id === "brs-drive-1m") return "Para quem quer flexibilidade e acesso mês a mês.";
+  if (plan.id === "brs-drive-3m") return "O melhor equilíbrio entre preço e tempo de acesso.";
+  if (plan.id === "brs-drive-6m") return "Para quem já sabe que vai usar o BRS no dia a dia.";
+  return "Acesso completo para sua rotina.";
+}
+
+function planSavings(plan: PlanCard) {
+  if (plan.id === "brs-drive-3m") return "Economiza R$ 6,50 vs. 3 meses no mensal";
+  if (plan.id === "brs-drive-6m") return "Economiza R$ 13,00 vs. 6 meses no mensal";
+  return null;
+}
+
 export function PlansSection({
   id = "planos",
   className = "",
@@ -269,8 +283,8 @@ export function PlansSection({
   const isBusy = loadingPlanId !== null;
   const gridClass =
     plans.length <= 3
-      ? "mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-3"
-      : "mx-auto mt-10 grid gap-4 sm:mt-12 md:grid-cols-2 xl:grid-cols-4";
+      ? "mx-auto mt-8 grid gap-5 sm:mt-10 md:grid-cols-3"
+      : "mx-auto mt-8 grid gap-5 sm:mt-10 md:grid-cols-2 xl:grid-cols-4";
 
   return (
     <section id={id} className={`border-y border-white/5 site-section-rainbow px-4 py-12 sm:px-6 md:py-20 ${className}`}>
@@ -325,7 +339,7 @@ export function PlansSection({
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col site-panel p-6 text-center transition-all md:p-7 md:text-left ${
+                className={`relative flex flex-col site-panel p-5 text-center transition-all md:p-6 md:text-left ${
                   blocked
                     ? "opacity-70"
                     : isDeemix
@@ -339,13 +353,15 @@ export function PlansSection({
               >
                 {plan.badge && (
                   <span
-                    className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wide ${
+                    className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${
                       isDeemix || plan.isTestPlan
                         ? "bg-[#6B9FFF] text-[#002776]"
-                        : "bg-[#FFDF00] text-[#002776]"
+                        : plan.highlight
+                          ? "bg-[#FFDF00] text-[#002776]"
+                          : "border border-white/15 bg-[#111] text-zinc-300"
                     }`}
                   >
-                    {plan.badge}
+                    {plan.highlight && !plan.isTestPlan ? "Mais escolhido" : plan.badge}
                   </span>
                 )}
                 <div className="min-w-0">
@@ -358,8 +374,9 @@ export function PlansSection({
                     {planLabel}
                   </h3>
                 </div>
+                <p className="mt-2 text-sm font-medium leading-relaxed text-zinc-300">{planPitch(plan)}</p>
                 {plan.description ? (
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-400">{plan.description}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-zinc-500">{plan.description}</p>
                 ) : null}
                 <p className="mt-5 font-display text-3xl font-bold tracking-tight text-white md:text-4xl">
                   {plan.price}
@@ -368,11 +385,14 @@ export function PlansSection({
                   <p className="mt-1 text-sm font-medium text-[#1db954]">{plan.equivalent}</p>
                 ) : null}
                 <p className="mt-1 text-xs tracking-[-0.01em] text-gray-500">{plan.period}</p>
+                {planSavings(plan) ? (
+                  <p className="mt-2 text-[11px] font-semibold text-[#1db954]">{planSavings(plan)}</p>
+                ) : null}
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {plan.features.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-start justify-center gap-2 text-sm text-gray-300 md:justify-start"
+                      className="flex items-start justify-center gap-2 text-[13px] leading-relaxed text-gray-300 md:justify-start"
                     >
                       <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#009739]" />
                       {feature}
