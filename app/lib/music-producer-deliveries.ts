@@ -71,6 +71,7 @@ function mapDelivery(record: PrismaDelivery): MusicProducerDeliveryRecord {
     orderDate: record.orderDate,
     releasedAt: record.releasedAt,
     downloadUrl: record.downloadUrl,
+    beatportUrl: record.beatportUrl,
     notes: record.notes,
     visible: record.visible,
     clientRating: record.clientRating,
@@ -107,6 +108,7 @@ export function serializeMusicProducerDelivery(delivery: MusicProducerDeliveryRe
     releasedAt: delivery.releasedAt?.toISOString() ?? null,
     releasedAtLabel: delivery.releasedAt ? formatDateBr(delivery.releasedAt) : null,
     downloadUrl: forPortal && !released ? null : delivery.downloadUrl,
+    beatportUrl: delivery.beatportUrl,
     downloadApiUrl:
       forPortal && released ? `/api/portal/music-producer/deliveries/${delivery.id}/download` : null,
     playUrl: forPortal && released ? `/api/portal/music-producer/deliveries/${delivery.id}/audio` : null,
