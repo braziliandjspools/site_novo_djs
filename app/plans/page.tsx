@@ -188,14 +188,60 @@ export default async function PlansPage() {
         ])}
       />
 
+      <section className="relative overflow-hidden border-b border-white/5 px-4 pb-10 pt-12 sm:px-6 md:pb-14 md:pt-16">
+        <div className="pointer-events-none absolute inset-0 opacity-60">
+          <div className="absolute left-1/2 top-0 h-64 w-[34rem] -translate-x-1/2 rounded-full bg-[#009739]/10 blur-3xl" />
+          <div className="absolute right-0 top-20 h-40 w-40 rounded-full bg-[#FFDF00]/5 blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-5xl text-center">
+          <span className="inline-flex items-center rounded-full border border-[#009739]/30 bg-[#009739]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#1DB954]">
+            BRS Drive VIP
+          </span>
+          <h1 className="mt-4 font-display text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
+            Seu acervo. Seu set. <span className="text-[#1DB954]">Tudo pronto.</span>
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+            Tenha acesso ao acervo VIP, às atualizações, à plataforma /musicas e ao BRS Downloader para Windows.
+            Escolha o período que combina com a sua rotina.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-zinc-500">
+            <span>+315 GB de acervo</span>
+            <span className="hidden text-zinc-700 sm:inline">•</span>
+            <span>+40 mil faixas</span>
+            <span className="hidden text-zinc-700 sm:inline">•</span>
+            <span>Download pelo site e Windows</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-white/5 px-4 py-8 sm:px-6 md:py-10">
+        <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
+          <div className="site-panel p-5">
+            <Music2 className="h-5 w-5 text-[#1DB954]" />
+            <h2 className="mt-3 font-display text-base font-bold text-white">Repertório para tocar</h2>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-400">Remixes, edits e versões organizadas para preparar o próximo set.</p>
+          </div>
+          <div className="site-panel p-5">
+            <FolderOpen className="h-5 w-5 text-[#FFDF00]" />
+            <h2 className="mt-3 font-display text-base font-bold text-white">Tudo organizado</h2>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-400">Acervo dividido por períodos e estilos para encontrar o que você precisa.</p>
+          </div>
+          <div className="site-panel p-5">
+            <Download className="h-5 w-5 text-[#6B9FFF]" />
+            <h2 className="mt-3 font-display text-base font-bold text-white">Baixe do seu jeito</h2>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-400">Use a plataforma /musicas ou o BRS Downloader no Windows.</p>
+          </div>
+        </div>
+      </section>
+
       <Suspense fallback={<div className="min-h-[320px]" />}>
         <PlansSection
           id="planos"
-          className="!border-t-0 pt-14 md:pt-16"
+          className="!border-t-0 !border-b-0 pt-10 md:pt-14"
           plans={drivePlans}
-          badge="Drive VIP"
-          title="Escolha o acesso ideal para o seu set"
-          subtitle="Acervo VIP, plataforma /musicas e BRS Downloader. Comece com 3 dias ou escolha o período que faz mais sentido para sua rotina."
+          badge="Escolha seu período"
+          title="Quanto tempo você quer ficar no VIP?"
+          subtitle="Todos os planos pagos liberam o mesmo acervo. O que muda é o tempo de acesso e o valor equivalente por mês."
           activeVip={activeVip}
           expiredVip={expiredVip}
           testPlanUsed={testPlanUsed}
@@ -243,6 +289,15 @@ export default async function PlansPage() {
           </div>
           <p className="mt-4 text-center text-xs text-zinc-500">
             O plano de 3 meses está destacado porque hoje oferece o melhor equilíbrio entre período e valor mensal equivalente.
+          </p>
+        </div>
+      </section>
+
+      <section className="border-b border-white/5 px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-4xl rounded-2xl border border-[#009739]/20 bg-[#009739]/5 px-5 py-5 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1DB954]">Pagamento simples</p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+            Pagamento único pelo período escolhido. Sem renovação automática. O acesso é liberado após a confirmação oficial do pagamento.
           </p>
         </div>
       </section>
