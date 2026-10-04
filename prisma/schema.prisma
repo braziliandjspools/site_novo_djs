@@ -414,6 +414,7 @@ model MusicProducerDelivery {
   orderDate       DateTime                 @map("order_date")
   releasedAt      DateTime?                @map("released_at")
   downloadUrl     String                   @map("download_url")
+  beatportUrl     String?                  @map("beatport_url")
   notes           String?
   visible         Boolean                  @default(false)
   clientRating    Int?                     @map("client_rating")
