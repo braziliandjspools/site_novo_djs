@@ -24,6 +24,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
   const { user, renewables = [] } = data;
   const greeting = getGreeting(getGreetingHour(now));
   const services = countServices(data);
+  const hasRecurringBilling = Boolean(user.services.poolsVip || user.services.deemix);
 
   return (
     <div className="space-y-6">
@@ -41,9 +42,9 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
         <StatCard icon={LayoutGrid} label="Serviços ativos" value={String(services)} hint="Licenças no seu plano" />
         <StatCard
           icon={Calendar}
-          label="Próximo vencimento"
-          value={data.hasSubscriptionPlan ? formatDateBr(user.nextDueAt) : "—"}
-          hint={data.hasSubscriptionPlan ? "Data do próximo pagamento" : "Sem plano contratado"}
+          label={hasRecurringBilling ? "Próximo vencimento" : "Cobrança"}
+          value={data.hasSubscriptionPlan ? (hasRecurringBilling ? formatDateBr(user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt) : "Sem vencimento") : "—"}
+          hint={data.hasSubscriptionPlan ? (hasRecurringBilling ? "Próximo valor é do VIP" : "Allavsoft vitalício") : "Sem plano contratado"}
         />
         <StatCard
           icon={Package}
@@ -53,9 +54,9 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
         />
         <StatCard
           icon={Calendar}
-          label="Valor mensal"
-          value={data.hasSubscriptionPlan ? user.monthlyValueLabel : "—"}
-          hint={data.hasSubscriptionPlan ? "Valor da assinatura" : "Sem plano contratado"}
+          label={hasRecurringBilling ? "Valor do VIP" : "Mensalidade"}
+          value={data.hasSubscriptionPlan ? (hasRecurringBilling ? user.serviceBilling.poolsVip.valueLabel : "Sem mensalidade") : "—"}
+          hint={data.hasSubscriptionPlan ? (hasRecurringBilling ? "Conforme o período contratado" : "Allavsoft: pagamento único") : "Sem plano contratado"}
         />
         <StatCard
           icon={Calendar}
@@ -265,8 +266,10 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
               <dd className="break-words font-medium text-[#FFDF00]">{user.servicesLabel}</dd>
             </div>
             <div className="flex flex-col gap-1 border-b border-zinc-800 pb-2 sm:flex-row sm:justify-between sm:gap-3">
-              <dt className="text-zinc-500">Valor mensal</dt>
-              <dd className="font-medium text-white">{user.monthlyValueLabel}</dd>
+              <dt className="text-zinc-500">{hasRecurringBilling ? "Valor do VIP" : "Mensalidade"}</dt>
+              <dd className="font-medium text-white">
+                {hasRecurringBilling ? user.serviceBilling.poolsVip.valueLabel : "Sem mensalidade"}
+              </dd>
             </div>
             <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
               <dt className="text-zinc-500">WhatsApp</dt>
