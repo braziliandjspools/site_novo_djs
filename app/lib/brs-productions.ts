@@ -42,6 +42,7 @@ export type PublicBrsProduction = {
   downloadFileId: string | null;
   fileName: string;
   description: string | null;
+  beatportUrl: string | null;
   publishedAt: string;
   isFeatured: boolean;
   isNew: boolean;
@@ -67,6 +68,7 @@ type ProductionRow = {
   downloadFileId: string | null;
   fileName: string;
   description: string | null;
+  beatportUrl: string | null;
   publishedAt: Date;
   isFeatured: boolean;
   isNew: boolean;
@@ -110,6 +112,7 @@ export function toPublicProduction(row: ProductionRow): PublicBrsProduction {
     downloadFileId: row.downloadFileId,
     fileName: row.fileName,
     description: row.description,
+    beatportUrl: row.beatportUrl,
     publishedAt: row.publishedAt.toISOString(),
     isFeatured: row.isFeatured,
     isNew: row.isNew,
