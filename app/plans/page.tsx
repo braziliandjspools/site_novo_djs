@@ -98,6 +98,15 @@ const howItWorks = [
   },
 ];
 
+const planComparison = [
+  { label: "Acesso VIP completo", test: "3 dias", monthly: "30 dias", quarterly: "90 dias", halfYear: "180 dias" },
+  { label: "Plataforma /musicas", test: true, monthly: true, quarterly: true, halfYear: true },
+  { label: "BRS Downloader Windows", test: true, monthly: true, quarterly: true, halfYear: true },
+  { label: "Acervo VIP (+315 GB)", test: true, monthly: true, quarterly: true, halfYear: true },
+  { label: "Atualizações contínuas", test: true, monthly: true, quarterly: true, halfYear: true },
+  { label: "Troca de plano no portal", test: false, monthly: true, quarterly: true, halfYear: true },
+];
+
 const faqs = [
   {
     q: "Posso trocar de plano com VIP ainda ativo?",
@@ -185,14 +194,58 @@ export default async function PlansPage() {
           className="!border-t-0 pt-14 md:pt-16"
           plans={drivePlans}
           badge="Drive VIP"
-          title="Planos BRS Drive"
-          subtitle="Acervo VIP, plataforma /musicas e Downloader. Inclui plano teste de 3 dias para validar produção."
+          title="Escolha o acesso ideal para o seu set"
+          subtitle="Acervo VIP, plataforma /musicas e BRS Downloader. Comece com 3 dias ou escolha o período que faz mais sentido para sua rotina."
           activeVip={activeVip}
           expiredVip={expiredVip}
           testPlanUsed={testPlanUsed}
           showPixNotice
         />
       </Suspense>
+
+      <section className="border-b border-white/5 px-4 py-12 sm:px-6 md:py-16">
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            badge="Compare"
+            title="O que muda entre os períodos?"
+            subtitle="O acesso é completo em todos os planos. A diferença principal é o tempo de acesso e o custo por mês."
+          />
+          <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="border-b border-white/10 bg-white/[0.03]">
+                  <tr>
+                    <th className="px-4 py-4 font-semibold text-white md:px-5">Incluído</th>
+                    <th className="px-4 py-4 text-center font-semibold text-zinc-300">Teste</th>
+                    <th className="px-4 py-4 text-center font-semibold text-zinc-300">Mensal</th>
+                    <th className="px-4 py-4 text-center font-semibold text-[#FFDF00]">3 meses</th>
+                    <th className="px-4 py-4 text-center font-semibold text-zinc-300">6 meses</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {planComparison.map((row) => (
+                    <tr key={row.label} className="border-b border-white/5 last:border-0">
+                      <td className="px-4 py-3.5 text-zinc-300 md:px-5">{row.label}</td>
+                      {[row.test, row.monthly, row.quarterly, row.halfYear].map((value, index) => (
+                        <td key={index} className="px-4 py-3.5 text-center text-zinc-400">
+                          {typeof value === "boolean" ? (
+                            value ? <CheckCircle2 className="mx-auto h-4 w-4 text-[#009739]" /> : <span className="text-zinc-700">—</span>
+                          ) : (
+                            value
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="mt-4 text-center text-xs text-zinc-500">
+            O plano de 3 meses está destacado porque hoje oferece o melhor equilíbrio entre período e valor mensal equivalente.
+          </p>
+        </div>
+      </section>
 
       <section className="border-b border-white/5 px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-3xl rounded-2xl border border-[#FFDF00]/25 bg-[#FFDF00]/5 px-5 py-6 text-center md:px-8">
