@@ -370,7 +370,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     loadingMoreTracksRef.current = true;
     try {
       const url = resolveUrl(slugPath, false, directTracks.length, 100, dayFilter);
-      const body = await fetchMusicasJson<ResolveResponse>(url);
+      const body = await fetchMusicasJson<ResolveResponse>(url, { forceRefresh: true });
       setData((current) => {
         if (!current) return body;
         return {
