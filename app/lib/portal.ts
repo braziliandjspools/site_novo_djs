@@ -109,6 +109,12 @@ export function portalCookieOptions() {
     sameSite: "lax" as const,
     path: "/",
     maxAge: SESSION_MAX_AGE,
+    // O Checkout Pro retorna para o domínio canônico www. Compartilhar o cookie
+    // entre apex e www evita perder a sessão quando o usuário iniciou o acesso
+    // em brazilianremixservice.com.br e volta do Mercado Pago para www.
+    ...(process.env.NODE_ENV === "production"
+      ? { domain: ".brazilianremixservice.com.br" }
+      : {}),
   };
 }
 
