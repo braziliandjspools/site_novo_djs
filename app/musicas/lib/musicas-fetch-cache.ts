@@ -62,9 +62,9 @@ export async function fetchMusicasJson<T>(url: string, options: FetchOptions = {
       continue;
     }
 
-    if (res.status !== 502 && res.status !== 503) break;
+    if (res.status !== 429 && res.status !== 502 && res.status !== 503 && res.status !== 504) break;
     if (attempt < 2) {
-      await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+      await new Promise((resolve) => setTimeout(resolve, res.status === 429 ? 1200 * (attempt + 1) : 700 * (attempt + 1)));
     }
   }
 
