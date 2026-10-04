@@ -1,7 +1,7 @@
 import "server-only";
 
 import bcrypt from "bcryptjs";
-import { SITE_NAME } from "./branding";
+import { SITE_NAME, SITE_PRODUCTION_URL } from "./branding";
 import {
   hashResetToken,
   isPlausibleResetToken,
@@ -11,7 +11,6 @@ import {
 } from "./password-reset-token";
 import { prisma } from "./prisma";
 import { escapeEmailHtml, getResendClient, getResendFromEmail } from "./resend-client";
-import { SITE_URL } from "./seo";
 
 const GENERIC_SENT =
   "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha. Ele vale por 1 hora.";
@@ -100,7 +99,7 @@ export async function requestPasswordReset(email: string) {
     },
   });
 
-  const resetUrl = `${SITE_URL}/musicas/entrar?modo=redefinir&token=${encodeURIComponent(token)}`;
+  const resetUrl = `${SITE_PRODUCTION_URL}/musicas/entrar?modo=redefinir&token=${encodeURIComponent(token)}`;
   const firstName = user.name.trim().split(/\s+/)[0] || "DJ";
 
   try {
