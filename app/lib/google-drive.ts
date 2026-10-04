@@ -6,6 +6,7 @@ import {
   GOOGLE_DRIVE_PREVIEW_FOLDER_ID,
 } from "./site";
 import { resolveMusicProducerStory } from "./music-producer-stories";
+import { getGoogleDriveAccessToken } from "./google-drive-auth";
 
 const AUDIO_MIME_PREFIX = "audio/";
 const AUDIO_EXTENSIONS = /\.(mp3|wav|flac|m4a|aac|ogg)$/i;
@@ -320,9 +321,14 @@ function toPreviewTrack(file: DriveFile, packName: string): PreviewTrack {
   };
 }
 
-async function listChildrenViaApi(folderId: string, apiKey: string): Promise<DriveFile[]> {
+async function listChildrenViaApi(folderId: string, apiKey?: string): Promise<DriveFile[]> {
   const files: DriveFile[] = [];
   let pageToken: string | undefined;
+  const oauthToken = await getGoogleDriveAccessToken();
+
+  if (!apiKey && !oauthToken) {
+    throw new Error("Google Drive API sem credenciais");
+  }
 
   do {
     const params = new URLSearchParams({
@@ -332,11 +338,18 @@ async function listChildrenViaApi(folderId: string, apiKey: string): Promise<Dri
       orderBy: "folder,name",
       includeItemsFromAllDrives: "true",
       supportsAllDrives: "true",
-      key: apiKey,
     });
     if (pageToken) params.set("pageToken", pageToken);
+    if (apiKey) params.set("key", apiKey);
 
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, driveListFetchInit(120));
+    const headers: HeadersInit = oauthToken
+      ? { Authorization: `Bearer ${oauthToken}` }
+      : {};
+
+    const res = await fetch(
+      `https://www.googleapis.com/drive/v3/files?${params}`,
+      { ...driveListFetchInit(120), headers },
+    );
 
     if (!res.ok) throw new Error(`Drive API error: ${res.status}`);
 
@@ -898,13 +911,16 @@ async function listDriveFolderChildrenUncached(
   folderId: string,
   enrichTimes: boolean,
 ): Promise<DriveFile[]> {
-  if (GOOGLE_DRIVE_API_KEY) {
-    try {
-      const viaApi = await listChildrenViaApi(folderId, GOOGLE_DRIVE_API_KEY);
-      return enrichTimes ? await enrichDriveFileTimes(viaApi, GOOGLE_DRIVE_API_KEY) : viaApi;
-    } catch {
-      /* fallback abaixo */
-    }
+  try {
+    const viaApi = await listChildrenViaApi(
+      folderId,
+      GOOGLE_DRIVE_API_KEY || undefined,
+    );
+    return enrichTimes
+      ? await enrichDriveFileTimes(viaApi, GOOGLE_DRIVE_API_KEY || "")
+      : viaApi;
+  } catch {
+    /* fallback público abaixo */
   }
 
   // Uma única leitura HTML → pastas + áudio (antes eram 2 scrapes).
