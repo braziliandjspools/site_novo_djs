@@ -62,7 +62,7 @@ export async function fetchMusicasJson<T>(url: string, options: FetchOptions = {
       continue;
     }
 
-    const status = res.status;
+    const status = response.status;
     if (status !== 429 && status !== 502 && status !== 503 && status !== 504) break;
     if (attempt < 2) {
       await new Promise((resolve) =>
@@ -75,21 +75,24 @@ export async function fetchMusicasJson<T>(url: string, options: FetchOptions = {
     throw new Error("A API não respondeu.");
   }
 
-  const contentType = res.headers.get("content-type") ?? "";
+  // Congela a resposta final após o loop assíncrono para o TypeScript
+  // preservar o narrowing de null.
+  const response = res;
+  const contentType = response.headers.get("content-type") ?? "";
   let body: T & { error?: string };
   if (contentType.includes("application/json")) {
-    body = (await res.json()) as T & { error?: string };
+    body = (await response.json()) as T & { error?: string };
   } else {
-    const text = await res.text();
-    const status = res.status ? `Erro ${res.status}` : "Resposta inválida";
+    const text = await response.text();
+    const status = response.status ? `Erro ${response.status}` : "Resposta inválida";
     throw new Error(
-      res.ok
+      response.ok
         ? `${status}: a API retornou conteúdo não-JSON.`
         : `${status}: a API retornou uma página HTML em vez de JSON.`,
     );
   }
-  if (!res.ok) {
-    throw new Error((body as { error?: string }).error ?? `Erro ${res.status}`);
+  if (!response.ok) {
+    throw new Error((body as { error?: string }).error ?? `Erro ${response.status}`);
   }
   setMusicasCache(key, body, options.ttlMs);
   return body;
