@@ -74,3 +74,5 @@ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
+
+ALTER TABLE "brs_productions" ADD COLUMN IF NOT EXISTS "beatport_url" TEXT;
