@@ -63,6 +63,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       downloadFileId: clean(body.downloadFileId) || null,
       fileName: clean(body.fileName),
       description: clean(body.description) || null,
+      beatportUrl: clean(body.beatportUrl) || null,
       publishedAt,
       isPublished: Boolean(body.isPublished),
       isFeatured: Boolean(body.isFeatured),
