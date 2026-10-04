@@ -313,6 +313,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
   const tracksHasMore = Boolean(data?.tracksHasMore);
+  // O deep-walk pode terminar exatamente na fronteira de uma página sem
+  // conseguir sinalizar hasMore. Se já temos um múltiplo de 100, ainda
+  // permitimos a próxima requisição; uma resposta vazia encerra de fato.
+  const canLoadMoreTracks =
+    tracksHasMore || (directTracks.length > 0 && directTracks.length % 100 === 0);
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -366,17 +371,35 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
   const loadMoreTracks = useCallback(async () => {
-    if (!data || data.level !== "tracks" || loadingMoreTracksRef.current || !tracksHasMore) return;
+    if (
+      !data ||
+      data.level !== "tracks" ||
+      loadingMoreTracksRef.current ||
+      !canLoadMoreTracks
+    ) return;
+
+    const offset = directTracks.length;
     loadingMoreTracksRef.current = true;
     try {
-      const url = resolveUrl(slugPath, false, directTracks.length, 100, dayFilter);
+      const url = resolveUrl(slugPath, false, offset, 100, dayFilter);
       const body = await fetchMusicasJson<ResolveResponse>(url, { forceRefresh: true });
+      const nextTracks = body.tracks ?? [];
+
       setData((current) => {
         if (!current) return body;
+
+        const existingIds = new Set((current.tracks ?? []).map((track) => track.id));
+        const appended = nextTracks.filter((track) => !existingIds.has(track.id));
+
         return {
           ...current,
-          tracks: [...(current.tracks ?? []), ...(body.tracks ?? [])],
-          tracksHasMore: body.tracksHasMore,
+          tracks: [...(current.tracks ?? []), ...appended],
+          // Uma página cheia mantém o LOAD MORE disponível. Uma resposta
+          // vazia é o único sinal definitivo de que chegamos ao fim.
+          tracksHasMore:
+            nextTracks.length === 0
+              ? false
+              : Boolean(body.tracksHasMore || nextTracks.length >= 100),
         };
       });
     } catch (err) {
@@ -384,7 +407,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     } finally {
       loadingMoreTracksRef.current = false;
     }
-  }, [data, dayFilter, directTracks.length, showToast, slugPath, tracksHasMore]);
+  }, [canLoadMoreTracks, data, dayFilter, directTracks.length, showToast, slugPath]);
 
 
 
@@ -793,7 +816,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
                 updateDays={data.updateDays}
-                hasMore={tracksHasMore}
+                hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
                 continueContext={
                   monthSlug
@@ -942,7 +965,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
                 updateDays={data.updateDays}
-                hasMore={tracksHasMore}
+                hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
                 continueContext={
                   monthSlug
