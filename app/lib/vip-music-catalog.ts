@@ -719,7 +719,10 @@ async function getDriveCatalog(
       level: "tracks",
       items: [],
       tracks,
-      tracksHasMore: state.hasMore || datedTracks.length > requestedLimit,
+      // Se a página veio cheia, ainda pode existir conteúdo na próxima página.
+      // Mantemos o LOAD MORE visível mesmo quando o deep-walk terminou exatamente
+      // no limite solicitado (por exemplo, ao atravessar várias pastas de datas).
+      tracksHasMore: state.hasMore || datedTracks.length >= requestedLimit,
       updateDays: updateDayLinks(allDateFolders),
       coverUrl,
     };
