@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { Decimal } from "@prisma/client/runtime/library";
 import type { PortalPlan, PortalUser as PrismaPortalUser } from "@prisma/client";
 import { defaultNextDueAt, parseDateInputValue } from "./due-queue";
+import { getCanonicalPlanById, isPoolsVipPlanId } from "./billing/plan-catalog";
 import { prisma } from "./prisma";
 
 export type { PortalPlan };
@@ -554,8 +555,48 @@ export async function deletePortalUser(id: number) {
 
 export async function listPortalUsersForAdmin() {
   const users = await listPortalUsersByQueue();
+  const userIds = users.map((user) => user.id);
+  const approvedVipOrders = userIds.length
+    ? await prisma.mercadoPagoOrder.findMany({
+        where: {
+          portalUserId: { in: userIds },
+          status: "APPROVED",
+          planId: { startsWith: "brs-drive" },
+        },
+        orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
+        select: { portalUserId: true, planId: true },
+      })
+    : [];
+
+  const latestVipPlanByUser = new Map<number, string>();
+  for (const order of approvedVipOrders) {
+    if (!latestVipPlanByUser.has(order.portalUserId) && isPoolsVipPlanId(order.planId)) {
+      latestVipPlanByUser.set(order.portalUserId, order.planId);
+    }
+  }
+
   return {
-    users: users.map(serializePortalUser),
+    users: users.map((user) => {
+      const serialized = serializePortalUser(user) as ReturnType<typeof serializePortalUser> & {
+        vipMonthlyEstimate?: number;
+      };
+      const planId = latestVipPlanByUser.get(user.id);
+      const plan = planId ? getCanonicalPlanById(planId, { includeInactive: true }) : null;
+      let vipMonthlyEstimate = 0;
+
+      if (user.services.poolsVip) {
+        if (plan?.serviceProduct === "poolsVip" && !plan.isTestPlan && plan.durationDays > 0) {
+          vipMonthlyEstimate = Number(plan.amountBrl) / (plan.durationDays / 30);
+        } else if (!planId) {
+          vipMonthlyEstimate = user.serviceBilling.poolsVip.value;
+        }
+      }
+
+      return {
+        ...serialized,
+        vipMonthlyEstimate: Math.round(vipMonthlyEstimate * 100) / 100,
+      };
+    }),
     total: users.length,
   };
 }
