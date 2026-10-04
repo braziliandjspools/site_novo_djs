@@ -119,6 +119,7 @@ const emptyDraft = (): DeliveryDraft => ({
   orderDate: new Date().toISOString().slice(0, 10),
   releasedAt: "",
   downloadUrl: "",
+  beatportUrl: "",
   notes: "",
   visible: false,
 });
