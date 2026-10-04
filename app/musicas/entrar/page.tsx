@@ -20,7 +20,10 @@ function MusicasEntrarContent() {
   const searchParams = useSearchParams();
   const returnTo = getSafeReturnPath(searchParams.get("return"));
   const checkoutPlan = searchParams.get("checkout");
-  const initialMode = searchParams.get("modo") === "cadastro" ? "register" : "login";
+  const modo = searchParams.get("modo");
+  const resetToken = searchParams.get("token")?.trim() ?? "";
+  const initialMode =
+    modo === "cadastro" ? "register" : modo === "redefinir" ? (resetToken ? "reset" : "forgot") : "login";
 
   return (
     <div className="relative min-h-screen bg-[#202020]">
@@ -34,6 +37,7 @@ function MusicasEntrarContent() {
 
       <PortalLogin
         initialMode={initialMode}
+        resetToken={resetToken}
         onSuccess={() => {
           const target =
             checkoutPlan && returnTo.startsWith("/plans")

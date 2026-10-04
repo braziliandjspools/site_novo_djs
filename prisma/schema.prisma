@@ -72,11 +72,26 @@ model PortalUser {
   musicGenerationUsages      MusicGenerationUsage[]
   allavsoftLicenseAssignments AllavsoftLicenseAssignment[]
   downloaderQuotaState       DownloaderQuotaState?
+  passwordResetTokens        PasswordResetToken[]
 
   @@index([nextDueAt])
   @@index([servicePoolsVipDueAt])
   @@index([serviceDeemixDueAt])
   @@map("portal_users")
+}
+
+/** Link de uso único para redefinir a senha. Só o hash do token fica no banco. */
+model PasswordResetToken {
+  id           String     @id @default(cuid())
+  portalUserId Int        @map("portal_user_id")
+  portalUser   PortalUser @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  tokenHash    String     @unique @map("token_hash")
+  expiresAt    DateTime   @map("expires_at")
+  usedAt       DateTime?  @map("used_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@index([portalUserId, createdAt])
+  @@map("password_reset_tokens")
 }
 
 /** Pool de seriais Allavsoft (um serial = uma atribuição no máximo). */

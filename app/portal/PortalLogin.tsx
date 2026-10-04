@@ -5,12 +5,13 @@ import Link from "next/link";
 import { Eye, EyeOff, Loader2, LogIn, Sparkles, UserPlus } from "lucide-react";
 import { BrsLogo } from "../components/BrsLogo";
 
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "forgot" | "reset";
 
 type PortalLoginProps = {
   onSuccess: () => void;
   embedded?: boolean;
   initialMode?: AuthMode;
+  resetToken?: string;
 };
 
 const inputClassName =
@@ -92,20 +93,38 @@ function PasswordField({
   );
 }
 
-export function PortalLogin({ onSuccess, embedded = false, initialMode = "login" }: PortalLoginProps) {
+export function PortalLogin({
+  onSuccess,
+  embedded = false,
+  initialMode = "login",
+  resetToken = "",
+}: PortalLoginProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   function switchMode(next: AuthMode) {
     setMode(next);
     setError(null);
+    setInfo(null);
+    setPassword("");
+    setConfirmPassword("");
     if (next === "login") setAcceptedTerms(false);
+  }
+
+  function clearResetQuery() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("token");
+    url.searchParams.delete("modo");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState(null, "", next);
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -180,6 +199,87 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
     }
   }
 
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+
+    try {
+      const res = await fetch("/api/portal/password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email }),
+      });
+      const raw = await res.text();
+      let data: { error?: string; message?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { error?: string; message?: string };
+        } catch {
+          setError("Resposta inválida do servidor. Tente novamente.");
+          return;
+        }
+      }
+      if (!res.ok) {
+        setError(data.error ?? "Não foi possível enviar o e-mail.");
+        return;
+      }
+      setInfo(
+        data.message ??
+          "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha. Ele vale por 1 hora.",
+      );
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+
+    try {
+      const res = await fetch("/api/portal/password-reset/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ token: resetToken, password }),
+      });
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { error?: string };
+        } catch {
+          setError("Resposta inválida do servidor. Tente novamente.");
+          return;
+        }
+      }
+      if (!res.ok) {
+        setError(data.error ?? "Não foi possível salvar a nova senha.");
+        return;
+      }
+      clearResetQuery();
+      setPassword("");
+      setConfirmPassword("");
+      setInfo("Senha atualizada. Entre com a nova senha.");
+      setMode("login");
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden px-4 ${
@@ -207,6 +307,7 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121212]/90 shadow-[0_24px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
           <div className="br-stripe-thin" />
           <div className="p-4 sm:p-5">
+            {mode === "login" || mode === "register" ? (
             <div className="flex gap-1 rounded-xl border border-white/5 bg-black/40 p-1">
               <button
                 type="button"
@@ -233,8 +334,92 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                 Criar conta
               </button>
             </div>
+            ) : null}
 
-            {mode === "login" ? (
+            {mode === "forgot" ? (
+              <>
+                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Esqueci minha senha</h1>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Informe o e-mail da conta. Se ele estiver cadastrado, enviamos um link para criar uma nova senha.
+                </p>
+                <form onSubmit={(e) => void handleForgot(e)} className="mt-4 space-y-3">
+                  <div>
+                    <label htmlFor="portal-forgot-email" className={`${labelClassName} mb-1`}>
+                      E-mail
+                    </label>
+                    <input
+                      id="portal-forgot-email"
+                      type="email"
+                      autoComplete="username"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={inputClassName}
+                      placeholder="seu@email.com"
+                    />
+                  </div>
+                  {error ? (
+                    <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+                      {error}
+                    </p>
+                  ) : null}
+                  {info ? (
+                    <p className="rounded-xl border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-2.5 text-sm text-[#86efac]">
+                      {info}
+                    </p>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Enviar link
+                  </button>
+                </form>
+              </>
+            ) : mode === "reset" ? (
+              <>
+                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Nova senha</h1>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Escolha uma senha nova para a sua conta. O link do e-mail só funciona uma vez.
+                </p>
+                <form onSubmit={(e) => void handleReset(e)} className="mt-4 space-y-3">
+                  <PasswordField
+                    id="portal-reset-password"
+                    label="Nova senha"
+                    value={password}
+                    onChange={setPassword}
+                    autoComplete="new-password"
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                  <PasswordField
+                    id="portal-reset-confirm"
+                    label="Confirmar senha"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    autoComplete="new-password"
+                    placeholder="Repita a senha"
+                  />
+                  {error ? (
+                    <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+                      {error}
+                    </p>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={loading || !resetToken}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-5 py-2.5 text-sm font-bold tracking-[-0.01em] text-black transition-all hover:bg-[#2dff7a] disabled:opacity-60"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Salvar nova senha
+                  </button>
+                  {!resetToken ? (
+                    <p className="text-xs text-red-400">Este link é inválido. Peça um novo e-mail.</p>
+                  ) : null}
+                </form>
+              </>
+            ) : mode === "login" ? (
               <>
                 <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Bem-vindo de volta</h1>
                 <p className="mt-0.5 text-xs text-zinc-500">
@@ -264,6 +449,21 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
                     onChange={setPassword}
                     autoComplete="current-password"
                   />
+                  <div className="-mt-1 text-right">
+                    <button
+                      type="button"
+                      onClick={() => switchMode("forgot")}
+                      className="text-xs font-semibold text-[#1db954] hover:underline"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+
+                  {info ? (
+                    <p className="rounded-xl border border-[#1db954]/30 bg-[#1db954]/10 px-3 py-2.5 text-sm text-[#86efac]">
+                      {info}
+                    </p>
+                  ) : null}
 
                   {error && (
                     <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
@@ -404,7 +604,15 @@ export function PortalLogin({ onSuccess, embedded = false, initialMode = "login"
         </div>
 
         <p className="mt-3 text-center text-xs text-zinc-600">
-          {mode === "login" ? (
+          {mode === "forgot" || mode === "reset" ? (
+            <button
+              type="button"
+              onClick={() => switchMode("login")}
+              className="font-bold uppercase tracking-wide text-[#1db954] hover:underline"
+            >
+              Voltar para entrar
+            </button>
+          ) : mode === "login" ? (
             <>
               Ainda não tem conta?{" "}
               <button
