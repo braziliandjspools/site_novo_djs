@@ -28,6 +28,7 @@ type AdminUser = {
   serviceBilling: AdminServiceBilling;
   monthlyValue: number;
   monthlyValueLabel: string;
+  vipMonthlyEstimate?: number;
   nextDueAt: string;
   active: boolean;
   musicProducerDeliveriesEnabled?: boolean;
@@ -172,9 +173,9 @@ function dueUrgencyLabel(nextDueAt: string) {
   if (urgency !== "soon") return null;
 
   const days = daysUntilDue(nextDueAt);
-  if (days === 0) return "Vence hoje";
-  if (days === 1) return "Amanhã";
-  return `${days} dias`;
+  if (days === 0) return "vence hoje";
+  if (days === 1) return "vence em 1 dia";
+  return `vence em ${days} dias`;
 }
 
 function formatDateBr(isoOrDate: string) {
@@ -854,6 +855,15 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     return getDueUrgency(nextDueAt) === "overdue";
   }).length;
 
+  const activeVipUsers = users.filter((user) => {
+    const draft = drafts[user.id];
+    return Boolean(draft?.active && draft?.services.poolsVip && user.serviceBilling.poolsVip.dueAt);
+  });
+  const estimatedVipMonthly = activeVipUsers.reduce(
+    (total, user) => total + (Number(user.vipMonthlyEstimate) || 0),
+    0,
+  );
+
   const selectedUser = selectedUserId != null ? users.find((user) => user.id === selectedUserId) : null;
   const selectedDraft = selectedUserId != null ? drafts[selectedUserId] : null;
 
@@ -1096,6 +1106,23 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                   })}
                 </tbody>
               </table>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-[#009739]/30 bg-[#009739]/10 px-4 py-4 sm:px-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
+                  Valor mensal estimado — Pools VIP
+                </p>
+                <p className="mt-1 text-xs text-zinc-400">
+                  {activeVipUsers.length} assinante{activeVipUsers.length === 1 ? "" : "s"} VIP ativo{activeVipUsers.length === 1 ? "" : "s"} ·
+                  planos trimestrais e semestrais convertidos para equivalente mensal.
+                </p>
+              </div>
+              <p className="font-mono text-xl font-bold tabular-nums text-white sm:text-2xl">
+                {formatBrl(estimatedVipMonthly)}
+              </p>
             </div>
           </section>
 
