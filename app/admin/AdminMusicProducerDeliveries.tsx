@@ -62,6 +62,7 @@ type DeliveryItem = {
   releasedAt: string | null;
   releasedAtLabel: string | null;
   downloadUrl: string | null;
+  beatportUrl: string | null;
   notes: string | null;
   visible: boolean;
   status: string;
@@ -99,6 +100,7 @@ type DeliveryDraft = {
   orderDate: string;
   releasedAt: string;
   downloadUrl: string;
+  beatportUrl: string;
   notes: string;
   visible: boolean;
 };
@@ -173,6 +175,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
             orderDate: toDeliveryDateInputValue(delivery.orderDate),
             releasedAt: toDeliveryDateInputValue(delivery.releasedAt),
             downloadUrl: delivery.downloadUrl ?? "",
+            beatportUrl: delivery.beatportUrl ?? "",
             notes: delivery.notes ?? "",
             visible: delivery.visible,
           };
@@ -255,6 +258,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
           orderDate: draft.orderDate,
           releasedAt: draft.releasedAt || null,
           downloadUrl: draft.downloadUrl,
+          beatportUrl: draft.beatportUrl || null,
           notes: draft.notes || undefined,
           visible: draft.visible,
         }),
@@ -290,6 +294,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
           orderDate: draft.orderDate,
           releasedAt: draft.releasedAt || null,
           downloadUrl: draft.downloadUrl,
+          beatportUrl: draft.beatportUrl || null,
           notes: draft.notes || null,
           visible: draft.visible,
         }),
@@ -966,6 +971,16 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                               />
                             </label>
                             <label className="block text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
+                              Link Beatport (opcional)
+                              <input
+                                type="url"
+                                value={draft.beatportUrl}
+                                onChange={(e) => updateEditDraft(delivery.id, { beatportUrl: e.target.value })}
+                                placeholder="https://www.beatport.com/track/..."
+                                className={`${inputClass} mt-1`}
+                              />
+                            </label>
+                            <label className="block text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
                               Link de download
                               <input
                                 value={draft.downloadUrl}
@@ -1043,6 +1058,16 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                           type="date"
                           value={newDraft.releasedAt}
                           onChange={(e) => updateNewDraft(user.id, { releasedAt: e.target.value })}
+                          className={`${inputClass} mt-1`}
+                        />
+                      </label>
+                      <label className="block text-xs text-gray-400 sm:col-span-2 lg:col-span-3">
+                        Link Beatport (opcional)
+                        <input
+                          type="url"
+                          value={newDraft.beatportUrl}
+                          onChange={(e) => updateNewDraft(user.id, { beatportUrl: e.target.value })}
+                          placeholder="https://www.beatport.com/track/..."
                           className={`${inputClass} mt-1`}
                         />
                       </label>
