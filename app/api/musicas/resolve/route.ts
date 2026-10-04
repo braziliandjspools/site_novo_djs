@@ -83,7 +83,7 @@ export async function GET(request: Request) {
         slugSegments: segments,
         resolvedPath,
         siblings,
-      });
+      }, { headers: { "Cache-Control": "no-store, max-age=0" } });
     };
 
     return forceRefresh ? await withDriveForceRefresh(run) : await run();
