@@ -709,7 +709,7 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
       },
       allavsoft: {
         value: parseBrlInput(draft.serviceBilling.allavsoft.value) ?? 0,
-        dueAt: draft.serviceBilling.allavsoft.dueAt || null,
+        dueAt: null,
       },
     };
 
