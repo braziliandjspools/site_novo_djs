@@ -18,6 +18,50 @@ const GENERIC_SENT =
 
 const INVALID_LINK = "Este link expirou ou já foi usado. Peça um novo.";
 
+let ensuringTable: Promise<void> | null = null;
+
+/** Cria a tabela se o deploy não rodou a migration (db push é pulado em host interno). */
+function ensurePasswordResetTable() {
+  if (!ensuringTable) {
+    ensuringTable = (async () => {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
+          "id" TEXT NOT NULL,
+          "portal_user_id" INTEGER NOT NULL,
+          "token_hash" TEXT NOT NULL,
+          "expires_at" TIMESTAMP(3) NOT NULL,
+          "used_at" TIMESTAMP(3),
+          "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT "password_reset_tokens_pkey" PRIMARY KEY ("id")
+        )
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE UNIQUE INDEX IF NOT EXISTS "password_reset_tokens_token_hash_key"
+        ON "password_reset_tokens"("token_hash")
+      `);
+      await prisma.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "password_reset_tokens_portal_user_id_created_at_idx"
+        ON "password_reset_tokens"("portal_user_id", "created_at")
+      `);
+      try {
+        await prisma.$executeRawUnsafe(`
+          ALTER TABLE "password_reset_tokens"
+          ADD CONSTRAINT "password_reset_tokens_portal_user_id_fkey"
+          FOREIGN KEY ("portal_user_id") REFERENCES "portal_users"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "";
+        if (!/already exists|duplicate/i.test(message)) throw err;
+      }
+    })().catch((err) => {
+      ensuringTable = null;
+      throw err;
+    });
+  }
+  return ensuringTable;
+}
+
 export function passwordResetRequestMessage() {
   return GENERIC_SENT;
 }
@@ -40,20 +84,20 @@ export async function requestPasswordReset(email: string) {
   });
   if (!user) return { ok: true as const, message: GENERIC_SENT };
 
+  await ensurePasswordResetTable();
+
   const token = generateResetToken();
   const expiresAt = passwordResetExpiresAt();
-  const created = await prisma.$transaction(async (tx) => {
-    await tx.passwordResetToken.updateMany({
-      where: { portalUserId: user.id, usedAt: null },
-      data: { usedAt: new Date() },
-    });
-    return tx.passwordResetToken.create({
-      data: {
-        portalUserId: user.id,
-        tokenHash: hashResetToken(token),
-        expiresAt,
-      },
-    });
+  await prisma.passwordResetToken.updateMany({
+    where: { portalUserId: user.id, usedAt: null },
+    data: { usedAt: new Date() },
+  });
+  const created = await prisma.passwordResetToken.create({
+    data: {
+      portalUserId: user.id,
+      tokenHash: hashResetToken(token),
+      expiresAt,
+    },
   });
 
   const resetUrl = `${SITE_URL}/musicas/entrar?modo=redefinir&token=${encodeURIComponent(token)}`;
@@ -110,38 +154,40 @@ export async function confirmPasswordReset(token: string, password: string) {
   }
 
   const now = new Date();
+  const tokenHash = hashResetToken(token);
   const passwordHash = await bcrypt.hash(password, 12);
 
   try {
-    await prisma.$transaction(async (tx) => {
-      const consumed = await tx.passwordResetToken.updateMany({
-        where: {
-          tokenHash: hashResetToken(token),
-          usedAt: null,
-          expiresAt: { gt: now },
-        },
-        data: { usedAt: now },
-      });
-      if (consumed.count !== 1) {
-        throw new Error("RESET_TOKEN_USED");
-      }
-
-      const record = await tx.passwordResetToken.findUnique({
-        where: { tokenHash: hashResetToken(token) },
-        select: { portalUserId: true },
-      });
-      if (!record) throw new Error("RESET_TOKEN_USED");
-
-      await tx.portalUser.update({
-        where: { id: record.portalUserId },
-        data: { passwordHash },
-      });
+    await ensurePasswordResetTable();
+    const consumed = await prisma.passwordResetToken.updateMany({
+      where: {
+        tokenHash,
+        usedAt: null,
+        expiresAt: { gt: now },
+      },
+      data: { usedAt: now },
     });
-  } catch (err) {
-    if (err instanceof Error && err.message === "RESET_TOKEN_USED") {
+    if (consumed.count !== 1) {
       return { ok: false as const, status: 400, error: INVALID_LINK };
     }
+
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      select: { portalUserId: true },
+    });
+    if (!record) {
+      return { ok: false as const, status: 400, error: INVALID_LINK };
+    }
+
+    await prisma.portalUser.update({
+      where: { id: record.portalUserId },
+      data: { passwordHash },
+    });
+  } catch (err) {
     console.error("[password-reset] falha ao gravar senha:", err);
+    await prisma.passwordResetToken
+      .updateMany({ where: { tokenHash, usedAt: now }, data: { usedAt: null } })
+      .catch(() => undefined);
     return {
       ok: false as const,
       status: 503,
