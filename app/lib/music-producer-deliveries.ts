@@ -19,6 +19,7 @@ export type MusicProducerDeliveryRecord = {
   orderDate: Date;
   releasedAt: Date | null;
   downloadUrl: string;
+  beatportUrl: string | null;
   notes: string | null;
   visible: boolean;
   clientRating: number | null;
@@ -39,6 +40,7 @@ export type CreateMusicProducerDeliveryInput = {
   orderDate: string;
   releasedAt?: string | null;
   downloadUrl: string;
+  beatportUrl?: string | null;
   notes?: string;
   visible?: boolean;
 };
@@ -50,6 +52,7 @@ export type UpdateMusicProducerDeliveryInput = {
   orderDate?: string;
   releasedAt?: string | null;
   downloadUrl?: string;
+  beatportUrl?: string | null;
   notes?: string | null;
   visible?: boolean;
 };
@@ -250,6 +253,7 @@ export async function createMusicProducerDelivery(input: CreateMusicProducerDeli
       orderDate: parseDateInputValue(input.orderDate),
       releasedAt: parseOptionalDate(input.releasedAt) ?? null,
       downloadUrl: input.downloadUrl.trim(),
+      beatportUrl: input.beatportUrl?.trim() || null,
       notes: input.notes?.trim() || null,
       visible: input.visible === true,
     },
@@ -272,6 +276,8 @@ export async function updateMusicProducerDelivery(id: number, input: UpdateMusic
       releasedAt:
         input.releasedAt !== undefined ? (parseOptionalDate(input.releasedAt) ?? null) : undefined,
       downloadUrl: input.downloadUrl?.trim(),
+      beatportUrl:
+        input.beatportUrl === undefined ? undefined : input.beatportUrl?.trim() || null,
       notes: input.notes === undefined ? undefined : input.notes?.trim() || null,
       visible: input.visible,
     },
