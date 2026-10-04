@@ -1005,8 +1005,10 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                   {users.map((user, index) => {
                     const draft = drafts[user.id];
                     if (!draft) return null;
-                    const urgency = getDueUrgency(draft.nextDueAt);
-                    const urgencyLabel = dueUrgencyLabel(draft.nextDueAt);
+                    const hasRecurringService = draft.services.poolsVip || draft.services.deemix;
+                    const isLifetimeOnly = draft.services.allavsoft && !hasRecurringService;
+                    const urgency = isLifetimeOnly ? null : getDueUrgency(draft.nextDueAt);
+                    const urgencyLabel = isLifetimeOnly ? null : dueUrgencyLabel(draft.nextDueAt);
                     const rowBg =
                       urgency === "overdue"
                         ? "bg-red-950/40"
@@ -1051,7 +1053,9 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
                         </td>
                         <td className={sheetCell}>
                           <div className="inline-flex items-center gap-1.5">
-                            <span className="font-mono text-zinc-200">{formatDateBr(draft.nextDueAt)}</span>
+                            <span className={isLifetimeOnly ? "text-lg font-black text-[#00ff9d]" : "font-mono text-zinc-200"}>
+                              {isLifetimeOnly ? "∞" : formatDateBr(draft.nextDueAt)}
+                            </span>
                             {urgencyLabel && (
                               <span
                                 className={`inline-flex shrink-0 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
