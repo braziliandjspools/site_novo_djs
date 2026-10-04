@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CreditCard, Loader2, RefreshCw, RotateCcw, Trash2, Wallet } from "lucide-react";
 import { PortalCard } from "../PortalShell";
-import { formatDateBr } from "../portal-types";
+import { formatDateBr, type PortalServiceBilling, type PortalServices } from "../portal-types";
 import { useSiteToast } from "../../components/SiteToast";
 
 type PaymentRow = {
@@ -46,7 +46,13 @@ function statusClass(statusUi: PaymentRow["statusUi"]) {
   }
 }
 
-export function AccountPaymentsPanel() {
+export function AccountPaymentsPanel({
+  services,
+  serviceBilling,
+}: {
+  services: PortalServices;
+  serviceBilling: PortalServiceBilling;
+}) {
   const { showToast } = useSiteToast();
   const [data, setData] = useState<PaymentsPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -169,9 +175,34 @@ export function AccountPaymentsPanel() {
       <div className="mb-4 flex items-start gap-3">
         <Wallet className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#00ff9d]" />
         <p className="text-sm text-zinc-400">
-          Histórico de pagamentos online e ajustes manuais do admin: data, valor e status. Pedidos
-          pendentes podem ser removidos ou reabertos para pagamento.
+          Aqui você acompanha pagamentos, valores e status. O Allavsoft é uma licença vitalícia:
+          pagamento único e <span className="font-semibold text-white">sem mensalidade</span>.
+          {services.poolsVip && services.allavsoft
+            ? " Se você também possui Pools VIP, os serviços ficam juntos nesta conta, mas o próximo valor devido é somente o do VIP."
+            : null}
         </p>
+      </div>
+
+      <div className="mb-5 grid gap-3 sm:grid-cols-2">
+        {services.poolsVip ? (
+          <div className="rounded-xl border border-[#00ff9d]/20 bg-[#00ff9d]/5 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">Pools VIP</p>
+            <p className="mt-1 text-lg font-black text-[#FFDF00]">{serviceBilling.poolsVip.valueLabel}</p>
+            <p className="mt-1 text-xs text-zinc-500">Valor devido conforme o período contratado.</p>
+          </div>
+        ) : null}
+        {services.allavsoft ? (
+          <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">Allavsoft</p>
+            <p className="mt-1 text-lg font-black text-amber-300">{serviceBilling.allavsoft.valueLabel}</p>
+            <p className="mt-1 text-xs font-semibold text-[#00ff9d]">Pagamento único · sem mensalidade · vitalício.</p>
+          </div>
+        ) : null}
+        {!services.poolsVip && !services.allavsoft ? (
+          <div className="rounded-xl border border-zinc-800 bg-[#0a0a0a] px-4 py-3 sm:col-span-2">
+            <p className="text-sm text-zinc-400">Nenhum serviço recorrente ou licença Allavsoft ativo nesta conta.</p>
+          </div>
+        ) : null}
       </div>
 
       {loading && !data ? (
