@@ -15,9 +15,9 @@ type PortalLoginProps = {
 };
 
 const inputClassName =
-  "w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none transition-all placeholder:text-zinc-600 focus:border-[#1db954]/50 focus:ring-2 focus:ring-[#1db954]/20";
+  "w-full rounded-xl border border-white/20 bg-white/[0.06] px-3.5 py-2.5 text-sm text-white outline-none transition-all placeholder:text-white/55 focus:border-[#1ed760] focus:bg-black/40 focus:ring-2 focus:ring-[#1ed760]/25";
 
-const labelClassName = "block text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500";
+const labelClassName = "block text-[11px] font-bold uppercase tracking-[0.14em] text-white";
 
 function generateSecurePassword(length = 12) {
   const chars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*";
@@ -83,7 +83,7 @@ function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors hover:text-white"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-white transition-colors hover:text-[#1ed760]"
           aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -297,16 +297,16 @@ export function PortalLogin({
       <div className="relative w-full max-w-md">
         <div className="mb-3 text-center">
           <div className="flex justify-center">
-            <BrsLogo href="/" className="h-9 w-auto max-w-[200px] object-contain" />
+            <BrsLogo href="/" className="h-11 w-auto max-w-[220px] object-contain" />
           </div>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1db954]/80">
+          <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white">
             Área do cliente
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121212]/90 shadow-[0_24px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-3xl border border-white/15 bg-[#101010]/95 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.8)] ring-1 ring-[#1db954]/20 backdrop-blur-xl">
           <div className="br-stripe-thin" />
-          <div className="p-4 sm:p-5">
+          <div className="p-5 sm:p-7">
             {mode === "login" || mode === "register" ? (
             <div className="flex gap-1 rounded-xl border border-white/5 bg-black/40 p-1">
               <button
@@ -315,7 +315,7 @@ export function PortalLogin({
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-all ${
                   mode === "login"
                     ? "bg-[#1db954] text-black shadow-[0_8px_24px_rgba(29,185,84,0.25)]"
-                    : "text-zinc-500 hover:text-white"
+                    : "text-white hover:bg-white/10"
                 }`}
               >
                 <LogIn className="h-3.5 w-3.5" />
@@ -327,7 +327,7 @@ export function PortalLogin({
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-[-0.01em] transition-all ${
                   mode === "register"
                     ? "bg-[#1db954] text-black shadow-[0_8px_24px_rgba(29,185,84,0.25)]"
-                    : "text-zinc-500 hover:text-white"
+                    : "text-white hover:bg-white/10"
                 }`}
               >
                 <UserPlus className="h-3.5 w-3.5" />
@@ -338,8 +338,8 @@ export function PortalLogin({
 
             {mode === "forgot" ? (
               <>
-                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Esqueci minha senha</h1>
-                <p className="mt-0.5 text-xs text-zinc-500">
+                <h1 className="font-display mt-5 text-2xl font-semibold tracking-tight text-white">Esqueci minha senha</h1>
+                <p className="mt-1 text-sm leading-relaxed text-white">
                   Informe o e-mail da conta. Se ele estiver cadastrado, enviamos um link para criar uma nova senha.
                 </p>
                 <form onSubmit={(e) => void handleForgot(e)} className="mt-4 space-y-3">
@@ -380,8 +380,8 @@ export function PortalLogin({
               </>
             ) : mode === "reset" ? (
               <>
-                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Nova senha</h1>
-                <p className="mt-0.5 text-xs text-zinc-500">
+                <h1 className="font-display mt-5 text-2xl font-semibold tracking-tight text-white">Nova senha</h1>
+                <p className="mt-1 text-sm leading-relaxed text-white">
                   Escolha uma senha nova para a sua conta. O link do e-mail só funciona uma vez.
                 </p>
                 <form onSubmit={(e) => void handleReset(e)} className="mt-4 space-y-3">
@@ -421,8 +421,8 @@ export function PortalLogin({
               </>
             ) : mode === "login" ? (
               <>
-                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Bem-vindo de volta</h1>
-                <p className="mt-0.5 text-xs text-zinc-500">
+                <h1 className="font-display mt-5 text-2xl font-semibold tracking-tight text-white">Bem-vindo de volta</h1>
+                <p className="mt-1 text-sm leading-relaxed text-white">
                   Entre para acessar o acervo VIP, portal e Downloader.
                 </p>
 
@@ -483,8 +483,8 @@ export function PortalLogin({
               </>
             ) : (
               <>
-                <h1 className="mt-4 text-lg font-bold tracking-tight text-white">Crie sua conta</h1>
-                <p className="mt-0.5 text-xs text-zinc-500">
+                <h1 className="font-display mt-5 text-2xl font-semibold tracking-tight text-white">Crie sua conta</h1>
+                <p className="mt-1 text-sm leading-relaxed text-white">
                   Sem plano no cadastro. Você assina VIP depois.
                 </p>
 
@@ -548,7 +548,7 @@ export function PortalLogin({
 
                   <label
                     htmlFor="portal-accept-terms"
-                    className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs leading-snug text-zinc-400 transition-colors hover:border-white/20"
+                    className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-sm leading-snug text-white transition-colors hover:border-white/30"
                   >
                     <input
                       id="portal-accept-terms"
@@ -603,7 +603,7 @@ export function PortalLogin({
           </div>
         </div>
 
-        <p className="mt-3 text-center text-xs text-zinc-600">
+        <p className="mt-4 text-center text-sm text-white">
           {mode === "forgot" || mode === "reset" ? (
             <button
               type="button"
