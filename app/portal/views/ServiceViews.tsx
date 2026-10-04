@@ -11,6 +11,7 @@ import { DownloaderStatsPanel } from "./DownloaderStatsPanel";
 import { PortalPlanChangePanel } from "./PortalPlanChangePanel";
 import {
   ALLAVSOFT_INSTALLER_VERSION,
+  ALLAVSOFT_UPDATED_AT,
   getAllavsoftDownloadUrl,
 } from "../../lib/allavsoft-download";
 
@@ -121,7 +122,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
           </a>
         </div>
         <p className="mt-3 text-xs text-zinc-500">
-          Windows · versão {ALLAVSOFT_INSTALLER_VERSION} · download externo · depois ative com o serial gerado abaixo
+          Windows · versão {ALLAVSOFT_INSTALLER_VERSION} · atualizada em {ALLAVSOFT_UPDATED_AT} · depois ative com o serial gerado abaixo
         </p>
       </PortalCard>
 
@@ -132,7 +133,7 @@ export function AllavsoftServiceView({ data }: { data: PortalData }) {
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-[#FFDF00]" />
             <p className="text-sm text-zinc-400">
-              Você também tem Pools VIP nesta conta. Allavsoft e pools são serviços independentes.
+              Você também tem Pools VIP nesta conta. Os dois serviços ficam na mesma conta, mas a cobrança é separada: Allavsoft é vitalício e não gera mensalidade; o próximo valor devido é somente o do Pools VIP.
             </p>
           </div>
         </PortalCard>
@@ -153,10 +154,10 @@ export function AccountView({ data }: { data: PortalData }) {
     ["Serviços", user.servicesLabel],
     ["Status", subscription?.statusLabel ?? (user.active ? "Ativo" : "Inativo")],
     ["Pagamento", subscription?.providerLabel ?? "Manual / suporte"],
-    ["Valor mensal", user.monthlyValueLabel],
+    [user.services.poolsVip ? "Valor do VIP" : "Mensalidade", user.services.poolsVip ? user.serviceBilling.poolsVip.valueLabel : "Sem mensalidade"],
     [
-      subscription ? "Próxima renovação" : "Próximo vencimento",
-      formatDateBr(subscription?.currentPeriodEnd ?? user.nextDueAt),
+      user.services.poolsVip ? (subscription ? "Próxima renovação" : "Próximo vencimento") : "Cobrança futura",
+      user.services.poolsVip ? formatDateBr(subscription?.currentPeriodEnd ?? user.serviceBilling.poolsVip.dueAt ?? user.nextDueAt) : "Sem vencimento",
     ],
     ["Cliente desde", formatDateBr(user.createdAt)],
   ];
@@ -188,7 +189,7 @@ export function AccountView({ data }: { data: PortalData }) {
         />
       ) : null}
 
-      <AccountPaymentsPanel />
+      <AccountPaymentsPanel services={user.services} serviceBilling={user.serviceBilling} />
 
       <PortalCard title="Segurança">
         <p className="text-sm text-zinc-400">
