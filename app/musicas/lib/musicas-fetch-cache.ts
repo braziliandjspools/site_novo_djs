@@ -62,7 +62,7 @@ export async function fetchMusicasJson<T>(url: string, options: FetchOptions = {
       continue;
     }
 
-    const status = response.status;
+    const status = res.status;
     if (status !== 429 && status !== 502 && status !== 503 && status !== 504) break;
     if (attempt < 2) {
       await new Promise((resolve) =>
