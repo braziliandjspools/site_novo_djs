@@ -119,7 +119,8 @@ function mapServiceBilling(user: PrismaPortalUser): ServiceBilling {
     },
     allavsoft: {
       value: Number(user.serviceAllavsoftValue),
-      dueAt: user.serviceAllavsoftDueAt,
+      // Allavsoft é vitalício: nunca possui vencimento recorrente.
+      dueAt: null,
     },
   };
 }
@@ -310,7 +311,7 @@ function billingFromLegacy(
           : !services.poolsVip && !services.deemix
             ? monthlyValue
             : billing.allavsoft.value,
-      dueAt: billing.allavsoft.dueAt,
+      dueAt: null,
     };
   }
   return billing;
@@ -327,7 +328,8 @@ function prismaBillingData(services: PortalServices, billing: ServiceBilling, ag
     serviceDeemixValue: new Decimal(billing.deemix.value),
     serviceDeemixDueAt: billing.deemix.dueAt,
     serviceAllavsoftValue: new Decimal(billing.allavsoft.value),
-    serviceAllavsoftDueAt: billing.allavsoft.dueAt,
+    // Regra de negócio: Allavsoft vitalício nunca gera vencimento.
+    serviceAllavsoftDueAt: null,
     monthlyValue: new Decimal(monthlyValue),
     nextDueAt,
   };
