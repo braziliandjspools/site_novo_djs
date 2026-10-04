@@ -3,8 +3,9 @@
  * Padrão: mirror Workupload. Sobrescreva com ALLAVSOFT_DOWNLOAD_URL /
  * NEXT_PUBLIC_ALLAVSOFT_DOWNLOAD_URL se necessário.
  */
-export const ALLAVSOFT_INSTALLER_VERSION = "3.29.4";
-export const ALLAVSOFT_DOWNLOAD_URL_DEFAULT = "https://workupload.com/file/ZtbqKQUe6BV";
+export const ALLAVSOFT_INSTALLER_VERSION = "3.29.6.9765";
+export const ALLAVSOFT_UPDATED_AT = "04/10/2026";
+export const ALLAVSOFT_DOWNLOAD_URL_DEFAULT = "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/allavsoft.exe";
 
 export function getAllavsoftDownloadUrl() {
   const fromEnv =
