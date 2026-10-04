@@ -46,6 +46,7 @@ export async function POST(request: Request) {
       orderDate,
       releasedAt: body.releasedAt,
       downloadUrl,
+      beatportUrl: body.beatportUrl,
       notes: body.notes,
       visible: body.visible,
     });
