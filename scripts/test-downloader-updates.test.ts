@@ -5,10 +5,10 @@ import { APP_CHANGELOG } from "../apps/downloader/src/lib/app-info";
 import { compareSemver } from "../app/lib/downloader-updates";
 import { existsSync } from "node:fs";
 
-const latest = "1.0.29";
+const latest = "1.0.30";
 const previous = APP_CHANGELOG.map(entry => entry.version).filter(version => compareSemver(version, latest) < 0);
 for (const current of [...previous, "1.0.16", "v1.0.15", "1.0.16-estable", "0.0.0"]) {
-  test(current + " receives 1.0.29 from the legacy update endpoint", async () => {
+  test(current + " receives " + latest + " from the legacy update endpoint", async () => {
     const response = await GET(new Request("https://www.brazilianremixservice.com.br/api/downloader/updates/latest?current=" + encodeURIComponent(current), {
       headers: { Origin: "https://tauri.localhost", "X-BP-Client": "downloader" },
     }));
@@ -23,7 +23,7 @@ for (const current of [...previous, "1.0.16", "v1.0.15", "1.0.16-estable", "0.0.
     assert.equal(response.headers.get("access-control-allow-origin"), "https://tauri.localhost");
   });
 }
-for (const current of [latest, "1.0.30", "2.0.0"]) {
+for (const current of [latest, "1.0.31", "2.0.0"]) {
   test(current + " is never offered a downgrade", async () => {
     const response = await GET(new Request("https://example.com/api/downloader/updates/latest?current=" + current));
     const body = await response.json();
