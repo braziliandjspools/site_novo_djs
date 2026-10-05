@@ -37,7 +37,7 @@ export function AdminProductionEdit({ id }: { id: string }) {
           coverFileId: String(item.coverFileId ?? ""),
           coverUrl: String(item.coverUrl ?? ""),
           description: String(item.description ?? ""),
-          beatportUrl: String(item.beatportUrl ?? ""),
+          spotifyUrl: String(item.spotifyUrl ?? ""),
           isPublished: Boolean(item.isPublished),
           isFeatured: Boolean(item.isFeatured),
           isNew: Boolean(item.isNew),
