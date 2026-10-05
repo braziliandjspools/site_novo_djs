@@ -129,6 +129,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const initialCache = peekMusicasCache<ResolveResponse>(resolveUrl(slugPath, false, currentPage, dayFilter));
   const [data, setData] = useState<ResolveResponse | null>(initialCache);
   const [loading, setLoading] = useState(!initialCache);
+  const [pageLoading, setPageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
   const [packMonths, setPackMonths] = useState<VipMusicFolder[]>([]);
@@ -270,6 +271,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         return null;
       } finally {
         setLoading(false);
+        setPageLoading(false);
         loadingMoreTracksRef.current = false;
       }
     },
@@ -384,6 +386,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
     const nextPage = currentPage + 1;
     loadingMoreTracksRef.current = true;
+    setPageLoading(true);
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(nextPage));
     params.delete("trackOffset");
@@ -727,11 +730,29 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         </div>
       )}
 
-      {loading && data && (
+      {loading && data && !pageLoading ? (
         <p className="text-eyebrow mb-3 text-zinc-500">
           Atualizando…
         </p>
-      )}
+      ) : null}
+
+      {pageLoading ? (
+        <div
+          className="mb-4 flex items-center justify-center rounded-2xl border border-[#60cdff]/25 bg-[#60cdff]/[0.06] px-4 py-5 text-center shadow-[0_0_24px_rgba(96,205,255,0.06)]"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex max-w-xl items-center gap-3">
+            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#60cdff]" aria-hidden />
+            <div>
+              <p className="text-sm font-bold text-white">Carregando página {currentPage}…</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/50">
+                Aguarde um pouco. Se esta página tiver muitas músicas, o carregamento pode levar alguns segundos.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {!error && data && showingWeeks && (
         <MusicLibraryBrowseShell
