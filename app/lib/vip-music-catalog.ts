@@ -413,6 +413,19 @@ type TrackPageState = {
   hasMore: boolean;
 };
 
+type CatalogTrackFilters = {
+  poolSlug?: string | null;
+  styleSlug?: string | null;
+};
+
+function matchesTrackFolderFilter(poolName: string | null, styleName: string | null, filters?: CatalogTrackFilters) {
+  const poolSlug = filters?.poolSlug?.trim() ?? "";
+  const styleSlug = filters?.styleSlug?.trim() ?? "";
+  if (poolSlug && slugifyFolderName(poolName ?? "") !== poolSlug) return false;
+  if (styleSlug && slugifyFolderName(styleName ?? "") !== styleSlug) return false;
+  return true;
+}
+
 async function collectTracksPageDeep(
   folderId: string,
   packName: string,
@@ -426,6 +439,7 @@ async function collectTracksPageDeep(
   dateChildName: string | null = null,
   currentFolderName: string | null = null,
   poolFolderId: string | null = null,
+  filters?: CatalogTrackFilters,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH || seen.has(folderId) || state.hasMore) {
     return [];
@@ -469,7 +483,7 @@ async function collectTracksPageDeep(
         : poolName;
   const resolvedStyleName =
     isDateRoot && depth >= 2 && currentFolderName
-      ? styleName ?? displayFolderName(currentFolderName)
+      ? displayFolderName(currentFolderName)
       : !isDateRoot && audioFiles.length > 0 && subfolders.length === 0 && currentFolderName
         ? displayFolderName(currentFolderName)
         : styleName;
@@ -482,6 +496,7 @@ async function collectTracksPageDeep(
   const result: PreviewTrack[] = [];
 
   for (const file of audioFiles) {
+    if (!matchesTrackFolderFilter(resolvedPoolName, resolvedStyleName, filters)) continue;
     if (state.skipped < state.skip) {
       state.skipped += 1;
       continue;
@@ -512,7 +527,7 @@ async function collectTracksPageDeep(
     const parsed = parseUpdateDateFolder(folder.name);
     const nextPack = parsed ? packName : folder.name;
     const nextDate = parsed?.key ?? updateDate;
-    const nextStyleName = parsed ? resolvedStyleName : displayFolderName(folder.name);
+    const nextStyleName = parsed ? resolvedStyleName : (isDateRoot && depth === 0 ? null : displayFolderName(folder.name));
     const nextDateChildName = isDateRoot && !parsed ? displayFolderName(folder.name) : null;
     const nested = await collectTracksPageDeep(
       folder.id,
@@ -527,6 +542,7 @@ async function collectTracksPageDeep(
       nextDateChildName,
       folder.name,
       resolvedPoolFolderId,
+      filters,
     );
     result.push(...nested);
   }
@@ -540,6 +556,7 @@ async function getDriveCatalog(
   trackOffset = 0,
   trackLimit?: number,
   dayKey: string | null = null,
+  filters?: CatalogTrackFilters,
 ): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
   const children = await listDriveFolderChildren(folderId);
@@ -697,6 +714,10 @@ async function getDriveCatalog(
           null,
           null,
           true,
+          null,
+          null,
+          null,
+          filters,
         );
         datedTracks.push(...nested);
       } catch {
@@ -814,6 +835,8 @@ async function getDriveCatalog(
         false,
         null,
         folderName,
+        null,
+        filters,
       )).sort(sortTracksByUploadThenTitle);
       if (tracks.length > 0) {
         const pageTracks = tracks.slice(0, requestedLimit);
@@ -1029,6 +1052,7 @@ export async function getVipMusicCatalog(
   trackOffset = 0,
   trackLimit?: number,
   dayKey?: string | null,
+  filters?: CatalogTrackFilters,
 ): Promise<VipMusicCatalogResponse & { tracksHasMore?: boolean }> {
   const rootId = getVipMusicRootFolderId();
 
@@ -1061,6 +1085,7 @@ export async function getVipMusicCatalog(
       trackOffset,
       trackLimit,
       /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null,
+      filters,
     );
     return catalog;
   } catch {
