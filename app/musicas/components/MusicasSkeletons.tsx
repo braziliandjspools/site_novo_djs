@@ -61,12 +61,6 @@ export function MusicasPageSkeleton() {
       <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
         <SkeletonPulse className="aspect-[16/5] w-full rounded-none" />
       </div>
-      <div className="mx-auto max-w-3xl space-y-2">
-        <SkeletonPulse className="h-4 w-full" />
-        <SkeletonPulse className="h-4 w-[92%]" />
-        <SkeletonPulse className="h-4 w-[88%]" />
-        <SkeletonPulse className="h-4 w-2/3" />
-      </div>
       <div className="flex justify-center gap-3">
         <SkeletonPulse className="h-11 w-40 rounded-full" />
         <SkeletonPulse className="h-11 w-40 rounded-full" />

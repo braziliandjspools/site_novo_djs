@@ -61,19 +61,7 @@ export function MusicasHubClient() {
           />
         </div>
         <div className="mx-auto mt-6 max-w-3xl">
-          <div className="text-justify text-sm leading-relaxed text-white/80 sm:text-[15px]">
-            <p className="text-[15px] font-extrabold tracking-[0.04em] text-white sm:text-base">
-              🎧 SEU PRÓXIMO SET COMEÇA AQUI.
-            </p>
-            <p className="mt-2">
-              🔥 Descubra as novidades da Brazilian Remix Service e tenha acesso a remixes, edits, versões exclusivas e produções selecionadas para DJs.
-            </p>
-            <p className="mt-2">
-              🚀 Atualizações constantes. 📀 Acervo organizado. 🎶 Música de verdade para quem vive de música.
-            </p>
-            <p className="mt-2">▶️ Explore. Baixe. Toque. 🔥</p>
-          </div>
-          <nav aria-label="Seções do acervo" className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <nav aria-label="Seções do acervo" className="flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/musicas/atualizacoes"
               prefetch={false}
