@@ -45,7 +45,7 @@ async function parseBody(body: Record<string, unknown>, ignoreId?: string) {
     downloadFileId: clean(body.downloadFileId) || null,
     fileName,
     description: clean(body.description) || null,
-    beatportUrl: clean(body.beatportUrl) || null,
+    spotifyUrl: clean(body.spotifyUrl) || null,
     publishedAt,
     isPublished: Boolean(body.isPublished),
     isFeatured: Boolean(body.isFeatured),
