@@ -1,10 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, ExternalLink, Lock, Pause, Play, Share2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  Clock3,
+  Disc3,
+  Download,
+  ExternalLink,
+  FileAudio,
+  Gauge,
+  Lock,
+  Music2,
+  Pause,
+  Play,
+  Share2,
+} from "lucide-react";
 import type { PublicBrsProduction } from "../lib/brs-productions";
 import { productionDownloadTrack, productionToPreviewTrack } from "../lib/brs-productions";
 import { ProductionRail } from "./HomeProductions";
@@ -18,13 +33,62 @@ function loginHref(slug: string) {
   return `/musicas/entrar?return=${encodeURIComponent(`/m/${slug}`)}`;
 }
 
-function MetaFact({ label, value }: { label: string; value: string | null }) {
+function VinylTicks() {
+  const ticks = useMemo(
+    () =>
+      Array.from({ length: 60 }, (_, i) => {
+        const angle = (i * 6 * Math.PI) / 180;
+        const inner = 56;
+        const outer = i % 5 === 0 ? 24 : 34;
+        const cx = 160;
+        const cy = 160;
+        return {
+          x1: cx + Math.sin(angle) * inner,
+          y1: cy - Math.cos(angle) * inner,
+          x2: cx + Math.sin(angle) * outer,
+          y2: cy - Math.cos(angle) * outer,
+        };
+      }),
+    [],
+  );
+
+  return (
+    <svg viewBox="0 0 320 320" className="absolute inset-0 size-full text-white/20" aria-hidden>
+      <g stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        {ticks.map((tick, index) => (
+          <line key={index} x1={tick.x1} y1={tick.y1} x2={tick.x2} y2={tick.y2} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+function MetaChip({
+  icon,
+  children,
+  className = "",
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <li className={`inline-flex items-center gap-1.5 text-xs text-white/50 ${className}`}>
+      <span className="text-white/35">{icon}</span>
+      {children}
+    </li>
+  );
+}
+
+function SpecItem({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
   return (
-    <div className="min-w-0">
-      <dt className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">{label}</dt>
-      <dd className="mt-1 truncate text-sm font-medium text-white">{value}</dd>
-    </div>
+    <li className="flex min-w-0 flex-col gap-1 border-b border-white/[0.06] py-3 last:border-b-0 sm:border-b-0 sm:py-0">
+      <span className="font-[family-name:var(--font-space)] text-[0.6rem] uppercase tracking-[0.16em] text-white/40">
+        {label}
+      </span>
+      <span className="truncate text-sm font-medium text-white/90">{value}</span>
+    </li>
   );
 }
 
@@ -40,7 +104,8 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
     month: "long",
     year: "numeric",
   });
-  const supportLine = [genre, production.bpm, production.duration].filter(Boolean).join(" · ");
+  const eyebrow = ["Catálogo", genre, production.categoryLabel].filter(Boolean).join(" · ");
+  const version = production.versionLabel || production.versionType;
 
   useEffect(() => {
     const id = window.requestAnimationFrame(() => setReady(true));
@@ -99,92 +164,129 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
   }
 
   return (
-    <div className="relative font-[family-name:var(--font-sora)] text-white">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[min(92vh,880px)] overflow-hidden">
-        <Image
-          src={production.coverUrl}
-          alt=""
-          fill
-          priority
-          unoptimized={!production.coverUrl.startsWith("/")}
-          sizes="100vw"
-          className={`object-cover scale-110 blur-2xl transition duration-[1.2s] ease-out ${
-            ready ? "opacity-45" : "opacity-0"
-          } ${playing ? "saturate-125" : "saturate-75"}`}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.35)_0%,rgba(5,5,5,0.72)_42%,#050505_88%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(96,205,255,0.14),transparent_55%)]" />
-      </div>
+    <div className="relative isolate min-h-[70vh] font-[family-name:var(--font-sora)] text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 scale-125 bg-cover bg-center opacity-25 blur-3xl transition duration-1000"
+        style={{ backgroundImage: `url(${production.coverUrl})` }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_30%_15%,rgba(96,205,255,0.14),transparent_46%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.12] [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:48px_48px]"
+      />
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12 lg:pt-16">
-        <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-14">
-          <button
-            type="button"
-            onClick={play}
-            aria-label={access.canPlay ? `Reproduzir ${production.title}` : "Entrar para ouvir"}
-            className={`group relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden bg-black shadow-[0_40px_100px_-40px_rgba(0,0,0,0.95)] transition duration-700 ease-out lg:mx-0 ${
-              ready ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            } ${playing ? "ring-1 ring-[#60cdff]/50" : "ring-1 ring-white/10"}`}
+      <div className="mx-auto w-full max-w-[2000px] px-4 pb-16 pt-4 sm:px-6 sm:pt-6">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <Link
+            href="/discover"
+            className="inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white"
           >
-            <Image
-              src={production.coverUrl}
-              alt=""
-              fill
-              priority
-              unoptimized={!production.coverUrl.startsWith("/")}
-              sizes="(max-width: 1024px) 92vw, 460px"
-              className={`object-cover transition duration-700 ${playing ? "scale-[1.03]" : "scale-100 group-hover:scale-[1.02]"}`}
-            />
-            <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/10" />
-            <span
-              className={`absolute inset-0 m-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full border border-white/25 bg-black/55 text-white backdrop-blur-md transition duration-300 ${
-                playing
-                  ? "opacity-100 scale-100"
-                  : "opacity-100 scale-100 group-hover:border-[#60cdff]/50 group-hover:bg-black/70 group-hover:text-[#8ad4ff]"
-              }`}
-            >
-              {playing ? (
-                <Pause className="h-7 w-7" fill="currentColor" />
-              ) : (
-                <Play className="ml-1 h-7 w-7" fill="currentColor" />
-              )}
-            </span>
-          </button>
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao catálogo
+          </Link>
+          <p className="hidden truncate font-[family-name:var(--font-space)] text-[0.6rem] uppercase tracking-[0.18em] text-white/40 sm:block">
+            {eyebrow}
+          </p>
+        </div>
 
-          <div
-            className={`min-w-0 transition duration-700 delay-100 ease-out ${
-              ready ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.34em] text-[#8ad4ff] sm:text-[0.78rem]">
-              Brazilian Remix Service
+        <div
+          className={`grid grid-cols-1 items-center gap-8 transition duration-700 ease-out md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-10 lg:gap-14 ${
+            ready ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+          }`}
+        >
+          <div className="flex min-w-0 items-center justify-center py-4 md:justify-start md:py-6">
+            <div className="group/vinyl relative aspect-square w-full max-w-[min(64vw,20rem)]">
+              <div
+                aria-hidden
+                className="absolute inset-0 rounded-full opacity-[0.18] [background:repeating-radial-gradient(circle_at_center,transparent_0_5px,rgba(255,255,255,0.18)_5px_6px)]"
+              />
+              <VinylTicks />
+              <div className="absolute top-1/2 left-1/2 size-[58%] -translate-x-1/2 -translate-y-1/2">
+                <div
+                  className={`size-full overflow-hidden rounded-full ring-1 ring-white/15 shadow-[0_0_90px_-24px_rgba(96,205,255,0.48)] ${
+                    playing ? "animate-[spin_22s_linear_infinite]" : ""
+                  }`}
+                >
+                  <div className="relative size-full overflow-hidden rounded-full bg-gradient-to-br from-[#60cdff]/35 via-[#0a1520] to-[#050505]">
+                    <Image
+                      src={production.coverUrl}
+                      alt=""
+                      fill
+                      priority
+                      unoptimized={!production.coverUrl.startsWith("/")}
+                      sizes="200px"
+                      className="object-cover"
+                    />
+                    <div aria-hidden className="absolute -top-8 -right-8 size-2/3 rounded-full bg-[#60cdff]/12 blur-3xl" />
+                    <div aria-hidden className="absolute -bottom-10 -left-6 size-1/2 rounded-full bg-white/8 blur-3xl" />
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={play}
+                aria-label={access.canPlay ? `Ouvir ${production.title}` : "Entrar para ouvir"}
+                className="absolute top-1/2 left-1/2 z-10 inline-grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white ring-1 ring-white/15 backdrop-blur-md transition hover:bg-black/85 hover:text-[#8ad4ff] hover:ring-[#60cdff]/40"
+              >
+                {playing ? <Pause className="h-6 w-6" fill="currentColor" /> : <Play className="ml-0.5 h-6 w-6" fill="currentColor" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-col">
+            <p className="font-[family-name:var(--font-space)] text-[0.6rem] uppercase tracking-[0.18em] text-white/40 sm:hidden">
+              {eyebrow}
             </p>
-            <h1 className="mt-4 max-w-[22ch] font-[family-name:var(--font-sora)] text-[clamp(2rem,4.6vw,3.4rem)] font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:max-w-[26ch]">
+            <h1 className="mt-3 line-clamp-3 text-[clamp(2rem,4.5vw,3.75rem)] font-semibold leading-[0.98] tracking-tight text-balance break-words text-white md:mt-0">
               {production.title}
             </h1>
-            <p className="mt-4 text-base text-white/70 sm:text-lg">
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
               {production.producerSlug ? (
                 <Link
                   href={`/p/${production.producerSlug}`}
-                  className="font-medium text-white transition hover:text-[#8ad4ff]"
+                  className="w-fit text-sm text-white/55 underline-offset-4 transition hover:text-white hover:underline"
                 >
                   {production.producer}
                 </Link>
               ) : (
-                <span className="font-medium text-white">{production.producer}</span>
+                <span className="text-sm text-white/55">{production.producer}</span>
               )}
-              <span className="text-white/35"> · </span>
-              <span>{production.versionType}</span>
-              <span className="text-white/35"> · </span>
-              <span>{production.categoryLabel}</span>
-            </p>
-            {supportLine ? <p className="mt-2 text-sm text-white/45">{supportLine}</p> : null}
+              {production.duration ? (
+                <span className="font-[family-name:var(--font-space)] text-[0.65rem] uppercase tracking-[0.14em] text-white/35">
+                  Prévia · {production.duration}
+                </span>
+              ) : null}
+            </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <ul className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+              {production.duration ? (
+                <MetaChip icon={<Clock3 className="h-3.5 w-3.5" />}>{production.duration}</MetaChip>
+              ) : null}
+              {production.bpm ? (
+                <MetaChip icon={<Gauge className="h-3.5 w-3.5" />}>{production.bpm}</MetaChip>
+              ) : null}
+              {genre ? <MetaChip icon={<Music2 className="h-3.5 w-3.5" />}>{genre}</MetaChip> : null}
+              {version ? <MetaChip icon={<Disc3 className="h-3.5 w-3.5" />}>{version}</MetaChip> : null}
+              {production.format ? (
+                <MetaChip icon={<FileAudio className="h-3.5 w-3.5" />} className="hidden sm:inline-flex">
+                  {production.format}
+                </MetaChip>
+              ) : null}
+              <MetaChip icon={<CalendarDays className="h-3.5 w-3.5" />} className="hidden sm:inline-flex">
+                {releaseDate}
+              </MetaChip>
+            </ul>
+
+            <div className="mt-5 flex items-center gap-2">
               <button
                 type="button"
                 onClick={play}
-                className="inline-flex h-12 items-center gap-2 bg-white px-6 text-sm font-bold text-black transition hover:bg-[#8ad4ff]"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#60cdff] px-5 text-sm font-semibold text-[#061018] transition hover:bg-[#8ad4ff] sm:flex-none sm:px-6"
               >
                 {playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="h-4 w-4" fill="currentColor" />}
                 {playing ? "Pausar" : access.canPlay ? "Ouvir agora" : "Entrar para ouvir"}
@@ -192,15 +294,15 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
               <button
                 type="button"
                 onClick={download}
-                className="inline-flex h-12 items-center gap-2 border border-white/20 bg-white/[0.04] px-5 text-sm font-semibold text-white transition hover:border-[#60cdff]/45 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 text-sm font-medium text-white transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] sm:flex-none sm:px-5"
               >
                 {access.canDownload ? <Download className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {access.canDownload ? "Baixar" : access.authenticated ? "Disponível para membros" : "Entrar para baixar"}
+                {access.canDownload ? "Baixar" : access.authenticated ? "Membros" : "Entrar para baixar"}
               </button>
               <button
                 type="button"
                 onClick={() => void share()}
-                className="inline-flex h-12 w-12 items-center justify-center border border-white/15 text-white/70 transition hover:border-white/30 hover:text-white"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/60 transition hover:border-white/30 hover:text-white"
                 aria-label="Compartilhar produção"
               >
                 <Share2 className="h-4 w-4" />
@@ -210,96 +312,56 @@ function Stage({ production, more }: { production: PublicBrsProduction; more: Pu
                   href={production.spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-12 items-center gap-2 border border-white/15 px-4 text-sm font-semibold text-white/70 transition hover:border-white/30 hover:text-white"
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/60 transition hover:border-white/30 hover:text-white"
+                  aria-label="Abrir no Spotify"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  Spotify
                 </a>
               ) : null}
             </div>
-
-            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-white/10 pt-8 sm:grid-cols-4">
-              <MetaFact label="Lançamento" value={releaseDate} />
-              <MetaFact label="Gênero" value={genre} />
-              <MetaFact label="BPM" value={production.bpm} />
-              <MetaFact label="Duração" value={production.duration} />
-            </dl>
           </div>
+        </div>
+
+        <section
+          aria-label="Ficha técnica"
+          className={`mt-10 rounded-2xl border border-white/10 bg-[#0c0e12]/95 p-4 shadow-[0_20px_60px_-40px_rgba(0,0,0,0.9)] backdrop-blur-md transition duration-700 delay-100 min-[950px]:p-6 ${
+            ready ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+          }`}
+        >
+          <h2 className="text-lg font-semibold text-white">Ficha técnica</h2>
+          <ul className="mt-5 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <SpecItem label="Duração" value={production.duration} />
+            <SpecItem label="BPM" value={production.bpm?.replace(/\s*BPM$/i, "") || null} />
+            <SpecItem label="Gênero" value={genre} />
+            <SpecItem label="Versão" value={version} />
+            <SpecItem label="Formato" value={production.format} />
+            <SpecItem label="Lançamento" value={releaseDate} />
+            {production.bitrate ? <SpecItem label="Bitrate" value={production.bitrate} /> : null}
+          </ul>
+          {production.description?.trim() ? (
+            <p className="mt-6 max-w-3xl whitespace-pre-line border-t border-white/[0.06] pt-5 text-sm leading-7 text-white/60">
+              {production.description.trim()}
+            </p>
+          ) : null}
         </section>
 
-        {(production.description?.trim() || production.format || production.bitrate || production.versionLabel) && (
-          <section
-            className={`mt-16 max-w-3xl transition duration-700 delay-200 ease-out sm:mt-20 ${
-              ready ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
-            {production.description?.trim() ? (
-              <>
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8ad4ff]">Sobre a faixa</h2>
-                <p className="mt-5 whitespace-pre-line text-base leading-8 text-white/75">
-                  {production.description.trim()}
-                </p>
-              </>
-            ) : null}
-            <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/55">
-              {production.versionLabel ? (
-                <div>
-                  <dt className="inline text-white/35">Versão </dt>
-                  <dd className="inline text-white/80">{production.versionLabel}</dd>
-                </div>
-              ) : null}
-              {production.format ? (
-                <div>
-                  <dt className="inline text-white/35">Formato </dt>
-                  <dd className="inline text-white/80">{production.format}</dd>
-                </div>
-              ) : null}
-              {production.bitrate ? (
-                <div>
-                  <dt className="inline text-white/35">Bitrate </dt>
-                  <dd className="inline text-white/80">{production.bitrate}</dd>
-                </div>
-              ) : null}
-            </dl>
-          </section>
-        )}
-
         {more.length > 0 && production.producerSlug ? (
-          <section className="mt-20 border-t border-white/10 pt-12">
+          <section aria-label="Mais deste produtor" className="mt-12 min-w-0">
             <ProductionRail
               productions={more}
               embedded
               variant="premium"
-              headerTitle="Do mesmo produtor"
-              renderHeaderActions={({ previous, next }) => (
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label="Produções anteriores"
-                    onClick={previous}
-                    className="inline-flex h-10 w-10 items-center justify-center border border-white/15 text-white/70 transition hover:border-[#60cdff]/40 hover:text-white"
-                  >
-                    <span className="text-lg leading-none">‹</span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Próximas produções"
-                    onClick={next}
-                    className="inline-flex h-10 w-10 items-center justify-center border border-white/15 text-white/70 transition hover:border-[#60cdff]/40 hover:text-white"
-                  >
-                    <span className="text-lg leading-none">›</span>
-                  </button>
-                </div>
+              headerTitle="Mais deste produtor"
+              renderHeaderActions={() => (
+                <Link
+                  href={`/p/${production.producerSlug}`}
+                  className="group/link inline-flex items-center gap-1 font-[family-name:var(--font-space)] text-[0.6rem] uppercase tracking-[0.16em] text-white/45 transition hover:text-[#8ad4ff]"
+                >
+                  Ver todas
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/link:translate-x-0.5" />
+                </Link>
               )}
             />
-            <div className="mt-6 flex justify-end">
-              <Link
-                href={`/p/${production.producerSlug}`}
-                className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8ad4ff] transition hover:text-white"
-              >
-                Ver perfil do produtor
-              </Link>
-            </div>
           </section>
         ) : null}
       </div>
