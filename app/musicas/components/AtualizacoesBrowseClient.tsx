@@ -118,6 +118,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const { showToast } = useMusicasToast();
   const estiloSlug = searchParams.get("estilo");
   const dayFilter = searchParams.get("dia") ?? "";
+  const poolFilter = searchParams.get("pool") ?? "";
+  const styleFilter = searchParams.get("estilo") ?? "";
+  const textFilter = searchParams.get("busca") ?? "";
+  const catalogFilterActive = Boolean(poolFilter || styleFilter || dayFilter || textFilter.trim());
   const currentPage = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const faixaId = searchParams.get("faixa");
   const slugPath = slugSegments.join("/");
@@ -131,6 +135,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [data, setData] = useState<ResolveResponse | null>(initialCache);
   const [loading, setLoading] = useState(!initialCache);
   const [pageLoading, setPageLoading] = useState(false);
+  const browseKey = `${slugPath}|${currentPage}|${dayFilter}`;
+  const [settledBrowseKey, setSettledBrowseKey] = useState<string | null>(initialCache ? browseKey : null);
+  const [refreshPending, setRefreshPending] = useState(true);
+  const catalogLoading = refreshPending || settledBrowseKey !== browseKey;
   const [error, setError] = useState<string | null>(null);
   const [months, setMonths] = useState<VipMusicFolder[]>([]);
   const [packMonths, setPackMonths] = useState<VipMusicFolder[]>([]);
@@ -140,6 +148,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const [sendingPack, setSendingPack] = useState(false);
   const [downloadingPack, setDownloadingPack] = useState(false);
   const loadingMoreTracksRef = useRef(false);
+  const browseRequestRef = useRef(0);
   const hasTracksRef = useRef(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [bulkLimitNotice, setBulkLimitNotice] = useState<"downloader" | "download" | null>(null);
@@ -243,6 +252,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {
+      const keyAtStart = `${slugPath}|${currentPage}|${dayFilter}`;
+      const requestId = ++browseRequestRef.current;
       const canonicalUrl = resolveUrl(slugPath, false, currentPage, dayFilter);
       const url = resolveUrl(slugPath, options?.forceRefresh, currentPage, dayFilter);
       const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
@@ -271,9 +282,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         if (!cached) setData(null);
         return null;
       } finally {
-        setLoading(false);
-        setPageLoading(false);
-        loadingMoreTracksRef.current = false;
+        if (requestId === browseRequestRef.current) {
+          setSettledBrowseKey(keyAtStart);
+          setRefreshPending(false);
+          setLoading(false);
+          setPageLoading(false);
+          loadingMoreTracksRef.current = false;
+        }
       }
     },
     [currentPage, slugPath, dayFilter],
@@ -289,6 +304,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     void (async () => {
       const result = await autoSyncDriveOnEnter();
       if (cancelled || !result) return;
+      setRefreshPending(true);
       await loadBrowse({ forceRefresh: true });
     })();
     return () => {
@@ -830,6 +846,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
                 updateDays={data.updateDays}
+                catalogLoading={catalogLoading}
                 hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
                 onPrepareLoadMore={prepareNextTrackPage}
@@ -908,6 +925,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     compact
                     label="Sincronizar"
                     onSynced={async () => {
+                      setRefreshPending(true);
                       await loadBrowse({ forceRefresh: true });
                     }}
                   />
@@ -952,8 +970,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 </div>
               </section>
             ) : null}
-            {directTracks.length === 0 && loading ? (
-              <MusicasCenterLoading label="Estamos organizando a biblioteca, aguarde..." />
+            {directTracks.length === 0 && (loading || catalogLoading) ? (
+              <MusicasCenterLoading
+                label={catalogFilterActive ? "Pesquisando as músicas…" : "Estamos organizando a biblioteca, aguarde..."}
+              />
             ) : directTracks.length === 0 ? (
               <div className="overflow-hidden rounded-md border border-[#60cdff]/20 bg-[#0d0d0d]">
                 <div className="h-px w-full bg-gradient-to-r from-[#60cdff]/80 via-[#60cdff]/25 to-transparent" />
@@ -980,6 +1000,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 filterPools={data.filterPools}
                 filterStyles={data.filterStyles}
                 updateDays={data.updateDays}
+                catalogLoading={catalogLoading}
                 hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
                 onPrepareLoadMore={prepareNextTrackPage}

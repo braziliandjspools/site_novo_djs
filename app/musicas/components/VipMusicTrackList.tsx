@@ -101,6 +101,8 @@ type VipMusicTrackListProps = {
   filterStyles?: { slug: string; name: string }[];
   /** Dias de atualização (antes na sidebar). */
   updateDays?: { slug: string; label: string }[];
+  /** A busca do acervo ainda não terminou; não tratar filtro vazio como resultado final. */
+  catalogLoading?: boolean;
 }
 
 function trackCatalogSlugs(track: PreviewTrack) {
@@ -1056,6 +1058,7 @@ export function VipMusicTrackList({
   filterPools,
   filterStyles,
   updateDays = [],
+  catalogLoading = false,
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
 
@@ -1810,11 +1813,18 @@ export function VipMusicTrackList({
         </div>
       ) : null}
       {useStreaming && (searchDraft.trim() || poolFilterSlug || styleFilterSlug || dayFilterKey) && filteredTracks.length === 0 ? (
-        <p className="px-4 py-10 text-center text-sm text-zinc-400">
-          {searchDraft.trim()
-            ? `Nenhuma música encontrada para “${searchDraft.trim()}”.`
-            : "Nenhuma música neste filtro."}
-        </p>
+        catalogLoading || loadingMore ? (
+          <p className="flex items-center justify-center gap-2 px-4 py-10 text-center text-sm text-zinc-300" role="status" aria-live="polite">
+            <Loader2 className="h-4 w-4 animate-spin text-[#60cdff]" aria-hidden />
+            Pesquisando as músicas…
+          </p>
+        ) : (
+          <p className="px-4 py-10 text-center text-sm text-zinc-400">
+            {searchDraft.trim()
+              ? `Nenhuma música encontrada para “${searchDraft.trim()}”.`
+              : "Nenhuma música neste filtro."}
+          </p>
+        )
       ) : null}
       {error && isThisFolder && (
         <p className="border-b border-white/[0.06] px-3 py-2 text-center text-[11px] text-red-400">{error}</p>
