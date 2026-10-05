@@ -15,7 +15,7 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:portal-scripts": "prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260928213000_portal_admin_scripts/migration.sql",
-    "db:brs-productions": "prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260930180000_brs_productions/migration.sql",
+    "db:brs-productions": "prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20261005193000_repair_brs_productions/migration.sql",
     "db:studio": "prisma studio",
     "portal:create-user": "node scripts/create-portal-user.mjs",
     "test:downloader-batch": "node scripts/test-downloader-batch-queue.mjs",
