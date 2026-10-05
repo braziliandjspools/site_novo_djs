@@ -92,6 +92,7 @@ type VipMusicTrackListProps = {
   groupByDate?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
+  onPrepareLoadMore?: () => void;
   /** Mostra acesso ao Drive somente nas pastas finais/estilos. */
   showDriveButton?: boolean;
   /** Pools da pasta inteira, mesmo os que ainda não têm faixa carregada. */
@@ -1050,12 +1051,18 @@ export function VipMusicTrackList({
   groupByDate,
   hasMore = false,
   onLoadMore,
+  onPrepareLoadMore,
   showDriveButton = false,
   filterPools,
   filterStyles,
   updateDays = [],
 }: VipMusicTrackListProps) {
   const { authenticated, openLogin } = useMusicasSession();
+
+  useEffect(() => {
+    if (!hasMore || !onPrepareLoadMore) return;
+    onPrepareLoadMore();
+  }, [hasMore, onPrepareLoadMore]);
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
   const {
@@ -1882,6 +1889,8 @@ export function VipMusicTrackList({
                       type="button"
                       disabled={loadingMore}
                       onClick={() => void handleLoadMore()}
+                      onMouseEnter={onPrepareLoadMore}
+                      onFocus={onPrepareLoadMore}
                       className="mx-auto inline-flex min-h-10 min-w-[180px] items-center justify-center gap-2 rounded-md border border-[#60cdff]/35 bg-[#60cdff]/10 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
                     >
                       {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
