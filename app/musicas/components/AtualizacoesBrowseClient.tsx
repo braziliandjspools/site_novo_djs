@@ -83,11 +83,15 @@ function resolveUrl(
   forceRefresh = false,
   page = 1,
   day?: string,
+  pool?: string,
+  style?: string,
 ) {
   const params = new URLSearchParams({ slug: slugPath });
   if (forceRefresh) params.set("refresh", "1");
   if (page > 1) params.set("page", String(page));
   if (day) params.set("dia", day);
+  if (pool) params.set("pool", pool);
+  if (style) params.set("estilo", style);
   return `/api/musicas/resolve?${params.toString()}`;
 }
 
@@ -131,11 +135,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const weekSlug = slugSegments[1];
   const nestedWeekSlug = slugSegments[2];
 
-  const initialCache = peekMusicasCache<ResolveResponse>(resolveUrl(slugPath, false, currentPage, dayFilter));
+  const initialCache = peekMusicasCache<ResolveResponse>(
+    resolveUrl(slugPath, false, currentPage, dayFilter, poolFilter, styleFilter),
+  );
   const [data, setData] = useState<ResolveResponse | null>(initialCache);
   const [loading, setLoading] = useState(!initialCache);
   const [pageLoading, setPageLoading] = useState(false);
-  const browseKey = `${slugPath}|${currentPage}|${dayFilter}`;
+  const browseKey = `${slugPath}|${currentPage}|${dayFilter}|${poolFilter}|${styleFilter}`;
   const [settledBrowseKey, setSettledBrowseKey] = useState<string | null>(initialCache ? browseKey : null);
   const [refreshPending, setRefreshPending] = useState(true);
   const catalogLoading = refreshPending || settledBrowseKey !== browseKey;
@@ -252,10 +258,24 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {
-      const keyAtStart = `${slugPath}|${currentPage}|${dayFilter}`;
+      const keyAtStart = `${slugPath}|${currentPage}|${dayFilter}|${poolFilter}|${styleFilter}`;
       const requestId = ++browseRequestRef.current;
-      const canonicalUrl = resolveUrl(slugPath, false, currentPage, dayFilter);
-      const url = resolveUrl(slugPath, options?.forceRefresh, currentPage, dayFilter);
+      const canonicalUrl = resolveUrl(
+        slugPath,
+        false,
+        currentPage,
+        dayFilter,
+        poolFilter,
+        styleFilter,
+      );
+      const url = resolveUrl(
+        slugPath,
+        options?.forceRefresh,
+        currentPage,
+        dayFilter,
+        poolFilter,
+        styleFilter,
+      );
       const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
       const keepVisible = Boolean(options?.forceRefresh && hasTracksRef.current);
       if (cached) {
@@ -291,7 +311,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         }
       }
     },
-    [currentPage, slugPath, dayFilter],
+    [currentPage, slugPath, dayFilter, poolFilter, styleFilter],
   );
 
   useEffect(() => {
@@ -369,7 +389,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     void (async () => {
       try {
         const body = await fetchMusicasJson<{ filterPools?: { slug: string; name: string }[] }>(
-          `${resolveUrl(slugPath, false, currentPage)}&meta=pools`,
+          `${resolveUrl(slugPath, false, currentPage, dayFilter, poolFilter, styleFilter)}&meta=pools`,
         );
         if (cancelled) return;
         setData((current) =>
@@ -400,8 +420,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     nextParams.set("slug", slugPath);
     if (nextPage > 1) nextParams.set("page", String(nextPage));
     if (dayFilter) nextParams.set("dia", dayFilter);
+    if (poolFilter) nextParams.set("pool", poolFilter);
+    if (styleFilter) nextParams.set("estilo", styleFilter);
     prefetchMusicasJson(`/api/musicas/resolve?${nextParams.toString()}`);
-  }, [canLoadMoreTracks, currentPage, dayFilter, slugPath]);
+  }, [canLoadMoreTracks, currentPage, dayFilter, poolFilter, styleFilter, slugPath]);
 
   const loadMoreTracks = useCallback(async () => {
     if (
