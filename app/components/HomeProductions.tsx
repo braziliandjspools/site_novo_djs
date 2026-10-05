@@ -249,7 +249,7 @@ function ProductionCard({
               href={production.spotifyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[10px] font-bold text-white transition ${
+              className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[11px] font-bold text-white transition active:scale-[0.98] ${
                 isProducer
                   ? "border-[#1DB954]/35 bg-[#1DB954]/10 hover:bg-[#1DB954]/20"
                   : "border-[#1DB954]/30 bg-[#1DB954]/10 hover:border-[#1DB954]/50 hover:bg-[#1DB954]/15"
