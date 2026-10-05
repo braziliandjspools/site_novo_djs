@@ -58,6 +58,8 @@ type ResolveResponse = {
   items: VipMusicCatalogItem[];
   tracks?: PreviewTrack[];
   tracksHasMore?: boolean;
+  page?: number;
+  pageSize?: number;
   updateDays?: { slug: string; label: string }[];
   filterPools?: { slug: string; name: string }[];
   filterStyles?: { slug: string; name: string }[];
@@ -78,16 +80,12 @@ type AtualizacoesBrowseClientProps = {
 function resolveUrl(
   slugPath: string,
   forceRefresh = false,
-  trackOffset?: number,
-  trackLimit = 100,
+  page = 1,
   day?: string,
 ) {
   const params = new URLSearchParams({ slug: slugPath });
   if (forceRefresh) params.set("refresh", "1");
-  params.set("trackLimit", String(trackLimit));
-  if (trackOffset != null && trackOffset > 0) {
-    params.set("trackOffset", String(trackOffset));
-  }
+  if (page > 1) params.set("page", String(page));
   if (day) params.set("dia", day);
   return `/api/musicas/resolve?${params.toString()}`;
 }
@@ -119,6 +117,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const { showToast } = useMusicasToast();
   const estiloSlug = searchParams.get("estilo");
   const dayFilter = searchParams.get("dia") ?? "";
+  const currentPage = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const faixaId = searchParams.get("faixa");
   const slugPath = slugSegments.join("/");
   const packSlug = slugSegments[0] ?? "";
@@ -127,7 +126,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const weekSlug = slugSegments[1];
   const nestedWeekSlug = slugSegments[2];
 
-  const initialCache = peekMusicasCache<ResolveResponse>(resolveUrl(slugPath));
+  const initialCache = peekMusicasCache<ResolveResponse>(resolveUrl(slugPath, false, currentPage, dayFilter));
   const [data, setData] = useState<ResolveResponse | null>(initialCache);
   const [loading, setLoading] = useState(!initialCache);
   const [error, setError] = useState<string | null>(null);
@@ -242,8 +241,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const loadBrowse = useCallback(
     async (options?: { forceRefresh?: boolean }) => {
-      const canonicalUrl = resolveUrl(slugPath, false, undefined, 100, dayFilter);
-      const url = resolveUrl(slugPath, options?.forceRefresh, undefined, 100, dayFilter);
+      const canonicalUrl = resolveUrl(slugPath, false, currentPage, dayFilter);
+      const url = resolveUrl(slugPath, options?.forceRefresh, currentPage, dayFilter);
       const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
       const keepVisible = Boolean(options?.forceRefresh && hasTracksRef.current);
       if (cached) {
@@ -263,7 +262,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         setMusicasCache(canonicalUrl, body);
         hasTracksRef.current = true;
         setData(body);
-      setTracksPaginationExhausted(!(body.tracks ?? []).length && body.level === "tracks");
+        setTracksPaginationExhausted(body.level === "tracks" ? !body.tracksHasMore : true);
         return body;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Pasta não encontrada.");
@@ -273,7 +272,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         setLoading(false);
       }
     },
-    [slugPath, dayFilter],
+    [currentPage, slugPath, dayFilter],
   );
 
   useEffect(() => {
@@ -350,7 +349,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     void (async () => {
       try {
         const body = await fetchMusicasJson<{ filterPools?: { slug: string; name: string }[] }>(
-          `${resolveUrl(slugPath)}&meta=pools`,
+          `${resolveUrl(slugPath, false, currentPage)}&meta=pools`,
         );
         if (cancelled) return;
         setData((current) =>
@@ -382,36 +381,18 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       !canLoadMoreTracks
     ) return;
 
-    const offset = directTracks.length;
+    const nextPage = currentPage + 1;
     loadingMoreTracksRef.current = true;
     try {
-      const url = resolveUrl(slugPath, false, offset, 100, dayFilter);
-      const body = await fetchMusicasJson<ResolveResponse>(url, { forceRefresh: true });
-      const nextTracks = body.tracks ?? [];
-
-      setData((current) => {
-        if (!current) return body;
-
-        const existingIds = new Set((current.tracks ?? []).map((track) => track.id));
-        const appended = nextTracks.filter((track) => !existingIds.has(track.id));
-
-        // A lista só termina quando a página seguinte vier vazia ou não
-        // trouxer nenhuma faixa nova. Caso contrário, o botão continua
-        // disponível para acrescentar a próxima página abaixo da atual.
-        setTracksPaginationExhausted(nextTracks.length === 0 || appended.length === 0);
-
-        return {
-          ...current,
-          tracks: [...(current.tracks ?? []), ...appended],
-          tracksHasMore: nextTracks.length > 0 && appended.length > 0,
-        };
-      });
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Não foi possível carregar mais faixas.", "error");
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", String(nextPage));
+      params.delete("trackOffset");
+      params.delete("trackLimit");
+      router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
     } finally {
       loadingMoreTracksRef.current = false;
     }
-  }, [canLoadMoreTracks, data, dayFilter, directTracks.length, showToast, slugPath]);
+  }, [canLoadMoreTracks, currentPage, data, router, searchParams]);
 
 
 
