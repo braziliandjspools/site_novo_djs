@@ -224,7 +224,7 @@ export function HomePage({ userName, onNavigate }: HomePageProps) {
                 key={route}
                 type="button"
                 onClick={() => onNavigate(route)}
-                className="studio-shortcut group flex min-h-[132px] flex-col rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] p-4 text-left transition-colors hover:border-white/25 hover:bg-[#121212]"
+                className="studio-shortcut group flex min-h-[132px] flex-col rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] p-4 text-left transition-colors hover:border-[#60cdff]/35 hover:bg-[#60cdff]/[0.06]"
               >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--bg-control)] text-white">
@@ -268,7 +268,7 @@ function StatCard({
     <button
       type="button"
       onClick={onClick}
-      className="studio-stat rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] px-4 py-4 text-left transition-colors hover:border-white/25 hover:bg-[#121212]"
+      className="studio-stat rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] px-4 py-4 text-left transition-colors hover:border-[#60cdff]/35 hover:bg-[#60cdff]/[0.06]"
     >
       <p className="text-eyebrow text-[var(--text-subtle)]">{label}</p>
       <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</p>

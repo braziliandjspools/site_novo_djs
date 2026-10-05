@@ -8,7 +8,7 @@ import {
 import { useLocale } from "../../i18n/LocaleContext";
 
 const SEARCH_INPUT_CLASS =
-  "w-full rounded-xl border border-white/[0.08] bg-black py-2.5 pl-10 pr-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-white/40 focus:ring-1 focus:ring-white/20";
+  "w-full rounded-xl border border-white/[0.08] bg-black py-2.5 pl-10 pr-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-500 focus:border-[#60cdff]/45 focus:ring-1 focus:ring-[#60cdff]/25";
 
 type DownloadFinderToolbarProps = {
   query: string;
@@ -54,8 +54,8 @@ export function DownloadFinderToolbar({
               onClick={() => onFilterChange(key)}
               className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
                 active
-                  ? "bg-white text-black ring-1 ring-white"
-                  : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+                  ? "bg-[#60cdff] text-black ring-1 ring-[#60cdff]"
+                  : "bg-white/[0.04] text-zinc-400 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
               }`}
               aria-pressed={active}
             >

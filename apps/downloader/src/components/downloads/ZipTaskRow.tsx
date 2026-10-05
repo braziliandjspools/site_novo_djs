@@ -44,7 +44,7 @@ export function ZipTaskRow({
   const statusKey = statusLabelKey(task);
 
   return (
-    <article className="rounded-2xl border border-white/[0.08] bg-[#0d0d0d] px-4 py-3.5 transition-colors hover:border-white/20 hover:bg-[#141414]">
+    <article className="item-row rounded-2xl px-4 py-3.5">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#ffffff]/10">
           {active ? (

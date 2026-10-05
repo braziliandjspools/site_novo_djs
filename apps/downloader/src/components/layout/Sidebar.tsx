@@ -105,7 +105,7 @@ export function Sidebar({
               className={`group flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-left text-[0.875rem] font-medium transition-colors ${
                 active
                   ? "win-nav-active"
-                  : "text-[var(--text-muted)] hover:bg-white/[0.04] hover:text-white"
+                  : "text-[var(--text-muted)] hover:bg-[#60cdff]/[0.08] hover:text-white"
               }`}
             >
               <Icon

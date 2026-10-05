@@ -130,12 +130,8 @@ export const JobRow = memo(function JobRow({
 
   return (
     <article
-      className={`overflow-hidden rounded-2xl border bg-[#0d0d0d] transition-colors hover:border-white/20 hover:bg-[#141414] ${
-        selected
-          ? "border-white/35 bg-[#161616]"
-          : downloading
-            ? "border-white/20"
-            : "border-white/[0.08]"
+      className={`item-row overflow-hidden rounded-2xl ${
+        selected ? "is-selected" : downloading ? "is-active" : ""
       }`}
       draggable={draggable && canReorder}
       onDragStart={draggable && canReorder ? onDragStart : undefined}

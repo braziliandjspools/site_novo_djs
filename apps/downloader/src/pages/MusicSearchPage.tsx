@@ -365,7 +365,7 @@ export function MusicSearchPage() {
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full rounded-2xl border border-white/12 bg-black py-4 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-white/45 focus:ring-2 focus:ring-white/15"
+              className="w-full rounded-2xl border border-white/12 bg-black py-4 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-[#60cdff]/50 focus:ring-2 focus:ring-[#60cdff]/20"
               autoFocus
             />
             {draft ? (
@@ -448,7 +448,7 @@ export function MusicSearchPage() {
             </Button>
           </div>
 
-          <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
+          <ul className="space-y-2">
             {results.map((track) => {
               const cover = resolveCoverUrl(track.coverUrl, apiBase);
               const catalogUrl = resolveCatalogUrl(track.catalogPath, apiBase);
@@ -461,8 +461,8 @@ export function MusicSearchPage() {
               return (
                 <li
                   key={`${track.source}-${track.trackId}`}
-                  className={`px-3 py-3 transition-colors ${
-                    active ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
+                  className={`item-row group rounded-xl px-3 py-3 ${
+                    selected ? "is-selected" : active ? "is-active" : ""
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -471,9 +471,9 @@ export function MusicSearchPage() {
                       aria-label={selected ? t("searchClearSelection") : t("searchSelectAll")}
                       onClick={() => toggleSelected(track.trackId)}
                       disabled={!track.downloadAvailable}
-                      className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/45 disabled:opacity-30"
+                      className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/45 transition group-hover:text-[#8ad4ff] disabled:opacity-30"
                     >
-                      {selected ? <CheckSquare className="h-4 w-4 text-white" /> : <Square className="h-4 w-4" />}
+                      {selected ? <CheckSquare className="h-4 w-4 text-[#60cdff]" /> : <Square className="h-4 w-4" />}
                     </button>
                     <button
                       type="button"
@@ -483,18 +483,20 @@ export function MusicSearchPage() {
                       aria-label={playing ? t("searchPause") : t("searchPlay")}
                     >
                       <CoverArt track={track} apiBase={apiBase} cover={cover} size="sm" />
-                      <span className={`absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] bg-black/50 transition ${playing || active ? "opacity-100" : "opacity-0 hover:opacity-100"}`}>
+                      <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] bg-black/55">
                         {playing ? (
-                          <Pause className="h-4 w-4 text-white" fill="currentColor" />
+                          <Pause className="h-4 w-4 text-white drop-shadow" fill="currentColor" />
                         ) : (
-                          <Play className="ml-0.5 h-4 w-4 text-white" fill="currentColor" />
+                          <Play className="ml-0.5 h-4 w-4 text-white drop-shadow" fill="currentColor" />
                         )}
                       </span>
                     </button>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[0.95rem] font-semibold text-white">{track.title}</p>
-                      <p className="truncate text-xs text-white/60">{track.artist}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-white/35">
+                      <p className={`truncate text-[0.95rem] font-semibold transition ${active ? "text-[#8ad4ff]" : "text-white group-hover:text-[#8ad4ff]"}`}>
+                        {track.title}
+                      </p>
+                      <p className="truncate text-xs text-white/60 group-hover:text-white/75">{track.artist}</p>
+                      <p className="mt-0.5 truncate text-[11px] text-white/35 group-hover:text-white/50">
                         {[track.version, metaLine(track), collection].filter(Boolean).join(" · ")}
                       </p>
                     </div>
@@ -503,7 +505,7 @@ export function MusicSearchPage() {
                         <button
                           type="button"
                           onClick={() => void openPlatform(catalogUrl)}
-                          className="hidden h-9 items-center gap-1 rounded-lg border border-white/12 px-2 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 hover:bg-white/10 hover:text-white sm:inline-flex"
+                          className="hidden h-9 items-center gap-1 rounded-lg border border-white/12 px-2 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] sm:inline-flex"
                         >
                           <ExternalLink className="h-3 w-3" />
                           {t("searchOpenCatalog")}
