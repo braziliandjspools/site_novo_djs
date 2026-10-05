@@ -7,7 +7,7 @@ type CacheEntry = {
 };
 
 const store = new Map<string, CacheEntry>();
-const DEFAULT_TTL_MS = 180_000;
+const DEFAULT_TTL_MS = 5 * 60_000;
 
 export function peekMusicasCache<T>(key: string): T | null {
   const hit = store.get(key);

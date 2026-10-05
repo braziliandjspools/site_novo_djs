@@ -35,7 +35,7 @@ import { openPlatform } from "../lib/open-site";
 import { supportWhatsAppUrl } from "../lib/site";
 import { useLocale } from "../i18n/LocaleContext";
 
-const DEBOUNCE_MS = 420;
+const DEBOUNCE_MS = 280;
 const PAGE_SIZE = 24;
 const SEARCH_BANNER_URL =
   "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/cf5a5a0a-a57e-4b94-9e2a-fa5bc1488305.png";

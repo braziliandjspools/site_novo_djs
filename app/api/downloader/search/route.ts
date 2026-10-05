@@ -3,6 +3,7 @@ import { requireDownloaderAccess } from "../../../lib/downloader-access";
 import { handleDownloaderCorsPreflight, withDownloaderCorsJson } from "../../../lib/downloader-cors";
 import { BRS_MUSIC_SEARCH_ENABLED } from "../../../lib/feature-flags";
 import { searchDownloaderTracks } from "../../../lib/downloader-music-search";
+import { warmVipMusicSearchIndex } from "../../../lib/vip-music-search";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -30,10 +31,13 @@ export async function GET(request: Request) {
   const limit = Math.min(40, Math.max(1, Number.parseInt(searchParams.get("limit") ?? "24", 10) || 24));
 
   if (query.trim().length < 2) {
+    void warmVipMusicSearchIndex().catch(() => undefined);
     return withDownloaderCorsJson(request, { results: [], total: 0, query: query });
   }
 
   try {
+    // Garante que o índice esteja aquecendo em paralelo com a busca (compartilha inflight).
+    void warmVipMusicSearchIndex().catch(() => undefined);
     const { results, total } = await searchDownloaderTracks(query, limit);
     return withDownloaderCorsJson(request, {
       results,

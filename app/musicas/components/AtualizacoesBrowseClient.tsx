@@ -330,19 +330,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     void loadBrowse();
   }, [loadBrowse]);
 
-  // Sincroniza automaticamente ao entrar/recarregar a pasta (substitui botão manual).
+  // Soft sync em background — não força reload da tabela (isso apagava o cache e deixava lento).
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const result = await autoSyncDriveOnEnter();
-      if (cancelled || !result) return;
-      setRefreshPending(true);
-      await loadBrowse({ forceRefresh: true });
+      await autoSyncDriveOnEnter();
+      if (cancelled) return;
     })();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slugPath]);
 
   // Mantém o player ao navegar pastas (como pools DJ). Só limpa ao sair da árvore.

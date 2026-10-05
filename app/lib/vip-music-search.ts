@@ -43,14 +43,14 @@ export type VipMusicSearchOptions = {
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const DEFAULT_LIMIT = 36;
-const QUERY_CACHE_TTL_MS = 90_000;
-const STYLE_INDEX_TTL_MS = 5 * 60_000;
-const TRACK_INDEX_TTL_MS = 10 * 60_000;
-const TRACK_INDEX_CONCURRENCY = 16;
+const QUERY_CACHE_TTL_MS = 3 * 60_000;
+const STYLE_INDEX_TTL_MS = 10 * 60_000;
+const TRACK_INDEX_TTL_MS = 15 * 60_000;
+const TRACK_INDEX_CONCURRENCY = 24;
 const DEFAULT_RECENT_MONTHS = 2;
-const DEFAULT_RECENT_DAYS = 14;
-const EXPAND_RECENT_MONTHS = 6;
-const EXPAND_RECENT_DAYS = 40;
+const DEFAULT_RECENT_DAYS = 10;
+const EXPAND_RECENT_MONTHS = 4;
+const EXPAND_RECENT_DAYS = 24;
 
 function normalize(text: string) {
   return text
@@ -553,9 +553,9 @@ export async function searchVipMusic(
 
   let trackHits = matchIndexedTracks(catalog.tracks, q, max);
 
-  // Poucos resultados → amplia a janela. O índice maior também fica em cache.
+  // Amplia a janela só quando a busca recente veio vazia — expandir custa varias pastas no Drive.
   if (
-    trackHits.length < Math.min(8, max) &&
+    trackHits.length === 0 &&
     (recentMonths < EXPAND_RECENT_MONTHS || recentDays < EXPAND_RECENT_DAYS)
   ) {
     const expanded = await getTrackCatalogIndex(EXPAND_RECENT_MONTHS, EXPAND_RECENT_DAYS);
@@ -581,6 +581,11 @@ export async function searchVipMusic(
 
   queryCache.set(cacheKey, { expiresAt: Date.now() + QUERY_CACHE_TTL_MS, results });
   return results;
+}
+
+/** Aquece o índice padrão (2 meses / 10 dias) sem bloquear a UI. */
+export function warmVipMusicSearchIndex(): Promise<TrackCatalogIndex> {
+  return getTrackCatalogIndex(DEFAULT_RECENT_MONTHS, DEFAULT_RECENT_DAYS);
 }
 
 export function clearVipMusicSearchCaches() {

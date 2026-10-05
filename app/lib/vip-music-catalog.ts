@@ -1,5 +1,6 @@
 import {
   listDriveFolderChildren,
+  listDriveFolderChildrenLite,
   parseTrackMeta,
   type PreviewPlaylist,
   type PreviewTrack,
@@ -68,7 +69,7 @@ export async function listUpdatePoolOptions(folderId: string, folderName: string
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
 /** Pastas irmãs no deep-walk — paraleliza sem saturar a Drive API. */
-const TRACK_WALK_CONCURRENCY = 8;
+const TRACK_WALK_CONCURRENCY = 10;
 /** Faixas por página na tabela do acervo. */
 export const VIP_MUSIC_TRACKS_PAGE_SIZE = 50;
 
@@ -278,6 +279,34 @@ type CatalogTrackFilters = {
   styleSlug?: string | null;
 };
 
+/** Cache curto das páginas de faixas no processo (resolve/paginação). */
+const CATALOG_PAGE_TTL_MS = 180_000;
+const catalogPageCache = new Map<
+  string,
+  { expiresAt: number; value: VipMusicCatalogResponse & { tracksHasMore?: boolean } }
+>();
+
+function catalogPageCacheKey(
+  folderId: string,
+  trackOffset: number,
+  trackLimit: number | undefined,
+  dayKey: string | null,
+  filters?: CatalogTrackFilters,
+) {
+  return [
+    folderId,
+    trackOffset,
+    trackLimit ?? "all",
+    dayKey ?? "",
+    filters?.poolSlug?.trim() ?? "",
+    filters?.styleSlug?.trim() ?? "",
+  ].join("|");
+}
+
+export function clearVipMusicCatalogPageCache() {
+  catalogPageCache.clear();
+}
+
 function matchesTrackFolderFilter(poolName: string | null, styleName: string | null, filters?: CatalogTrackFilters) {
   const poolSlug = filters?.poolSlug?.trim() ?? "";
   const styleSlug = filters?.styleSlug?.trim() ?? "";
@@ -307,7 +336,7 @@ async function collectTracksDeep(
   if (seen.has(folderId)) return [];
   seen.add(folderId);
 
-  const children = await listDriveFolderChildren(folderId);
+  const children = await listDriveFolderChildrenLite(folderId);
   const subfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const audioFiles = children.filter((item) => isDriveAudioFile(item));
 
@@ -461,7 +490,7 @@ async function collectTracksPageDeep(
   }
   seen.add(folderId);
 
-  const children = await listDriveFolderChildren(folderId);
+  const children = await listDriveFolderChildrenLite(folderId);
   const rawSubfolders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const orderedSubfolders = sortVipChildFolders(
     rawSubfolders.map((folder) => ({
@@ -479,6 +508,22 @@ async function collectTracksPageDeep(
   const audioFiles = children
     .filter((item) => isDriveAudioFile(item))
     .sort(compareNewestDriveChild);
+
+  // Prefetch das próximas pastas em paralelo só quando precisamos descer nelas.
+  if (
+    audioFiles.length === 0 &&
+    subfolders.length > 1 &&
+    state.collected < state.limit
+  ) {
+    const prefetchCount = Math.min(subfolders.length, TRACK_WALK_CONCURRENCY * 2);
+    await mapPool(subfolders.slice(0, prefetchCount), TRACK_WALK_CONCURRENCY, async (folder) => {
+      try {
+        await listDriveFolderChildrenLite(folder.id);
+      } catch {
+        /* ignore */
+      }
+    });
+  }
 
   // DATA -> POOL -> ESTILO -> arquivos. Em uma pasta de data, o primeiro
   // nível abaixo dela é sempre o pool e o segundo é o estilo.
@@ -1110,14 +1155,28 @@ export async function getVipMusicCatalog(
 
   try {
     const day = dayKey?.trim() ?? "";
+    const normalizedDay = /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
+    const cacheKey = catalogPageCacheKey(targetId, trackOffset, trackLimit, normalizedDay, filters);
+    if (trackLimit != null) {
+      const cached = catalogPageCache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.value;
+      }
+    }
     const catalog = await getDriveCatalog(
       targetId,
       resolvedName,
       trackOffset,
       trackLimit,
-      /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null,
+      normalizedDay,
       filters,
     );
+    if (trackLimit != null) {
+      catalogPageCache.set(cacheKey, {
+        value: catalog,
+        expiresAt: Date.now() + CATALOG_PAGE_TTL_MS,
+      });
+    }
     return catalog;
   } catch {
     return {

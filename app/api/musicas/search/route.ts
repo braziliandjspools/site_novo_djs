@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
-import { searchVipMusic } from "../../../lib/vip-music-search";
+import { searchVipMusic, warmVipMusicSearchIndex } from "../../../lib/vip-music-search";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const query = searchParams.get("q") ?? "";
 
   if (query.trim().length < 2) {
+    void warmVipMusicSearchIndex().catch(() => undefined);
     return NextResponse.json({ results: [], ...access });
   }
 

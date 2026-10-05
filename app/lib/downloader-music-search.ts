@@ -117,7 +117,7 @@ async function searchVipUpdateTracks(q: string, limit: number): Promise<Download
     const tracks = await searchVipMusic(q, limit, {
       tracksOnly: true,
       recentMonths: 2,
-      recentDays: 14,
+      recentDays: 10,
     });
 
     return tracks.slice(0, limit).map((hit) => {

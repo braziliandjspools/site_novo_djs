@@ -854,6 +854,12 @@ const childrenMemo = new Map<string, { promise: Promise<DriveFile[]>; expiresAt:
 const childrenLiteMemo = new Map<string, { promise: Promise<DriveFile[]>; expiresAt: number }>();
 const CHILDREN_MEMO_TTL_MS = 300_000;
 
+/** Limpa só o memo de processo — usado no sync forçado (botão manual). */
+export function clearDriveChildrenMemo() {
+  childrenMemo.clear();
+  childrenLiteMemo.clear();
+}
+
 export async function listDriveFolderChildren(folderId: string): Promise<DriveFile[]> {
   if (isDriveForceRefresh()) {
     return listDriveFolderChildrenUncached(folderId, true);
