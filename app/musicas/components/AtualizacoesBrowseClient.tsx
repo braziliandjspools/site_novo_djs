@@ -270,6 +270,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         return null;
       } finally {
         setLoading(false);
+        loadingMoreTracksRef.current = false;
       }
     },
     [currentPage, slugPath, dayFilter],
@@ -383,15 +384,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
     const nextPage = currentPage + 1;
     loadingMoreTracksRef.current = true;
-    try {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("page", String(nextPage));
-      params.delete("trackOffset");
-      params.delete("trackLimit");
-      router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
-    } finally {
-      loadingMoreTracksRef.current = false;
-    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(nextPage));
+    params.delete("trackOffset");
+    params.delete("trackLimit");
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
   }, [canLoadMoreTracks, currentPage, data, router, searchParams]);
 
 
