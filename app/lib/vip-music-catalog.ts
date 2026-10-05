@@ -271,6 +271,19 @@ export async function listVipMusicFoldersWithNav(
   }));
 }
 
+type CatalogTrackFilters = {
+  poolSlug?: string | null;
+  styleSlug?: string | null;
+};
+
+function matchesTrackFolderFilter(poolName: string | null, styleName: string | null, filters?: CatalogTrackFilters) {
+  const poolSlug = filters?.poolSlug?.trim() ?? "";
+  const styleSlug = filters?.styleSlug?.trim() ?? "";
+  if (poolSlug && slugifyFolderName(poolName ?? "") !== poolSlug) return false;
+  if (styleSlug && slugifyFolderName(styleName ?? "") !== styleSlug) return false;
+  return true;
+}
+
 /**
  * Percorre a pasta e todas as subpastas até achar arquivos de áudio.
  */
@@ -286,6 +299,7 @@ async function collectTracksDeep(
   dateChildName: string | null = null,
   currentFolderName: string | null = null,
   poolFolderId: string | null = null,
+  filters?: CatalogTrackFilters,
 ): Promise<PreviewTrack[]> {
   if (depth > MAX_TRACK_WALK_DEPTH) return [];
   if (seen.has(folderId)) return [];
@@ -317,12 +331,15 @@ async function collectTracksDeep(
       : !isDateRoot && depth === 1 && subfolders.length > 0 && currentFolderName
         ? folderId
         : poolFolderId;
-  const tracks = audioFiles.map((file) => toPreviewTrack(file, packName, {
-    updateDate,
-    styleName: resolvedStyleName,
-    poolName: resolvedPoolName,
-    poolFolderId: resolvedPoolFolderId,
-  }));
+  const tracks = audioFiles.flatMap((file) => {
+    if (!matchesTrackFolderFilter(resolvedPoolName, resolvedStyleName, filters)) return [];
+    return [toPreviewTrack(file, packName, {
+      updateDate,
+      styleName: resolvedStyleName,
+      poolName: resolvedPoolName,
+      poolFolderId: resolvedPoolFolderId,
+    })];
+  });
 
   if (subfolders.length > 0) {
     const nestedLists = await mapPool(subfolders, TRACK_WALK_CONCURRENCY, (folder) => {
@@ -343,6 +360,7 @@ async function collectTracksDeep(
         nextDateChildName,
         folder.name,
         resolvedPoolFolderId,
+        filters,
       );
     });
     for (const nested of nestedLists) {
@@ -412,19 +430,6 @@ type TrackPageState = {
   collected: number;
   hasMore: boolean;
 };
-
-type CatalogTrackFilters = {
-  poolSlug?: string | null;
-  styleSlug?: string | null;
-};
-
-function matchesTrackFolderFilter(poolName: string | null, styleName: string | null, filters?: CatalogTrackFilters) {
-  const poolSlug = filters?.poolSlug?.trim() ?? "";
-  const styleSlug = filters?.styleSlug?.trim() ?? "";
-  if (poolSlug && slugifyFolderName(poolName ?? "") !== poolSlug) return false;
-  if (styleSlug && slugifyFolderName(styleName ?? "") !== styleSlug) return false;
-  return true;
-}
 
 async function collectTracksPageDeep(
   folderId: string,
@@ -584,6 +589,7 @@ async function getDriveCatalog(
       null,
       null,
       null,
+      filters,
     )).sort(sortTracksByUploadThenTitle);
 
     return {
@@ -618,6 +624,10 @@ async function getDriveCatalog(
       null,
       null,
       true,
+      null,
+      null,
+      null,
+      filters,
     )).sort(sortTracksByUploadThenTitle);
     const pageTracks = tracks.slice(0, requestedLimit);
 
@@ -668,6 +678,10 @@ async function getDriveCatalog(
             null,
             null,
             true,
+            null,
+            null,
+            null,
+            filters,
           );
         } catch {
           return [] as PreviewTrack[];
@@ -765,6 +779,10 @@ async function getDriveCatalog(
       null,
       null,
       true,
+      null,
+      null,
+      null,
+      filters,
     )).sort(sortTracksByUploadThenTitle);
 
     return {
@@ -885,6 +903,10 @@ async function getDriveCatalog(
             null,
             null,
             true,
+            null,
+            null,
+            null,
+            filters,
           );
         } catch {
           return [] as PreviewTrack[];
@@ -914,6 +936,10 @@ async function getDriveCatalog(
             null,
             null,
             true,
+            null,
+            null,
+            null,
+            filters,
           );
           datedTracks.push(...nested);
         } catch {
