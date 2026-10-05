@@ -584,7 +584,6 @@ async function getDriveCatalog(
       null,
       null,
       null,
-      filters,
     )).sort(sortTracksByUploadThenTitle);
 
     return {
