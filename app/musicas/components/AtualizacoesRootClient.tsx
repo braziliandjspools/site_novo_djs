@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Disc3, FolderOpen, Grid2X2, Headphones, List, Music2, Radio, RefreshCw, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Disc3, FolderOpen, Grid2X2, Headphones, List, Music2, Play, Radio, RefreshCw, Search, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import {
@@ -57,11 +57,13 @@ function AcervoCard({
   isNew,
   index,
   view,
+  featured = false,
 }: {
   folder: VipMusicFolder | VipMusicCatalogItem;
   isNew: boolean;
   index: number;
   view: "grid" | "list";
+  featured?: boolean;
 }) {
   const catalog = folder as VipMusicCatalogItem;
   const slug = slugifyFolderName(folder.name);
@@ -80,34 +82,85 @@ function AcervoCard({
   }
 
   return (
-    <article className={`group/acervo min-w-0 overflow-hidden rounded-[20px] border border-white/[0.09] bg-[#111] transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#151515] hover:shadow-[0_18px_45px_-20px_rgba(0,0,0,0.65)] ${view === "list" ? "flex items-center gap-3 p-2.5 sm:gap-5 sm:p-3" : "flex flex-col"}`}
-      style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}>
-      <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch}
+    <article
+      className={`group/acervo min-w-0 overflow-hidden rounded-2xl border bg-[#0c0c0c] transition duration-300 ${
+        view === "list"
+          ? "flex items-center gap-3 border-white/10 p-2.5 hover:border-[#60cdff]/40 hover:bg-[#101418] sm:gap-5 sm:p-3"
+          : `flex flex-col border-white/[0.08] hover:-translate-y-1 hover:border-[#60cdff]/45 hover:shadow-[0_18px_40px_-22px_rgba(96,205,255,0.45)] ${featured ? "w-[min(100%,18.5rem)] sm:w-[20rem]" : ""}`
+      }`}
+      style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
+    >
+      <Link
+        href={href}
+        prefetch={false}
+        onMouseEnter={prefetch}
+        onFocus={prefetch}
         aria-label={`Abrir acervo ${title}`}
-        className={`relative block shrink-0 overflow-hidden rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#60cdff] ${view === "list" ? "h-20 w-20 sm:h-24 sm:w-24" : "aspect-[5/4] w-full rounded-b-none"}`}>
+        className={`relative block shrink-0 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[#60cdff] ${
+          view === "list" ? "h-20 w-20 rounded-xl sm:h-24 sm:w-24" : "aspect-square w-full"
+        }`}
+      >
         {cover ? (
-          <Image src={cover} alt="" fill sizes={view === "list" ? "96px" : "(max-width:480px) 50vw, (max-width:1024px) 33vw, 220px"}
-            className="object-cover transition duration-500 group-hover/acervo:scale-105" unoptimized={cover.startsWith("/api/")} />
+          <Image
+            src={cover}
+            alt=""
+            fill
+            sizes={view === "list" ? "96px" : "(max-width:480px) 50vw, (max-width:1024px) 33vw, 240px"}
+            className="object-cover transition duration-500 group-hover/acervo:scale-110"
+            unoptimized={cover.startsWith("/api/")}
+          />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#171717,#0d0d0d)]">
-            <Disc3 className="h-14 w-14 text-white/20 sm:h-20 sm:w-20" strokeWidth={0.9} aria-hidden />
+          <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(96,205,255,0.18),#111_62%)]">
+            <Disc3 className="h-12 w-12 text-[#60cdff]/35 sm:h-16 sm:w-16" strokeWidth={0.9} aria-hidden />
           </div>
         )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#121212]/75 via-transparent to-transparent" />
-        {badge ? <span className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${isNew ? "border border-emerald-300/40 bg-emerald-500/85 text-white" : "border border-[#8ad4ff]/25 bg-[#142018]/85 text-white/70"}`}>{badge}</span> : null}
-        <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white opacity-90 shadow-lg transition group-hover/acervo:scale-110" aria-hidden><ArrowRight className="h-4 w-4" /></span>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover/acervo:opacity-100 bg-[radial-gradient(circle_at_50%_80%,rgba(96,205,255,0.22),transparent_58%)]" />
+        {badge ? (
+          <span
+            className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${
+              isNew
+                ? "border border-[#60cdff]/45 bg-[#60cdff] text-black"
+                : "border border-[#60cdff]/30 bg-black/70 text-[#8ad4ff]"
+            }`}
+          >
+            {badge}
+          </span>
+        ) : null}
+        <span
+          className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#60cdff] text-black opacity-0 shadow-[0_8px_20px_rgba(96,205,255,0.4)] transition group-hover/acervo:opacity-100"
+          aria-hidden
+        >
+          <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
+        </span>
       </Link>
-      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-1 flex-col px-3 pb-3 pt-3 sm:px-4"}`}>
-        <p className="mb-1 text-[9px] font-extrabold uppercase tracking-[0.17em] text-white/45">
-          {statusLabel || (isNew ? "Adicionado recentemente" : "BRS · DJ Pool")}
+      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-1 flex-col px-3 pb-3.5 pt-3 sm:px-3.5"}`}>
+        <p className="mb-1 text-[9px] font-extrabold uppercase tracking-[0.18em] text-[#60cdff]/80">
+          {statusLabel || (isNew ? "Adicionado recentemente" : "Catálogo BRS")}
         </p>
-        <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="outline-none focus-visible:text-white/45">
-          <h3 className="line-clamp-2 text-[13px] font-extrabold leading-snug text-white transition group-hover/acervo:text-white sm:text-[15px]">{title}</h3>
+        <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="outline-none focus-visible:text-[#60cdff]">
+          <h3 className="line-clamp-2 text-[13px] font-extrabold leading-snug text-white transition group-hover/acervo:text-[#8ad4ff] sm:text-[15px]">
+            {title}
+          </h3>
         </Link>
-        <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-400 ${view === "list" ? "mt-2" : "mt-auto pt-3"}`}>
-          {hasFolderStats ? <span className="inline-flex items-center gap-1"><FolderOpen className="h-3.5 w-3.5 text-white/45/80" />{folderCount!.toLocaleString("pt-BR")} pastas</span> : null}
-          {hasTrackStats ? <span className="inline-flex items-center gap-1"><Music2 className="h-3.5 w-3.5 text-white/45/80" />{trackCount!.toLocaleString("pt-BR")} faixas</span> : null}
-          {!hasFolderStats && !hasTrackStats ? <span>Explorar catálogo</span> : null}
+        <div className={`flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400 ${view === "list" ? "mt-2" : "mt-auto pt-3"}`}>
+          {hasFolderStats ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
+              <FolderOpen className="h-3.5 w-3.5 text-[#60cdff]/80" />
+              {folderCount!.toLocaleString("pt-BR")} pastas
+            </span>
+          ) : null}
+          {hasTrackStats ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
+              <Music2 className="h-3.5 w-3.5 text-[#60cdff]/80" />
+              {trackCount!.toLocaleString("pt-BR")} faixas
+            </span>
+          ) : null}
+          {!hasFolderStats && !hasTrackStats ? (
+            <span className="inline-flex items-center gap-1 text-[#8ad4ff]/80">
+              Explorar catálogo <ArrowRight className="h-3 w-3" />
+            </span>
+          ) : null}
         </div>
       </div>
     </article>
@@ -263,38 +316,50 @@ export function AtualizacoesRootClient() {
       )}
 
       <section id="acervos" className="mb-10 scroll-mt-24">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/45">Sua biblioteca</p>
-            <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">Explore os acervos</h2>
-            <p className="mt-1 text-sm text-zinc-400">Packs organizados com as capas e músicas do Drive.</p>
+        <div className="mb-6 overflow-hidden rounded-[24px] border border-[#60cdff]/15 bg-[linear-gradient(180deg,rgba(96,205,255,0.08),rgba(12,12,12,0.4)_42%,transparent)] px-4 py-5 sm:px-6 sm:py-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#60cdff]">Sua biblioteca</p>
+              <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">Explore os acervos</h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/65">
+                Packs organizados com as capas e músicas do Drive.
+              </p>
+            </div>
+            <span className="inline-flex w-fit items-center rounded-full border border-[#60cdff]/25 bg-[#60cdff]/10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[#8ad4ff]">
+              {visibleFolders.length} {visibleFolders.length === 1 ? "resultado" : "resultados"}
+            </span>
           </div>
-          <span className="text-xs font-semibold tabular-nums text-zinc-400">{visibleFolders.length} {visibleFolders.length === 1 ? "resultado" : "resultados"}</span>
         </div>
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#111] p-3 shadow-[0_14px_35px_-25px_rgba(0,0,0,0.7)] sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[#60cdff]/12 bg-[#0c0c0c] p-3 shadow-[0_14px_35px_-25px_rgba(96,205,255,0.35)] sm:flex-row sm:items-center">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Buscar acervo</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" aria-hidden />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#60cdff]/70" aria-hidden />
             <input type="search" value={folderQuery} onChange={(event) => setFolderQuery(event.target.value)}
               placeholder="Encontre um pack ou acervo..."
-              className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-white/25" />
+              className="w-full rounded-xl border border-white/10 bg-[#080808] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#60cdff]/50 focus:ring-1 focus:ring-[#60cdff]/30" />
           </label>
           <button type="button" onClick={() => setShowOnlyNew((value) => !value)} aria-pressed={showOnlyNew}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition ${showOnlyNew ? "border-[#60cdff] bg-[#60cdff]/20 text-white" : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-[#60cdff]/40"}`}>
+            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition ${showOnlyNew ? "border-[#60cdff] bg-[#60cdff] text-black" : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-[#60cdff]/40 hover:text-[#8ad4ff]"}`}>
             <Sparkles className="h-4 w-4" /> Somente novidades
           </button>
-          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#0b0b0b] p-1" aria-label="Visualização do catálogo">
+          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#080808] p-1" aria-label="Visualização do catálogo">
             <button type="button" aria-label="Ver em grade" aria-pressed={catalogView === "grid"} onClick={() => setCatalogView("grid")}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "grid" ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><Grid2X2 className="h-4 w-4" /></button>
+              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "grid" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><Grid2X2 className="h-4 w-4" /></button>
             <button type="button" aria-label="Ver em lista" aria-pressed={catalogView === "list"} onClick={() => setCatalogView("list")}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "list" ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><List className="h-4 w-4" /></button>
+              className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "list" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><List className="h-4 w-4" /></button>
           </div>
         </div>
 
         {loading && folders.length === 0 ? (
           <MusicasCenterLoading label="Carregando acervos…" />
         ) : (
-          <div className={catalogView === "grid" ? "grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" : "grid grid-cols-1 gap-3 md:grid-cols-2"}>
+          <div className={
+            catalogView === "list"
+              ? "grid grid-cols-1 gap-3 md:grid-cols-2"
+              : visibleFolders.length <= 4
+                ? "flex flex-wrap justify-center gap-5"
+                : "grid grid-cols-2 gap-3.5 min-[480px]:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+          }>
             {visibleFolders.map((folder, index) => (
               <AcervoCard
                 key={folder.id}
@@ -302,6 +367,7 @@ export function AtualizacoesRootClient() {
                 isNew={newFolderIds.has(folder.id)}
                 index={index}
                 view={catalogView}
+                featured={catalogView === "grid" && visibleFolders.length <= 4}
               />
             ))}
           </div>

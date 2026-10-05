@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Disc3, Music2, MonitorDown } from "lucide-react";
+import { Disc3, Mic2, MonitorDown, Music2, RefreshCw } from "lucide-react";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
@@ -60,22 +60,38 @@ export function MusicasHubClient() {
             className="h-auto w-full object-cover object-center"
           />
         </div>
-        <nav aria-label="Seções do acervo" className="mt-4 flex flex-wrap gap-x-5 gap-y-1">
-          <Link
-            href="/musicas/atualizacoes"
-            prefetch={false}
-            className="text-sm font-semibold text-zinc-300 transition hover:text-[#60cdff]"
-          >
-            Atualizações
-          </Link>
-          <Link
-            href="/musicas/artistas"
-            prefetch={false}
-            className="text-sm font-semibold text-zinc-300 transition hover:text-[#60cdff]"
-          >
-            Artistas
-          </Link>
-        </nav>
+        <div className="mx-auto mt-6 max-w-3xl">
+          <div className="text-justify text-sm leading-relaxed text-white/80 sm:text-[15px]">
+            <p className="text-[15px] font-extrabold tracking-[0.04em] text-white sm:text-base">
+              🎧 SEU PRÓXIMO SET COMEÇA AQUI.
+            </p>
+            <p className="mt-2">
+              🔥 Descubra as novidades da Brazilian Remix Service e tenha acesso a remixes, edits, versões exclusivas e produções selecionadas para DJs.
+            </p>
+            <p className="mt-2">
+              🚀 Atualizações constantes. 📀 Acervo organizado. 🎶 Música de verdade para quem vive de música.
+            </p>
+            <p className="mt-2">▶️ Explore. Baixe. Toque. 🔥</p>
+          </div>
+          <nav aria-label="Seções do acervo" className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/musicas/atualizacoes"
+              prefetch={false}
+              className="inline-flex h-11 min-w-[168px] items-center justify-center gap-2 rounded-full bg-[#60cdff] px-6 text-sm font-extrabold text-black shadow-[0_10px_28px_rgba(96,205,255,0.28)] transition hover:bg-[#8ad4ff]"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden />
+              Atualizações
+            </Link>
+            <Link
+              href="/musicas/artistas"
+              prefetch={false}
+              className="inline-flex h-11 min-w-[168px] items-center justify-center gap-2 rounded-full border border-[#60cdff]/70 bg-[#60cdff]/10 px-6 text-sm font-extrabold text-[#60cdff] transition hover:border-[#60cdff] hover:bg-[#60cdff]/18 hover:text-[#8ad4ff]"
+            >
+              <Mic2 className="h-4 w-4" aria-hidden />
+              Artistas
+            </Link>
+          </nav>
+        </div>
         <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-5">
             {home?.stats.trackCount ? <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80"><Music2 className="h-3.5 w-3.5 text-[#8ad4ff]" />{home.stats.trackCount.toLocaleString("pt-BR")} faixas</span> : null}
             {home?.stats.packCount ? <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80"><Disc3 className="h-3.5 w-3.5 text-[#8ad4ff]" />{home.stats.packCount} packs</span> : null}
