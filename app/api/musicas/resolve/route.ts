@@ -25,6 +25,8 @@ export async function GET(request: Request) {
   const poolsOnly = searchParams.get("meta") === "pools";
   const dayParam = searchParams.get("dia")?.trim() ?? "";
   const dayKey = /^\d{4}-\d{2}-\d{2}$/.test(dayParam) ? dayParam : null;
+  const poolFilter = searchParams.get("pool")?.trim() ?? "";
+  const styleFilter = searchParams.get("estilo")?.trim() ?? "";
 
   try {
     const rootId = getVipMusicRootFolderId();
@@ -60,6 +62,10 @@ export async function GET(request: Request) {
         trackOffset,
         trackLimit,
         dayKey,
+        {
+          poolSlug: poolFilter || null,
+          styleSlug: styleFilter || null,
+        },
       );
 
       // Metadados de Pool/Estilo para qualquer nível do acervo:
