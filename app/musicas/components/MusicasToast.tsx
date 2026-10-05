@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-type ToastVariant = "success" | "error";
+type ToastVariant = "success" | "error" | "info";
 
 type ToastState = {
   message: string;
@@ -42,7 +42,11 @@ export function MusicasToastProvider({ children }: { children: React.ReactNode }
           role="status"
           aria-live="polite"
           className={`fixed bottom-6 left-1/2 z-50 max-w-[min(94vw,32rem)] -translate-x-1/2 rounded-lg px-4 py-2.5 text-center text-xs font-semibold leading-relaxed shadow-lg ${
-            toast.variant === "success" ? "bg-[#60cdff] text-black" : "bg-red-500/95 text-white"
+            toast.variant === "success"
+              ? "bg-[#60cdff] text-black"
+              : toast.variant === "info"
+                ? "border border-white/15 bg-[#1a1a1a] text-white"
+                : "bg-red-500/95 text-white"
           }`}
         >
           {toast.message}

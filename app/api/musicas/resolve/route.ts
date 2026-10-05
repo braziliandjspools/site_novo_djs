@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
 import { findFolderBySlug } from "../../../lib/vip-music-slugs";
-import { getVipMusicCatalog, getVipMusicRootFolderId, listUpdatePoolOptions, listVipMusicFolders } from "../../../lib/vip-music-catalog";
+import { getVipMusicCatalog, getVipMusicRootFolderId, listUpdatePoolOptions, listVipMusicFolders, VIP_MUSIC_TRACKS_PAGE_SIZE } from "../../../lib/vip-music-catalog";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const forceRefresh = searchParams.get("refresh") === "1";
   const requestedPage = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const legacyTrackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
-  const trackPageSize = 400;
+  const trackPageSize = VIP_MUSIC_TRACKS_PAGE_SIZE;
   const trackOffset =
     searchParams.has("page") || legacyTrackOffset === 0
       ? (requestedPage - 1) * trackPageSize

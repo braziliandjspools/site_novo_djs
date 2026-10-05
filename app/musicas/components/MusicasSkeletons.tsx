@@ -6,6 +6,34 @@ function SkeletonPulse({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-xl bg-white/10 ${className}`} />;
 }
 
+/** Pill no visual dos toasts do acervo — overlay de tabela ou estado local. */
+export function MusicasToastLoading({ label }: { label: string }) {
+  return (
+    <p
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-[#1a1a1a] px-4 py-2.5 text-xs font-semibold leading-relaxed text-white shadow-lg"
+    >
+      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#60cdff]" aria-hidden />
+      {label}
+    </p>
+  );
+}
+
+export function MusicasTableLoadingOverlay({ label }: { label: string }) {
+  return (
+    <div
+      className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-[2px]"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <MusicasToastLoading label={label} />
+    </div>
+  );
+}
+
 /** Carregamento central, no lugar do skeleton, para pastas e tabelas lentas. */
 export function MusicasCenterLoading({
   label = "Carregando…",
@@ -20,12 +48,7 @@ export function MusicasCenterLoading({
       aria-busy="true"
     >
       <div className="flex flex-col items-center gap-4 text-center">
-        <span className="relative flex h-16 w-16 items-center justify-center" aria-hidden>
-          <span className="absolute inset-0 animate-spin rounded-full border-2 border-[#60cdff]/15 border-t-[#60cdff]" />
-          <span className="absolute inset-2 animate-spin rounded-full border-2 border-transparent border-b-[#60cdff]/70 [animation-duration:1.4s]" />
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#60cdff]" />
-        </span>
-        <p className="text-sm font-semibold tracking-wide text-white">{label}</p>
+        <MusicasToastLoading label={label} />
       </div>
     </div>
   );

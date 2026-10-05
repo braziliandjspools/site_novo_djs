@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronRight, Download, Home, Loader2, MonitorDown, Pause, P
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
+import { VIP_MUSIC_TRACKS_PAGE_SIZE } from "../../lib/vip-music-catalog";
 import {
   childrenAreWeekFolders,
   displayFolderName,
@@ -50,7 +51,7 @@ import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
-import { MusicasCenterLoading } from "./MusicasSkeletons";
+import { MusicasCenterLoading, MusicasTracksSkeleton } from "./MusicasSkeletons";
 
 type ResolveResponse = {
   folderId: string;
@@ -124,8 +125,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const dayFilter = searchParams.get("dia") ?? "";
   const poolFilter = searchParams.get("pool") ?? "";
   const styleFilter = searchParams.get("estilo") ?? "";
-  const textFilter = searchParams.get("busca") ?? "";
-  const catalogFilterActive = Boolean(poolFilter || styleFilter || dayFilter || textFilter.trim());
   const currentPage = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const faixaId = searchParams.get("faixa");
   const slugPath = slugSegments.join("/");
@@ -161,13 +160,20 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   // Paginação é contínua e independente do ano/repertório. Só encerra quando
   // a API não devolver novas faixas (ou devolver apenas IDs já carregados).
   const [tracksPaginationExhausted, setTracksPaginationExhausted] = useState(false);
+  const [knownLastPage, setKnownLastPage] = useState(1);
   const [, startTransition] = useTransition();
+  const paginationScope = `${slugPath}|${dayFilter}|${poolFilter}|${styleFilter}`;
 
   useEffect(() => {
     void fetchMusicasJson<{ folders?: VipMusicFolder[] }>("/api/musicas/tree")
       .then((body) => setMonths(body.folders ?? []))
       .catch(() => setMonths([]));
   }, []);
+
+  useEffect(() => {
+    hasTracksRef.current = false;
+    setKnownLastPage(1);
+  }, [paginationScope]);
 
   useEffect(() => {
     if (!packSlug) {
@@ -278,10 +284,14 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       );
       const cached = options?.forceRefresh ? null : peekMusicasCache<ResolveResponse>(canonicalUrl);
       const keepVisible = Boolean(options?.forceRefresh && hasTracksRef.current);
+      const keepTable = hasTracksRef.current && !options?.forceRefresh;
       if (cached) {
         hasTracksRef.current = true;
         startTransition(() => setData(cached));
         setLoading(false);
+        setPageLoading(false);
+      } else if (keepTable) {
+        setPageLoading(true);
       } else if (!keepVisible) {
         setLoading(true);
       }
@@ -298,7 +308,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         setTracksPaginationExhausted(body.level === "tracks" ? !body.tracksHasMore : true);
         return body;
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Pasta não encontrada.");
+        const message = err instanceof Error ? err.message : "Pasta não encontrada.";
+        setError(message);
+        showToast(message, "error");
         if (!cached) setData(null);
         return null;
       } finally {
@@ -311,7 +323,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         }
       }
     },
-    [currentPage, slugPath, dayFilter, poolFilter, styleFilter],
+    [currentPage, slugPath, dayFilter, poolFilter, styleFilter, showToast],
   );
 
   useEffect(() => {
@@ -356,11 +368,22 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
   const tracksHasMore = Boolean(data?.tracksHasMore);
-  // O LOAD MORE segue a mesma regra para setembro, 2025, 2026 e futuros
-  // repertórios: enquanto houver faixas carregadas e ainda não confirmarmos
-  // o fim, sempre existe uma próxima página para tentar.
+  const trackPageSize = data?.pageSize ?? VIP_MUSIC_TRACKS_PAGE_SIZE;
+  const trackPageCount = tracksHasMore
+    ? Math.max(knownLastPage, currentPage + 1)
+    : Math.max(1, currentPage);
+  // Enquanto houver faixas e ainda não confirmarmos o fim, existe próxima página.
   const canLoadMoreTracks =
     showingTracks && directTracks.length > 0 && !tracksPaginationExhausted;
+
+  useEffect(() => {
+    if (!showingTracks || catalogLoading) return;
+    if (!tracksHasMore || directTracks.length < trackPageSize) {
+      setKnownLastPage(currentPage);
+      return;
+    }
+    setKnownLastPage((current) => Math.max(current, currentPage + 1));
+  }, [catalogLoading, currentPage, directTracks.length, showingTracks, trackPageSize, tracksHasMore]);
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -425,6 +448,19 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     prefetchMusicasJson(`/api/musicas/resolve?${nextParams.toString()}`);
   }, [canLoadMoreTracks, currentPage, dayFilter, poolFilter, styleFilter, slugPath]);
 
+  const goToTrackPage = useCallback((page: number) => {
+    if (page < 1 || page === currentPage) return;
+    if (page > trackPageCount) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (page > 1) params.set("page", String(page));
+    else params.delete("page");
+    params.delete("trackOffset");
+    params.delete("trackLimit");
+    const qs = params.toString();
+    showToast(`Carregando página ${String(page).padStart(2, "0")}…`, "info", 2200);
+    router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname, { scroll: false });
+  }, [currentPage, router, searchParams, showToast, trackPageCount]);
+
   const loadMoreTracks = useCallback(async () => {
     if (
       !data ||
@@ -433,15 +469,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       !canLoadMoreTracks
     ) return;
 
-    const nextPage = currentPage + 1;
     loadingMoreTracksRef.current = true;
     setPageLoading(true);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(nextPage));
-    params.delete("trackOffset");
-    params.delete("trackLimit");
-    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
-  }, [canLoadMoreTracks, currentPage, data, router, searchParams]);
+    goToTrackPage(currentPage + 1);
+  }, [canLoadMoreTracks, currentPage, data, goToTrackPage]);
 
 
 
@@ -754,9 +785,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       </nav>
 
       {showInitialSkeleton && (
-        <MusicasCenterLoading
-          label={slugSegments.length >= 2 ? "Estamos organizando a biblioteca, aguarde..." : "Carregando acervos…"}
-        />
+        <MusicasTracksSkeleton rows={8} />
       )}
 
 
@@ -869,6 +898,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 filterStyles={data.filterStyles}
                 updateDays={data.updateDays}
                 catalogLoading={catalogLoading}
+                page={currentPage}
+                pageCount={trackPageCount}
+                pageLoading={pageLoading}
+                onPageChange={goToTrackPage}
                 hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
                 onPrepareLoadMore={prepareNextTrackPage}
@@ -940,7 +973,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#60cdff]">Faixas da pasta</p>
                   <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
-                  <p className="text-[11px] text-white/45">{directTracks.length}{tracksHasMore ? "+" : ""} {directTracks.length === 1 ? "faixa" : "faixas"}</p>
+                  <p className="text-[11px] text-white/45">
+                    Página {String(currentPage).padStart(2, "0")}
+                    {trackPageCount > 1 ? ` de ${String(trackPageCount).padStart(2, "0")}${tracksHasMore ? "+" : ""}` : ""}
+                    {" · "}
+                    {directTracks.length} {directTracks.length === 1 ? "faixa" : "faixas"}
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <AtualizacoesDriveSyncButton
@@ -993,9 +1031,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               </section>
             ) : null}
             {directTracks.length === 0 && (loading || catalogLoading) ? (
-              <MusicasCenterLoading
-                label={catalogFilterActive ? "Pesquisando as músicas…" : "Estamos organizando a biblioteca, aguarde..."}
-              />
+              <MusicasTracksSkeleton rows={8} />
             ) : directTracks.length === 0 ? (
               <div className="overflow-hidden rounded-md border border-[#60cdff]/20 bg-[#0d0d0d]">
                 <div className="h-px w-full bg-gradient-to-r from-[#60cdff]/80 via-[#60cdff]/25 to-transparent" />
@@ -1023,6 +1059,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 filterStyles={data.filterStyles}
                 updateDays={data.updateDays}
                 catalogLoading={catalogLoading}
+                page={currentPage}
+                pageCount={trackPageCount}
+                pageLoading={pageLoading}
+                onPageChange={goToTrackPage}
                 hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
                 onPrepareLoadMore={prepareNextTrackPage}

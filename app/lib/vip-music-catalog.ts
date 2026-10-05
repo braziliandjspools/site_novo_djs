@@ -69,6 +69,8 @@ const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
 /** Pastas irmãs no deep-walk — paraleliza sem saturar a Drive API. */
 const TRACK_WALK_CONCURRENCY = 8;
+/** Faixas por página na tabela do acervo. */
+export const VIP_MUSIC_TRACKS_PAGE_SIZE = 50;
 
 export type VipMusicFolder = {
   id: string;
@@ -606,7 +608,7 @@ async function getDriveCatalog(
   }
 
   if (folderDate) {
-    const requestedLimit = Math.max(1, Math.min(trackLimit ?? 400, 400));
+    const requestedLimit = Math.max(1, Math.min(trackLimit ?? VIP_MUSIC_TRACKS_PAGE_SIZE, VIP_MUSIC_TRACKS_PAGE_SIZE));
     const state: TrackPageState = {
       skip: Math.max(0, trackOffset),
       limit: requestedLimit + 1,
@@ -705,8 +707,8 @@ async function getDriveCatalog(
 
     // O mês é uma tabela contínua: as pastas 29-SET, 28-SET, 27-SET...
     // fornecem apenas a data de cada faixa. Nunca carregamos o mês inteiro
-    // de uma vez; a API devolve lotes pequenos para o infinite scroll.
-    const requestedLimit = Math.max(1, Math.min(trackLimit, 400));
+    // de uma vez; a API devolve lotes de 50 para a paginação numerada.
+    const requestedLimit = Math.max(1, Math.min(trackLimit, VIP_MUSIC_TRACKS_PAGE_SIZE));
     const state: TrackPageState = {
       skip: Math.max(0, trackOffset),
       limit: requestedLimit + 1,
@@ -1131,8 +1133,6 @@ export async function getVipMusicCatalog(
     };
   }
 }
-
-export const VIP_MUSIC_TRACKS_PAGE_SIZE = 50;
 
 /** Lista todas as faixas da pasta, incluindo subpastas aninhadas até os MP3. */
 export async function getVipMusicTracks(folderId: string, folderName: string): Promise<PreviewTrack[]> {

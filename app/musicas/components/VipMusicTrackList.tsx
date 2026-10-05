@@ -46,6 +46,8 @@ import { folderHref, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName 
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { isSendNowFileId } from "../../lib/send-now";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
+import { TrackListPagination } from "./TrackListPagination";
+import { MusicasTableLoadingOverlay, MusicasToastLoading } from "./MusicasSkeletons";
 import {
   BROWSER_BULK_CONFIRM_THRESHOLD,
   isDownloaderSendCancelled,
@@ -93,6 +95,10 @@ type VipMusicTrackListProps = {
   hasMore?: boolean;
   onLoadMore?: () => Promise<{ tracks: PreviewTrack[]; hasMore: boolean } | null | undefined | void>;
   onPrepareLoadMore?: () => void;
+  page?: number;
+  pageCount?: number;
+  pageLoading?: boolean;
+  onPageChange?: (page: number) => void;
   /** Mostra acesso ao Drive somente nas pastas finais/estilos. */
   showDriveButton?: boolean;
   /** Pools da pasta inteira, mesmo os que ainda não têm faixa carregada. */
@@ -1054,6 +1060,10 @@ export function VipMusicTrackList({
   hasMore = false,
   onLoadMore,
   onPrepareLoadMore,
+  page = 1,
+  pageCount = 1,
+  pageLoading = false,
+  onPageChange,
   showDriveButton = false,
   filterPools,
   filterStyles,
@@ -1128,6 +1138,7 @@ export function VipMusicTrackList({
         if (next.dia) params.set("dia", next.dia);
         else params.delete("dia");
       }
+      params.delete("page");
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
@@ -1506,10 +1517,11 @@ export function VipMusicTrackList({
       drainLengthRef.current = null;
       return;
     }
+    if (onPageChange) return;
     if (!hasMore || !onLoadMore || drainLengthRef.current === tracks.length) return;
     drainLengthRef.current = tracks.length;
     void onLoadMore();
-  }, [hasMore, markPickerOpen, markRule, onLoadMore, tracks.length]);
+  }, [hasMore, markPickerOpen, markRule, onLoadMore, onPageChange, tracks.length]);
 
   const handleLoadMore = useCallback(async () => {
     if (loadingMore || !hasMore || !onLoadMore) return;
@@ -1696,8 +1708,41 @@ export function VipMusicTrackList({
       </div>
     ) : null;
 
+  const listFooter = (isLastSection: boolean) => {
+    if (!isLastSection) return null;
+    if (onPageChange && pageCount > 1) {
+      return (
+        <TrackListPagination
+          page={page}
+          pageCount={pageCount}
+          loading={pageLoading || loadingMore}
+          onPageChange={onPageChange}
+        />
+      );
+    }
+    if (!embedded || !useStreaming || !hasMore || !onLoadMore) return null;
+    return (
+      <div className="flex justify-center border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
+        <button
+          type="button"
+          disabled={loadingMore}
+          onClick={() => void handleLoadMore()}
+          onMouseEnter={onPrepareLoadMore}
+          onFocus={onPrepareLoadMore}
+          className="mx-auto inline-flex min-h-10 min-w-[180px] items-center justify-center gap-2 rounded-md border border-[#60cdff]/35 bg-[#60cdff]/10 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
+        >
+          {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+          {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
+        </button>
+      </div>
+    );
+  };
+
   return (
-    <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
+    <div className={`relative ${separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}`}>
+      {pageLoading ? (
+        <MusicasTableLoadingOverlay label={`Carregando página ${String(page).padStart(2, "0")}…`} />
+      ) : null}
       {useStreaming ? (
         <div className="space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
           {hasCatalogFilters ? (
@@ -1813,11 +1858,10 @@ export function VipMusicTrackList({
         </div>
       ) : null}
       {useStreaming && (searchDraft.trim() || poolFilterSlug || styleFilterSlug || dayFilterKey) && filteredTracks.length === 0 ? (
-        catalogLoading || loadingMore ? (
-          <p className="flex items-center justify-center gap-2 px-4 py-10 text-center text-sm text-zinc-300" role="status" aria-live="polite">
-            <Loader2 className="h-4 w-4 animate-spin text-[#60cdff]" aria-hidden />
-            Pesquisando as músicas…
-          </p>
+        catalogLoading || loadingMore || pageLoading ? (
+          <div className="flex justify-center px-4 py-10">
+            <MusicasToastLoading label="Pesquisando as músicas…" />
+          </div>
         ) : (
           <p className="px-4 py-10 text-center text-sm text-zinc-400">
             {searchDraft.trim()
@@ -1893,22 +1937,8 @@ export function VipMusicTrackList({
               <div className="tablemusic">
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
-                {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
-                  <div className="flex justify-center border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
-                    <button
-                      type="button"
-                      disabled={loadingMore}
-                      onClick={() => void handleLoadMore()}
-                      onMouseEnter={onPrepareLoadMore}
-                      onFocus={onPrepareLoadMore}
-                      className="mx-auto inline-flex min-h-10 min-w-[180px] items-center justify-center gap-2 rounded-md border border-[#60cdff]/35 bg-[#60cdff]/10 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
-                    >
-                      {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                      {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
-                    </button>
-                  </div>
-                ) : null}
               </div>
+              {listFooter(sectionIndex === sections.length - 1)}
             </div>
           ))}
         </>
@@ -1941,22 +1971,8 @@ export function VipMusicTrackList({
               <div className="tablemusic">
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
-                {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
-                  <div className="flex justify-center border-t border-white/[0.06] bg-[#111] px-3 py-3 sm:px-4">
-                    <button
-                      type="button"
-                      disabled={loadingMore}
-                      onClick={() => void handleLoadMore()}
-                      onMouseEnter={onPrepareLoadMore}
-                      onFocus={onPrepareLoadMore}
-                      className="mx-auto inline-flex min-h-10 min-w-[180px] items-center justify-center gap-2 rounded-md border border-[#60cdff]/35 bg-[#60cdff]/10 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#60cdff] transition-colors hover:border-[#60cdff]/60 hover:bg-[#60cdff]/20 disabled:cursor-wait disabled:opacity-50"
-                    >
-                      {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                      {loadingMore ? "CARREGANDO..." : "LOAD MORE"}
-                    </button>
-                  </div>
-                ) : null}
               </div>
+              {listFooter(sectionIndex === sections.length - 1)}
             </section>
           ))}
         </div>
