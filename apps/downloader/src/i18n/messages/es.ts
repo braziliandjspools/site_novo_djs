@@ -91,6 +91,8 @@ export const messagesEs = {
   searchUnmute: "Activar sonido",
   searchVolume: "Volumen",
   searchStop: "Detener reproductor",
+  searchPrev: "Pista anterior",
+  searchNext: "Siguiente pista",
   searchProgress: "Progreso de la pista",
   searchCollection: "Acervo",
   searchOpenCatalog: "Ver música en el catálogo",

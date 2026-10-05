@@ -98,6 +98,8 @@ export const messagesPtBR = {
   searchUnmute: "Ativar som",
   searchVolume: "Volume",
   searchStop: "Parar player",
+  searchPrev: "Faixa anterior",
+  searchNext: "Próxima faixa",
   searchProgress: "Progresso da faixa",
   searchCollection: "Acervo",
   searchOpenCatalog: "Ver música no catálogo",

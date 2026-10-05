@@ -242,11 +242,11 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121212]">
-        <div className="h-px bg-gradient-to-r from-[#14532d] via-[#1f6b3a]/80 to-transparent" />
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
+        <div className="h-px bg-gradient-to-r from-white/40 via-white/10 to-transparent" />
         <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#86efac]/80">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/55">
             {t(copy.eyebrowKey)}
           </p>
           <p className="mt-1 text-sm text-zinc-400">
@@ -282,7 +282,7 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
 
       {isDownloads && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[#14532d]/35 bg-[#0c1610] px-4 py-3">
+          <div className="rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
               {t("jobsDiskAvailable")}
             </p>
@@ -290,11 +290,11 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
               {diskSpace.availableBytes != null ? formatDiskSize(diskSpace.availableBytes) : "—"}
             </p>
           </div>
-          <div className="rounded-2xl border border-[#14532d]/35 bg-[#0c1610] px-4 py-3">
+          <div className="rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
               {t("jobsSectionQueue")}
             </p>
-            <p className="mt-1.5 text-lg font-bold tabular-nums text-[#86efac]">
+            <p className="mt-1.5 text-lg font-bold tabular-nums text-white">
               {formatQueueLabel(liveQueueBytes, managerJobs, t("jobsNoSizeInfo"))}
             </p>
           </div>
@@ -302,11 +302,11 @@ export function JobsSectionPage({ section }: JobsSectionPageProps) {
       )}
 
       {isQueue && (
-        <div className="rounded-2xl border border-[#14532d]/35 bg-[#0c1610] px-4 py-3">
+        <div className="rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
             {t("jobsQueueEstimated")}
           </p>
-          <p className="mt-1.5 text-lg font-bold tabular-nums text-[#86efac]">
+          <p className="mt-1.5 text-lg font-bold tabular-nums text-white">
             {formatQueueLabel(liveQueueBytes, managerJobs, t("jobsNoSizeInfo"))}
           </p>
         </div>

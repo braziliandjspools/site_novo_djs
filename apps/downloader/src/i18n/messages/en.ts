@@ -91,6 +91,8 @@ export const messagesEn = {
   searchUnmute: "Unmute",
   searchVolume: "Volume",
   searchStop: "Stop player",
+  searchPrev: "Previous track",
+  searchNext: "Next track",
   searchProgress: "Track progress",
   searchCollection: "Collection",
   searchOpenCatalog: "View track in catalog",

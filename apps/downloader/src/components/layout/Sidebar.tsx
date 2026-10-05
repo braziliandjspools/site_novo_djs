@@ -124,7 +124,7 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="m-2.5 flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--bg-card)] px-3 py-2.5">
+      <div className="m-2.5 flex items-center gap-3 rounded-[var(--radius-lg)] border border-white/10 bg-black px-3 py-2.5">
         <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--bg-control)] text-[0.8rem] font-semibold text-white">
           {(firstName[0] ?? "B").toUpperCase()}
         </span>

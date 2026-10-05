@@ -2,18 +2,18 @@
 
 /* Windows 11 Fluent — dark minimal */
 :root {
-  --background: #202020;
+  --background: #050505;
   --foreground: #ffffff;
-  --bg-mica: #1b1b1b;
-  --bg-elevated: #2c2c2c;
-  --bg-card: #2b2b2b;
-  --bg-hover: #323232;
-  --bg-sidebar: #191919;
-  --bg-control: #2f2f2f;
-  --bg-control-hover: #3a3a3a;
-  --bg-control-active: #454545;
-  --text-muted: #cfcfcf;
-  --text-subtle: #9b9b9b;
+  --bg-mica: #000000;
+  --bg-elevated: #141414;
+  --bg-card: #111111;
+  --bg-hover: #1a1a1a;
+  --bg-sidebar: #000000;
+  --bg-control: #1c1c1c;
+  --bg-control-hover: #2a2a2a;
+  --bg-control-active: #333333;
+  --text-muted: #e8e8e8;
+  --text-subtle: #a3a3a3;
   --accent: #ffffff;
   --accent-hover: #eaeaea;
   --accent-dim: rgba(255, 255, 255, 0.12);
@@ -111,8 +111,31 @@ body {
 
 .app-mesh {
   background:
-    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(255, 255, 255, 0.04), transparent 50%),
+    radial-gradient(ellipse 80% 40% at 100% 0%, rgba(255, 255, 255, 0.03), transparent 52%),
     var(--background);
+}
+
+.player-range {
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+.player-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.45);
+}
+.player-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
 }
 
 .auth-atmosphere {

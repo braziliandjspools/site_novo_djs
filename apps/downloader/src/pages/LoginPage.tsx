@@ -17,7 +17,7 @@ const LOGIN_BG_SRC = "/images/login-bg.jpg?v=pack-wall-2026";
 const inputClassName =
   "w-full rounded-[var(--radius-md)] border border-[var(--line)] bg-[#1f1f1f] px-3.5 py-2.5 text-[0.8125rem] font-medium text-white outline-none transition-colors placeholder:text-[var(--text-subtle)] focus:border-[var(--accent)]/50 focus:bg-[#252525]";
 
-const labelClassName = "mb-1.5 block text-[0.68rem] font-semibold tracking-[0.04em] text-[var(--text-subtle)]";
+const labelClassName = "mb-1.5 block text-[0.68rem] font-semibold tracking-[0.04em] text-white/80";
 
 export function LoginPage() {
   const { login, error: authError, refreshSession, sessionToken } = useAuth();
