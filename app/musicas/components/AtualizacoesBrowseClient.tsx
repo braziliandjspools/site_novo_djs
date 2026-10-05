@@ -142,6 +142,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const hasTracksRef = useRef(false);
   const [browserConfirmOpen, setBrowserConfirmOpen] = useState(false);
   const [bulkLimitNotice, setBulkLimitNotice] = useState<"downloader" | "download" | null>(null);
+  // Paginação é contínua e independente do ano/repertório. Só encerra quando
+  // a API não devolver novas faixas (ou devolver apenas IDs já carregados).
+  const [tracksPaginationExhausted, setTracksPaginationExhausted] = useState(false);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -260,6 +263,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         setMusicasCache(canonicalUrl, body);
         hasTracksRef.current = true;
         setData(body);
+      setTracksPaginationExhausted(!(body.tracks ?? []).length && body.level === "tracks");
         return body;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Pasta não encontrada.");
@@ -313,11 +317,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showingTracks = Boolean(data && data.level === "tracks");
   const directTracks = data?.tracks ?? [];
   const tracksHasMore = Boolean(data?.tracksHasMore);
-  // O deep-walk pode terminar exatamente na fronteira de uma página sem
-  // conseguir sinalizar hasMore. Se já temos um múltiplo de 100, ainda
-  // permitimos a próxima requisição; uma resposta vazia encerra de fato.
+  // O LOAD MORE segue a mesma regra para setembro, 2025, 2026 e futuros
+  // repertórios: enquanto houver faixas carregadas e ainda não confirmarmos
+  // o fim, sempre existe uma próxima página para tentar.
   const canLoadMoreTracks =
-    tracksHasMore || (directTracks.length > 0 && directTracks.length % 100 === 0);
+    showingTracks && directTracks.length > 0 && !tracksPaginationExhausted;
 
   // Links antigos ?estilo= passam a abrir a pasta na URL.
   useEffect(() => {
@@ -391,15 +395,15 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
         const existingIds = new Set((current.tracks ?? []).map((track) => track.id));
         const appended = nextTracks.filter((track) => !existingIds.has(track.id));
 
+        // A lista só termina quando a página seguinte vier vazia ou não
+        // trouxer nenhuma faixa nova. Caso contrário, o botão continua
+        // disponível para acrescentar a próxima página abaixo da atual.
+        setTracksPaginationExhausted(nextTracks.length === 0 || appended.length === 0);
+
         return {
           ...current,
           tracks: [...(current.tracks ?? []), ...appended],
-          // Uma página cheia mantém o LOAD MORE disponível. Uma resposta
-          // vazia é o único sinal definitivo de que chegamos ao fim.
-          tracksHasMore:
-            nextTracks.length === 0
-              ? false
-              : Boolean(body.tracksHasMore || nextTracks.length >= 100),
+          tracksHasMore: nextTracks.length > 0 && appended.length > 0,
         };
       });
     } catch (err) {
