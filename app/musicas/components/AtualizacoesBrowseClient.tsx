@@ -20,6 +20,7 @@ import {
   clearMusicasCache,
   fetchMusicasJson,
   peekMusicasCache,
+  prefetchMusicasJson,
   setMusicasCache,
 } from "../lib/musicas-fetch-cache";
 import { startBrowserTrackDownload } from "../lib/browser-download-file";
@@ -376,6 +377,16 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
+  const prepareNextTrackPage = useCallback(() => {
+    if (!canLoadMoreTracks || loadingMoreTracksRef.current) return;
+    const nextPage = currentPage + 1;
+    const nextParams = new URLSearchParams();
+    nextParams.set("slug", slugPath);
+    if (nextPage > 1) nextParams.set("page", String(nextPage));
+    if (dayFilter) nextParams.set("dia", dayFilter);
+    prefetchMusicasJson(`/api/musicas/resolve?${nextParams.toString()}`);
+  }, [canLoadMoreTracks, currentPage, dayFilter, slugPath]);
+
   const loadMoreTracks = useCallback(async () => {
     if (
       !data ||
@@ -821,6 +832,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 updateDays={data.updateDays}
                 hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
+                onPrepareLoadMore={prepareNextTrackPage}
                 continueContext={
                   monthSlug
                     ? {
@@ -970,6 +982,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 updateDays={data.updateDays}
                 hasMore={canLoadMoreTracks}
                 onLoadMore={loadMoreTracks}
+                onPrepareLoadMore={prepareNextTrackPage}
                 continueContext={
                   monthSlug
                     ? {
