@@ -42,7 +42,7 @@ export function MusicasHeaderDownloader() {
     return (
       <Link
         href={authenticated ? "/plans" : "/musicas/entrar"}
-        className="hidden cursor-pointer items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold text-zinc-400 transition-colors hover:bg-white/10 hover:text-white sm:inline-flex"
+        className="hidden cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-white/55 transition-colors hover:text-white sm:inline-flex"
         title="BRS Downloader"
       >
         <MonitorDown className="h-4 w-4" />
@@ -58,7 +58,7 @@ export function MusicasHeaderDownloader() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label="BRS Downloader"
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#60cdff]/25 bg-[#60cdff]/10 px-2.5 py-1.5 text-xs font-semibold text-[#60cdff] transition-colors hover:border-[#60cdff]/45 hover:bg-[#60cdff]/20 hover:text-[#86efac]"
+        className="inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-[#60cdff] transition-colors hover:text-[#8ad4ff]"
       >
         <span className="relative">
           <MonitorDown className="h-4 w-4 text-[#60cdff]" />
