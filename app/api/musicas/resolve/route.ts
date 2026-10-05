@@ -14,8 +14,14 @@ export async function GET(request: Request) {
   const slugParam = searchParams.get("slug") ?? "";
   const segments = slugParam.split("/").filter(Boolean);
   const forceRefresh = searchParams.get("refresh") === "1";
-  const trackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
-  const trackLimit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("trackLimit") ?? "50", 10) || 50));
+  const requestedPage = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const legacyTrackOffset = Math.max(0, Number.parseInt(searchParams.get("trackOffset") ?? "0", 10) || 0);
+  const trackPageSize = 400;
+  const trackOffset =
+    searchParams.has("page") || legacyTrackOffset === 0
+      ? (requestedPage - 1) * trackPageSize
+      : legacyTrackOffset;
+  const trackLimit = trackPageSize;
   const poolsOnly = searchParams.get("meta") === "pools";
   const dayParam = searchParams.get("dia")?.trim() ?? "";
   const dayKey = /^\d{4}-\d{2}-\d{2}$/.test(dayParam) ? dayParam : null;
@@ -83,6 +89,8 @@ export async function GET(request: Request) {
         slugSegments: segments,
         resolvedPath,
         siblings,
+        page: requestedPage,
+        pageSize: trackPageSize,
       }, { headers: { "Cache-Control": "no-store, max-age=0" } });
     };
 
