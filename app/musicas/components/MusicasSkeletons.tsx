@@ -58,16 +58,17 @@ export function MusicasCenterLoading({
 export function MusicasPageSkeleton() {
   return (
     <div className="space-y-8" aria-busy="true" aria-label="Carregando biblioteca">
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a2a24] via-[#121816] to-[#0c0e0d] px-4 py-5 ring-1 ring-white/10 sm:px-6 sm:py-6">
-        <SkeletonPulse className="h-3 w-40" />
-        <SkeletonPulse className="mt-3 h-9 w-56 sm:w-72" />
-        <SkeletonPulse className="mt-3 h-4 w-full max-w-md" />
-        <div className="mt-4 flex flex-wrap gap-2">
-          <SkeletonPulse className="h-7 w-20 rounded-lg" />
-          <SkeletonPulse className="h-7 w-24 rounded-lg" />
-          <SkeletonPulse className="h-7 w-28 rounded-lg" />
-        </div>
-        <SkeletonPulse className="mt-4 h-11 w-full max-w-xs rounded-full" />
+      <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
+        <SkeletonPulse className="aspect-[16/5] w-full rounded-none" />
+      </div>
+      <div className="flex gap-5">
+        <SkeletonPulse className="h-4 w-24" />
+        <SkeletonPulse className="h-4 w-16" />
+      </div>
+      <div className="flex flex-wrap gap-2 border-t border-white/10 pt-5">
+        <SkeletonPulse className="h-9 w-28 rounded-xl" />
+        <SkeletonPulse className="h-9 w-24 rounded-xl" />
+        <SkeletonPulse className="h-9 w-28 rounded-xl" />
       </div>
 
       <SkeletonPulse className="h-12 w-full rounded-full bg-[#242424]" />

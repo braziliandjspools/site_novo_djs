@@ -1,16 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Disc3,
-  Headphones,
-  Music2,
-  Mic2,
-  MonitorDown,
-  RefreshCw,
-} from "lucide-react";
+import { Disc3, Music2, MonitorDown } from "lucide-react";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import {
   getContinueListening,
@@ -19,11 +12,11 @@ import {
   type ContinueListening,
   type FavoriteTrack,
 } from "../lib/music-library-storage";
+import { MUSICAS_HUB_BANNER_SRC } from "../lib/musicas-hero-art";
 import { useMusicasLibraryHome } from "../hooks/useMusicasLibraryHome";
 import { useDownloaderSync } from "./DownloaderSyncContext";
 import { FavoriteTracksShelf } from "./FavoriteTracksShelf";
 import { MusicLibraryQuickLinks } from "./MusicLibraryQuickLinks";
-import { MusicLibraryTrackShelf } from "./MusicLibraryTrackShelf";
 import { MusicLibraryShelf } from "./MusicLibraryTiles";
 import { MusicasPageSkeleton } from "./MusicasSkeletons";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
@@ -31,12 +24,11 @@ import { useMusicasSession } from "./MusicasSessionContext";
 import { MusicasProductionsSection } from "./MusicasProductionsSection";
 
 export function MusicasHubClient() {
-  const { authenticated, hasVip, userName } = useMusicasSession();
+  const { authenticated, hasVip } = useMusicasSession();
   const { folders, home, loadingTree, loadingHome, error } = useMusicasLibraryHome();
   const downloaderSync = useDownloaderSync();
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [favorites, setFavorites] = useState<FavoriteTrack[]>([]);
-  const firstName = userName.trim().split(/\s+/)[0] || "DJ";
 
   useEffect(() => {
     setContinueItem(getContinueListening());
@@ -55,35 +47,36 @@ export function MusicasHubClient() {
 
   return (
     <div className="w-full space-y-9">
-      <header className="relative isolate overflow-hidden rounded-[28px] border border-[#60cdff]/20 bg-[#121212] px-5 py-8 shadow-[0_24px_85px_-45px_rgba(96,205,255,0.65)] sm:px-9 sm:py-11">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_12%,rgba(96,205,255,0.3),transparent_48%),radial-gradient(ellipse_at_8%_100%,rgba(194,24,106,0.13),transparent_55%)]" aria-hidden />
-        <div className="pointer-events-none absolute -right-16 top-1/2 hidden -translate-y-1/2 text-[#8ad4ff]/10 lg:block" aria-hidden>
-          <Disc3 className="h-80 w-80" strokeWidth={0.7} />
+      <header>
+        <h1 className="sr-only">Músicas</h1>
+        <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
+          <Image
+            src={MUSICAS_HUB_BANNER_SRC}
+            alt="Brazilian Remix Service"
+            width={1600}
+            height={420}
+            priority
+            unoptimized
+            className="h-auto w-full object-cover object-center"
+          />
         </div>
-        <div className="relative z-10 max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#60cdff]/25 bg-[#60cdff]/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#86efac]">
-            <Headphones className="h-3.5 w-3.5" /> Brazilian Remix Service · DJ Pool
-          </span>
-          <h1 className="mt-5 font-display text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl">
-            {authenticated ? `Olá, ${firstName}.` : "Bem-vindo à BRS."}
-            <span className="mt-1 block bg-gradient-to-r from-[#8ad4ff] via-[#8ad4ff] to-[#60cdff] bg-clip-text text-transparent">
-              Seu som. Sua pista.
-            </span>
-          </h1>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
-            {authenticated
-              ? "Tudo para preparar seu próximo set: descubra lançamentos, encontre seus artistas e organize seus downloads."
-              : "Explore packs, remixes e versões para DJs. Descubra o acervo e conheça o BR Downloader."}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Link href="/musicas/atualizacoes" prefetch={false} className="inline-flex items-center gap-2 rounded-full border border-[#60cdff]/40 bg-[#60cdff]/15 px-4 py-2 text-xs font-bold text-green-100 transition hover:bg-[#60cdff]/25">
-              <RefreshCw className="h-4 w-4" /> Atualizações <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link href="/musicas/artistas" prefetch={false} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-bold text-white transition hover:bg-white/[0.12]">
-              <Mic2 className="h-4 w-4" /> Artistas
-            </Link>
-          </div>
-          <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-white/10 pt-5">
+        <nav aria-label="Seções do acervo" className="mt-4 flex flex-wrap gap-x-5 gap-y-1">
+          <Link
+            href="/musicas/atualizacoes"
+            prefetch={false}
+            className="text-sm font-semibold text-zinc-300 transition hover:text-[#60cdff]"
+          >
+            Atualizações
+          </Link>
+          <Link
+            href="/musicas/artistas"
+            prefetch={false}
+            className="text-sm font-semibold text-zinc-300 transition hover:text-[#60cdff]"
+          >
+            Artistas
+          </Link>
+        </nav>
+        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-5">
             {home?.stats.trackCount ? <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80"><Music2 className="h-3.5 w-3.5 text-[#8ad4ff]" />{home.stats.trackCount.toLocaleString("pt-BR")} faixas</span> : null}
             {home?.stats.packCount ? <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80"><Disc3 className="h-3.5 w-3.5 text-[#8ad4ff]" />{home.stats.packCount} packs</span> : null}
             <span className={`rounded-xl border px-3 py-2 text-xs font-semibold ${hasVip ? "border-[#60cdff]/30 bg-[#60cdff]/10 text-[#86efac]" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
@@ -96,7 +89,6 @@ export function MusicasHubClient() {
                 {downloaderSync && downloaderSync.totalQueueCount > 0 ? ` · ${downloaderSync.totalQueueCount} na fila` : ""}
               </span>
             ) : null}
-          </div>
         </div>
       </header>
 
