@@ -61,7 +61,7 @@ function TypewriterWords({ words }: { words: string[] }) {
   }
 
   return (
-    <span className="inline-block min-w-[7ch] text-left">
+    <span className="inline-block min-w-0 text-left sm:min-w-[7ch]">
       {text}
       <span className="ml-0.5 inline-block h-[0.9em] w-[0.08em] translate-y-[0.08em] animate-pulse bg-current align-middle" aria-hidden />
     </span>
@@ -185,7 +185,7 @@ function StatCounter({
   return (
     <div className="min-w-0 px-1 text-center sm:text-left">
       <p
-        className={`font-display text-3xl font-extrabold tracking-[-0.05em] sm:text-4xl ${color}`}
+        className={`font-display text-[1.35rem] font-extrabold leading-none tracking-[-0.04em] min-[400px]:text-2xl sm:text-4xl ${color}`}
         aria-label={`${prefix}${formatStatValue(target, format === "pt-BR" ? "pt-BR" : undefined)}${suffix} ${label}`}
       >
         <span className="tabular-nums">
@@ -197,7 +197,7 @@ function StatCounter({
           <span className="ml-1 inline-block h-[0.72em] w-[0.08em] animate-pulse bg-current align-[-0.06em] opacity-80" />
         ) : null}
       </p>
-      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+      <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.08em] text-zinc-500 min-[400px]:text-[10px] min-[400px]:tracking-[0.14em] sm:tracking-[0.18em]">{label}</p>
     </div>
   );
 }
@@ -292,39 +292,46 @@ export function Hero() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(29,185,84,0.18),transparent_46%),radial-gradient(ellipse_at_80%_20%,rgba(255,223,0,0.08),transparent_32%),linear-gradient(180deg,#10141a_0%,#0b0b0d_72%)]" />
       <div className="br-pattern pointer-events-none absolute inset-0 opacity-60" />
 
-      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12 lg:pb-10 lg:pt-24">
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-8 px-4 pb-6 pt-10 sm:gap-10 sm:px-6 sm:pb-8 sm:pt-14 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12 lg:pb-10 lg:pt-24">
         <div ref={contentRef} className="animate-fade-in-up text-center lg:text-left">
-          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#1db954]/35 bg-[#1db954]/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#86efac]">
-            <span className="h-2 w-2 rounded-full bg-[#1ed760]" />
+          <span className="mb-4 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-[#1db954]/35 bg-[#1db954]/10 px-3 py-2 text-[9px] font-extrabold uppercase leading-snug tracking-[0.12em] text-[#86efac] sm:mb-5 sm:px-4 sm:text-[10px] sm:tracking-[0.18em]">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-[#1ed760]" />
             Pools · Curadoria · Remix Services
           </span>
-          <h1 className="font-display break-words text-[2.15rem] font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[4.15rem]">
+          <h1 className="font-display text-balance break-words text-[1.85rem] font-black leading-[1.08] tracking-tight text-white min-[400px]:text-[2.05rem] sm:text-5xl md:text-6xl lg:text-[4.15rem]">
             O repertório que move{" "}
             <span className="bg-gradient-to-r from-[#1ed760] to-[#b6f5cf] bg-clip-text text-transparent">
               <TypewriterWords words={HERO_TYPEWRITER_WORDS} />
             </span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-zinc-300 sm:text-lg lg:mx-0">
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-zinc-300 sm:mt-5 sm:text-lg lg:mx-0">
             Remixes, DJ pools, versões extended e intro edits em um só lugar. Descubra novos sons, organize seu repertório e prepare sets para qualquer pista.
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+          <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center lg:justify-start">
             <a
               href="/musicas"
-              className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-[#1db954] px-7 py-3.5 text-sm font-extrabold text-black shadow-[0_16px_40px_-18px_rgba(29,185,84,0.95)] transition hover:-translate-y-0.5 hover:bg-[#1ed760] sm:w-auto sm:min-w-[230px] sm:text-base"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1db954] px-6 py-3.5 text-sm font-extrabold text-black shadow-[0_16px_40px_-18px_rgba(29,185,84,0.95)] transition active:scale-[0.98] hover:bg-[#1ed760] sm:w-auto sm:min-w-[230px] sm:px-7 sm:text-base [@media(hover:hover)]:hover:-translate-y-0.5"
             >
               Explorar a plataforma
               <ArrowRight className="h-5 w-5" />
             </a>
             <Link
               href="/musicas/atualizacoes"
-              className="inline-flex w-full max-w-md items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-7 py-3.5 text-sm font-bold text-white transition hover:border-[#1ed760]/45 hover:bg-[#1db954]/10 sm:w-auto sm:min-w-[230px] sm:text-base"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-6 py-3.5 text-sm font-bold text-white transition active:scale-[0.98] hover:border-[#1ed760]/45 hover:bg-[#1db954]/10 sm:w-auto sm:min-w-[230px] sm:px-7 sm:text-base"
             >
               Ver últimas atualizações
+            </Link>
+            <Link
+              href="/plans"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-1.5 rounded-full border border-[#FFDF00]/35 px-6 py-3.5 text-sm font-semibold text-[#FFDF00] transition active:scale-[0.98] hover:bg-[#FFDF00]/10 hover:text-white sm:hidden"
+            >
+              Ver planos VIP
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <Link
             href="/plans"
-            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#FFDF00] transition hover:text-white"
+            className="mt-4 hidden items-center gap-1.5 text-sm font-semibold text-[#FFDF00] transition hover:text-white sm:inline-flex"
           >
             Ver planos VIP
             <ArrowRight className="h-4 w-4" />
@@ -344,7 +351,7 @@ export function Hero() {
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/25 to-black/10" />
             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1ed760]">Plataforma VIP</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1ed760] sm:tracking-[0.2em]">Plataforma VIP</p>
               <p className="mt-1 font-display text-lg font-semibold text-white sm:text-xl">
                 Atualizações, previews e download no navegador
               </p>
@@ -354,7 +361,7 @@ export function Hero() {
       </div>
 
       <div ref={statsRef} className="relative z-10 mx-auto max-w-6xl px-4 pb-8 sm:px-6 md:pb-10">
-        <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-4 backdrop-blur-md sm:gap-4 sm:px-6 sm:py-5">
+        <div className="grid grid-cols-3 gap-1.5 rounded-2xl border border-white/10 bg-black/40 px-2 py-4 backdrop-blur-md min-[400px]:gap-2 min-[400px]:px-3 sm:gap-4 sm:px-6 sm:py-5">
           {HERO_STATS.map((stat, index) => (
             <StatCounter key={stat.label} {...stat} active={statsActive} delayMs={index * 140} />
           ))}

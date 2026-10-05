@@ -12,7 +12,7 @@ export function SectionHeading({ badge, title, subtitle, centered = true }: Sect
   return (
     <div className={`mx-auto max-w-3xl ${align}`}>
       {badge && (
-        <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#009739]/40 bg-[#009739]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#00B347]">
+        <span className="mb-2 inline-flex max-w-full items-center gap-2 rounded-full border border-[#009739]/40 bg-[#009739]/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#00B347] sm:px-4 sm:text-xs sm:tracking-widest">
           {badge}
         </span>
       )}

@@ -46,7 +46,7 @@ export function Header() {
             <BrsLogo
               href="/"
               priority
-              className="h-8 w-auto max-w-[138px] object-contain min-[380px]:max-w-[165px] sm:h-10 sm:max-w-[220px] md:h-11 md:max-w-[260px]"
+              className="h-8 w-auto max-w-[108px] object-contain min-[390px]:max-w-[132px] sm:h-10 sm:max-w-[220px] md:h-11 md:max-w-[260px]"
             />
           </div>
 
@@ -130,7 +130,7 @@ export function Header() {
             <SiteNotificationBell compact />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="relative z-10 flex-shrink-0 rounded-md p-2 text-white transition-colors hover:bg-white/10"
+              className="relative z-10 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10"
               aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}

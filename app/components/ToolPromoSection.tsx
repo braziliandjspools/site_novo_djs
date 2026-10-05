@@ -107,7 +107,7 @@ export function ToolPromoSection({
 
           <Link
             href={href}
-            className={`mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold uppercase tracking-wide shadow-lg transition-all hover:scale-105 ${styles.button}`}
+            className={`mt-8 inline-flex min-h-12 w-full max-w-md items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold shadow-lg transition-all active:scale-[0.98] sm:w-auto sm:px-8 ${styles.button}`}
           >
             {buttonLabel}
             <ArrowRight className="h-4 w-4" />

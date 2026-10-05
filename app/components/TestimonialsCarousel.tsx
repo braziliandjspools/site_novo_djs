@@ -48,44 +48,45 @@ export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps
     <>
       {/* Mobile: slide */}
       <div className="md:hidden">
-        <div className="relative">
-          <TestimonialCard testimonial={testimonials[active]} index={active} />
+        <TestimonialCard testimonial={testimonials[active]} index={active} />
 
-          {total > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={() => goTo(active - 1)}
-                aria-label="Depoimento anterior"
-                className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#121212]/90 text-white transition-colors hover:border-[#009739]/50 hover:text-[#00B347]"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => goTo(active + 1)}
-                aria-label="Próximo depoimento"
-                className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#121212]/90 text-white transition-colors hover:border-[#009739]/50 hover:text-[#00B347]"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="mt-5 flex justify-center gap-2">
-          {testimonials.map((t, i) => (
+        {total > 1 ? (
+          <div className="mt-4 flex items-center justify-center gap-2">
             <button
-              key={t.name}
               type="button"
-              onClick={() => setActive(i)}
-              aria-label={`Ir para depoimento ${i + 1}`}
-              className={`h-2 rounded-full transition-all ${
-                i === active ? "w-6 bg-[#009739]" : "w-2 bg-white/20 hover:bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
+              onClick={() => goTo(active - 1)}
+              aria-label="Depoimento anterior"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[#121212] text-white transition-colors active:scale-95 hover:border-[#009739]/50 hover:text-[#00B347]"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-1 px-1">
+              {testimonials.map((t, i) => (
+                <button
+                  key={t.name}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={`Ir para depoimento ${i + 1}`}
+                  className="inline-flex h-11 w-7 items-center justify-center"
+                >
+                  <span
+                    className={`block h-2 rounded-full transition-all ${
+                      i === active ? "w-6 bg-[#009739]" : "w-2 bg-white/20"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => goTo(active + 1)}
+              aria-label="Próximo depoimento"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[#121212] text-white transition-colors active:scale-95 hover:border-[#009739]/50 hover:text-[#00B347]"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* Desktop: grid 2x2 */}

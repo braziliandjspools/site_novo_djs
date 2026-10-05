@@ -70,7 +70,9 @@ export function MarketingAuthControls({ compact = false }: { compact?: boolean }
     return (
       <Link
         href={loginHref}
-        className="inline-flex flex-shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-200 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white"
+        className={`inline-flex min-h-11 flex-shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] text-[11px] font-bold uppercase text-white transition-colors hover:border-white/30 hover:bg-white/10 ${
+          compact ? "px-3 tracking-[0.06em]" : "px-3.5 tracking-[0.12em] text-zinc-200"
+        }`}
       >
         Entrar
       </Link>

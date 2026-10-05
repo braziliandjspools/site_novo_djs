@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -131,7 +131,7 @@ function ProductionCard({
         isProducer
           ? "border-[#7eb6ff]/20 bg-[linear-gradient(165deg,#0a1220_0%,#070b14_55%,#05070d_100%)] shadow-[0_24px_60px_-28px_rgba(0,60,140,0.55)] hover:border-[#7eb6ff]/45 hover:shadow-[0_30px_70px_-24px_rgba(80,150,255,0.35)]"
           : "border-white/[0.08] bg-[linear-gradient(180deg,#12151a_0%,#0a0c10_100%)] shadow-[0_24px_60px_-30px_rgba(0,0,0,0.95)] hover:border-[#60cdff]/35 hover:shadow-[0_30px_70px_-24px_rgba(96,205,255,0.28)]"
-      } ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_calc(50%_-_6px)] snap-start sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}
+      } ${fill ? "w-full flex-none" : "min-w-0 flex-[0_0_84%] snap-start min-[480px]:flex-[0_0_68%] sm:flex-[0_0_46%] lg:flex-[0_0_23%]"}`}
     >
       <div className="relative aspect-square overflow-hidden">
         <Image
@@ -139,7 +139,7 @@ function ProductionCard({
           alt=""
           fill
           unoptimized={!production.coverUrl.startsWith("/")}
-          sizes="(max-width: 640px) 46vw, (max-width: 1024px) 44vw, 220px"
+          sizes="(max-width: 480px) 84vw, (max-width: 640px) 68vw, (max-width: 1024px) 44vw, 220px"
           className="object-cover transition duration-700 group-hover/card:scale-[1.06]"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -158,7 +158,7 @@ function ProductionCard({
           <span
             className={`flex h-12 w-12 items-center justify-center rounded-full text-black shadow-[0_12px_30px_rgba(0,0,0,0.45)] transition duration-300 ${
               isProducer ? "bg-[#7eb6ff]" : "bg-[#60cdff]"
-            } ${playing ? "scale-100 opacity-100" : "scale-90 opacity-0 group-hover/card:scale-100 group-hover/card:opacity-100"}`}
+            } ${playing ? "scale-100 opacity-100" : "scale-100 opacity-100 [@media(hover:hover)]:scale-90 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:scale-100 [@media(hover:hover)]:group-hover/card:opacity-100"}`}
           >
             {playing ? (
               <Pause className="h-5 w-5" fill="currentColor" />
@@ -235,7 +235,7 @@ function ProductionCard({
           <button
             type="button"
             onClick={play}
-            className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[10px] font-bold text-white transition ${
+            className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[11px] font-bold text-white transition active:scale-[0.98] ${
               isProducer
                 ? "border-[#7eb6ff]/25 bg-[#7eb6ff]/10 hover:bg-[#7eb6ff]/18"
                 : "border-white/10 bg-white/[0.04] hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10"
@@ -262,7 +262,7 @@ function ProductionCard({
             <button
               type="button"
               onClick={download}
-              className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-[10px] font-extrabold text-black transition ${
+              className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-[11px] font-extrabold text-black transition active:scale-[0.98] ${
                 isProducer ? "bg-[#7eb6ff] hover:bg-[#7eb6ff]/80" : "bg-[#60cdff] hover:bg-[#60cdff]/75"
               }`}
             >
@@ -272,7 +272,7 @@ function ProductionCard({
             <button
               type="button"
               onClick={download}
-              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] text-[10px] font-bold text-zinc-400 transition hover:border-white/20"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] text-[11px] font-bold text-zinc-400 transition active:scale-[0.98] hover:border-white/20"
             >
               <Lock className="h-3 w-3" />
               {access.authenticated ? "Membros" : "Entrar"}
@@ -425,7 +425,7 @@ export function ProductionRail({
   headerTitle?: string;
   variant?: CardVariant;
 }) {
-  const scroller = useRef<HTMLDivElement>(null);
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [access, setAccess] = useState<Access>({ authenticated: false, canPlay: false, canDownload: false });
 
   useEffect(() => {
@@ -439,23 +439,29 @@ export function ProductionRail({
   }, []);
 
   function scrollByCard(direction: number) {
-    const node = scroller.current;
-    if (!node) return;
-    node.scrollBy({ left: direction * (node.clientWidth * 0.8), behavior: "smooth" });
+    if (!scroller) return;
+    scroller.scrollBy({ left: direction * (scroller.clientWidth * 0.8), behavior: "smooth" });
   }
 
   const rail = (
     <>
       <style>{`
         .brs-production-rail[data-layout="carousel"] .brs-production-card {
-          flex: 0 0 calc(50% - 6px);
-          width: calc(50% - 6px);
-          max-width: calc(50% - 6px);
+          flex: 0 0 84%;
+          width: 84%;
+          max-width: 84%;
         }
         .brs-production-rail[data-layout="grid"] .brs-production-card {
           flex: 1 1 auto;
           width: 100%;
           max-width: none;
+        }
+        @media (min-width: 480px) {
+          .brs-production-rail[data-layout="carousel"] .brs-production-card {
+            flex-basis: 68%;
+            width: 68%;
+            max-width: 68%;
+          }
         }
         @media (min-width: 640px) {
           .brs-production-rail[data-layout="carousel"] .brs-production-card {
@@ -475,7 +481,7 @@ export function ProductionRail({
     <div>
       {headerTitle !== undefined ? (
         <div className="mb-3 flex min-h-10 w-full items-center justify-between gap-4">
-          <h2 className="!m-0 block whitespace-nowrap font-display text-2xl font-semibold leading-tight tracking-[-0.03em] text-white sm:text-4xl">{headerTitle}</h2>
+          <h2 className="!m-0 block min-w-0 flex-1 font-display text-xl font-semibold leading-tight tracking-[-0.03em] text-white sm:text-4xl">{headerTitle}</h2>
           {renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
         </div>
       ) : renderHeaderActions ? renderHeaderActions({ previous: () => scrollByCard(-1), next: () => scrollByCard(1) }) : null}
@@ -490,7 +496,7 @@ export function ProductionRail({
         </div>
       ) : null}
       <div
-        ref={scroller}
+        ref={setScroller}
         data-layout={layout}
         className={`brs-production-rail min-w-0 ${layout === "grid"
           ? "grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5"
@@ -573,7 +579,7 @@ export function HomeProductions({
                 type="button"
                 aria-label="Produções anteriores"
                 onClick={previous}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#60cdff]/40 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition active:scale-95 hover:border-[#60cdff]/40 hover:text-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -581,7 +587,7 @@ export function HomeProductions({
                 type="button"
                 aria-label="Próximas produções"
                 onClick={next}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition hover:border-[#60cdff]/40 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition active:scale-95 hover:border-[#60cdff]/40 hover:text-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -591,7 +597,7 @@ export function HomeProductions({
         <div className="mt-5 flex justify-center sm:mt-6">
           <Link
             href="/discover"
-            className="group relative inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-[#9adfff] transition hover:-translate-y-0.5 hover:border-[#60cdff] hover:bg-[#60cdff]/15 hover:text-white"
+            className="group relative inline-flex min-h-12 w-full max-w-md items-center justify-center gap-2 rounded-full border border-[#60cdff]/35 bg-[#60cdff]/10 px-5 py-3.5 pr-11 text-center text-[13px] font-bold leading-snug text-[#9adfff] transition active:scale-[0.98] hover:border-[#60cdff] hover:bg-[#60cdff]/15 hover:text-white sm:max-w-xs sm:text-xs sm:font-black sm:uppercase sm:tracking-[0.12em]"
           >
             Descobrir e baixar todas as produções
             <ChevronRight className="absolute right-4 h-4 w-4 transition-transform group-hover:translate-x-0.5" />

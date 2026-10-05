@@ -22,13 +22,14 @@ function tracksSignature(tracks: TopDownloadTrack[]) {
 
 export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTableProps) {
   const [tracks, setTracks] = useState(initialTracks);
+  const [seenInitial, setSeenInitial] = useState(initialTracks);
+  if (seenInitial !== initialTracks) {
+    setSeenInitial(initialTracks);
+    setTracks(initialTracks);
+  }
   const [live, setLive] = useState(true);
   const player = useProtectedPlayer({ streamEndpoint: "/api/music/top-downloads/stream" });
   const [coverFailed, setCoverFailed] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    setTracks(initialTracks);
-  }, [initialTracks]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,17 +90,17 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-left">
+      <div className="overflow-hidden">
+        <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-600">
-              <th className="w-10 px-3 py-2.5 text-center sm:w-12 sm:px-4">#</th>
-              <th className="px-2 py-2.5">Faixa</th>
+            <tr className="border-b border-white/5 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-600 sm:tracking-[0.16em]">
+              <th className="w-8 px-2 py-2.5 text-center sm:w-12 sm:px-4">#</th>
+              <th className="px-1 py-2.5 sm:px-2">Faixa</th>
               <th className="hidden px-2 py-2.5 md:table-cell">Pool / estilo</th>
-              <th className="w-28 px-3 py-2.5 text-right sm:px-4">
-                <span className="inline-flex items-center gap-1">
+              <th className="w-14 px-2 py-2.5 text-right sm:w-28 sm:px-4">
+                <span className="inline-flex items-center justify-end gap-1">
                   <Download className="h-3 w-3" />
-                  Downloads
+                  <span className="hidden sm:inline">Downloads</span>
                 </span>
               </th>
             </tr>
@@ -120,7 +121,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                     isPlaying ? "bg-[#1db954]/10" : "hover:bg-white/[0.03]"
                   }`}
                 >
-                  <td className="px-3 py-2.5 text-center align-middle sm:px-4">
+                  <td className="px-2 py-2.5 text-center align-middle sm:px-4">
                     <span
                       className={`font-mono text-xs tabular-nums ${
                         index < 3 ? "font-bold text-[#FFDF00]" : "text-zinc-600"
@@ -136,7 +137,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                         onClick={() => void player.toggle(track.id)}
                         disabled={isBusy}
                         aria-label={isPlaying ? `Pausar ${display.title}` : `Ouvir ${display.title}`}
-                        className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-900 ring-1 ring-white/10 transition hover:ring-[#1db954]/50 disabled:opacity-40 sm:h-14 sm:w-14"
+                        className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-900 ring-1 ring-white/10 transition active:scale-95 hover:ring-[#1db954]/50 disabled:opacity-40 sm:h-14 sm:w-14"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -173,6 +174,7 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                           {display.title}
                         </Link>
                         <p className="truncate text-xs text-zinc-500">{display.artist}</p>
+                        <p className="truncate text-[11px] text-zinc-600 md:hidden">{track.pool}</p>
                       </div>
                     </div>
                   </td>
@@ -185,8 +187,8 @@ export function TopDownloadsTable({ tracks: initialTracks }: TopDownloadsTablePr
                       <span className="block truncate text-zinc-500">{track.style}</span>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-right align-middle sm:px-4">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-2.5 py-1 font-mono text-xs tabular-nums text-zinc-200">
+                  <td className="px-2 py-2.5 text-right align-middle sm:px-4">
+                    <span className="font-mono text-[11px] tabular-nums text-zinc-200 sm:inline-flex sm:items-center sm:gap-1.5 sm:rounded-full sm:bg-white/[0.04] sm:px-2.5 sm:py-1 sm:text-xs">
                       {formatCount(track.downloadCount)}
                     </span>
                   </td>

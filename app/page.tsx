@@ -194,15 +194,17 @@ export default async function Home() {
               <Link
                 key={item.title}
                 href={item.href}
-                className="group relative flex min-h-44 flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1db954]/12 via-[#141414] to-[#101010] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#1ed760]/45 hover:shadow-[0_22px_50px_-28px_rgba(29,185,84,0.85)] sm:p-6"
+                className="group relative flex min-h-[4.75rem] items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1db954]/12 via-[#141414] to-[#101010] p-4 transition duration-300 active:scale-[0.99] hover:border-[#1ed760]/45 hover:shadow-[0_22px_50px_-28px_rgba(29,185,84,0.85)] sm:min-h-44 sm:flex-col sm:items-start sm:gap-0 sm:p-6 [@media(hover:hover)]:hover:-translate-y-1"
               >
-                <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-[#1db954]/25 bg-[#1db954]/15 text-[#1ed760] transition group-hover:scale-105">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1db954]/25 bg-[#1db954]/15 text-[#1ed760] transition [@media(hover:hover)]:group-hover:scale-105 sm:mb-5">
                   <item.icon className="h-5 w-5" />
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-[#86efac]">{item.eyebrow}</span>
-                <span className="mt-1 font-display text-lg font-extrabold text-white">{item.title}</span>
-                <span className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-400">{item.description}</span>
-                <ArrowRight className="absolute right-5 top-6 h-5 w-5 text-[#1ed760] transition group-hover:translate-x-1" />
+                <span className="min-w-0 flex-1 pr-6 sm:pr-0">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#86efac] sm:tracking-[0.17em]">{item.eyebrow}</span>
+                  <span className="mt-0.5 block font-display text-base font-extrabold text-white sm:mt-1 sm:text-lg">{item.title}</span>
+                  <span className="mt-1 block text-sm leading-snug text-zinc-400 sm:mt-2 sm:max-w-sm sm:leading-relaxed">{item.description}</span>
+                </span>
+                <ArrowRight className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#1ed760] transition group-hover:translate-x-1 sm:right-5 sm:top-6 sm:translate-y-0" />
               </Link>
             ))}
           </div>
@@ -273,7 +275,7 @@ export default async function Home() {
                 </ul>
                 <Link
                   href="/plans"
-                  className={`mt-6 inline-flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em] transition ${
+                  className={`mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full px-4 py-3.5 text-sm font-bold transition active:scale-[0.98] ${
                     plan.highlight
                       ? "bg-[#1db954] text-black hover:bg-[#1ed760]"
                       : "border border-white/15 text-white hover:border-[#1ed760]/50 hover:bg-white/5"
@@ -307,7 +309,7 @@ export default async function Home() {
             {["Funk", "Sertanejo", "Pop", "Eletrônico", "House", "Dance", "Flashbacks", "Open format"].map((genre) => (
               <li
                 key={genre}
-                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-300"
+                className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-300 sm:tracking-[0.12em]"
               >
                 {genre}
               </li>
@@ -316,7 +318,7 @@ export default async function Home() {
 
           {/* Imagem alinha só com o texto — título fica fora */}
           <div className="mt-6 grid items-stretch gap-6 lg:mt-8 lg:grid-cols-2 lg:gap-8 xl:gap-10">
-            <div className="space-y-4 text-justify text-sm leading-relaxed text-gray-400 sm:text-[15px] sm:leading-7 lg:text-base lg:leading-8">
+            <div className="space-y-4 text-left text-[15px] leading-relaxed text-gray-400 sm:text-base sm:leading-7 lg:leading-8">
               <p>
                 Um repertório criado para DJs que precisam estar preparados para diferentes públicos, estilos e
                 momentos da pista. Nossa seleção reúne músicas, remixes, edits, versões extended, intros e faixas
@@ -391,7 +393,7 @@ export default async function Home() {
                 {method.href.startsWith("#") ? (
                   <a
                     href={method.href}
-                    className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all ${
+                    className={`mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold transition-all active:scale-[0.98] sm:w-fit sm:justify-start ${
                       method.accent === "green"
                         ? "bg-[#009739] text-white hover:bg-[#00B347]"
                         : "border border-[#FFDF00]/50 text-[#FFDF00] hover:bg-[#FFDF00]/10"
@@ -402,7 +404,7 @@ export default async function Home() {
                 ) : (
                   <Link
                     href={method.href}
-                    className={`mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.14em] transition-all ${
+                    className={`mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold transition-all active:scale-[0.98] sm:w-fit sm:justify-start ${
                       method.accent === "green"
                         ? "bg-[#009739] text-white hover:bg-[#00B347]"
                         : "border border-[#FFDF00]/50 text-[#FFDF00] hover:bg-[#FFDF00]/10"
@@ -438,7 +440,7 @@ export default async function Home() {
                 quality={82}
               />
             </div>
-            <div className="space-y-4 text-justify text-sm leading-7 text-gray-400 sm:text-[15px] sm:leading-7 lg:text-base lg:leading-8">
+            <div className="space-y-4 text-left text-[15px] leading-7 text-gray-400 sm:text-base lg:leading-8">
               <h3 className="font-display text-left text-2xl font-semibold leading-tight text-white sm:text-3xl">
                 Baixe organizado com o BRS Downloader
               </h3>
@@ -500,12 +502,12 @@ export default async function Home() {
           <div className="mt-10 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
             <a
               href={downloaderUrl}
-              className="site-btn site-btn-primary"
+              className="site-btn site-btn-primary min-h-12 w-full sm:w-auto"
             >
               <Download className="h-4 w-4" />
               Baixar {DOWNLOADER_NAME}
             </a>
-            <Link href="/musicas/atualizacoes" className="site-btn site-btn-ghost">
+            <Link href="/musicas/atualizacoes" className="site-btn site-btn-ghost min-h-12 w-full sm:w-auto">
               Abrir plataforma
             </Link>
           </div>
@@ -593,7 +595,7 @@ export default async function Home() {
             </p>
           </>
         }
-        descriptionClassName="w-full max-w-5xl text-justify"
+        descriptionClassName="w-full max-w-5xl text-left"
         contentMaxWidth="max-w-5xl"
         imageMaxWidth="w-full max-w-5xl"
         image={PLACEHOLDER.musicProducerHero}
@@ -632,7 +634,7 @@ export default async function Home() {
             </p>
           </>
         }
-        descriptionClassName="w-full max-w-5xl text-justify"
+        descriptionClassName="w-full max-w-5xl text-left"
         contentMaxWidth="max-w-5xl"
         imageMaxWidth="w-full max-w-5xl"
         extras={
@@ -688,11 +690,11 @@ export default async function Home() {
             O mesmo acervo VIP, com packs organizados, atualizações no site e o BRS Downloader no Windows.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/plans" className="site-btn site-btn-primary w-full sm:w-auto">
+            <Link href="/plans" className="site-btn site-btn-primary min-h-12 w-full sm:w-auto">
               Ver planos VIP
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/musicas/atualizacoes" className="site-btn site-btn-ghost w-full sm:w-auto">
+            <Link href="/musicas/atualizacoes" className="site-btn site-btn-ghost min-h-12 w-full sm:w-auto">
               Abrir plataforma
             </Link>
           </div>
@@ -723,8 +725,8 @@ export default async function Home() {
           />
           <div className="mt-12 space-y-3">
             {SITE_FAQS.map((faq) => (
-              <details key={faq.q} className="group rounded-2xl border border-white/10 bg-[#161616] p-4 transition hover:border-white/20 open:border-[#1db954]/45 open:bg-[#141414]">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-white">
+              <details key={faq.q} className="group rounded-2xl border border-white/10 bg-[#161616] px-4 py-2 transition hover:border-white/20 open:border-[#1db954]/45 open:bg-[#141414]">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-2 text-[15px] font-semibold leading-snug text-white">
                   {faq.q}
                   <ChevronDown className="h-4 w-4 flex-shrink-0 text-[#FFDF00] transition-transform duration-300 group-open:rotate-180" />
                 </summary>
