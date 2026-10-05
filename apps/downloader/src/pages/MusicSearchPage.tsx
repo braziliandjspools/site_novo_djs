@@ -337,10 +337,12 @@ export function MusicSearchPage() {
         />
       </div>
 
-      <section className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 sm:p-5">
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#121212] shadow-[0_16px_40px_rgba(0,0,0,0.28)]">
+        <div className="h-px bg-gradient-to-r from-[#14532d] via-[#1f6b3a]/80 to-transparent" />
+        <div className="p-4 sm:p-5">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">Catálogo BRS</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#86efac]/80">Catálogo BRS</p>
             <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">{t("searchTitle").replace(/^🔎\s*/, "")}</h2>
             <p className="mt-1 text-xs leading-relaxed text-white/50">{t("searchSubtitle")}</p>
           </div>
@@ -357,7 +359,7 @@ export function MusicSearchPage() {
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("searchPlaceholder")}
-            className="w-full rounded-xl border border-white/12 bg-[#101010] py-3 pl-11 pr-11 text-sm text-white outline-none placeholder:text-white/35 focus:border-white/35 focus:bg-[#141414]"
+            className="w-full rounded-xl border border-white/10 bg-[#0c0c0c] py-3 pl-11 pr-11 text-sm text-white outline-none placeholder:text-white/35 transition-colors focus:border-[#1f6b3a] focus:bg-[#101610] focus:ring-1 focus:ring-[#14532d]/60"
             autoFocus
           />
           {draft ? (
@@ -370,7 +372,8 @@ export function MusicSearchPage() {
               <X className="h-4 w-4" />
             </button>
           ) : null}
-        </label>
+          </label>
+        </div>
       </section>
 
       {loading ? (
@@ -439,8 +442,8 @@ export function MusicSearchPage() {
             </Button>
           </div>
 
-          <ul className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-            {results.map((track, index) => {
+          <ul className="space-y-2">
+            {results.map((track) => {
               const cover = resolveCoverUrl(track.coverUrl, apiBase);
               const catalogUrl = resolveCatalogUrl(track.catalogPath, apiBase);
               const playing = playingId === track.trackId && isPlaying;
@@ -452,9 +455,11 @@ export function MusicSearchPage() {
               return (
                 <li
                   key={`${track.source}-${track.trackId}`}
-                  className={`border-white/8 px-3 py-3 transition ${
-                    index > 0 ? "border-t" : ""
-                  } ${active ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"}`}
+                  className={`rounded-2xl border px-3 py-3 transition-colors ${
+                    active
+                      ? "border-[#1a4d32] bg-[#10281c]"
+                      : "border-white/10 bg-[#141414] hover:border-[#163d28] hover:bg-[#0e2218]"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     <button

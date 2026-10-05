@@ -42,10 +42,11 @@ export type VipMusicSearchOptions = {
 };
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
-const STYLE_SCAN_CONCURRENCY = 14;
 const DEFAULT_LIMIT = 36;
 const QUERY_CACHE_TTL_MS = 90_000;
 const STYLE_INDEX_TTL_MS = 5 * 60_000;
+const TRACK_INDEX_TTL_MS = 10 * 60_000;
+const TRACK_INDEX_CONCURRENCY = 16;
 const DEFAULT_RECENT_MONTHS = 2;
 const DEFAULT_RECENT_DAYS = 14;
 const EXPAND_RECENT_MONTHS = 6;
@@ -341,9 +342,191 @@ async function getStyleIndex(maxMonths: number, maxDays: number): Promise<StyleI
   return promise;
 }
 
+type IndexedAudio = {
+  id: string;
+  fileName: string;
+  /** Texto já normalizado para o match não refazer o Drive. */
+  haystack: string;
+  monthSlug: string;
+  monthLabel: string;
+  weekSlug?: string;
+  weekLabel?: string;
+  styleName: string;
+  styleFolderId: string;
+  relativePath: string;
+  path: string;
+};
+
+type TrackCatalogIndex = {
+  tracks: IndexedAudio[];
+  folderHits: FolderHitSeed[];
+};
+
+const trackIndexByScope = new Map<string, { value: TrackCatalogIndex; expiresAt: number }>();
+const trackIndexInflightByScope = new Map<string, Promise<TrackCatalogIndex>>();
+
+function pushAudioFile(
+  out: IndexedAudio[],
+  style: StyleScanTarget,
+  file: { id: string; name: string; mimeType?: string | null },
+  path: string,
+  nestedLabel?: string,
+) {
+  const mimeType = file.mimeType ?? "";
+  if (!isDriveAudioFile({ name: file.name, mimeType })) return;
+  const meta = parseTrackMeta(file.name);
+  const styleLabel = displayFolderName(style.name);
+  const itemPath = nestedLabel ? `${path} · ${nestedLabel}` : path;
+  const relativePath = nestedLabel
+    ? `${style.relativePath}/${nestedLabel}`.slice(0, 900)
+    : style.relativePath;
+  out.push({
+    id: file.id,
+    fileName: file.name,
+    haystack: normalize(
+      `${file.name} ${meta.title} ${meta.artist} ${meta.version ?? ""} ${style.name} ${styleLabel} ${nestedLabel ?? ""} ${itemPath}`,
+    ),
+    monthSlug: style.monthSlug,
+    monthLabel: style.monthLabel,
+    weekSlug: style.weekSlug,
+    weekLabel: style.weekLabel,
+    styleName: style.name,
+    styleFolderId: style.id,
+    relativePath,
+    path: itemPath,
+  });
+}
+
+async function collectStyleAudio(style: StyleScanTarget): Promise<IndexedAudio[]> {
+  const children = await listDriveFolderChildrenLite(style.id);
+  const styleLabel = displayFolderName(style.name);
+  const path = style.weekLabel
+    ? `${style.monthLabel} · ${style.weekLabel} · ${styleLabel}`
+    : `${style.monthLabel} · ${styleLabel}`;
+  const out: IndexedAudio[] = [];
+
+  for (const file of children) {
+    pushAudioFile(out, style, file, path);
+  }
+
+  const hasDirectAudio = children.some((item) =>
+    isDriveAudioFile({ name: item.name, mimeType: item.mimeType ?? "" }),
+  );
+  if (hasDirectAudio) return out;
+
+  const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 8);
+  if (nestedFolders.length === 0) return out;
+
+  const nestedGroups = await mapPool(nestedFolders, 4, async (folder) => {
+    try {
+      const nested = await listDriveFolderChildrenLite(folder.id);
+      const nestedLabel = displayFolderName(folder.name);
+      const files: IndexedAudio[] = [];
+      for (const file of nested) {
+        pushAudioFile(files, style, file, path, nestedLabel);
+      }
+      return files;
+    } catch {
+      return [];
+    }
+  });
+
+  for (const group of nestedGroups) out.push(...group);
+  return out;
+}
+
+/**
+ * Lista os arquivos do recorte uma vez e reutiliza nas buscas seguintes.
+ * Antes, cada consulta reabria todas as pastas de estilo no Drive.
+ */
+async function buildTrackCatalogIndex(maxMonths: number, maxDays: number): Promise<TrackCatalogIndex> {
+  const styleIndex = await getStyleIndex(maxMonths, maxDays);
+  const groups = await mapPool(styleIndex.styles, TRACK_INDEX_CONCURRENCY, async (style) => {
+    try {
+      return await collectStyleAudio(style);
+    } catch {
+      return [];
+    }
+  });
+
+  const tracks: IndexedAudio[] = [];
+  const seen = new Set<string>();
+  for (const group of groups) {
+    for (const track of group) {
+      if (seen.has(track.id)) continue;
+      seen.add(track.id);
+      tracks.push(track);
+    }
+  }
+
+  return { tracks, folderHits: styleIndex.folderHits };
+}
+
+async function getTrackCatalogIndex(maxMonths: number, maxDays: number): Promise<TrackCatalogIndex> {
+  const scope = `${maxMonths}:${maxDays}`;
+  const memo = trackIndexByScope.get(scope);
+  if (memo && memo.expiresAt > Date.now()) return memo.value;
+
+  const inflight = trackIndexInflightByScope.get(scope);
+  if (inflight) return inflight;
+
+  const promise = buildTrackCatalogIndex(maxMonths, maxDays)
+    .then((value) => {
+      trackIndexByScope.set(scope, { value, expiresAt: Date.now() + TRACK_INDEX_TTL_MS });
+      return value;
+    })
+    .finally(() => {
+      trackIndexInflightByScope.delete(scope);
+    });
+
+  trackIndexInflightByScope.set(scope, promise);
+  return promise;
+}
+
+function indexedToHit(track: IndexedAudio): VipMusicSearchHit {
+  const meta = parseTrackMeta(track.fileName);
+  const display = getTrackDisplayMetadata({
+    fileName: track.fileName,
+    ...meta,
+  });
+  return {
+    type: "track",
+    id: track.id,
+    label: display.artist ? `${display.title} — ${display.artist}` : display.title,
+    path: track.path,
+    monthSlug: track.monthSlug,
+    weekSlug: track.weekSlug,
+    styleSlug: slugifyFolderName(track.styleName),
+    styleFolderId: track.styleFolderId,
+    fileName: track.fileName,
+    title: display.title,
+    artist: display.artist,
+    version: meta.version,
+    bpm: meta.bpmFrom,
+    relativePath: track.relativePath,
+  };
+}
+
+function matchIndexedTracks(
+  tracks: IndexedAudio[],
+  query: string,
+  limit: number,
+  skip?: Set<string>,
+): VipMusicSearchHit[] {
+  if (limit <= 0) return [];
+  const hits: VipMusicSearchHit[] = [];
+  for (const track of tracks) {
+    if (skip?.has(track.id)) continue;
+    if (!matches(track.haystack, query)) continue;
+    hits.push(indexedToHit(track));
+    if (hits.length >= limit) break;
+  }
+  return hits;
+}
+
 /**
  * Busca no acervo VIP de Atualizações.
- * Usa índice em memória (5 min) + listagem leve do Drive + saída antecipada.
+ * O índice de faixas fica em memória (~10 min). Consultas seguintes não reabrem o Drive.
  */
 export async function searchVipMusic(
   query: string,
@@ -363,23 +546,21 @@ export async function searchVipMusic(
     return cached.results;
   }
 
-  // Índice só do recorte recente — evita varrer o Drive inteiro a cada busca.
-  const index = await getStyleIndex(recentMonths, recentDays);
+  const catalog = await getTrackCatalogIndex(recentMonths, recentDays);
   const folderHits: VipMusicSearchHit[] = tracksOnly
     ? []
-    : index.folderHits.filter((hit) => matches(hit.label, q) || matches(hit.path, q)).slice(0, max);
+    : catalog.folderHits.filter((hit) => matches(hit.label, q) || matches(hit.path, q)).slice(0, max);
 
-  let trackHits = await scanStyleTracks(index.styles, q, max);
+  let trackHits = matchIndexedTracks(catalog.tracks, q, max);
 
-  // Poucos resultados → amplia janela (índice maior, ainda com early-exit).
-  if (trackHits.length < Math.min(8, max)) {
-    const expanded = await getStyleIndex(EXPAND_RECENT_MONTHS, EXPAND_RECENT_DAYS);
+  // Poucos resultados → amplia a janela. O índice maior também fica em cache.
+  if (
+    trackHits.length < Math.min(8, max) &&
+    (recentMonths < EXPAND_RECENT_MONTHS || recentDays < EXPAND_RECENT_DAYS)
+  ) {
+    const expanded = await getTrackCatalogIndex(EXPAND_RECENT_MONTHS, EXPAND_RECENT_DAYS);
     const seenIds = new Set(trackHits.map((hit) => hit.id));
-    const seenStyles = new Set(index.styles.map((style) => style.id));
-    const extraTargets = expanded.styles.filter((style) => !seenStyles.has(style.id));
-    const extra = await scanStyleTracks(extraTargets, q, max - trackHits.length);
-    for (const hit of extra) {
-      if (seenIds.has(hit.id)) continue;
+    for (const hit of matchIndexedTracks(expanded.tracks, q, max - trackHits.length, seenIds)) {
       seenIds.add(hit.id);
       trackHits.push(hit);
       if (trackHits.length >= max) break;
@@ -402,107 +583,10 @@ export async function searchVipMusic(
   return results;
 }
 
-async function scanStyleTracks(
-  targets: StyleScanTarget[],
-  q: string,
-  limit: number,
-): Promise<VipMusicSearchHit[]> {
-  if (limit <= 0 || targets.length === 0) return [];
-
-  const hits: VipMusicSearchHit[] = [];
-  let stop = false;
-
-  await mapPool(targets, STYLE_SCAN_CONCURRENCY, async (style) => {
-    if (stop || hits.length >= limit) return;
-
-    try {
-      const children = await listDriveFolderChildrenLite(style.id);
-      if (stop || hits.length >= limit) return;
-
-      const styleSlug = slugifyFolderName(style.name);
-      const styleLabel = displayFolderName(style.name);
-      const path = style.weekLabel
-        ? `${style.monthLabel} · ${style.weekLabel} · ${styleLabel}`
-        : `${style.monthLabel} · ${styleLabel}`;
-
-      const considerFile = (file: { id: string; name: string; mimeType?: string | null }, nestedLabel?: string) => {
-        if (hits.length >= limit) {
-          stop = true;
-          return;
-        }
-        const mimeType = file.mimeType ?? "";
-        if (!isDriveAudioFile({ name: file.name, mimeType })) return;
-
-        const meta = parseTrackMeta(file.name);
-        const haystack = [meta.title, meta.artist, meta.version, style.name, nestedLabel, file.name]
-          .filter(Boolean)
-          .join(" ");
-        if (!matches(haystack, q)) return;
-
-        const display = getTrackDisplayMetadata({
-          fileName: file.name,
-          ...meta,
-        });
-        const relativePath = nestedLabel
-          ? `${style.relativePath}/${nestedLabel}`.slice(0, 900)
-          : style.relativePath;
-
-        hits.push({
-          type: "track",
-          id: file.id,
-          label: display.artist ? `${display.title} — ${display.artist}` : display.title,
-          path: nestedLabel ? `${path} · ${nestedLabel}` : path,
-          monthSlug: style.monthSlug,
-          weekSlug: style.weekSlug,
-          styleSlug,
-          styleFolderId: style.id,
-          fileName: file.name,
-          title: display.title,
-          artist: display.artist,
-          version: meta.version,
-          bpm: meta.bpmFrom,
-          relativePath,
-        });
-      };
-
-      for (const file of children) {
-        considerFile(file);
-        if (stop) return;
-      }
-
-      // Nested só se a pasta de estilo não tinha áudio direto e ainda precisamos de hits.
-      if (hits.length >= limit) return;
-      const hasDirectAudio = children.some((item) =>
-        isDriveAudioFile({ name: item.name, mimeType: item.mimeType ?? "" }),
-      );
-      if (hasDirectAudio) return;
-
-      const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 8);
-      if (nestedFolders.length === 0) return;
-
-      await mapPool(nestedFolders, 4, async (folder) => {
-        if (stop || hits.length >= limit) return;
-        try {
-          const nested = await listDriveFolderChildrenLite(folder.id);
-          const nestedLabel = displayFolderName(folder.name);
-          for (const file of nested) {
-            considerFile(file, nestedLabel);
-            if (stop) return;
-          }
-        } catch {
-          /* pasta inacessível */
-        }
-      });
-    } catch {
-      /* pasta inacessível */
-    }
-  });
-
-  return hits.slice(0, limit);
-}
-
 export function clearVipMusicSearchCaches() {
   queryCache.clear();
   styleIndexByScope.clear();
   styleIndexInflightByScope.clear();
+  trackIndexByScope.clear();
+  trackIndexInflightByScope.clear();
 }

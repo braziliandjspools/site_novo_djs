@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.29";
-export const APP_CORE_VERSION = "1.0.29";
+export const WEBUI_VERSION = "1.0.30";
+export const APP_CORE_VERSION = "1.0.30";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,13 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.30",
+    date: "2026-10-05",
+    items: [
+      "Pesquisa, Fila e Downloads com visual escuro e hover verde sutil nos itens",
+    ],
+  },
   {
     version: "1.0.29",
     date: "2026-10-02",
