@@ -244,18 +244,18 @@ function ProductionCard({
             {playing ? <Pause className="h-3 w-3" fill="currentColor" /> : <Play className="h-3 w-3" fill="currentColor" />}
             {playing ? "Pausar" : access.canPlay ? "Ouvir" : "Entrar"}
           </button>
-          {production.beatportUrl ? (
+          {production.spotifyUrl ? (
             <a
-              href={production.beatportUrl}
+              href={production.spotifyUrl}
               target="_blank"
               rel="noopener noreferrer"
               className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[10px] font-bold text-white transition ${
                 isProducer
-                  ? "border-[#94E400]/35 bg-[#94E400]/10 hover:bg-[#94E400]/20"
-                  : "border-[#94E400]/30 bg-[#94E400]/10 hover:border-[#94E400]/50 hover:bg-[#94E400]/15"
+                  ? "border-[#1DB954]/35 bg-[#1DB954]/10 hover:bg-[#1DB954]/20"
+                  : "border-[#1DB954]/30 bg-[#1DB954]/10 hover:border-[#1DB954]/50 hover:bg-[#1DB954]/15"
               }`}
             >
-              <ExternalLink className="h-3 w-3" /> Beatport
+              <ExternalLink className="h-3 w-3" /> Spotify
             </a>
           ) : null}
           {access.canDownload ? (
@@ -387,15 +387,15 @@ function DiscoverProductionRow({
         </div>
       </div>
 
-      {production.beatportUrl ? (
+      {production.spotifyUrl ? (
         <a
-          href={production.beatportUrl}
+          href={production.spotifyUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[6px] border border-[#94E400]/30 bg-[#94E400]/10 px-3 text-[11px] font-semibold text-[#b9f35a] hover:bg-[#94E400]/20 sm:px-3.5 sm:text-xs"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[6px] border border-[#94E400]/30 bg-[#94E400]/10 px-3 text-[11px] font-semibold text-[#9ef7c0] hover:bg-[#94E400]/20 sm:px-3.5 sm:text-xs"
         >
           <ExternalLink className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Beatport</span>
+          <span className="hidden sm:inline">Spotify</span>
         </a>
       ) : null}
       <button
@@ -528,14 +528,14 @@ export function ProductionDetail({ production }: { production: PublicBrsProducti
         <p className="mt-6 max-w-xl text-sm leading-relaxed text-zinc-300">{production.description}</p>
       ) : null}
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {production.beatportUrl ? (
+        {production.spotifyUrl ? (
           <a
-            href={production.beatportUrl}
+            href={production.spotifyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-[#94E400]/30 bg-[#94E400]/10 px-4 py-2 text-xs font-bold text-[#b9f35a] hover:bg-[#94E400]/20"
+            className="inline-flex items-center gap-2 rounded-full border border-[#94E400]/30 bg-[#94E400]/10 px-4 py-2 text-xs font-bold text-[#9ef7c0] hover:bg-[#94E400]/20"
           >
-            <ExternalLink className="h-3.5 w-3.5" /> Beatport
+            <ExternalLink className="h-3.5 w-3.5" /> Spotify
           </a>
         ) : null}
       </div>
