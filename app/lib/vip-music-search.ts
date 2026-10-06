@@ -52,10 +52,6 @@ const QUERY_CACHE_TTL_MS = 3 * 60_000;
 const STYLE_INDEX_TTL_MS = 10 * 60_000;
 const TRACK_INDEX_TTL_MS = 15 * 60_000;
 const TRACK_INDEX_CONCURRENCY = 24;
-const DEFAULT_RECENT_MONTHS = 2;
-const DEFAULT_RECENT_DAYS = 10;
-const EXPAND_RECENT_MONTHS = 4;
-const EXPAND_RECENT_DAYS = 24;
 
 function normalize(text: string) {
   return text
@@ -612,9 +608,9 @@ export async function searchVipMusic(
   return results;
 }
 
-/** Aquece o índice padrão (2 meses / 10 dias) sem bloquear a UI. */
+/** Aquece o índice completo do acervo sem bloquear a UI. */
 export function warmVipMusicSearchIndex(): Promise<TrackCatalogIndex> {
-  return getTrackCatalogIndex(DEFAULT_RECENT_MONTHS, DEFAULT_RECENT_DAYS);
+  return getTrackCatalogIndex(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 }
 
 export function clearVipMusicSearchCaches() {
