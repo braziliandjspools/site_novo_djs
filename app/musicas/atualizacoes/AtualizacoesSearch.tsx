@@ -115,6 +115,11 @@ export function AtualizacoesSearchResults() {
                   <span className="rounded border border-zinc-700 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500">
                     {hitTypeLabel(hit.type)}
                   </span>
+                  {hit.type === "track" && hit.page && (
+                    <span className="text-[10px] font-medium text-zinc-500">
+                      Página {hit.page}{hit.totalPages ? ` de ${hit.totalPages}` : ""}
+                    </span>
+                  )}
                   <span className="flex items-center gap-0.5 text-[10px] font-semibold text-[#00ff9d] sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                     {hitActionLabel(hit.type)}
                     <ChevronRight className="h-3 w-3" />
