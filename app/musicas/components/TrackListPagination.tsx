@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const DESKTOP_WINDOW_SIZE = 10;
 const MOBILE_WINDOW_SIZE = 5;
@@ -63,9 +63,9 @@ export function TrackListPagination({
   const atStart = page <= 1;
   const atEnd = page >= pageCount;
 
-  if (previousPage !== page) {
+  useEffect(() => {
     previousPageRef.current = page;
-  }
+  }, [page]);
 
   if (pageCount <= 1) return null;
 
