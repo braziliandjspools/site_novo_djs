@@ -34,10 +34,14 @@ const URL_DEBOUNCE_MS = 450;
 export function hitHref(hit: VipMusicSearchHit, query?: string) {
   const segments = [hit.monthSlug];
   if (hit.weekSlug) segments.push(hit.weekSlug);
+  if (hit.poolSlug) segments.push(hit.poolSlug);
   if (hit.styleSlug) segments.push(hit.styleSlug);
   const base = folderHref(segments);
   const params = new URLSearchParams();
-  if (hit.type === "track") params.set("faixa", hit.id);
+  if (hit.type === "track") {
+    params.set("faixa", hit.id);
+    if (hit.page && hit.page > 1) params.set("page", String(hit.page));
+  }
   if (query?.trim()) params.set("q", query.trim());
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
