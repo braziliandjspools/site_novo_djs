@@ -71,7 +71,7 @@ const MAX_TRACK_WALK_DEPTH = 12;
 /** Pastas irmãs no deep-walk — paraleliza sem saturar a Drive API. */
 const TRACK_WALK_CONCURRENCY = 10;
 /** Faixas por página na tabela do acervo. */
-export const VIP_MUSIC_TRACKS_PAGE_SIZE = 50;
+export const VIP_MUSIC_TRACKS_PAGE_SIZE = 100;
 
 export type VipMusicFolder = {
   id: string;
