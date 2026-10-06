@@ -29,10 +29,17 @@ function hitActionLabel(type: VipMusicSearchHit["type"]) {
 }
 
 export function AtualizacoesSearch() {
-  const { query, setQuery, clearQuery, loading } = useAtualizacoesSearch();
+  const { query, setQuery, submitSearch, clearQuery, loading } = useAtualizacoesSearch();
 
   return (
-    <div className="relative mb-4">
+    <form
+      className="relative mb-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        submitSearch();
+      }}
+    >
+      <div className="flex gap-2">
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
         <input
@@ -52,11 +59,17 @@ export function AtualizacoesSearch() {
             <X className="h-4 w-4" />
           </button>
         )}
-        {loading && (
-          <Loader2 className="absolute right-10 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#00ff9d]" />
-        )}
+        </div>
+        <button
+          type="submit"
+          disabled={loading || query.trim().length < 2}
+          className="flex flex-shrink-0 items-center gap-2 rounded-full bg-[#00ff9d] px-4 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+          <span className="hidden sm:inline">{loading ? "Pesquisando…" : "Pesquisar"}</span>
+        </button>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -73,7 +86,11 @@ export function AtualizacoesSearchResults() {
             Resultados
             {!loading && results.length > 0 && <span className="ml-2 text-zinc-500">({results.length})</span>}
           </h2>
-          <p className="mt-0.5 text-[11px] text-zinc-600">Clique para ir direto ao conteúdo</p>
+          <p className="mt-0.5 text-[11px] text-zinc-600">
+            {loading
+              ? "A primeira pesquisa pode demorar um pouco enquanto o acervo é preparado."
+              : "Clique para ir direto ao conteúdo"}
+          </p>
         </div>
         {loading && <Loader2 className="h-4 w-4 animate-spin text-[#00ff9d]" />}
       </div>
@@ -81,7 +98,13 @@ export function AtualizacoesSearchResults() {
       {error && <p className="px-4 py-3 text-sm text-red-400">{error}</p>}
 
       {!error && loading && results.length === 0 && (
-        <p className="px-4 py-8 text-center text-sm text-zinc-500">Buscando…</p>
+        <div className="px-4 py-8 text-center">
+          <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin text-[#00ff9d]" />
+          <p className="text-sm text-zinc-300">Pesquisando em todo o acervo…</p>
+          <p className="mt-1 text-xs text-zinc-600">
+            A primeira pesquisa pode demorar um pouco. As próximas tendem a ser mais rápidas.
+          </p>
+        </div>
       )}
 
       {!error && !loading && results.length === 0 && (
