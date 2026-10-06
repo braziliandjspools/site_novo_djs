@@ -56,8 +56,6 @@ export function TrackListPagination({
   loading = false,
   onPageChange,
 }: TrackListPaginationProps) {
-  if (pageCount <= 1) return null;
-
   const previousPageRef = useRef(page);
   const previousPage = previousPageRef.current;
   const pages = pageWindow(page, pageCount, DESKTOP_WINDOW_SIZE);
@@ -68,6 +66,8 @@ export function TrackListPagination({
   if (previousPage !== page) {
     previousPageRef.current = page;
   }
+
+  if (pageCount <= 1) return null;
 
   return (
     <nav
