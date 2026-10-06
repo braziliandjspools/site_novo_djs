@@ -447,7 +447,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
   const goToTrackPage = useCallback((page: number) => {
     if (page < 1 || page === currentPage) return;
-    if (page > trackPageCount) return;
+    // Os números exibidos na paginação são destinos diretos.
+    // Não bloqueie um número só porque o total de páginas ainda não foi
+    // descoberto pelo carregamento anterior: a API resolve a página solicitada.
     const params = new URLSearchParams(searchParams.toString());
     if (page > 1) params.set("page", String(page));
     else params.delete("page");
@@ -456,7 +458,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     const qs = params.toString();
     showToast(`Carregando página ${String(page).padStart(2, "0")}…`, "info", 2200);
     router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname, { scroll: false });
-  }, [currentPage, router, searchParams, showToast, trackPageCount]);
+  }, [currentPage, router, searchParams, showToast]);
 
   const loadMoreTracks = useCallback(async () => {
     if (
