@@ -21,6 +21,7 @@ import {
   HelpCircle,
   ListPlus,
   Loader2,
+  Music2,
   Lock,
   MonitorDown,
   Pause,
