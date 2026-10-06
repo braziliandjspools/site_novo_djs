@@ -55,7 +55,7 @@ export function DownloadFinderToolbar({
               className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
                 active
                   ? "bg-[#60cdff] text-black ring-1 ring-[#60cdff]"
-                  : "bg-white/[0.04] text-zinc-400 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
+                  : "bg-white/[0.04] text-white/55 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
               }`}
               aria-pressed={active}
             >

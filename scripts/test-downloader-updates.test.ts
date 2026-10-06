@@ -5,7 +5,7 @@ import { APP_CHANGELOG } from "../apps/downloader/src/lib/app-info";
 import { compareSemver } from "../app/lib/downloader-updates";
 import { existsSync } from "node:fs";
 
-const latest = "1.0.32";
+const latest = "1.0.33";
 const previous = APP_CHANGELOG.map(entry => entry.version).filter(version => compareSemver(version, latest) < 0);
 for (const current of [...previous, "1.0.16", "v1.0.15", "1.0.16-estable", "0.0.0"]) {
   test(current + " receives " + latest + " from the legacy update endpoint", async () => {

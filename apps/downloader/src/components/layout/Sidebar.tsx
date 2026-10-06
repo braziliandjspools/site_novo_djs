@@ -82,7 +82,7 @@ export function Sidebar({
     <aside className="flex h-full w-[248px] flex-shrink-0 flex-col border-r border-[var(--line)] bg-[var(--bg-sidebar)]">
       <div className="px-4 pb-3 pt-4">
         <BrsLogo className="h-7 w-auto max-w-[160px] object-contain object-left opacity-95" />
-        <p className="mt-2 text-[0.68rem] font-medium tracking-[0.1em] text-[var(--text-subtle)] uppercase">
+        <p className="mt-2 text-[0.68rem] font-medium tracking-[0.12em] text-white/45 uppercase">
           {DOWNLOADER_NAME}
         </p>
       </div>
@@ -102,20 +102,18 @@ export function Sidebar({
               type="button"
               onClick={() => onNavigate(id)}
               aria-current={active ? "page" : undefined}
-              className={`group flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-left text-[0.875rem] font-medium transition-colors ${
-                active
-                  ? "win-nav-active"
-                  : "text-[var(--text-muted)] hover:bg-[#60cdff]/[0.08] hover:text-white"
+              className={`win-nav-item group flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-left text-[0.875rem] font-medium ${
+                active ? "win-nav-active" : ""
               }`}
             >
               <Icon
-                className={`h-4 w-4 flex-shrink-0 ${
-                  active ? "text-white" : "text-[var(--text-subtle)] group-hover:text-white"
+                className={`win-nav-icon h-4 w-4 flex-shrink-0 ${
+                  active ? "text-[#8ad4ff]" : "text-white/40"
                 }`}
               />
-              <span className="flex-1">{t(labelKey)}</span>
+              <span className="flex-1 text-white">{t(labelKey)}</span>
               {badge > 0 && (
-                <span className="min-w-5 rounded-[4px] bg-white/10 px-1.5 py-0.5 text-center text-[0.68rem] font-semibold leading-none text-white">
+                <span className="min-w-5 rounded-[4px] bg-[#60cdff]/15 px-1.5 py-0.5 text-center text-[0.68rem] font-semibold leading-none text-[#8ad4ff]">
                   {badge}
                 </span>
               )}
@@ -124,8 +122,8 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="m-2.5 flex items-center gap-3 rounded-[var(--radius-lg)] border border-white/10 bg-black px-3 py-2.5">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--bg-control)] text-[0.8rem] font-semibold text-white">
+      <div className="m-2.5 flex items-center gap-3 rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] px-3 py-2.5 transition-colors hover:border-[#60cdff]/35 hover:bg-[#60cdff]/[0.06]">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-[0.8rem] font-semibold text-white">
           {(firstName[0] ?? "B").toUpperCase()}
         </span>
         <div className="min-w-0">
@@ -135,7 +133,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onLogout}
-            className="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-medium text-[var(--text-subtle)] transition-colors hover:text-white"
+            className="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-medium text-white/45 transition-colors hover:text-[#8ad4ff]"
           >
             <LogOut className="h-3.5 w-3.5" />
             {t("navLogout")}

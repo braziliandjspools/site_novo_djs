@@ -175,10 +175,10 @@ function getPoolsPortalPayload() {
     catalogUrl: config.pools.catalogUrl,
     downloader: {
       name: DOWNLOADER_NAME,
-      version: release?.version ?? "1.0.32",
+      version: release?.version ?? "1.0.33",
       downloadUrl:
         release?.downloadUrl ??
-        `${SITE_PRODUCTION_URL}/downloads/BRS-Downloader_1.0.32_x64-setup.exe`,
+        `${SITE_PRODUCTION_URL}/downloads/BRS-Downloader_1.0.33_x64-setup.exe`,
     },
   };
 }

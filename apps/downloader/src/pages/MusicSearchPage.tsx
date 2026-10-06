@@ -334,76 +334,76 @@ export function MusicSearchPage() {
   );
 
   return (
-    <div className={playingTrack ? "space-y-4 pb-28" : "space-y-4"}>
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+    <div className={playingTrack ? "space-y-5 pb-28" : "space-y-5"}>
+      <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black">
         <img
           src={SEARCH_BANNER_URL}
           alt="Pesquise no Downloader"
-          className="h-auto w-full object-cover object-center"
+          className="h-auto w-full object-cover object-center opacity-90"
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20" />
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a]">
-        <div className="h-px bg-gradient-to-r from-white/50 via-white/15 to-transparent" />
-        <div className="p-5 sm:p-6">
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">Catálogo BRS</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">{t("searchTitle").replace(/^🔎\s*/, "")}</h2>
-              <p className="mt-1 text-sm leading-relaxed text-white/55">{t("searchSubtitle")}</p>
-            </div>
-            {results.length > 0 ? (
-              <span className="shrink-0 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold tabular-nums text-white">
-                {results.length}
-              </span>
-            ) : null}
+      <section className="border-b border-white/10 pb-5">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-eyebrow text-[#8ad4ff]">Catálogo BRS</p>
+            <h2 className="mt-1 font-display text-[1.45rem] font-semibold tracking-tight text-white">
+              {t("searchTitle").replace(/^🔎\s*/, "")}
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-white/55">{t("searchSubtitle")}</p>
           </div>
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
-            <input
-              type="search"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder={t("searchPlaceholder")}
-              className="w-full rounded-2xl border border-white/12 bg-black py-4 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-[#60cdff]/50 focus:ring-2 focus:ring-[#60cdff]/20"
-              autoFocus
-            />
-            {draft ? (
-              <button
-                type="button"
-                aria-label={t("searchClear")}
-                onClick={() => setDraft("")}
-                className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-white/45 hover:bg-white/10 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </label>
+          {results.length > 0 ? (
+            <span className="shrink-0 border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 py-1 text-[11px] font-semibold tabular-nums text-[#8ad4ff]">
+              {results.length}
+            </span>
+          ) : null}
         </div>
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-white/40" />
+          <input
+            type="search"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder={t("searchPlaceholder")}
+            className="w-full border border-white/12 bg-black py-3.5 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-[#60cdff]/55 focus:ring-1 focus:ring-[#60cdff]/25"
+            autoFocus
+          />
+          {draft ? (
+            <button
+              type="button"
+              aria-label={t("searchClear")}
+              onClick={() => setDraft("")}
+              className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center text-white/45 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+        </label>
       </section>
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black px-4 py-16 text-sm text-white">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-4 py-16 text-sm text-white">
+          <Loader2 className="h-4 w-4 animate-spin text-[#8ad4ff]" />
           {t("searchSearching")}
         </div>
       ) : null}
 
       {!loading && error ? (
-        <div className="rounded-2xl border border-red-400/25 bg-[#3a2020] px-4 py-6 text-center text-sm text-[#ffb3ba]">
+        <div className="border border-red-400/25 bg-[#3a2020] px-4 py-6 text-center text-sm text-[#ffb3ba]">
           {error}
         </div>
       ) : null}
 
       {!loading && !error && query.length < 2 ? (
-        <div className="rounded-2xl border border-dashed border-white/12 bg-black px-4 py-16 text-center text-sm text-white/50">
+        <div className="border border-dashed border-white/12 bg-[#0a0a0a] px-4 py-16 text-center text-sm text-white/50">
           {t("searchIdle")}
         </div>
       ) : null}
 
       {!loading && !error && query.length >= 2 && results.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-black px-4 py-12 text-center">
-          <p className="text-sm text-white/70">{t("searchEmpty", { query })}</p>
+        <div className="border border-white/10 bg-[#0a0a0a] px-4 py-12 text-center">
+          <p className="text-sm text-white/80">{t("searchEmpty", { query })}</p>
           <p className="mx-auto mt-2 max-w-md text-xs text-white/40">{t("searchEmptyHint")}</p>
           <a
             href={whatsappHref}
@@ -413,7 +413,7 @@ export function MusicSearchPage() {
               event.preventDefault();
               void openPlatform(whatsappHref);
             }}
-            className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-black transition hover:bg-white/90"
+            className="mt-5 inline-flex h-10 items-center gap-2 bg-white px-4 text-sm font-bold text-black transition hover:bg-[#8ad4ff]"
           >
             <MessageCircle className="h-4 w-4" />
             {t("searchRequestWhatsApp")}
@@ -422,16 +422,16 @@ export function MusicSearchPage() {
       ) : null}
 
       {!loading && results.length > 0 ? (
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#0a0a0a] px-3 py-2.5">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border border-white/10 bg-[#0a0a0a] px-3 py-2.5">
             <button
               type="button"
               onClick={toggleSelectAll}
-              className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-white/5 hover:text-white"
+              className="inline-flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
             >
               {selectedCount > 0 &&
               results.filter((track) => track.downloadAvailable).every((track) => selectedIds.has(track.trackId)) ? (
-                <CheckSquare className="h-4 w-4 text-white" />
+                <CheckSquare className="h-4 w-4 text-[#60cdff]" />
               ) : (
                 <Square className="h-4 w-4" />
               )}
@@ -448,7 +448,7 @@ export function MusicSearchPage() {
             </Button>
           </div>
 
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {results.map((track) => {
               const cover = resolveCoverUrl(track.coverUrl, apiBase);
               const catalogUrl = resolveCatalogUrl(track.catalogPath, apiBase);
@@ -461,66 +461,68 @@ export function MusicSearchPage() {
               return (
                 <li
                   key={`${track.source}-${track.trackId}`}
-                  className={`item-row group rounded-xl px-3 py-3 ${
+                  className={`search-track-row group ${
                     selected ? "is-selected" : active ? "is-active" : ""
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      aria-label={selected ? t("searchClearSelection") : t("searchSelectAll")}
-                      onClick={() => toggleSelected(track.trackId)}
-                      disabled={!track.downloadAvailable}
-                      className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/45 transition group-hover:text-[#8ad4ff] disabled:opacity-30"
+                  <button
+                    type="button"
+                    aria-label={selected ? t("searchClearSelection") : t("searchSelectAll")}
+                    onClick={() => toggleSelected(track.trackId)}
+                    disabled={!track.downloadAvailable}
+                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/40 transition group-hover:text-[#8ad4ff] disabled:opacity-30"
+                  >
+                    {selected ? <CheckSquare className="h-4 w-4 text-[#60cdff]" /> : <Square className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    className="relative shrink-0"
+                    onClick={() => void playTrack(track)}
+                    disabled={!track.previewAvailable}
+                    aria-label={playing ? t("searchPause") : t("searchPlay")}
+                  >
+                    <CoverArt track={track} apiBase={apiBase} cover={cover} size="sm" />
+                    <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] bg-black/55">
+                      {playing ? (
+                        <Pause className="h-4 w-4 text-white drop-shadow" fill="currentColor" />
+                      ) : (
+                        <Play className="ml-0.5 h-4 w-4 text-white drop-shadow" fill="currentColor" />
+                      )}
+                    </span>
+                  </button>
+                  <div className="min-w-0">
+                    <p
+                      className={`truncate text-[0.95rem] font-semibold transition ${
+                        active ? "text-[#8ad4ff]" : "text-white group-hover:text-[#8ad4ff]"
+                      }`}
                     >
-                      {selected ? <CheckSquare className="h-4 w-4 text-[#60cdff]" /> : <Square className="h-4 w-4" />}
-                    </button>
-                    <button
-                      type="button"
-                      className="relative shrink-0"
-                      onClick={() => void playTrack(track)}
-                      disabled={!track.previewAvailable}
-                      aria-label={playing ? t("searchPause") : t("searchPlay")}
-                    >
-                      <CoverArt track={track} apiBase={apiBase} cover={cover} size="sm" />
-                      <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] bg-black/55">
-                        {playing ? (
-                          <Pause className="h-4 w-4 text-white drop-shadow" fill="currentColor" />
-                        ) : (
-                          <Play className="ml-0.5 h-4 w-4 text-white drop-shadow" fill="currentColor" />
-                        )}
-                      </span>
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <p className={`truncate text-[0.95rem] font-semibold transition ${active ? "text-[#8ad4ff]" : "text-white group-hover:text-[#8ad4ff]"}`}>
-                        {track.title}
-                      </p>
-                      <p className="truncate text-xs text-white/60 group-hover:text-white/75">{track.artist}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-white/35 group-hover:text-white/50">
-                        {[track.version, metaLine(track), collection].filter(Boolean).join(" · ")}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      {catalogUrl ? (
-                        <button
-                          type="button"
-                          onClick={() => void openPlatform(catalogUrl)}
-                          className="hidden h-9 items-center gap-1 rounded-lg border border-white/12 px-2 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] sm:inline-flex"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          {t("searchOpenCatalog")}
-                        </button>
-                      ) : null}
-                      <Button
+                      {track.title}
+                    </p>
+                    <p className="truncate text-xs text-white/55 group-hover:text-white/75">{track.artist}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-white/35 group-hover:text-white/50">
+                      {[track.version, metaLine(track), collection].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {catalogUrl ? (
+                      <button
                         type="button"
-                        className="h-9 gap-1.5 px-2.5 text-xs"
-                        onClick={() => void queueTrack(track)}
-                        disabled={!track.downloadAvailable || queued || busy}
+                        onClick={() => void openPlatform(catalogUrl)}
+                        className="hidden h-9 items-center gap-1 border border-white/12 px-2.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] sm:inline-flex"
                       >
-                        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                        {queued ? t("searchAlreadyQueued") : t("searchDownload")}
-                      </Button>
-                    </div>
+                        <ExternalLink className="h-3 w-3" />
+                        {t("searchOpenCatalog")}
+                      </button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      className="h-9 gap-1.5 px-2.5 text-xs"
+                      onClick={() => void queueTrack(track)}
+                      disabled={!track.downloadAvailable || queued || busy}
+                    >
+                      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                      {queued ? t("searchAlreadyQueued") : t("searchDownload")}
+                    </Button>
                   </div>
                 </li>
               );
@@ -530,8 +532,8 @@ export function MusicSearchPage() {
       ) : null}
 
       {playingTrack ? (
-        <div className="fixed bottom-0 left-[248px] right-0 z-40 border-t border-white/15 bg-black/95 px-5 py-3.5 shadow-[0_-12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-white/50 via-white/15 to-transparent" />
+        <div className="fixed bottom-0 left-[248px] right-0 z-40 border-t border-white/12 bg-black/96 px-5 py-3.5 shadow-[0_-12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#60cdff]/70 via-white/15 to-transparent" />
           <div className="relative flex items-center gap-4">
             <CoverArt track={playingTrack} apiBase={apiBase} size="md" />
             <div className="min-w-0 w-44 shrink-0 sm:w-56">
@@ -544,7 +546,7 @@ export function MusicSearchPage() {
                   type="button"
                   disabled={!prevTrack}
                   onClick={() => prevTrack && void playTrack(prevTrack)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                  className="inline-flex h-9 w-9 items-center justify-center text-white/70 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] disabled:opacity-30"
                   aria-label={t("searchPrev")}
                 >
                   <SkipBack className="h-4 w-4" fill="currentColor" />
@@ -552,7 +554,7 @@ export function MusicSearchPage() {
                 <button
                   type="button"
                   onClick={() => void playTrack(playingTrack)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-black hover:bg-white/90"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-black transition hover:bg-[#8ad4ff]"
                   aria-label={isPlaying ? t("searchPause") : t("searchPlay")}
                 >
                   {isPlaying ? (
@@ -565,7 +567,7 @@ export function MusicSearchPage() {
                   type="button"
                   disabled={!nextTrack}
                   onClick={() => nextTrack && void playTrack(nextTrack)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-30"
+                  className="inline-flex h-9 w-9 items-center justify-center text-white/70 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] disabled:opacity-30"
                   aria-label={t("searchNext")}
                 >
                   <SkipForward className="h-4 w-4" fill="currentColor" />
@@ -590,7 +592,9 @@ export function MusicSearchPage() {
                   }}
                   className="player-range flex-1"
                   aria-label={t("searchProgress")}
-                  style={{ background: `linear-gradient(to right, #fff ${progress}%, rgba(255,255,255,0.14) ${progress}%)` }}
+                  style={{
+                    background: `linear-gradient(to right, #60cdff ${progress}%, rgba(255,255,255,0.14) ${progress}%)`,
+                  }}
                 />
                 <span className="w-10 text-right text-[10px] tabular-nums text-white/40">
                   {formatTrackDuration(duration) ?? "--:--"}
@@ -601,7 +605,7 @@ export function MusicSearchPage() {
               <button
                 type="button"
                 onClick={() => setMuted((value) => !value)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center text-white/60 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
                 aria-label={muted ? t("searchUnmute") : t("searchMute")}
               >
                 {muted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -622,7 +626,7 @@ export function MusicSearchPage() {
               <button
                 type="button"
                 onClick={stopPlayback}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/45 hover:bg-white/10 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center text-white/45 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
                 aria-label={t("searchStop")}
               >
                 <X className="h-4 w-4" />

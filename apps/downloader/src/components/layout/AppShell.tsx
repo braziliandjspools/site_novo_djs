@@ -77,7 +77,7 @@ export function AppShell({
               onClick={() => void openPlatform(supportWhatsAppUrl())}
               title={t("settingsSupportWhatsApp")}
               aria-label={t("settingsSupportWhatsApp")}
-              className="inline-flex h-8 items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--bg-control)] px-2.5 text-[0.72rem] font-medium text-white transition-colors hover:bg-[var(--bg-control-hover)]"
+              className="win-control inline-flex h-8 items-center gap-1.5 px-2.5 text-[0.72rem] font-medium"
             >
               <MessageCircle className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">WhatsApp</span>
