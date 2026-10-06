@@ -1,25 +1,46 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 
-const WINDOW_SIZE = 10;
+const DESKTOP_WINDOW_SIZE = 10;
+const MOBILE_WINDOW_SIZE = 5;
 
 function padPage(page: number) {
   return String(page).padStart(2, "0");
 }
 
-function pageWindow(current: number, lastPage: number) {
-  if (lastPage <= WINDOW_SIZE) {
+function pageWindow(current: number, lastPage: number, windowSize: number) {
+  if (lastPage <= windowSize) {
     return Array.from({ length: lastPage }, (_, index) => index + 1);
   }
-  const half = Math.floor(WINDOW_SIZE / 2);
+  const half = Math.floor(windowSize / 2);
   let start = Math.max(1, current - half);
-  let end = start + WINDOW_SIZE - 1;
+  let end = start + windowSize - 1;
   if (end > lastPage) {
     end = lastPage;
-    start = Math.max(1, end - WINDOW_SIZE + 1);
+    start = Math.max(1, end - windowSize + 1);
   }
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
+
+function mobilePageWindow(current: number, lastPage: number, previousPage: number) {
+  if (lastPage <= MOBILE_WINDOW_SIZE) {
+    return pageWindow(current, lastPage, MOBILE_WINDOW_SIZE);
+  }
+
+  // Ao chegar à página 5 pela frente, o 01 sai e entra o 06.
+  // Ao voltar de uma página posterior para a 05, o 01 reaparece.
+  if (current === 5 && previousPage > 5) {
+    return [1, 2, 3, 4, 5];
+  }
+
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5];
+  }
+
+  const start = Math.min(current - 3, lastPage - MOBILE_WINDOW_SIZE + 1);
+  return Array.from({ length: MOBILE_WINDOW_SIZE }, (_, index) => start + index);
 }
 
 type TrackListPaginationProps = {
@@ -37,9 +58,16 @@ export function TrackListPagination({
 }: TrackListPaginationProps) {
   if (pageCount <= 1) return null;
 
-  const pages = pageWindow(page, pageCount);
+  const previousPageRef = useRef(page);
+  const previousPage = previousPageRef.current;
+  const pages = pageWindow(page, pageCount, DESKTOP_WINDOW_SIZE);
+  const mobilePages = mobilePageWindow(page, pageCount, previousPage);
   const atStart = page <= 1;
   const atEnd = page >= pageCount;
+
+  if (previousPage !== page) {
+    previousPageRef.current = page;
+  }
 
   return (
     <nav
@@ -56,25 +84,51 @@ export function TrackListPagination({
         <span className="hidden sm:inline">Anterior</span>
       </button>
 
-      {pages.map((item) => {
-        const active = item === page;
-        return (
-          <button
-            key={item}
-            type="button"
-            disabled={loading}
-            aria-current={active ? "page" : undefined}
-            onClick={() => onPageChange(item)}
-            className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-xs font-bold tabular-nums transition disabled:cursor-wait ${
-              active
-                ? "bg-[#60cdff] text-black"
-                : "border border-white/10 text-zinc-300 hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-white"
-            }`}
-          >
-            {padPage(item)}
-          </button>
-        );
-      })}
+      <div className="hidden items-center gap-1.5 sm:flex">
+        {pages.map((item) => {
+          const active = item === page;
+          const className =
+            "inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-xs font-bold tabular-nums transition disabled:cursor-wait " +
+            (active
+              ? "bg-[#60cdff] text-black"
+              : "border border-white/10 text-zinc-300 hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-white");
+          return (
+            <button
+              key={item}
+              type="button"
+              disabled={loading}
+              aria-current={active ? "page" : undefined}
+              onClick={() => onPageChange(item)}
+              className={className}
+            >
+              {padPage(item)}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-1.5 sm:hidden">
+        {mobilePages.map((item) => {
+          const active = item === page;
+          const className =
+            "inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-xs font-bold tabular-nums transition disabled:cursor-wait " +
+            (active
+              ? "bg-[#60cdff] text-black"
+              : "border border-white/10 text-zinc-300 hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-white");
+          return (
+            <button
+              key={item}
+              type="button"
+              disabled={loading}
+              aria-current={active ? "page" : undefined}
+              onClick={() => onPageChange(item)}
+              className={className}
+            >
+              {padPage(item)}
+            </button>
+          );
+        })}
+      </div>
 
       <button
         type="button"
