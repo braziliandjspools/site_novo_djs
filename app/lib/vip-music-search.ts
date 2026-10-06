@@ -22,7 +22,12 @@ export type VipMusicSearchHit = {
   monthSlug: string;
   weekSlug?: string;
   styleSlug?: string;
+  poolSlug?: string;
   styleFolderId?: string;
+  /** Página de 100 faixas onde a música aparece na tabela. */
+  page?: number;
+  /** Total de páginas da tabela da pasta/estilo. */
+  totalPages?: number;
   /** Metadados extras para o Downloader / fila. */
   fileName?: string;
   title?: string;
@@ -83,6 +88,7 @@ type StyleScanTarget = {
   monthLabel: string;
   weekSlug?: string;
   weekLabel?: string;
+  poolSlug?: string;
   relativePath: string;
   /** Ordenação: dias/meses mais novos primeiro. */
   sortKey: string;
@@ -151,8 +157,8 @@ async function buildStyleIndex(options?: {
   maxMonths?: number;
   maxDays?: number;
 }): Promise<StyleIndex> {
-  const maxMonths = options?.maxMonths ?? 24;
-  const maxDays = options?.maxDays ?? 80;
+  const maxMonths = options?.maxMonths ?? Number.POSITIVE_INFINITY;
+  const maxDays = options?.maxDays ?? Number.POSITIVE_INFINITY;
   const styles: StyleScanTarget[] = [];
   const folderHits: FolderHitSeed[] = [];
   const months = (await listVipMonthFolders()).slice(0, maxMonths);
@@ -225,6 +231,7 @@ async function buildStyleIndex(options?: {
               monthSlug,
               weekSlug: slugifyFolderName(dateFolder.name),
               styleSlug,
+              poolSlug: slugifyFolderName(pool.name),
               styleFolderId: style.id,
             });
             styles.push({
@@ -234,6 +241,7 @@ async function buildStyleIndex(options?: {
               monthLabel,
               weekSlug: slugifyFolderName(dateFolder.name),
               weekLabel: dateLabel,
+              poolSlug: slugifyFolderName(pool.name),
               relativePath: `${monthLabel}/${dateLabel}/${poolLabel}/${styleLabel}`.slice(0, 900),
               sortKey: `${dateKey}|${poolLabel}|${styleLabel}`,
             });
@@ -353,6 +361,9 @@ type IndexedAudio = {
   weekLabel?: string;
   styleName: string;
   styleFolderId: string;
+  poolSlug?: string;
+  modifiedAt: string;
+  title: string;
   relativePath: string;
   path: string;
 };
@@ -360,6 +371,7 @@ type IndexedAudio = {
 type TrackCatalogIndex = {
   tracks: IndexedAudio[];
   folderHits: FolderHitSeed[];
+  pageByTrackId: Map<string, { page: number; totalPages: number }>;
 };
 
 const trackIndexByScope = new Map<string, { value: TrackCatalogIndex; expiresAt: number }>();
@@ -368,7 +380,13 @@ const trackIndexInflightByScope = new Map<string, Promise<TrackCatalogIndex>>();
 function pushAudioFile(
   out: IndexedAudio[],
   style: StyleScanTarget,
-  file: { id: string; name: string; mimeType?: string | null },
+  file: {
+    id: string;
+    name: string;
+    mimeType?: string | null;
+    createdTime?: string;
+    modifiedTime?: string;
+  },
   path: string,
   nestedLabel?: string,
 ) {
@@ -392,46 +410,53 @@ function pushAudioFile(
     weekLabel: style.weekLabel,
     styleName: style.name,
     styleFolderId: style.id,
+    poolSlug: style.poolSlug,
+    modifiedAt: file.createdTime ?? file.modifiedTime ?? "",
+    title: meta.title,
     relativePath,
     path: itemPath,
   });
 }
 
 async function collectStyleAudio(style: StyleScanTarget): Promise<IndexedAudio[]> {
-  const children = await listDriveFolderChildrenLite(style.id);
   const styleLabel = displayFolderName(style.name);
   const path = style.weekLabel
     ? `${style.monthLabel} · ${style.weekLabel} · ${styleLabel}`
     : `${style.monthLabel} · ${styleLabel}`;
   const out: IndexedAudio[] = [];
+  const visited = new Set<string>();
 
-  for (const file of children) {
-    pushAudioFile(out, style, file, path);
+  async function walk(folderId: string, nestedPath: string, depth: number): Promise<void> {
+    if (depth > 12 || visited.has(folderId)) return;
+    visited.add(folderId);
+
+    let children: Awaited<ReturnType<typeof listDriveFolderChildrenLite>> = [];
+    try {
+      children = await listDriveFolderChildrenLite(folderId);
+    } catch {
+      return;
+    }
+
+    const nestedFolders: Array<{ id: string; name: string }> = [];
+    for (const file of children) {
+      if (file.mimeType === FOLDER_MIME) {
+        nestedFolders.push({ id: file.id, name: file.name });
+        continue;
+      }
+      pushAudioFile(out, style, file, path, nestedPath || undefined);
+    }
+
+    if (nestedFolders.length === 0 || depth >= 12) return;
+
+    await mapPool(nestedFolders, 4, async (folder) => {
+      const nextPath = nestedPath
+        ? `${nestedPath} · ${displayFolderName(folder.name)}`
+        : displayFolderName(folder.name);
+      await walk(folder.id, nextPath, depth + 1);
+    });
   }
 
-  const hasDirectAudio = children.some((item) =>
-    isDriveAudioFile({ name: item.name, mimeType: item.mimeType ?? "" }),
-  );
-  if (hasDirectAudio) return out;
-
-  const nestedFolders = children.filter((item) => item.mimeType === FOLDER_MIME).slice(0, 8);
-  if (nestedFolders.length === 0) return out;
-
-  const nestedGroups = await mapPool(nestedFolders, 4, async (folder) => {
-    try {
-      const nested = await listDriveFolderChildrenLite(folder.id);
-      const nestedLabel = displayFolderName(folder.name);
-      const files: IndexedAudio[] = [];
-      for (const file of nested) {
-        pushAudioFile(files, style, file, path, nestedLabel);
-      }
-      return files;
-    } catch {
-      return [];
-    }
-  });
-
-  for (const group of nestedGroups) out.push(...group);
+  await walk(style.id, "", 0);
   return out;
 }
 
@@ -451,15 +476,33 @@ async function buildTrackCatalogIndex(maxMonths: number, maxDays: number): Promi
 
   const tracks: IndexedAudio[] = [];
   const seen = new Set<string>();
+  const pageByTrackId = new Map<string, { page: number; totalPages: number }>();
+
+  const compareIndexedTracks = (a: IndexedAudio, b: IndexedAudio) => {
+    if (a.modifiedAt !== b.modifiedAt) return b.modifiedAt.localeCompare(a.modifiedAt);
+    return a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" });
+  };
+
   for (const group of groups) {
-    for (const track of group) {
-      if (seen.has(track.id)) continue;
+    const uniqueGroup = group.filter((track) => {
+      if (seen.has(track.id)) return false;
       seen.add(track.id);
+      return true;
+    });
+    uniqueGroup.sort(compareIndexedTracks);
+    const totalPages = Math.max(1, Math.ceil(uniqueGroup.length / 100));
+    uniqueGroup.forEach((track, index) => {
+      pageByTrackId.set(track.id, {
+        page: Math.floor(index / 100) + 1,
+        totalPages,
+      });
       tracks.push(track);
-    }
+    });
   }
 
-  return { tracks, folderHits: styleIndex.folderHits };
+  tracks.sort(compareIndexedTracks);
+
+  return { tracks, folderHits: styleIndex.folderHits, pageByTrackId };
 }
 
 async function getTrackCatalogIndex(maxMonths: number, maxDays: number): Promise<TrackCatalogIndex> {
@@ -483,7 +526,10 @@ async function getTrackCatalogIndex(maxMonths: number, maxDays: number): Promise
   return promise;
 }
 
-function indexedToHit(track: IndexedAudio): VipMusicSearchHit {
+function indexedToHit(
+  track: IndexedAudio,
+  pageInfo?: { page: number; totalPages: number },
+): VipMusicSearchHit {
   const meta = parseTrackMeta(track.fileName);
   const display = getTrackDisplayMetadata({
     fileName: track.fileName,
@@ -497,7 +543,10 @@ function indexedToHit(track: IndexedAudio): VipMusicSearchHit {
     monthSlug: track.monthSlug,
     weekSlug: track.weekSlug,
     styleSlug: slugifyFolderName(track.styleName),
+    poolSlug: track.poolSlug,
     styleFolderId: track.styleFolderId,
+    page: pageInfo?.page,
+    totalPages: pageInfo?.totalPages,
     fileName: track.fileName,
     title: display.title,
     artist: display.artist,
@@ -511,6 +560,7 @@ function matchIndexedTracks(
   tracks: IndexedAudio[],
   query: string,
   limit: number,
+  pageByTrackId: Map<string, { page: number; totalPages: number }>,
   skip?: Set<string>,
 ): VipMusicSearchHit[] {
   if (limit <= 0) return [];
@@ -518,7 +568,7 @@ function matchIndexedTracks(
   for (const track of tracks) {
     if (skip?.has(track.id)) continue;
     if (!matches(track.haystack, query)) continue;
-    hits.push(indexedToHit(track));
+    hits.push(indexedToHit(track, pageByTrackId.get(track.id)));
     if (hits.length >= limit) break;
   }
   return hits;
@@ -538,9 +588,9 @@ export async function searchVipMusic(
 
   const max = Math.min(Math.max(limit, 1), 60);
   const tracksOnly = Boolean(options?.tracksOnly);
-  const recentMonths = options?.recentMonths ?? DEFAULT_RECENT_MONTHS;
-  const recentDays = options?.recentDays ?? DEFAULT_RECENT_DAYS;
-  const cacheKey = `${tracksOnly ? "t" : "a"}:${recentMonths}:${recentDays}:${max}:${normalize(q)}`;
+  const recentMonths = options?.recentMonths ?? Number.POSITIVE_INFINITY;
+  const recentDays = options?.recentDays ?? Number.POSITIVE_INFINITY;
+  const cacheKey = `${tracksOnly ? "t" : "a"}:all:${max}:${normalize(q)}`;
   const cached = queryCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.results;
@@ -551,29 +601,8 @@ export async function searchVipMusic(
     ? []
     : catalog.folderHits.filter((hit) => matches(hit.label, q) || matches(hit.path, q)).slice(0, max);
 
-  let trackHits = matchIndexedTracks(catalog.tracks, q, max);
+  let trackHits = matchIndexedTracks(catalog.tracks, q, max, catalog.pageByTrackId);
 
-  // Amplia a janela só quando a busca recente veio vazia — expandir custa varias pastas no Drive.
-  if (
-    trackHits.length === 0 &&
-    (recentMonths < EXPAND_RECENT_MONTHS || recentDays < EXPAND_RECENT_DAYS)
-  ) {
-    const expanded = await getTrackCatalogIndex(EXPAND_RECENT_MONTHS, EXPAND_RECENT_DAYS);
-    const seenIds = new Set(trackHits.map((hit) => hit.id));
-    for (const hit of matchIndexedTracks(expanded.tracks, q, max - trackHits.length, seenIds)) {
-      seenIds.add(hit.id);
-      trackHits.push(hit);
-      if (trackHits.length >= max) break;
-    }
-    if (!tracksOnly) {
-      for (const hit of expanded.folderHits) {
-        if (folderHits.length >= max) break;
-        if (!(matches(hit.label, q) || matches(hit.path, q))) continue;
-        if (folderHits.some((existing) => existing.id === hit.id)) continue;
-        folderHits.push(hit);
-      }
-    }
-  }
 
   const results = tracksOnly
     ? trackHits.slice(0, max)
