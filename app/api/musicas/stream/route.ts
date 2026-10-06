@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../../lib/drive-audio-stream";
 import { resolveVipMusicStreamAccess } from "../../../lib/vip-music-access";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../lib/site";
+import { isVipDriveTrackFile } from "../../../lib/vip-drive-view";
 
 export async function POST(request: Request) {
   const access = await resolveVipMusicStreamAccess();
@@ -19,6 +21,10 @@ export async function POST(request: Request) {
 
   if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
+
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS && !(await isVipDriveTrackFile(id))) {
+    return NextResponse.json({ error: "Faixa não encontrada no acervo VIP." }, { status: 404 });
   }
 
   try {

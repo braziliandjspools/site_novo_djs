@@ -1,14 +1,17 @@
 import { getGoogleDriveAccessToken } from "./google-drive-auth";
 import { isGmailAccount, verifyVipDriveFile, type DriveMetadata } from "./vip-drive-view-policy";
-import { GOOGLE_DRIVE_API_KEY, GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
+import { GOOGLE_DRIVE_API_KEY, GOOGLE_DRIVE_PRIVATE_ACCESS, GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID } from "./site";
 import { isDownloaderPlanExpired } from "./plan-billing";
 import { requireVipMusicAccess } from "./vip-music-access";
 
 async function getMetadata(fileId: string): Promise<DriveMetadata | null> {
   const token = await getGoogleDriveAccessToken();
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS && !token) {
+    throw new Error("OAuth privado do Google Drive não está configurado no servidor.");
+  }
   if (!token && !GOOGLE_DRIVE_API_KEY) throw new Error("Drive metadata access unavailable");
   const params = new URLSearchParams({ fields: "id,name,mimeType,parents,trashed", supportsAllDrives: "true" });
-  if (!token) params.set("key", GOOGLE_DRIVE_API_KEY);
+  if (!token && !GOOGLE_DRIVE_PRIVATE_ACCESS) params.set("key", GOOGLE_DRIVE_API_KEY);
   const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${params}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     cache: "no-store",
@@ -16,6 +19,16 @@ async function getMetadata(fileId: string): Promise<DriveMetadata | null> {
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Drive metadata request failed: ${response.status}`);
   return (await response.json()) as DriveMetadata;
+}
+
+/** Confirm a media ID belongs to the configured VIP Drive root before private OAuth streams it. */
+export async function isVipDriveTrackFile(fileId: string): Promise<boolean> {
+  if (!/^[a-zA-Z0-9_-]+$/.test(fileId) || !GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID) return false;
+  try {
+    return Boolean(await verifyVipDriveFile(fileId, GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID, getMetadata));
+  } catch {
+    return false;
+  }
 }
 
 /** Verify the file and its ancestry server side; a client supplied ID is never authority. */

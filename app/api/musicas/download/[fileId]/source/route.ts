@@ -3,6 +3,8 @@ import { getAudioSourceUrl } from "../../../../../lib/google-drive";
 import { getDriveUserContentDownloadUrl } from "../../../../../lib/drive-audio-stream";
 import { requireVipMusicAccess } from "../../../../../lib/vip-music-access";
 import { getSendNowDirectUrl, isSendNowFileId, sendNowFileCode } from "../../../../../lib/send-now";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../../../lib/site";
+import { isVipDriveTrackFile } from "../../../../../lib/vip-drive-view";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +41,23 @@ export async function GET(request: Request, context: RouteContext) {
     }
   }
 
-  const url = isDownloader
-    ? getAudioSourceUrl(fileId)
-    : getDriveUserContentDownloadUrl(fileId);
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS && !(await isVipDriveTrackFile(fileId))) {
+    return NextResponse.json({ error: "Faixa não encontrada no acervo VIP." }, { status: 404 });
+  }
+
+  let url: string;
+  if (!GOOGLE_DRIVE_PRIVATE_ACCESS) {
+    url = isDownloader ? getAudioSourceUrl(fileId) : getDriveUserContentDownloadUrl(fileId);
+  } else if (isDownloader) {
+    const requestUrl = new URL(request.url);
+    const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+    const accessToken = requestUrl.searchParams.get("access_token")?.trim() || bearer;
+    const streamUrl = new URL(`/api/downloader/stream/${encodeURIComponent(fileId)}`, request.url);
+    if (accessToken) streamUrl.searchParams.set("access_token", accessToken);
+    url = streamUrl.toString();
+  } else {
+    url = new URL(`/api/musicas/drive/${encodeURIComponent(fileId)}`, request.url).toString();
+  }
 
   return NextResponse.json({
     ok: true,

@@ -6,6 +6,9 @@ import { findUserById, userHasPools } from "../../../../lib/portal-users";
 import { getAuthenticatedPortalUser, parsePortalToken } from "../../../../lib/portal";
 import { isDownloaderPlanExpired } from "../../../../lib/plan-billing";
 import { getSendNowDirectUrl, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
+import { isPublishedBrsProductionDriveFile } from "../../../../lib/downloader-music-search";
+import { isVipDriveTrackFile } from "../../../../lib/vip-drive-view";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../../lib/site";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -67,6 +70,14 @@ export async function GET(request: Request, context: RouteContext) {
       const message = error instanceof Error ? error.message : "Falha no send.now.";
       return withDownloaderCorsJson(request, { error: message }, { status: 502 });
     }
+  }
+
+  if (
+    GOOGLE_DRIVE_PRIVATE_ACCESS &&
+    !(await isVipDriveTrackFile(fileId)) &&
+    !(await isPublishedBrsProductionDriveFile(fileId))
+  ) {
+    return withDownloaderCorsJson(request, { error: "Faixa não encontrada no catálogo autorizado." }, { status: 404 });
   }
 
   try {

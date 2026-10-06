@@ -4,6 +4,7 @@ import {
   GOOGLE_DRIVE_MUSIC_PRODUCER_DELIVERIES_FOLDER_ID,
   GOOGLE_DRIVE_MUSIC_PRODUCER_FOLDER_ID,
   GOOGLE_DRIVE_PREVIEW_FOLDER_ID,
+  GOOGLE_DRIVE_PRIVATE_ACCESS,
 } from "./site";
 import { resolveMusicProducerStory } from "./music-producer-stories";
 import { getGoogleDriveAccessToken } from "./google-drive-auth";
@@ -321,10 +322,18 @@ function toPreviewTrack(file: DriveFile, packName: string): PreviewTrack {
   };
 }
 
-async function listChildrenViaApi(folderId: string, apiKey?: string): Promise<DriveFile[]> {
+async function listChildrenViaApi(
+  folderId: string,
+  apiKey?: string,
+  options?: { requireOAuth?: boolean },
+): Promise<DriveFile[]> {
   const files: DriveFile[] = [];
   let pageToken: string | undefined;
   const oauthToken = await getGoogleDriveAccessToken();
+
+  if (options?.requireOAuth && !oauthToken) {
+    throw new Error("Google Drive privado exige OAuth do servidor (GOOGLE_DRIVE_OAUTH_*).");
+  }
 
   if (!apiKey && !oauthToken) {
     throw new Error("Google Drive API sem credenciais");
@@ -340,7 +349,7 @@ async function listChildrenViaApi(folderId: string, apiKey?: string): Promise<Dr
       supportsAllDrives: "true",
     });
     if (pageToken) params.set("pageToken", pageToken);
-    if (apiKey) params.set("key", apiKey);
+    if (apiKey && !options?.requireOAuth) params.set("key", apiKey);
 
     const headers: HeadersInit = oauthToken
       ? { Authorization: `Bearer ${oauthToken}` }
@@ -917,6 +926,11 @@ async function listDriveFolderChildrenUncached(
   folderId: string,
   enrichTimes: boolean,
 ): Promise<DriveFile[]> {
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS) {
+    // Never fall back to public HTML or API-key access for private Drive content.
+    return listChildrenViaApi(folderId, undefined, { requireOAuth: true });
+  }
+
   try {
     const viaApi = await listChildrenViaApi(
       folderId,
@@ -963,6 +977,27 @@ export function getAudioSourceUrl(fileId: string): string {
 }
 
 export async function getDriveFileName(fileId: string): Promise<string | null> {
-  if (!GOOGLE_DRIVE_API_KEY) return null;
-  return fetchDriveFileName(fileId, GOOGLE_DRIVE_API_KEY);
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS) {
+    const token = await getGoogleDriveAccessToken();
+    if (!token) return null;
+    const params = new URLSearchParams({ fields: "name", supportsAllDrives: "true" });
+    const res = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${params}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { name?: string };
+    return data.name ? sanitizeDriveFilename(data.name) : null;
+  }
+  if (GOOGLE_DRIVE_API_KEY) return fetchDriveFileName(fileId, GOOGLE_DRIVE_API_KEY);
+  const token = await getGoogleDriveAccessToken();
+  if (!token) return null;
+  const params = new URLSearchParams({ fields: "name", supportsAllDrives: "true" });
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${params}`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+  );
+  if (!res.ok) return null;
+  const data = (await res.json()) as { name?: string };
+  return data.name ? sanitizeDriveFilename(data.name) : null;
 }

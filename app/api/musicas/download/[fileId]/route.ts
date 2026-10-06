@@ -14,9 +14,11 @@ import {
 import { requireVipMusicAccess } from "../../../../lib/vip-music-access";
 import { fetchSendNowAudio, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
 import { decodeR2AudioFileId, isR2AudioFileId, readR2Audio } from "../../../../lib/music-studio/storage";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../../lib/site";
+import { isVipDriveTrackFile } from "../../../../lib/vip-drive-view";
 
 export const dynamic = "force-dynamic";
-/** Streams longos no Dokploy/Node — só no modo ?proxy=1. */
+/** Long downloads stream through Node when forced or when Drive is private. */
 export const maxDuration = 300;
 
 type RouteContext = {
@@ -92,7 +94,11 @@ export async function GET(request: Request, context: RouteContext) {
     }
   }
 
-  const forceProxy = searchParams.get("proxy") === "1";
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS && !(await isVipDriveTrackFile(fileId))) {
+    return NextResponse.json({ error: "Faixa não encontrada no acervo VIP." }, { status: 404 });
+  }
+
+  const forceProxy = GOOGLE_DRIVE_PRIVATE_ACCESS || searchParams.get("proxy") === "1";
   const quotaBlocked = forceProxy ? false : await publicDriveDownloadNeedsOwnerProxy(fileId);
 
   if (!forceProxy && !quotaBlocked) {

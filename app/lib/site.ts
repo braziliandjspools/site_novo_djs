@@ -21,6 +21,11 @@ export const GOOGLE_DRIVE_PREVIEW_FOLDER_ID = parseDriveFolderId(
 /** Opcional: acelera listagem e streaming. Sem chave, usa leitura da pasta pública. */
 export const GOOGLE_DRIVE_API_KEY = process.env.GOOGLE_DRIVE_API_KEY ?? "";
 
+/** Require server-side OAuth and disable public Drive fallbacks for VIP content. */
+export const GOOGLE_DRIVE_PRIVATE_ACCESS = /^(1|true|yes)$/i.test(
+  process.env.GOOGLE_DRIVE_PRIVATE_ACCESS?.trim() ?? "",
+);
+
 /**
  * Pasta pública do Google Drive com demos de produção musical (/musicproducer).
  * Subpastas = categorias; cada .mp3 pode ter um .txt com a mesma base para a história.

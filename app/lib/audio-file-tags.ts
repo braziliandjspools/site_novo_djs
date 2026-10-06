@@ -1,5 +1,5 @@
 import { parseBuffer } from "music-metadata";
-import { GOOGLE_DRIVE_API_KEY } from "./site";
+import { GOOGLE_DRIVE_API_KEY, GOOGLE_DRIVE_PRIVATE_ACCESS } from "./site";
 import type { PreviewTrack } from "./google-drive";
 import { getAudioSourceUrl } from "./google-drive";
 import { getGoogleDriveAccessToken, googleDriveMediaUrl } from "./google-drive-auth";
@@ -87,7 +87,7 @@ async function loadDriveAudioMeta(
   };
 
   const driveAccessToken = await getGoogleDriveAccessToken().catch(() => null);
-  if (!driveAccessToken && !GOOGLE_DRIVE_API_KEY) {
+  if (!driveAccessToken && (GOOGLE_DRIVE_PRIVATE_ACCESS || !GOOGLE_DRIVE_API_KEY)) {
     metaCache.set(key, miss);
     return miss;
   }
@@ -99,7 +99,7 @@ async function loadDriveAudioMeta(
         Range: `bytes=0-${TAG_HEAD_BYTES - 1}`,
         ...(driveAccessToken ? { Authorization: `Bearer ${driveAccessToken}` } : {}),
       },
-      next: { revalidate: 3600 },
+      ...(GOOGLE_DRIVE_PRIVATE_ACCESS ? { cache: "no-store" as const } : { next: { revalidate: 3600 } }),
     });
 
     if (!res.ok && res.status !== 206) {

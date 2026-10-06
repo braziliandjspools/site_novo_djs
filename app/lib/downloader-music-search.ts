@@ -28,6 +28,22 @@ export type DownloaderSearchTrack = {
   downloadAvailable: boolean;
 };
 
+/** Only published BRS productions may stream outside the VIP Drive tree. */
+export async function isPublishedBrsProductionDriveFile(fileId: string): Promise<boolean> {
+  try {
+    const production = await prisma.brsProduction.findFirst({
+      where: {
+        isPublished: true,
+        OR: [{ audioFileId: fileId }, { downloadFileId: fileId }],
+      },
+      select: { id: true },
+    });
+    return Boolean(production);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Pastas de dia (ex.: 25-set-2026 / 25-09-2026) abrem a tabela de faixas no site.
  * Não dá para anexar /pop ou /pool depois — esses níveis não existem na URL.

@@ -4,7 +4,7 @@ import {
   googleDriveMediaUrl,
   hasGoogleDriveOAuth,
 } from "./google-drive-auth";
-import { GOOGLE_DRIVE_API_KEY } from "./site";
+import { GOOGLE_DRIVE_API_KEY, GOOGLE_DRIVE_PRIVATE_ACCESS } from "./site";
 
 const DRIVE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -168,6 +168,42 @@ export async function fetchDriveAudioUpstream(
 ): Promise<DriveAudioUpstreamOk | DriveAudioUpstreamError> {
   const baseHeaders = buildRangeHeaders(request, options?.previewMaxBytes);
   let sawQuota = false;
+
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS) {
+    const token = await getGoogleDriveAccessToken();
+    if (!token) {
+      return {
+        error: "Acesso privado ao Google Drive não está configurado no servidor.",
+        status: 503,
+        code: "unavailable",
+      };
+    }
+
+    const { response, quota } = await tryFetchAudio(googleDriveMediaUrl(fileId), {
+      ...baseHeaders,
+      Authorization: `Bearer ${token}`,
+    });
+    if (isUsableAudioResponse(response)) {
+      return {
+        body: response.body!,
+        status: response.status,
+        contentType: response.headers.get("Content-Type") || "application/octet-stream",
+        contentLength: response.headers.get("Content-Length"),
+        contentRange: response.headers.get("Content-Range"),
+        acceptRanges: response.headers.get("Accept-Ranges"),
+      };
+    }
+    if (quota) {
+      return { error: "Cota de acesso do Google Drive excedida. Tente novamente mais tarde.", status: 429, code: "quota" };
+    }
+    return {
+      error: response.status === 403 || response.status === 404
+        ? "A conta Google autorizada pelo site não tem acesso a este arquivo. Confira o compartilhamento da pasta raiz."
+        : "Não foi possível acessar o arquivo privado no Google Drive.",
+      status: response.status === 404 ? 404 : response.status === 403 ? 403 : 502,
+      code: response.status === 403 ? "forbidden" : "unavailable",
+    };
+  }
 
   // 1) OAuth do dono (bypass da cota pública de download)
   if (hasGoogleDriveOAuth()) {

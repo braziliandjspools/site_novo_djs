@@ -3,6 +3,8 @@ import { driveAudioResponseHeaders, fetchDriveAudioUpstream } from "../../../../
 import { resolveVipMusicStreamAccess } from "../../../../lib/vip-music-access";
 import { fetchSendNowAudio, isSendNowFileId, sendNowFileCode } from "../../../../lib/send-now";
 import { decodeR2AudioFileId, isR2AudioFileId, readR2Audio } from "../../../../lib/music-studio/storage";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../../lib/site";
+import { isVipDriveTrackFile } from "../../../../lib/vip-drive-view";
 
 export const dynamic = "force-dynamic";
 /** Streams longos no Dokploy/Node (faixas VIP). */
@@ -59,6 +61,10 @@ export async function GET(request: Request, context: RouteContext) {
       const message = error instanceof Error ? error.message : "Falha no send.now.";
       return NextResponse.json({ error: message }, { status: 502 });
     }
+  }
+
+  if (GOOGLE_DRIVE_PRIVATE_ACCESS && !(await isVipDriveTrackFile(fileId))) {
+    return NextResponse.json({ error: "Faixa não encontrada no acervo VIP." }, { status: 404 });
   }
 
   try {

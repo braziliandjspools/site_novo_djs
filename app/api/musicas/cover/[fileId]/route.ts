@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAudioSourceUrl, getDriveFileName } from "../../../../lib/google-drive";
+import { fetchDriveAudioUpstream } from "../../../../lib/drive-audio-stream";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../../lib/site";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -25,6 +27,24 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   try {
+    if (GOOGLE_DRIVE_PRIVATE_ACCESS) {
+      const upstream = await fetchDriveAudioUpstream(fileId);
+      if ("error" in upstream) {
+        return NextResponse.json({ error: upstream.error }, { status: upstream.status, headers: { "Cache-Control": "private, no-store" } });
+      }
+      if (!upstream.contentType.toLowerCase().startsWith("image/")) {
+        await upstream.body.cancel();
+        return NextResponse.json({ error: "O arquivo não é uma imagem." }, { status: 415, headers: { "Cache-Control": "private, no-store" } });
+      }
+      const headers = new Headers({
+        "Content-Type": upstream.contentType,
+        "Cache-Control": "private, no-store, max-age=0",
+        "X-Content-Type-Options": "nosniff",
+      });
+      if (upstream.contentLength) headers.set("Content-Length", upstream.contentLength);
+      return new NextResponse(upstream.body, { status: upstream.status, headers });
+    }
+
     const driveName = await getDriveFileName(fileId);
     const filename = driveName ?? "folder.jpg";
 

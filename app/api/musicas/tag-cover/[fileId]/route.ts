@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readDriveAudioCover } from "../../../../lib/audio-file-tags";
 import { PLACEHOLDER } from "../../../../lib/theme";
+import { GOOGLE_DRIVE_PRIVATE_ACCESS } from "../../../../lib/site";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -29,7 +30,12 @@ export async function GET(request: Request, context: RouteContext) {
 
     const headers = new Headers();
     headers.set("Content-Type", cover.contentType);
-    headers.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+    headers.set(
+      "Cache-Control",
+      GOOGLE_DRIVE_PRIVATE_ACCESS
+        ? "private, no-store, max-age=0"
+        : "public, max-age=3600, stale-while-revalidate=86400",
+    );
     headers.set("Content-Length", String(cover.data.byteLength));
 
     return new NextResponse(new Uint8Array(cover.data), { status: 200, headers });
