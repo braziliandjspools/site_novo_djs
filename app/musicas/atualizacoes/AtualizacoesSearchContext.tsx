@@ -16,6 +16,7 @@ import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 type AtualizacoesSearchContextValue = {
   query: string;
   setQuery: (value: string) => void;
+  submitSearch: () => void;
   clearQuery: () => void;
   results: VipMusicSearchHit[];
   loading: boolean;
@@ -78,16 +79,16 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
+  const urlQuery = searchParams.get("busca") ?? searchParams.get("q") ?? "";
 
   const [query, setQueryState] = useState(urlQuery);
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [results, setResults] = useState<VipMusicSearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
-  const urlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParamsRef = useRef(searchParams);
   const routerReadyRef = useRef(false);
   searchParamsRef.current = searchParams;
@@ -96,48 +97,30 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
     routerReadyRef.current = true;
   }, []);
 
-  // Só sincroniza do URL → estado quando a URL muda por navegação externa (não a cada tecla).
+  // A URL preenche o campo, mas nunca dispara uma busca sozinha.
   useEffect(() => {
     setQueryState((prev) => (prev === urlQuery ? prev : urlQuery));
   }, [urlQuery]);
 
-  const syncUrl = useCallback(
-    (nextQuery: string) => {
-      if (!routerReadyRef.current) return;
-      const params = new URLSearchParams(searchParamsRef.current.toString());
-      const trimmed = nextQuery.trim();
-      if (trimmed.length >= 2) {
-        params.set("q", trimmed);
-      } else {
-        params.delete("q");
-        params.delete("estilo");
-        params.delete("faixa");
-      }
-      const qs = params.toString();
-      const next = qs ? `${pathname}?${qs}` : pathname;
-      router.replace(next, { scroll: false });
-    },
-    [pathname, router],
-  );
-
-  const setQuery = useCallback(
-    (value: string) => {
-      setQueryState(value);
-      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
-      urlTimerRef.current = setTimeout(() => syncUrl(value), URL_DEBOUNCE_MS);
-    },
-    [syncUrl],
-  );
+  const setQuery = useCallback((value: string) => {
+    setQueryState(value);
+    setSubmittedQuery("");
+    setResults([]);
+    setError(null);
+  }, []);
 
   const clearQuery = useCallback(() => {
-    if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
     abortRef.current?.abort();
+    requestIdRef.current += 1;
     setQueryState("");
+    setSubmittedQuery("");
     setResults([]);
     setError(null);
     setLoading(false);
+
     if (!routerReadyRef.current) return;
     const params = new URLSearchParams(searchParamsRef.current.toString());
+    params.delete("busca");
     params.delete("q");
     params.delete("estilo");
     params.delete("faixa");
@@ -145,65 +128,69 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [pathname, router]);
 
-  useEffect(() => {
+  const submitSearch = useCallback(() => {
     const q = query.trim();
+
     if (q.length < 2) {
-      abortRef.current?.abort();
+      setSubmittedQuery("");
       setResults([]);
-      setLoading(false);
-      setError(null);
+      setError("Digite pelo menos 2 caracteres para pesquisar.");
       return;
     }
 
-    setLoading(true);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const requestId = ++requestIdRef.current;
+
+    setSubmittedQuery(q);
+    setResults([]);
     setError(null);
+    setLoading(true);
 
-    const timer = setTimeout(() => {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-      const requestId = ++requestIdRef.current;
+    if (routerReadyRef.current) {
+      const params = new URLSearchParams(searchParamsRef.current.toString());
+      params.set("busca", q);
+      params.delete("q");
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }
 
-      void fetch(`/api/musicas/search?q=${encodeURIComponent(q)}`, {
-        cache: "no-store",
-        signal: controller.signal,
+    void fetch(`/api/musicas/search?q=${encodeURIComponent(q)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        const data = await parseSearchResponse(res);
+        if (!res.ok) throw new Error(data.error ?? "Busca indisponível.");
+        if (requestId !== requestIdRef.current) return;
+        setResults(data.results ?? []);
+        setError(null);
       })
-        .then(async (res) => {
-          const data = await parseSearchResponse(res);
-          if (!res.ok) throw new Error(data.error ?? "Busca indisponível.");
-          if (requestId !== requestIdRef.current) return;
-          setResults(data.results ?? []);
-          setError(null);
-        })
-        .catch((err: unknown) => {
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          if (requestId !== requestIdRef.current) return;
-          const message = err instanceof Error ? err.message : "Busca indisponível.";
-          setError(message);
-          setResults([]);
-        })
-        .finally(() => {
-          if (requestId === requestIdRef.current) setLoading(false);
-        });
-    }, FETCH_DEBOUNCE_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [query]);
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (requestId !== requestIdRef.current) return;
+        const message = err instanceof Error ? err.message : "Busca indisponível.";
+        setError(message);
+        setResults([]);
+      })
+      .finally(() => {
+        if (requestId === requestIdRef.current) setLoading(false);
+      });
+  }, [pathname, query, router]);
 
   useEffect(() => {
     return () => {
-      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
       abortRef.current?.abort();
     };
   }, []);
 
   const navigateToHit = useCallback(
     (hit: VipMusicSearchHit) => {
-      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
       abortRef.current?.abort();
+      requestIdRef.current += 1;
       setQueryState("");
+      setSubmittedQuery("");
       setResults([]);
       setError(null);
       setLoading(false);
@@ -228,16 +215,29 @@ export function AtualizacoesSearchProvider({ children }: { children: React.React
     () => ({
       query,
       setQuery,
+      submitSearch,
       clearQuery,
       results,
       loading,
       error,
-      isActive: query.trim().length >= 2,
+      isActive: submittedQuery.length >= 2,
       navigateToHit,
       hitsForMonth,
       monthSlugsFromResults,
     }),
-    [query, setQuery, clearQuery, results, loading, error, navigateToHit, hitsForMonth, monthSlugsFromResults],
+    [
+      query,
+      setQuery,
+      submitSearch,
+      clearQuery,
+      results,
+      loading,
+      error,
+      submittedQuery,
+      navigateToHit,
+      hitsForMonth,
+      monthSlugsFromResults,
+    ],
   );
 
   return <AtualizacoesSearchContext.Provider value={value}>{children}</AtualizacoesSearchContext.Provider>;
