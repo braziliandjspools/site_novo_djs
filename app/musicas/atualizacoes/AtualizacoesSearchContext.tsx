@@ -29,8 +29,6 @@ type AtualizacoesSearchContextValue = {
 
 const AtualizacoesSearchContext = createContext<AtualizacoesSearchContextValue | null>(null);
 
-const FETCH_DEBOUNCE_MS = 160;
-const URL_DEBOUNCE_MS = 450;
 
 export function hitHref(hit: VipMusicSearchHit, query?: string) {
   const segments = [hit.monthSlug];
