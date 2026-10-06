@@ -57,13 +57,11 @@ function AcervoCard({
   isNew,
   index,
   view,
-  featured = false,
 }: {
   folder: VipMusicFolder | VipMusicCatalogItem;
   isNew: boolean;
   index: number;
   view: "grid" | "list";
-  featured?: boolean;
 }) {
   const catalog = folder as VipMusicCatalogItem;
   const slug = slugifyFolderName(folder.name);
@@ -86,7 +84,7 @@ function AcervoCard({
       className={`group/acervo min-w-0 overflow-hidden rounded-2xl border bg-[#0c0c0c] transition duration-300 ${
         view === "list"
           ? "flex items-center gap-3 border-white/10 p-2.5 hover:border-[#60cdff]/40 hover:bg-[#101418] sm:gap-5 sm:p-3"
-          : `relative aspect-square border-white/[0.08] hover:-translate-y-1 hover:border-[#60cdff]/45 hover:shadow-[0_18px_40px_-22px_rgba(96,205,255,0.45)] sm:aspect-auto sm:flex sm:flex-col ${featured ? "sm:w-[20rem]" : ""}`
+          : "flex flex-col border-white/[0.08] hover:-translate-y-1 hover:border-[#60cdff]/45 hover:shadow-[0_18px_40px_-22px_rgba(96,205,255,0.45)]"
       }`}
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
     >
@@ -97,7 +95,7 @@ function AcervoCard({
         onFocus={prefetch}
         aria-label={`Abrir acervo ${title}`}
         className={`relative block shrink-0 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[#60cdff] ${
-          view === "list" ? "h-20 w-20 rounded-xl sm:h-24 sm:w-24" : "absolute inset-0 h-full w-full sm:relative sm:aspect-square sm:h-auto sm:w-full"
+          view === "list" ? "h-20 w-20 rounded-xl sm:h-24 sm:w-24" : "aspect-[4/3] w-full"
         }`}
       >
         {cover ? (
@@ -128,31 +126,31 @@ function AcervoCard({
           </span>
         ) : null}
         <span
-          className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-black shadow-[0_8px_20px_rgba(96,205,255,0.4)] transition sm:h-9 sm:w-9 sm:opacity-0 sm:group-hover/acervo:opacity-100"
+          className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-black opacity-0 shadow-[0_8px_20px_rgba(96,205,255,0.4)] transition group-hover/acervo:opacity-100 sm:h-9 sm:w-9"
           aria-hidden
         >
           <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
         </span>
       </Link>
-      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "absolute inset-x-0 bottom-0 z-10 flex flex-col bg-gradient-to-t from-black via-black/90 to-transparent px-2.5 pb-2.5 pt-8 sm:static sm:flex sm:flex-1 sm:bg-none sm:px-3.5 sm:pb-3.5 sm:pt-3"}`}>
-        <p className="mb-0.5 truncate text-[8px] font-extrabold uppercase tracking-[0.16em] text-[#8ad4ff] sm:mb-1 sm:text-[9px] sm:tracking-[0.18em] sm:text-[#60cdff]/80">
+      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-col px-3 pb-3 pt-2.5 sm:px-3.5 sm:pb-3.5 sm:pt-3"}`}>
+        <p className="mb-1 truncate text-[9px] font-extrabold uppercase tracking-[0.16em] text-[#60cdff]/80">
           {statusLabel || (isNew ? "Adicionado recentemente" : "Catálogo BRS")}
         </p>
         <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="outline-none focus-visible:text-[#60cdff]">
-          <h3 className="line-clamp-2 text-[12px] font-extrabold leading-tight text-white transition group-hover/acervo:text-[#8ad4ff] sm:text-[15px] sm:leading-snug">
+          <h3 className="line-clamp-2 text-[13px] font-extrabold leading-snug text-white transition group-hover/acervo:text-[#8ad4ff] sm:text-[15px]">
             {title}
           </h3>
         </Link>
-        <div className={`flex flex-wrap items-center gap-1 text-[9px] text-zinc-300 sm:gap-1.5 sm:text-[11px] sm:text-zinc-400 ${view === "list" ? "mt-2" : "mt-1.5 sm:mt-auto sm:pt-3"}`}>
+        <div className={`flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-400 sm:text-[11px] ${view === "list" ? "mt-2" : "mt-2"}`}>
           {hasFolderStats ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/45 px-1.5 py-0.5 backdrop-blur sm:bg-white/[0.04] sm:px-2">
-              <FolderOpen className="h-3 w-3 text-[#60cdff]/80 sm:h-3.5 sm:w-3.5" />
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
+              <FolderOpen className="h-3.5 w-3.5 text-[#60cdff]/80" />
               {folderCount!.toLocaleString("pt-BR")} pastas
             </span>
           ) : null}
           {hasTrackStats ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/45 px-1.5 py-0.5 backdrop-blur sm:bg-white/[0.04] sm:px-2">
-              <Music2 className="h-3 w-3 text-[#60cdff]/80 sm:h-3.5 sm:w-3.5" />
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
+              <Music2 className="h-3.5 w-3.5 text-[#60cdff]/80" />
               {trackCount!.toLocaleString("pt-BR")} faixas
             </span>
           ) : null}
@@ -356,7 +354,7 @@ export function AtualizacoesRootClient() {
           <div className={
             catalogView === "list"
               ? "grid grid-cols-1 gap-3 md:grid-cols-2"
-              : "grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+              : "grid grid-cols-2 gap-4 min-[480px]:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
           }>
             {visibleFolders.map((folder, index) => (
               <AcervoCard
@@ -365,7 +363,6 @@ export function AtualizacoesRootClient() {
                 isNew={newFolderIds.has(folder.id)}
                 index={index}
                 view={catalogView}
-                featured={catalogView === "grid" && visibleFolders.length <= 4}
               />
             ))}
           </div>
