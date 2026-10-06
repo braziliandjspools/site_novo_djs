@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef } from "react";
 
 const DESKTOP_WINDOW_SIZE = 10;
 const MOBILE_WINDOW_SIZE = 5;
@@ -24,22 +23,14 @@ function pageWindow(current: number, lastPage: number, windowSize: number) {
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
 
-function mobilePageWindow(current: number, lastPage: number, previousPage: number) {
+function mobilePageWindow(current: number, lastPage: number) {
   if (lastPage <= MOBILE_WINDOW_SIZE) {
     return pageWindow(current, lastPage, MOBILE_WINDOW_SIZE);
   }
 
-  // Ao chegar à página 5 pela frente, o 01 sai e entra o 06.
-  // Ao voltar de uma página posterior para a 05, o 01 reaparece.
-  if (current === 5 && previousPage > 5) {
-    return [1, 2, 3, 4, 5];
-  }
-
-  if (current <= 4) {
-    return [1, 2, 3, 4, 5];
-  }
-
-  const start = Math.min(current - 3, lastPage - MOBILE_WINDOW_SIZE + 1);
+  // Janela fixa de 5 páginas no mobile:
+  // 01–05, depois 02–06, 03–07, 04–08...
+  const start = current <= 4 ? 1 : current - 3;
   return Array.from({ length: MOBILE_WINDOW_SIZE }, (_, index) => start + index);
 }
 
@@ -56,16 +47,10 @@ export function TrackListPagination({
   loading = false,
   onPageChange,
 }: TrackListPaginationProps) {
-  const previousPageRef = useRef(page);
-  const previousPage = previousPageRef.current;
   const pages = pageWindow(page, pageCount, DESKTOP_WINDOW_SIZE);
-  const mobilePages = mobilePageWindow(page, pageCount, previousPage);
+  const mobilePages = mobilePageWindow(page, Math.max(pageCount, page + MOBILE_WINDOW_SIZE - 1));
   const atStart = page <= 1;
   const atEnd = page >= pageCount;
-
-  useEffect(() => {
-    previousPageRef.current = page;
-  }, [page]);
 
   if (pageCount <= 1) return null;
 
