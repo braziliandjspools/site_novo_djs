@@ -44,6 +44,8 @@ import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
 import { folderHref, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
+import type { VipMusicSearchHit } from "../../lib/vip-music-search";
+import { hitHref } from "../atualizacoes/AtualizacoesSearchContext";
 import { isSendNowFileId } from "../../lib/send-now";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import { TrackListPagination } from "./TrackListPagination";
@@ -1117,6 +1119,10 @@ export function VipMusicTrackList({
   const dayFilterKey = searchParams.get("dia") ?? "";
   const searchQuery = searchParams.get("busca") ?? "";
   const [searchDraft, setSearchDraft] = useState(searchQuery);
+  const [submittedTableSearch, setSubmittedTableSearch] = useState("");
+  const [tableSearchResults, setTableSearchResults] = useState<VipMusicSearchHit[]>([]);
+  const [tableSearchLoading, setTableSearchLoading] = useState(false);
+  const [tableSearchError, setTableSearchError] = useState<string | null>(null);
 
   const writeCatalogQuery = useCallback(
     (next: { pool?: string; style?: string; busca?: string; dia?: string }) => {
@@ -1196,12 +1202,13 @@ export function VipMusicTrackList({
     };
   }, [filterPools, filterStyles, poolFilterSlug, styleFilterSlug, tracks]);
 
-  // Pool e estilo viram slug na URL (?pool=&estilo=), inclusive juntos.
+  // Os filtros de Dia/Pool/Estilo continuam filtrando as faixas carregadas.
+  // A busca textual da tabela só é aplicada depois que o usuário confirma a pesquisa.
   const filteredTracks = useMemo(() => {
     const query = foldSearch(searchDraft.trim());
     return tracks.filter((track) => {
       if (!matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug, dayFilterKey)) return false;
-      if (!query) return true;
+      if (!query || query !== foldSearch(submittedTableSearch)) return true;
       const display = getTrackDisplayMetadata(track);
       const haystack = foldSearch(
         [display.title, display.artist, track.poolName, track.styleName, track.fileName, track.title]
@@ -1210,7 +1217,45 @@ export function VipMusicTrackList({
       );
       return haystack.includes(query);
     });
-  }, [dayFilterKey, poolFilterSlug, searchDraft, styleFilterSlug, tracks]);
+  }, [dayFilterKey, poolFilterSlug, searchDraft, styleFilterSlug, submittedTableSearch, tracks]);
+
+  const submitTableSearch = useCallback(() => {
+    const q = searchDraft.trim();
+    if (q.length < 2) {
+      setSubmittedTableSearch("");
+      setTableSearchResults([]);
+      setTableSearchError("Digite pelo menos 2 caracteres para pesquisar.");
+      return;
+    }
+
+    setTableSearchLoading(true);
+    setTableSearchError(null);
+    setSubmittedTableSearch(q);
+    setTableSearchResults([]);
+
+    void fetch(`/api/musicas/search?q=${encodeURIComponent(q)}`, {
+      cache: "no-store",
+    })
+      .then(async (res) => {
+        const raw = await res.text();
+        let data: { results?: VipMusicSearchHit[]; error?: string } = {};
+        try {
+          data = raw ? (JSON.parse(raw) as { results?: VipMusicSearchHit[]; error?: string }) : {};
+        } catch {
+          throw new Error("Resposta inválida da busca.");
+        }
+        if (!res.ok) throw new Error(data.error ?? "Busca indisponível.");
+        const results = (data.results ?? []).filter((hit) => hit.type === "track");
+        setTableSearchResults(results);
+      })
+      .catch((err: unknown) => {
+        setTableSearchError(err instanceof Error ? err.message : "Busca indisponível.");
+        setTableSearchResults([]);
+      })
+      .finally(() => {
+        setTableSearchLoading(false);
+      });
+  }, [searchDraft]);
 
   const visibleTrackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
@@ -1827,7 +1872,13 @@ export function VipMusicTrackList({
               </div>
             </div>
           ) : null}
-          <label className="relative block">
+          <form
+            className="relative"
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitTableSearch();
+            }}
+          >
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#60cdff]" aria-hidden />
             <input
               type="text"
@@ -1854,9 +1905,60 @@ export function VipMusicTrackList({
                 <X className="h-3.5 w-3.5" />
               </button>
             ) : null}
-          </label>
+            <button
+              type="submit"
+              disabled={tableSearchLoading || searchDraft.trim().length < 2}
+              className="absolute right-2 top-1/2 inline-flex h-8 -translate-y-1/2 items-center gap-1.5 rounded-lg bg-[#60cdff] px-3 text-[10px] font-black uppercase tracking-wider text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {tableSearchLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              Pesquisar
+            </button>
+          </form>
         </div>
       ) : null}
+      {useStreaming && submittedTableSearch ? (
+        <div className="border-b border-white/[0.06] bg-[#151515] px-3 py-3 sm:px-4">
+          {tableSearchLoading ? (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-zinc-400">
+              <Loader2 className="h-4 w-4 animate-spin text-[#60cdff]" />
+              <span>Pesquisando em todo o acervo…</span>
+            </div>
+          ) : tableSearchError ? (
+            <p className="py-4 text-center text-sm text-red-400">{tableSearchError}</p>
+          ) : tableSearchResults.length > 0 ? (
+            <div>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Resultados para “{submittedTableSearch}” · {tableSearchResults.length}
+              </p>
+              <div className="space-y-1">
+                {tableSearchResults.map((hit) => (
+                  <a
+                    key={`table-search-${hit.id}`}
+                    href={hitHref(hit)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-white/[0.05]"
+                  >
+                    <Music2 className="h-4 w-4 flex-shrink-0 text-[#60cdff]" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-white">{hit.label}</span>
+                      <span className="block truncate text-[10px] text-zinc-500">{hit.path}</span>
+                    </span>
+                    {hit.page ? (
+                      <span className="flex-shrink-0 text-[10px] font-semibold text-[#60cdff]">
+                        Página {hit.page}{hit.totalPages ? ` de ${hit.totalPages}` : ""}
+                      </span>
+                    ) : null}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="py-5 text-center text-sm text-zinc-500">
+              Nenhuma música encontrada para “{submittedTableSearch}”.
+            </p>
+          )}
+        </div>
+      ) : null}
+
       {useStreaming && (searchDraft.trim() || poolFilterSlug || styleFilterSlug || dayFilterKey) && filteredTracks.length === 0 ? (
         catalogLoading || loadingMore || pageLoading ? (
           <div className="flex justify-center px-4 py-10">
