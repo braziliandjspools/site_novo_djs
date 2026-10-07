@@ -34,6 +34,7 @@ import { MusicasCenterLoading } from "./MusicasSkeletons";
 import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
+import { OctoberHalloweenPromo } from "./OctoberHalloweenPromo";
 
 type TreeResponse = { folders?: Array<VipMusicFolder | VipMusicCatalogItem>; error?: string };
 
@@ -179,7 +180,6 @@ export function AtualizacoesRootClient() {
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recent, setRecent] = useState<RecentFolder[]>([]);
   const [folderQuery, setFolderQuery] = useState("");
-  const [showOnlyNew, setShowOnlyNew] = useState(false);
   const [catalogView, setCatalogView] = useState<"grid" | "list">("grid");
 
   const loadTree = useCallback(async (forceRefresh = false) => {
@@ -239,10 +239,9 @@ export function AtualizacoesRootClient() {
   );
 
   const visibleFolders = useMemo(() => folders.filter((folder) => {
-    if (showOnlyNew && !newFolderIds.has(folder.id)) return false;
     const query = folderQuery.trim().toLocaleLowerCase("pt-BR");
     return !query || displayFolderName(folder.name).toLocaleLowerCase("pt-BR").includes(query);
-  }), [folders, folderQuery, newFolderIds, showOnlyNew]);
+  }), [folders, folderQuery]);
 
   const trackCount = useMemo(() => {
     const fromTree = folders.reduce((sum, folder) => {
@@ -336,16 +335,16 @@ export function AtualizacoesRootClient() {
               placeholder="Encontre um pack ou acervo..."
               className="w-full rounded-xl border border-white/10 bg-[#080808] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#60cdff]/50 focus:ring-1 focus:ring-[#60cdff]/30" />
           </label>
-          <button type="button" onClick={() => setShowOnlyNew((value) => !value)} aria-pressed={showOnlyNew}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition ${showOnlyNew ? "border-[#60cdff] bg-[#60cdff] text-black" : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-[#60cdff]/40 hover:text-[#8ad4ff]"}`}>
-            <Sparkles className="h-4 w-4" /> Somente novidades
-          </button>
           <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#080808] p-1" aria-label="Visualização do catálogo">
             <button type="button" aria-label="Ver em grade" aria-pressed={catalogView === "grid"} onClick={() => setCatalogView("grid")}
               className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "grid" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><Grid2X2 className="h-4 w-4" /></button>
             <button type="button" aria-label="Ver em lista" aria-pressed={catalogView === "list"} onClick={() => setCatalogView("list")}
               className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "list" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><List className="h-4 w-4" /></button>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <OctoberHalloweenPromo updatesHref="#acervos" />
         </div>
 
         {loading && folders.length === 0 ? (
@@ -367,7 +366,7 @@ export function AtualizacoesRootClient() {
             ))}
           </div>
         )}
-        {!loading && visibleFolders.length === 0 ? <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 text-center text-sm text-zinc-400">Nenhum acervo encontrado com esses filtros.</p> : null}
+        {!loading && visibleFolders.length === 0 ? <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 text-center text-sm text-zinc-400">Nenhum acervo encontrado para essa busca.</p> : null}
       </section>
 
       {continueItem ? (
