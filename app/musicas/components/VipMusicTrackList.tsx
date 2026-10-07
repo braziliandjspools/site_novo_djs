@@ -16,6 +16,7 @@ import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
+  ChevronDown,
   Copy,
   Download,
   ListPlus,
@@ -27,6 +28,7 @@ import {
   Play,
   Search,
   Share2,
+  SlidersHorizontal,
   Square,
   X,
 } from "lucide-react";
@@ -1507,6 +1509,7 @@ export function VipMusicTrackList({
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
   const hasCatalogFilters =
     useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || filterOptions.styles.length > 0);
+  const activeCatalogFilterCount = Number(Boolean(dayFilterKey)) + Number(Boolean(poolFilterSlug)) + Number(Boolean(styleFilterSlug));
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
@@ -1659,91 +1662,113 @@ export function VipMusicTrackList({
         <MusicasTableLoadingOverlay label={`Carregando página ${String(page).padStart(2, "0")}…`} />
       ) : null}
       {useStreaming ? (
-        <div className="space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
+        <div className="w-full min-w-0 space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
           {hasCatalogFilters ? (
-            <div className="rounded-xl border border-[#60cdff]/20 bg-black/40 p-3">
-              <p className="mb-3 text-[11px] leading-relaxed text-white/45">
-                À medida que você navega pelas músicas, novas <span className="font-semibold text-white/65">Pools</span> e <span className="font-semibold text-white/65">Estilos</span> encontrados serão adicionados automaticamente aos filtros.
-              </p>
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#60cdff]">Filtros</p>
-                {poolFilterSlug || styleFilterSlug || dayFilterKey ? (
+            <section className="w-full min-w-0 overflow-hidden rounded-xl border border-[#60cdff]/20 bg-[#111416] shadow-[0_12px_30px_rgba(0,0,0,0.18)]" aria-label="Filtros do acervo">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] bg-gradient-to-r from-[#60cdff]/[0.08] via-transparent to-transparent px-3.5 py-3 sm:px-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#60cdff]/25 bg-[#60cdff]/[0.08] text-[#60cdff]">
+                    <SlidersHorizontal className="h-4 w-4" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-white">Filtrar músicas</p>
+                    <p className="mt-0.5 text-[11px] text-white/45">Combine dia, pool e estilo para refinar o acervo.</p>
+                  </div>
+                </div>
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  {activeCatalogFilterCount > 0 ? (
+                    <span className="border border-[#60cdff]/20 bg-[#60cdff]/[0.07] px-2 py-1 text-[10px] font-semibold text-sky-100">
+                      {activeCatalogFilterCount} {activeCatalogFilterCount === 1 ? "filtro ativo" : "filtros ativos"}
+                    </span>
+                  ) : null}
+                  {activeCatalogFilterCount > 0 ? (
                   <button
                     type="button"
                     onClick={() => writeCatalogQuery({ pool: "", style: "", dia: "" })}
-                    className="text-[11px] font-semibold text-white/50 transition hover:text-white"
+                    className="inline-flex min-h-9 items-center gap-1.5 px-2 text-[11px] font-semibold text-white/55 transition hover:bg-white/[0.06] hover:text-white"
                   >
+                    <X className="h-3.5 w-3.5" aria-hidden />
                     Limpar filtros
                   </button>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid w-full min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
                 {dayOptions.length > 0 ? (
                   <label className="block min-w-0">
-                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
                       Dia
                     </span>
-                    <select
-                      value={dayFilterKey}
-                      onChange={(event) =>
-                        writeCatalogQuery({ dia: event.target.value, pool: "", style: "" })
-                      }
-                      className="h-10 w-full appearance-none rounded-lg border border-white/10 bg-[#171717] px-3 text-sm text-white outline-none focus:border-[#60cdff]/50"
-                    >
-                      <option value="">Mês inteiro</option>
-                      {dayOptions.map((day) => (
-                        <option key={day.key} value={day.key}>
-                          {day.label}
-                        </option>
-                      ))}
-                    </select>
+                    <span className="relative block">
+                      <select
+                        value={dayFilterKey}
+                        onChange={(event) =>
+                          writeCatalogQuery({ dia: event.target.value, pool: "", style: "" })
+                        }
+                        className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
+                      >
+                        <option value="">Mês inteiro</option>
+                        {dayOptions.map((day) => (
+                          <option key={day.key} value={day.key}>
+                            {day.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" aria-hidden />
+                    </span>
                   </label>
                 ) : null}
                 {filterOptions.pools.length > 0 ? (
                   <label className="block min-w-0">
-                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
                       Pool
                     </span>
-                    <select
-                      value={poolFilterSlug}
-                      onChange={(event) =>
-                        writeCatalogQuery({ pool: event.target.value, style: "" })
-                      }
-                      className="h-10 w-full appearance-none rounded-lg border border-white/10 bg-[#171717] px-3 text-sm text-white outline-none focus:border-[#60cdff]/50"
-                    >
-                      <option value="">Todos os pools</option>
-                      {filterOptions.pools.map(([slug, name]) => (
-                        <option key={slug} value={slug}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
+                    <span className="relative block">
+                      <select
+                        value={poolFilterSlug}
+                        onChange={(event) =>
+                          writeCatalogQuery({ pool: event.target.value, style: "" })
+                        }
+                        className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
+                      >
+                        <option value="">Todos os pools</option>
+                        {filterOptions.pools.map(([slug, name]) => (
+                          <option key={slug} value={slug}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" aria-hidden />
+                    </span>
                   </label>
                 ) : null}
                 {filterOptions.styles.length > 0 ? (
                   <label className="block min-w-0">
-                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
                       Estilo
                     </span>
-                    <select
-                      value={styleFilterSlug}
-                      onChange={(event) => writeCatalogQuery({ style: event.target.value })}
-                      className="h-10 w-full appearance-none rounded-lg border border-white/10 bg-[#171717] px-3 text-sm text-white outline-none focus:border-[#60cdff]/50"
-                    >
-                      <option value="">Todos os estilos</option>
-                      {filterOptions.styles.map(([slug, name]) => (
-                        <option key={slug} value={slug}>
-                          {formatStyleNameForDisplay(name)}
-                        </option>
-                      ))}
-                    </select>
+                    <span className="relative block">
+                      <select
+                        value={styleFilterSlug}
+                        onChange={(event) => writeCatalogQuery({ style: event.target.value })}
+                        className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
+                      >
+                        <option value="">Todos os estilos</option>
+                        {filterOptions.styles.map(([slug, name]) => (
+                          <option key={slug} value={slug}>
+                            {formatStyleNameForDisplay(name)}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" aria-hidden />
+                    </span>
                   </label>
                 ) : null}
               </div>
-            </div>
+            </section>
           ) : null}
           <form
-            className="relative"
+            className="relative w-full min-w-0"
             onSubmit={(event) => {
               event.preventDefault();
               submitTableSearch();
