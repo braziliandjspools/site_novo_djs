@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { prisma } from "../../../../../lib/prisma";
-import { SITE_PRODUCTION_URL } from "../../../../../lib/branding";
+import { getPortalSiteBaseUrl } from "../../../../../lib/portal-site-url";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const token = new URL(request.url).searchParams.get("token")?.trim();
-  const base = (process.env.SITE_URL || SITE_PRODUCTION_URL).replace(/\/$/, "");
+  const base = getPortalSiteBaseUrl();
   const accountUrl = `${base}/portal/conta?senha=confirmada`;
 
   if (!token) return NextResponse.redirect(`${base}/portal/conta?senha=token-invalido`);
