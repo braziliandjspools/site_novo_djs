@@ -524,6 +524,9 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     () => resolveAtualizacoesMonthBanner(slugSegments),
     [slugSegments],
   );
+  const isOctober2026Folder =
+    slugSegments.map((part) => decodeURIComponent(part).toLowerCase()).join("/") ===
+    "2026/outubro-2026";
   const showFolderBanner = Boolean(
     showingTracks &&
       data &&
@@ -964,7 +967,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 title={currentTitle}
                 trackCount={directTracks.length}
                 hasMore={tracksHasMore}
-                imageUrl={monthBannerUrl}
+                imageUrl={isOctober2026Folder ? null : monthBannerUrl}
+                belowImageUrl={isOctober2026Folder ? monthBannerUrl : null}
               />
             ) : null}
             {directTracks.length > 0 ? (

@@ -5,6 +5,7 @@ type AtualizacoesFolderBannerProps = {
   trackCount: number;
   hasMore?: boolean;
   imageUrl?: string | null;
+  belowImageUrl?: string | null;
 };
 
 /** Banner full-bleed antes de “Faixas da pasta” nas pastas de mês. */
@@ -13,6 +14,7 @@ export function AtualizacoesFolderBanner({
   trackCount,
   hasMore = false,
   imageUrl,
+  belowImageUrl,
 }: AtualizacoesFolderBannerProps) {
   const countLabel = `${trackCount.toLocaleString("pt-BR")}${hasMore ? "+" : ""} ${
     trackCount === 1 ? "faixa" : "faixas"
@@ -45,6 +47,19 @@ export function AtualizacoesFolderBanner({
         </h2>
         <p className="mt-2 text-sm font-semibold tabular-nums text-white/65 sm:text-base">{countLabel}</p>
       </div>
+      {belowImageUrl?.trim() ? (
+        <div className="relative overflow-hidden border-t border-white/[0.08] bg-[#141414]">
+          <Image
+            src={belowImageUrl.trim()}
+            alt="Banner Brazilian Remix Service"
+            width={1600}
+            height={500}
+            sizes="100vw"
+            unoptimized
+            className="block h-auto w-full object-contain"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

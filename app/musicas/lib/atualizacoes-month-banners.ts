@@ -3,6 +3,8 @@
  * Chaves: path relativo (`2025/janeiro-2025`) e/ou slug do mês (`janeiro-2025`).
  */
 const ATUALIZACOES_MONTH_BANNERS: Record<string, string> = {
+  "2026/outubro-2026":
+    "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/ad9b2b18-0544-44ae-993e-a14228615d7b.png",
   "2025/janeiro-2025":
     "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/b550ccd7-f203-4f50-b0c8-20d19a28bba1.png",
   "janeiro-2025":

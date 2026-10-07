@@ -61,17 +61,6 @@ export function MusicasHubClient() {
             className="h-auto w-full object-cover object-center"
           />
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141414]">
-          <Image
-            src="https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/ad9b2b18-0544-44ae-993e-a14228615d7b.png"
-            alt="Banner Brazilian Remix Service"
-            width={1600}
-            height={500}
-            sizes="100vw"
-            unoptimized
-            className="block h-auto w-full object-contain"
-          />
-        </div>
         <div className="mx-auto mt-6 max-w-3xl">
           <nav aria-label="Seções do acervo" className="flex flex-wrap items-center justify-center gap-3">
             <Link
