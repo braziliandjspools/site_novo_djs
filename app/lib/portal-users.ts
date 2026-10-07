@@ -41,6 +41,7 @@ export type PortalUser = {
   name: string;
   email: string;
   whatsapp: string;
+  profileImageKey: string | null;
   plan: PortalPlan;
   services: PortalServices;
   serviceBilling: ServiceBilling;
@@ -142,6 +143,7 @@ function mapUser(user: PrismaPortalUser): PortalUser {
     name: user.name,
     email: user.email,
     whatsapp: user.whatsapp,
+    profileImageKey: user.profileImageKey ?? null,
     plan: user.plan,
     services,
     serviceBilling,
