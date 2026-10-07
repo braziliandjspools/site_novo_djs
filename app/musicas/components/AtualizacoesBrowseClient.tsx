@@ -1022,6 +1022,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   </div>
                   <CopyPackLinkButton
                     slugSegments={slugSegments}
+                    filters={{ dia: dayFilter, pool: poolFilter, estilo: styleFilter }}
                     label="Copiar link"
                     showLabel
                     className="!h-11 !w-auto !gap-2 !rounded-full !border-0 !bg-[#60cdff] !px-4 !text-black hover:!bg-[#8ad4ff] hover:!text-black"
