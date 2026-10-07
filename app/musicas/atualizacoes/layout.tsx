@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { buildPageMetadata } from "../../lib/seo";
 import { MusicasCenterLoading } from "../components/MusicasSkeletons";
-import { AtualizacoesSearchProvider } from "./AtualizacoesSearchContext";
 import { AtualizacoesPlayerLayout } from "./AtualizacoesPlayerLayout";
 
 export const metadata: Metadata = buildPageMetadata("musicas-atualizacoes");
@@ -11,9 +10,7 @@ export const metadata: Metadata = buildPageMetadata("musicas-atualizacoes");
 export default function AtualizacoesLayout({ children }: { children: import("react").ReactNode }) {
   return (
     <Suspense fallback={<MusicasCenterLoading label="Carregando atualizações…" />}>
-      <AtualizacoesSearchProvider>
-        <AtualizacoesPlayerLayout>{children}</AtualizacoesPlayerLayout>
-      </AtualizacoesSearchProvider>
+      <AtualizacoesPlayerLayout>{children}</AtualizacoesPlayerLayout>
     </Suspense>
   );
 }

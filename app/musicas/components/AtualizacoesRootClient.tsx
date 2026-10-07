@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Disc3, FolderOpen, Grid2X2, Headphones, List, Music2, Play, Radio, RefreshCw, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Disc3, FolderOpen, Grid2X2, Headphones, List, Music2, Play, Radio, RefreshCw, Sparkles } from "lucide-react";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
 import type { VipMusicHomeSnapshot } from "../../lib/vip-music-home";
 import {
@@ -28,7 +28,6 @@ import {
 import { monthsReadKey } from "../lib/read-state";
 import { useNewFolderHighlights } from "../lib/use-new-folder-highlights";
 import { autoSyncDriveOnEnter, readLastAutoSync } from "../lib/auto-drive-sync";
-import { AtualizacoesSearch, AtualizacoesSearchResults } from "../atualizacoes/AtualizacoesSearch";
 import { AtualizacoesSyncNotice } from "./AtualizacoesSyncNotice";
 import { MusicasCenterLoading } from "./MusicasSkeletons";
 import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
@@ -179,7 +178,6 @@ export function AtualizacoesRootClient() {
   const [updatedAt, setUpdatedAt] = useState<string | null>(() => readLastAutoSync());
   const [continueItem, setContinueItem] = useState<ContinueListening | null>(null);
   const [recent, setRecent] = useState<RecentFolder[]>([]);
-  const [folderQuery, setFolderQuery] = useState("");
   const [catalogView, setCatalogView] = useState<"grid" | "list">("grid");
 
   const loadTree = useCallback(async (forceRefresh = false) => {
@@ -238,11 +236,6 @@ export function AtualizacoesRootClient() {
     [folders, seenNewFolderIds],
   );
 
-  const visibleFolders = useMemo(() => folders.filter((folder) => {
-    const query = folderQuery.trim().toLocaleLowerCase("pt-BR");
-    return !query || displayFolderName(folder.name).toLocaleLowerCase("pt-BR").includes(query);
-  }), [folders, folderQuery]);
-
   const trackCount = useMemo(() => {
     const fromTree = folders.reduce((sum, folder) => {
       const count = (folder as VipMusicCatalogItem).trackCount;
@@ -300,8 +293,6 @@ export function AtualizacoesRootClient() {
         </div>
       </header>
 
-      <div id="busca" className="scroll-mt-24"><AtualizacoesSearch /></div>
-      <AtualizacoesSearchResults />
       <AtualizacoesSyncNotice />
 
       {!hasVip && <VipUpgradeBanner />}
@@ -323,18 +314,11 @@ export function AtualizacoesRootClient() {
               </p>
             </div>
             <span className="inline-flex w-fit items-center rounded-full border border-[#60cdff]/25 bg-[#60cdff]/10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[#8ad4ff]">
-              {visibleFolders.length} {visibleFolders.length === 1 ? "resultado" : "resultados"}
+              {folders.length} {folders.length === 1 ? "acervo" : "acervos"}
             </span>
           </div>
         </div>
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-[#60cdff]/12 bg-[#0c0c0c] p-3 shadow-[0_14px_35px_-25px_rgba(96,205,255,0.35)] sm:flex-row sm:items-center">
-          <label className="relative min-w-0 flex-1">
-            <span className="sr-only">Buscar acervo</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#60cdff]/70" aria-hidden />
-            <input type="search" value={folderQuery} onChange={(event) => setFolderQuery(event.target.value)}
-              placeholder="Encontre um pack ou acervo..."
-              className="w-full rounded-xl border border-white/10 bg-[#080808] py-3 pl-11 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#60cdff]/50 focus:ring-1 focus:ring-[#60cdff]/30" />
-          </label>
+        <div className="mb-6 flex justify-end">
           <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#080808] p-1" aria-label="Visualização do catálogo">
             <button type="button" aria-label="Ver em grade" aria-pressed={catalogView === "grid"} onClick={() => setCatalogView("grid")}
               className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "grid" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><Grid2X2 className="h-4 w-4" /></button>
@@ -355,7 +339,7 @@ export function AtualizacoesRootClient() {
               ? "grid grid-cols-1 gap-3 md:grid-cols-2"
               : "grid grid-cols-2 gap-4 min-[480px]:grid-cols-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           }>
-            {visibleFolders.map((folder, index) => (
+            {folders.map((folder, index) => (
               <AcervoCard
                 key={folder.id}
                 folder={folder}
@@ -366,7 +350,7 @@ export function AtualizacoesRootClient() {
             ))}
           </div>
         )}
-        {!loading && visibleFolders.length === 0 ? <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 text-center text-sm text-zinc-400">Nenhum acervo encontrado para essa busca.</p> : null}
+        {!loading && folders.length === 0 ? <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 text-center text-sm text-zinc-400">Nenhum acervo disponível no momento.</p> : null}
       </section>
 
       {continueItem ? (
