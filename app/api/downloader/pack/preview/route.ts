@@ -86,7 +86,9 @@ export async function GET(request: Request) {
       slug: result.folder.slug,
       folderId: result.folder.folderId,
       folderName: result.folder.displayName,
-      relativePath: result.folder.relativePath,
+      relativePath: "filteredRelativePath" in result
+        ? result.filteredRelativePath
+        : result.folder.relativePath,
       pathLabels: result.folder.pathLabels,
       trackCount: result.trackCount,
       sampleTitles: result.sampleTitles,

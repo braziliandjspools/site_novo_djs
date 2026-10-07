@@ -157,6 +157,10 @@ export async function previewPackBySlug(
       subfolderCount: filtered.targets.length,
       dates: [] as PackDateOption[],
       filtered: true,
+      filteredRelativePath:
+        filtered.targets.length === 1 && filtered.targets[0]?.relativePath
+          ? `${folder.relativePath}/${filtered.targets[0].relativePath}`
+          : folder.relativePath,
     };
   }
 
