@@ -36,6 +36,7 @@ export type PortalData = {
     name: string;
     email: string;
     whatsapp: string;
+    profileImageUrl: string | null;
     plan: PortalPlan;
     planLabel: string;
     services: PortalServices;
