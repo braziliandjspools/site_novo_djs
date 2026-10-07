@@ -18,7 +18,6 @@ import {
   Check,
   Copy,
   Download,
-  HelpCircle,
   ListPlus,
   Loader2,
   Music2,
@@ -47,7 +46,6 @@ import { folderHref, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName 
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 import { hitHref } from "../atualizacoes/AtualizacoesSearchContext";
-import { isSendNowFileId } from "../../lib/send-now";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import { TrackListPagination } from "./TrackListPagination";
 import { MusicasTableLoadingOverlay, MusicasToastLoading } from "./MusicasSkeletons";
@@ -58,21 +56,10 @@ import {
 
 import { BrowserPackDownloadConfirm } from "./BrowserPackDownloadConfirm";
 import { ArtistNameLink } from "./ArtistNameLink";
-import { DriveAccessHelpDialog } from "./DriveAccessHelpDialog";
 import {
   flattenTrackSections,
   groupTracksByUploadDate,
 } from "../lib/track-date-groups";
-
-function GoogleDriveIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="#00832d" d="M7.7 3.5h6.6L7.7 14.1l-3.3 5.7L1.1 14.1z" />
-      <path fill="#ffba00" d="M7.7 3.5h6.6l8.6 14.9h-6.6z" />
-      <path fill="#0066da" d="M4.4 19.8l3.3-5.7h14.9l-3.3 5.7z" />
-    </svg>
-  );
-}
 
 type VipMusicTrackListProps = {
   folderId: string;
@@ -102,8 +89,6 @@ type VipMusicTrackListProps = {
   pageCount?: number;
   pageLoading?: boolean;
   onPageChange?: (page: number) => void;
-  /** Mostra acesso ao Drive somente nas pastas finais/estilos. */
-  showDriveButton?: boolean;
   /** Pools da pasta inteira, mesmo os que ainda não têm faixa carregada. */
   filterPools?: { slug: string; name: string }[];
   /** Estilos da pasta inteira, mesmo os que ainda não têm faixa carregada. */
@@ -152,7 +137,7 @@ function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
         <span className="justify-self-start text-left">Música</span>
         <span className="tablemusic-pool">POOL/PASTA</span>
         <span className="tablemusic-style">ESTILO/PASTA</span>
-        <span className="col-span-4 text-center">Download / ações</span>
+        <span className="col-span-3 text-center">Download / ações</span>
       </div>
     </>
   );
@@ -175,26 +160,6 @@ function formatTime(seconds: number) {
 async function triggerDownload(track: PreviewTrack) {
   // Auth + 302 para o Drive (sem carregar o MP3 na RAM nem proxyar pela VPS).
   startBrowserTrackDownload(track);
-}
-
-async function copyToClipboard(value: string) {
-  try {
-    await navigator.clipboard.writeText(value);
-    return;
-  } catch {
-    // Fallback para navegadores que bloqueiam a Clipboard API após a validação assíncrona.
-  }
-  const input = document.createElement("textarea");
-  input.value = value;
-  input.style.position = "fixed";
-  input.style.opacity = "0";
-  document.body.appendChild(input);
-  input.select();
-  try {
-    if (!document.execCommand("copy")) throw new Error("Permissão para copiar negada pelo navegador.");
-  } finally {
-    input.remove();
-  }
 }
 
 function PlayingBars() {
@@ -348,7 +313,6 @@ type StreamingRowProps = {
   onQueueNext: () => void;
   onShare: () => void;
   onCopyLink: () => void;
-  showDriveButton: boolean;
   onPoolFilter?: (slug: string) => void;
   onStyleFilter?: (slug: string) => void;
 };
@@ -426,7 +390,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   onQueueNext,
   onShare,
   onCopyLink,
-  showDriveButton,
   onPoolFilter,
   onStyleFilter,
 }: StreamingRowProps) {
@@ -436,47 +399,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const showDuration = displayDuration > 0;
   const coverSrc = resolveTrackCoverSrc(track, albumCoverUrl);
   const coverUnoptimized = coverSrc.startsWith("/api/");
-  const { authenticated, hasVip, userEmail } = useMusicasSession();
-  const { showToast } = useMusicasToast();
-  const [driveHelpOpen, setDriveHelpOpen] = useState(false);
-  const [copyingDrive, setCopyingDrive] = useState(false);
-  const gmailDriveAllowed =
-    authenticated && hasVip && /@gmail\.com$/i.test(userEmail.trim());
-
-  const copyDriveLink = useCallback(async (format: "drive" | "direct" = "drive") => {
-    if (!gmailDriveAllowed || copyingDrive) return;
-    setCopyingDrive(true);
-    try {
-      let url = "";
-      if (format === "drive") {
-        if (!track.poolFolderId) {
-          throw new Error("Esta faixa não possui uma Pool vinculada à data.");
-        }
-        // O ícone do Drive representa a Pool inteira daquela data, não a faixa individual.
-        url = `https://drive.google.com/drive/folders/${encodeURIComponent(track.poolFolderId)}`;
-        await copyToClipboard(url);
-        showToast("Link da Pool no Google Drive copiado");
-      } else {
-        const response = await fetch(`/api/musicas/drive/${encodeURIComponent(track.id)}/link?format=direct`, {
-          credentials: "same-origin",
-          cache: "no-store",
-        });
-        const result = (await response.json()) as { url?: string; error?: string };
-        if (!response.ok || !result.url) throw new Error(result.error || "Link de download indisponível.");
-        await copyToClipboard(result.url);
-        showToast("Link direto copiado. Válido por 2 horas.");
-      }
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : "Não foi possível copiar o link do Drive.", "error");
-    } finally {
-      setCopyingDrive(false);
-    }
-  }, [copyingDrive, gmailDriveAllowed, showToast, track.id, track.poolFolderId]);
-
-  const explainDriveBlock = useCallback(() => {
-    setDriveHelpOpen(true);
-  }, []);
-
   const menuActions = useMemo(() => {
     const actions: CollectionMenuAction[] = [
       {
@@ -503,15 +425,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
         onClick: onSendToDownloader,
       });
     }
-    if (showDriveButton && gmailDriveAllowed) {
-      actions.push({
-        id: "external-download",
-        label: "Copiar link direto",
-        icon: Download,
-        disabled: copyingDrive,
-        onClick: () => void copyDriveLink("direct"),
-      });
-    }
     actions.push(
       { id: "copy", label: "Copiar link", icon: Copy, onClick: onCopyLink },
       { id: "share", label: "Compartilhar", icon: Share2, onClick: onShare },
@@ -520,10 +433,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   }, [
     canDownload,
     canPlay,
-    showDriveButton,
-    gmailDriveAllowed,
-    copyingDrive,
-    copyDriveLink,
     isSendingToDownloader,
     onCopyLink,
     onQueueNext,
@@ -538,21 +447,16 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     if (canDownload) {
       extras.push({
         id: "download-browser",
-        label: "Baixar no navegador",
+        label: "Baixar",
         icon: Download,
         disabled: isDownloading,
         onClick: onDownload,
       });
     }
-    if (showDriveButton && track.poolFolderId && authenticated && hasVip) {
-      extras.push(gmailDriveAllowed
-        ? { id: "drive", label: "Copiar link do Google Drive", renderIcon: <GoogleDriveIcon />, disabled: copyingDrive, onClick: () => void copyDriveLink("drive") }
-        : { id: "drive-help", label: "Drive indisponível — por quê?", icon: HelpCircle, onClick: explainDriveBlock });
-    }
     const beforeCopy = actions.findIndex((action) => action.id === "copy");
     actions.splice(beforeCopy, 0, ...extras);
     return actions;
-  }, [menuActions, canDownload, isDownloading, onDownload, showDriveButton, authenticated, hasVip, gmailDriveAllowed, copyingDrive, copyDriveLink, explainDriveBlock]);
+  }, [menuActions, canDownload, isDownloading, onDownload]);
 
   const rowBg =
     isHighlighted || isSelected || isActive
@@ -831,7 +735,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 onDownload();
               }}
               disabled={isDownloading}
-              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:border-[#60cdff]/40 hover:text-white disabled:opacity-60"
+              className="inline-flex h-9 w-[78px] flex-shrink-0 items-center justify-center gap-1.5 border border-white/10 bg-white/[0.04] px-2 text-[11px] font-semibold text-zinc-200 transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-white disabled:opacity-60"
               title={`Baixar ${display.title}`}
               aria-label={`Baixar ${display.title}`}
             >
@@ -840,6 +744,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               ) : (
                 <Download className="h-3.5 w-3.5" />
               )}
+              <span>{isDownloading ? "Baixando" : "Baixar"}</span>
             </button>
           ) : !canPlay ? (
             <Lock className="h-3.5 w-3.5 text-white/35" aria-hidden />
@@ -858,39 +763,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-center opacity-70 transition-opacity group-hover/row:opacity-100">
-          {showDriveButton && track.poolFolderId && authenticated && hasVip ? (
-            gmailDriveAllowed ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  void copyDriveLink("drive");
-                }}
-                disabled={copyingDrive}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#60cdff]/30 bg-[#60cdff]/10 text-[#60cdff] transition hover:bg-[#60cdff]/20 disabled:opacity-50"
-                title={`Copiar link do Google Drive de ${display.title}`}
-                aria-label={`Copiar link do Google Drive de ${display.title}`}
-              >
-                {copyingDrive ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <GoogleDriveIcon className="h-4 w-4" />}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  explainDriveBlock();
-                }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/45 transition hover:border-white/20 hover:text-white/70"
-                title="Drive indisponível para este e-mail — clique para entender"
-                aria-label="Drive indisponível — saiba por quê"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </button>
-            )
-          ) : null}
-        </div>
-
         <div className="flex items-center justify-end opacity-45 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
           <CollectionContextMenu
             label={`Opções · ${display.title}`}
@@ -899,7 +771,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           />
         </div>
       </div>
-      {driveHelpOpen ? <DriveAccessHelpDialog onClose={() => setDriveHelpOpen(false)} /> : null}
     </article>
   );
 }, streamingRowEqual);
@@ -1067,7 +938,6 @@ export function VipMusicTrackList({
   pageCount = 1,
   pageLoading = false,
   onPageChange,
-  showDriveButton = false,
   filterPools,
   filterStyles,
   updateDays = [],
@@ -1675,7 +1545,6 @@ export function VipMusicTrackList({
           }}
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
-          showDriveButton={showDriveButton && !isSendNowFileId(track.id) && /^[a-zA-Z0-9_-]+$/.test(track.id)}
           onPoolFilter={(slug) => writeCatalogQuery({ pool: slug, style: "" })}
           onStyleFilter={(slug) => writeCatalogQuery({ style: slug })}
         />
