@@ -4,6 +4,7 @@ import {
   getVipMusicSession,
 } from "../../../lib/vip-music-access";
 import { buildDownloaderAccountPayload } from "../../../lib/plan-billing";
+import { getPortalSiteBaseUrl } from "../../../lib/portal-site-url";
 import { handleDownloaderCorsPreflight, withDownloaderCorsJson } from "../../../lib/downloader-cors";
 
 export async function OPTIONS(request: Request) {
@@ -29,9 +30,10 @@ export async function GET(request: Request) {
   const accountPayload = buildDownloaderAccountPayload(session.user);
   const account = {
     ...accountPayload,
-    // O Downloader roda em um WebView com origem própria; devolva a URL do site completa.
+    // O Downloader roda em um WebView com origem própria. Use o domínio público
+    // configurado, pois request.url pode refletir o host interno do proxy.
     profileImageUrl: accountPayload.profileImageUrl
-      ? new URL(accountPayload.profileImageUrl, request.url).toString()
+      ? new URL(accountPayload.profileImageUrl, getPortalSiteBaseUrl()).toString()
       : null,
   };
   const hasVip = session.canPlay;
