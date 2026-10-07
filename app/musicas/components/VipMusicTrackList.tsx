@@ -1443,8 +1443,6 @@ export function VipMusicTrackList({
       .filter((day, index, list) => list.findIndex((item) => item.key === day.key) === index);
   }, [updateDays]);
 
-  if (tracks.length === 0) return null;
-
   const useStreaming = layout === "table" || layout === "default";
   const useDiscography = layout === "discography";
   const separateByFolderDate = Boolean(
@@ -1744,16 +1742,20 @@ export function VipMusicTrackList({
         </div>
       ) : null}
 
-      {useStreaming && (searchDraft.trim() || poolFilterSlug || styleFilterSlug || dayFilterKey) && filteredTracks.length === 0 ? (
+      {useStreaming && filteredTracks.length === 0 ? (
         catalogLoading || loadingMore || pageLoading ? (
           <div className="flex justify-center px-4 py-10">
-            <MusicasToastLoading label="Pesquisando as músicas…" />
+            <MusicasToastLoading
+              label={searchDraft.trim() || activeCatalogFilterCount > 0 ? "Pesquisando as músicas…" : "Carregando músicas…"}
+            />
           </div>
         ) : (
           <p className="px-4 py-10 text-center text-sm text-zinc-400">
             {searchDraft.trim()
               ? `Nenhuma música encontrada para “${searchDraft.trim()}”.`
-              : "Nenhuma música neste filtro."}
+              : activeCatalogFilterCount > 0
+                ? "Nenhuma música neste filtro."
+                : "Nenhuma faixa nesta pasta."}
           </p>
         )
       ) : null}

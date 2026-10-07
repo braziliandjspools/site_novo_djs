@@ -530,7 +530,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showFolderBanner = Boolean(
     showingTracks &&
       data &&
-      directTracks.length > 0 &&
       (monthBannerUrl || isMonthFolderName(data.folderName)),
   );
 
@@ -971,8 +970,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 belowImageUrl={isOctober2026Folder ? monthBannerUrl : null}
               />
             ) : null}
-            {directTracks.length > 0 ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#60cdff]/20 bg-[#161616] px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#60cdff]/20 bg-[#161616] px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#60cdff]">Faixas da pasta</p>
                   <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
@@ -992,13 +990,13 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                       await loadBrowse({ forceRefresh: true });
                     }}
                   />
-                  {playbackEnabled ? (
+                  {directTracks.length > 0 && playbackEnabled ? (
                     <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#60cdff] px-3 text-xs font-bold text-black transition hover:bg-[#8ad4ff] disabled:opacity-50">
                       {playBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : packPlaying ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="h-3.5 w-3.5" fill="currentColor" />}
                       {packPlaying ? "Pausar" : "Reproduzir"}
                     </button>
                   ) : null}
-                  {downloadEnabled ? (
+                  {directTracks.length > 0 && downloadEnabled ? (
                     <>
                       <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 text-xs font-semibold text-[#8ad4ff] transition hover:bg-[#60cdff]/20 disabled:opacity-50">
                         {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
@@ -1011,10 +1009,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     </>
                   ) : null}
                 </div>
-              </div>
-            ) : null}
-            {directTracks.length > 0 ? (
-              <section className="w-full min-w-0 overflow-hidden rounded-2xl border border-[#60cdff]/35 bg-black">
+            </div>
+            <section className="w-full min-w-0 overflow-hidden rounded-2xl border border-[#60cdff]/35 bg-black">
                 <div className="h-1 w-full bg-[#60cdff]" />
                 <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                   <div className="min-w-0">
@@ -1031,19 +1027,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     className="!h-11 !w-auto !gap-2 !rounded-full !border-0 !bg-[#60cdff] !px-4 !text-black hover:!bg-[#8ad4ff] hover:!text-black"
                   />
                 </div>
-              </section>
-            ) : null}
-            {directTracks.length === 0 && (loading || catalogLoading) ? (
-              <MusicasTracksSkeleton rows={8} />
-            ) : directTracks.length === 0 ? (
-              <div className="overflow-hidden rounded-md border border-[#60cdff]/20 bg-[#0d0d0d]">
-                <div className="h-px w-full bg-gradient-to-r from-[#60cdff]/80 via-[#60cdff]/25 to-transparent" />
-                <p className="rounded-md px-4 py-8 text-center text-sm text-zinc-500">
-                  Nenhuma faixa nesta pasta.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
+            </section>
+            <div className="space-y-3">
                 <VipMusicTrackList
                   folderId={data.folderId}
                   groupByDate={true}
@@ -1080,8 +1065,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   }
                 />
 
-              </div>
-            )}
+            </div>
             {(useSiblingFolderNav || slugSegments.length >= 2) && (
               <AtualizacoesMonthFooterNav
                 monthSlug={monthSlug}
