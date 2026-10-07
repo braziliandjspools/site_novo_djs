@@ -94,13 +94,6 @@ export const messagesPtBR = {
   searchQueued: "Faixa enviada para a fila do Downloader.",
   searchQueuedMany: "{count} faixas enviadas para a fila.",
   searchLoginRequired: "Faça login para baixar.",
-  searchMute: "Silenciar",
-  searchUnmute: "Ativar som",
-  searchVolume: "Volume",
-  searchStop: "Parar player",
-  searchPrev: "Faixa anterior",
-  searchNext: "Próxima faixa",
-  searchProgress: "Progresso da faixa",
   searchCollection: "Acervo",
   searchOpenCatalog: "Ver música no catálogo",
 

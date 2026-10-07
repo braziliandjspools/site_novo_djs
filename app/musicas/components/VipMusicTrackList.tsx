@@ -149,9 +149,9 @@ function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
       <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
         {selectionMode ? <span /> : null}
         <span />
-        <span>Música</span>
-        <span className="tablemusic-pool">Pool</span>
-        <span className="tablemusic-style">Estilo</span>
+        <span className="justify-self-start text-left">Música</span>
+        <span className="tablemusic-pool">POOL/PASTA</span>
+        <span className="tablemusic-style">ESTILO/PASTA</span>
         <span className="col-span-4 text-center">Download / ações</span>
       </div>
     </>
@@ -801,7 +801,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               event.stopPropagation();
               onPoolFilter?.(track.poolName?.trim() ? slugifyFolderName(track.poolName) : "");
             }}
-            className="block max-w-full truncate text-left text-xs font-medium text-sky-200 transition hover:text-white disabled:cursor-default disabled:opacity-60"
+            className="block max-w-full truncate text-left font-[family-name:var(--font-player)] text-xs font-medium text-sky-200 decoration-sky-200/60 underline-offset-4 transition hover:text-white hover:underline focus-visible:underline disabled:cursor-default disabled:opacity-60"
             title={track.poolName?.trim() ? `Filtrar pool: ${track.poolName.trim()}` : "Pool não informado"}
           >
             {track.poolName?.trim() || "—"}
@@ -815,7 +815,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
               event.stopPropagation();
               onStyleFilter?.(track.styleName?.trim() ? slugifyStyleName(track.styleName) : "");
             }}
-            className="block max-w-full truncate text-left text-xs font-medium text-[#86e7a7] transition hover:text-white disabled:cursor-default disabled:opacity-60"
+            className="block max-w-full truncate text-left font-[family-name:var(--font-player)] text-xs font-medium text-[#86e7a7] decoration-[#86e7a7]/70 underline-offset-4 transition hover:text-white hover:underline focus-visible:underline disabled:cursor-default disabled:opacity-60"
             title={track.styleName?.trim() ? `Filtrar estilo: ${formatStyleNameForDisplay(track.styleName)}` : "Estilo não informado"}
           >
             {track.styleName?.trim() ? formatStyleNameForDisplay(track.styleName) : "—"}

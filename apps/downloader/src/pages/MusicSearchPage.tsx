@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CheckSquare,
@@ -8,11 +9,7 @@ import {
   Pause,
   Play,
   Search,
-  SkipBack,
-  SkipForward,
   Square,
-  Volume2,
-  VolumeX,
   X,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
@@ -37,6 +34,7 @@ import { useLocale } from "../i18n/LocaleContext";
 
 const DEBOUNCE_MS = 280;
 const PAGE_SIZE = 24;
+const SEARCH_CARD_ACCENTS = ["#60cdff", "#a78bfa", "#f472b6", "#fbbf24", "#34d399", "#fb7185"] as const;
 const SEARCH_BANNER_URL =
   "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/cf5a5a0a-a57e-4b94-9e2a-fa5bc1488305.png";
 
@@ -67,12 +65,7 @@ export function MusicSearchPage() {
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [playingTrack, setPlayingTrack] = useState<MusicSearchTrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.9);
-  const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const requestIdRef = useRef(0);
   const showToastRef = useRef(showToast);
@@ -125,10 +118,7 @@ export function MusicSearchPage() {
     audio.removeAttribute("src");
     audio.load();
     setPlayingId(null);
-    setPlayingTrack(null);
     setIsPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
   }, []);
 
   const playTrack = useCallback(
@@ -158,9 +148,6 @@ export function MusicSearchPage() {
         audio.src = url;
         audio.dataset.trackId = track.trackId;
         setPlayingId(track.trackId);
-        setPlayingTrack(track);
-        setCurrentTime(0);
-        setDuration(0);
         await audio.play();
       } catch (err) {
         showToast(formatApiError(err), "error");
@@ -176,8 +163,6 @@ export function MusicSearchPage() {
     audio.preload = "metadata";
     audioRef.current = audio;
 
-    const onTime = () => setCurrentTime(audio.currentTime || 0);
-    const onMeta = () => setDuration(audio.duration || 0);
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
     const onEnded = () => {
@@ -190,9 +175,7 @@ export function MusicSearchPage() {
         return;
       }
       setIsPlaying(false);
-      setCurrentTime(0);
       setPlayingId(null);
-      setPlayingTrack(null);
     };
 
     const onError = () => {
@@ -205,12 +188,9 @@ export function MusicSearchPage() {
             : "Não foi possível reproduzir esta faixa.";
       showToastRef.current(detail, "error");
       setPlayingId(null);
-      setPlayingTrack(null);
       setIsPlaying(false);
     };
 
-    audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("loadedmetadata", onMeta);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("ended", onEnded);
@@ -220,8 +200,6 @@ export function MusicSearchPage() {
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
-      audio.removeEventListener("timeupdate", onTime);
-      audio.removeEventListener("loadedmetadata", onMeta);
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("ended", onEnded);
@@ -229,12 +207,6 @@ export function MusicSearchPage() {
       audioRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = muted ? 0 : volume;
-  }, [muted, volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -324,17 +296,13 @@ export function MusicSearchPage() {
   }
 
   const apiBase = getCachedApiBaseUrl();
-  const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
   const selectedCount = selectedIds.size;
-  const playingIndex = playingId ? results.findIndex((track) => track.trackId === playingId) : -1;
-  const prevTrack = playingIndex > 0 ? results.slice(0, playingIndex).reverse().find((track) => track.previewAvailable) : undefined;
-  const nextTrack = playingIndex >= 0 ? results.slice(playingIndex + 1).find((track) => track.previewAvailable) : undefined;
   const whatsappHref = supportWhatsAppUrl(
     `Olá! Pesquisei “${query}” no BRS Downloader e não encontrei no catálogo. Podem incluir, por favor?`,
   );
 
   return (
-    <div className={playingTrack ? "space-y-5 pb-28" : "space-y-5"}>
+    <div className="space-y-5">
       <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black">
         <img
           src={SEARCH_BANNER_URL}
@@ -449,7 +417,7 @@ export function MusicSearchPage() {
           </div>
 
           <ul className="space-y-1">
-            {results.map((track) => {
+            {results.map((track, index) => {
               const cover = resolveCoverUrl(track.coverUrl, apiBase);
               const catalogUrl = resolveCatalogUrl(track.catalogPath, apiBase);
               const playing = playingId === track.trackId && isPlaying;
@@ -458,12 +426,14 @@ export function MusicSearchPage() {
               const busy = queueBusyId === track.trackId;
               const selected = selectedIds.has(track.trackId);
               const collection = track.collectionLabel || track.relativePath || "BRS";
+              const cardAccent = SEARCH_CARD_ACCENTS[index % SEARCH_CARD_ACCENTS.length];
               return (
                 <li
                   key={`${track.source}-${track.trackId}`}
                   className={`search-track-row group ${
                     selected ? "is-selected" : active ? "is-active" : ""
                   }`}
+                  style={{ "--track-accent": cardAccent } as CSSProperties}
                 >
                   <button
                     type="button"
@@ -531,110 +501,6 @@ export function MusicSearchPage() {
         </div>
       ) : null}
 
-      {playingTrack ? (
-        <div className="fixed bottom-0 left-[248px] right-0 z-40 border-t border-white/12 bg-black/96 px-5 py-3.5 shadow-[0_-12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#60cdff]/70 via-white/15 to-transparent" />
-          <div className="relative flex items-center gap-4">
-            <CoverArt track={playingTrack} apiBase={apiBase} size="md" />
-            <div className="min-w-0 w-44 shrink-0 sm:w-56">
-              <p className="truncate text-sm font-semibold text-white">{playingTrack.title}</p>
-              <p className="truncate text-xs text-white/50">{playingTrack.artist}</p>
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <div className="flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  disabled={!prevTrack}
-                  onClick={() => prevTrack && void playTrack(prevTrack)}
-                  className="inline-flex h-9 w-9 items-center justify-center text-white/70 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] disabled:opacity-30"
-                  aria-label={t("searchPrev")}
-                >
-                  <SkipBack className="h-4 w-4" fill="currentColor" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void playTrack(playingTrack)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-black transition hover:bg-[#8ad4ff]"
-                  aria-label={isPlaying ? t("searchPause") : t("searchPlay")}
-                >
-                  {isPlaying ? (
-                    <Pause className="h-5 w-5" fill="currentColor" />
-                  ) : (
-                    <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  disabled={!nextTrack}
-                  onClick={() => nextTrack && void playTrack(nextTrack)}
-                  className="inline-flex h-9 w-9 items-center justify-center text-white/70 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] disabled:opacity-30"
-                  aria-label={t("searchNext")}
-                >
-                  <SkipForward className="h-4 w-4" fill="currentColor" />
-                </button>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-10 text-[10px] tabular-nums text-white/40">
-                  {formatTrackDuration(currentTime) ?? "0:00"}
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={duration || 0}
-                  step={0.1}
-                  value={Math.min(currentTime, duration || 0)}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    const audio = audioRef.current;
-                    if (!audio) return;
-                    audio.currentTime = next;
-                    setCurrentTime(next);
-                  }}
-                  className="player-range flex-1"
-                  aria-label={t("searchProgress")}
-                  style={{
-                    background: `linear-gradient(to right, #60cdff ${progress}%, rgba(255,255,255,0.14) ${progress}%)`,
-                  }}
-                />
-                <span className="w-10 text-right text-[10px] tabular-nums text-white/40">
-                  {formatTrackDuration(duration) ?? "--:--"}
-                </span>
-              </div>
-            </div>
-            <div className="hidden items-center gap-2 sm:flex">
-              <button
-                type="button"
-                onClick={() => setMuted((value) => !value)}
-                className="inline-flex h-9 w-9 items-center justify-center text-white/60 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
-                aria-label={muted ? t("searchUnmute") : t("searchMute")}
-              >
-                {muted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </button>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={muted ? 0 : volume}
-                onChange={(event) => {
-                  setMuted(false);
-                  setVolume(Number(event.target.value));
-                }}
-                className="player-range w-24"
-                aria-label={t("searchVolume")}
-              />
-              <button
-                type="button"
-                onClick={stopPlayback}
-                className="inline-flex h-9 w-9 items-center justify-center text-white/45 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
-                aria-label={t("searchStop")}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

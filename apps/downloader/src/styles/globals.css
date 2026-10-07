@@ -157,35 +157,6 @@ body {
   }
 }
 
-.player-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  outline: none;
-}
-
-.player-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 0 3px rgba(96, 205, 255, 0.2);
-}
-
-.player-range::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border: none;
-  border-radius: 999px;
-  background: #fff;
-  cursor: pointer;
-}
-
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -325,32 +296,37 @@ body {
 }
 
 .search-track-row {
+  position: relative;
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.85rem;
   width: 100%;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
+  padding: 0.72rem 0.9rem 0.72rem 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--track-accent) 24%, transparent);
+  border-radius: 12px;
+  background: linear-gradient(105deg, color-mix(in srgb, var(--track-accent) 12%, #090a0c), #0b0c0f 48%, #090a0c);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--track-accent) 88%, transparent), 0 8px 24px rgba(0, 0, 0, 0.14);
   text-align: left;
-  transition: background 0.14s ease, border-color 0.14s ease;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .search-track-row:hover {
-  background: var(--cyan-hover-bg);
-  border-color: var(--cyan-hover-border);
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--track-accent) 60%, transparent);
+  background: linear-gradient(105deg, color-mix(in srgb, var(--track-accent) 20%, #0b0c0f), #111216 56%, #0b0c0f);
+  box-shadow: inset 3px 0 0 var(--track-accent), 0 12px 28px rgba(0, 0, 0, 0.28);
 }
 
 .search-track-row.is-active {
-  background: var(--cyan-active-bg);
-  border-color: rgba(96, 205, 255, 0.4);
+  border-color: color-mix(in srgb, var(--track-accent) 70%, transparent);
+  background: linear-gradient(105deg, color-mix(in srgb, var(--track-accent) 24%, #0c0d10), #121318 55%, #0a0b0e);
 }
 
 .search-track-row.is-selected {
-  background: var(--cyan-hover-bg);
-  border-color: rgba(96, 205, 255, 0.45);
+  border-color: color-mix(in srgb, var(--track-accent) 70%, transparent);
+  background: linear-gradient(105deg, color-mix(in srgb, var(--track-accent) 21%, #101114), #121318 58%, #0a0b0e);
 }
 
 .studio-hero {

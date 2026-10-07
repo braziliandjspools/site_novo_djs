@@ -1,8 +1,8 @@
 import type { MessageKey } from "../i18n/translate";
 
 /** Versões exibidas em Configurações → Sobre. Atualize junto com package.json / tauri.conf / Cargo.toml. */
-export const WEBUI_VERSION = "1.0.33";
-export const APP_CORE_VERSION = "1.0.33";
+export const WEBUI_VERSION = "1.0.35";
+export const APP_CORE_VERSION = "1.0.35";
 /** Versão do compilador Rust usada no build do núcleo nativo. */
 export const RUSTC_VERSION = "1.98.1";
 
@@ -16,6 +16,14 @@ export type ChangelogEntry = {
 };
 
 export const APP_CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.0.35",
+    date: "2026-10-06",
+    items: [
+      "Busca de músicas com cards coloridos, sem player fixo no rodapé",
+      "Menu com texto realçado no hover e acabamento escuro alinhado ao site BRS",
+    ],
+  },
   {
     version: "1.0.33",
     date: "2026-10-05",

@@ -87,13 +87,6 @@ export const messagesEs = {
   searchQueued: "Pista enviada a la cola del Downloader.",
   searchQueuedMany: "{count} pistas enviadas a la cola.",
   searchLoginRequired: "Inicia sesión para descargar.",
-  searchMute: "Silenciar",
-  searchUnmute: "Activar sonido",
-  searchVolume: "Volumen",
-  searchStop: "Detener reproductor",
-  searchPrev: "Pista anterior",
-  searchNext: "Siguiente pista",
-  searchProgress: "Progreso de la pista",
   searchCollection: "Acervo",
   searchOpenCatalog: "Ver música en el catálogo",
 

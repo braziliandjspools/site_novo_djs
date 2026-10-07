@@ -87,13 +87,6 @@ export const messagesEn = {
   searchQueued: "Track sent to the Downloader queue.",
   searchQueuedMany: "{count} tracks sent to the queue.",
   searchLoginRequired: "Sign in to download.",
-  searchMute: "Mute",
-  searchUnmute: "Unmute",
-  searchVolume: "Volume",
-  searchStop: "Stop player",
-  searchPrev: "Previous track",
-  searchNext: "Next track",
-  searchProgress: "Track progress",
   searchCollection: "Collection",
   searchOpenCatalog: "View track in catalog",
 
