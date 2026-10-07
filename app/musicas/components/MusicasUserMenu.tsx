@@ -6,11 +6,12 @@ import { ChevronDown, CreditCard, HeadphonesIcon, LayoutGrid, LogOut, Music2, Us
 
 type MusicasUserMenuProps = {
   userName: string;
+  profileImageUrl?: string | null;
   hasVip: boolean;
   onLogout: () => void;
 };
 
-export function MusicasUserMenu({ userName, hasVip, onLogout }: MusicasUserMenuProps) {
+export function MusicasUserMenu({ userName, profileImageUrl, hasVip, onLogout }: MusicasUserMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const firstName = userName.split(" ")[0];
@@ -44,9 +45,13 @@ export function MusicasUserMenu({ userName, hasVip, onLogout }: MusicasUserMenuP
         aria-haspopup="menu"
         aria-label="Menu da conta"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-sm font-bold text-black">
-          {initial}
-        </div>
+        {profileImageUrl ? (
+          <img src={profileImageUrl} alt="Foto do perfil" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20" />
+        ) : (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#60cdff] text-sm font-bold text-black">
+            {initial}
+          </div>
+        )}
         <ChevronDown className={`hidden h-3.5 w-3.5 text-white/45 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
       </button>
 
