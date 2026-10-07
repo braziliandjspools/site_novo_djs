@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const rows = await prisma.$queryRaw`
-    SELECT to_regclass('public.portal_users') AS table_name
+    SELECT to_regclass('public.portal_users')::text AS table_name
   `;
   const exists = Boolean(rows?.[0]?.table_name);
 
