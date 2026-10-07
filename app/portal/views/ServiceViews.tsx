@@ -168,7 +168,7 @@ export function AccountView({ data }: { data: PortalData }) {
       <PortalPageHeader title="Minha Conta" subtitle="Informações do seu cadastro e assinatura." />
 
       <PortalCard title="Editar meus dados">
-        <AccountEditPanel user={user} onUpdated={() => window.location.reload()} />
+        <AccountEditPanel user={user} />
       </PortalCard>
 
       <PortalCard title="Resumo da conta">
