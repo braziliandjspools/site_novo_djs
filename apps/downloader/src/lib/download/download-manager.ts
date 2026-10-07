@@ -1189,7 +1189,8 @@ export class DownloadManager {
   }
 
   private async claimPendingJobs(serverJobs: DownloadJob[]) {
-    if (!this.transport) return;
+    const transport = this.transport;
+    if (!transport) return;
 
     const MAX_CLAIMS_PER_POLL = 40;
     const pendingIds = new Set<number>();
@@ -1210,27 +1211,29 @@ export class DownloadManager {
       if (!orderedPending.includes(id)) orderedPending.push(id);
     }
 
-    let claimed = 0;
-    for (const jobId of orderedPending) {
-      if (claimed >= MAX_CLAIMS_PER_POLL) break;
-      try {
-        const next = await this.transport.claimJob(jobId);
-        this.mergeServerJob(next);
-        claimed += 1;
-      } catch (error) {
-        const conflictJob = getClaimConflictJob(error);
-        if (conflictJob) {
-          this.mergeServerJob(conflictJob);
-          continue;
-        }
-        if (isClaimConflict(error)) continue;
-        if (error instanceof ApiError && error.status === 404) {
-          this.jobs.delete(jobId);
-          this.removeFromQueueOrder(jobId);
-          continue;
-        }
-        continue;
-      }
+    const claimCandidates = orderedPending.slice(0, MAX_CLAIMS_PER_POLL);
+    const CLAIM_CONCURRENCY = 8;
+    for (let offset = 0; offset < claimCandidates.length; offset += CLAIM_CONCURRENCY) {
+      const batch = claimCandidates.slice(offset, offset + CLAIM_CONCURRENCY);
+      await Promise.all(
+        batch.map(async (jobId) => {
+          try {
+            const next = await transport.claimJob(jobId);
+            this.mergeServerJob(next);
+          } catch (error) {
+            const conflictJob = getClaimConflictJob(error);
+            if (conflictJob) {
+              this.mergeServerJob(conflictJob);
+              return;
+            }
+            if (isClaimConflict(error)) return;
+            if (error instanceof ApiError && error.status === 404) {
+              this.jobs.delete(jobId);
+              this.removeFromQueueOrder(jobId);
+            }
+          }
+        }),
+      );
     }
   }
 
