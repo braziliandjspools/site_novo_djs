@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
-import { findFolderBySlug } from "../../../lib/vip-music-slugs";
+import { findFolderBySlug, isYearFolderName } from "../../../lib/vip-music-slugs";
 import { getVipMusicCatalog, getVipMusicRootFolderId, listUpdatePoolOptions, listVipMusicFolders, VIP_MUSIC_TRACKS_PAGE_SIZE } from "../../../lib/vip-music-catalog";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 
@@ -40,13 +40,35 @@ export async function GET(request: Request) {
       /** Irmãos da pasta alvo (filhos do pai) — evita 2º resolve no client. */
       let siblings: { id: string; name: string }[] = [];
 
-      for (const segment of segments) {
+      for (let index = 0; index < segments.length; index += 1) {
+        const segment = segments[index];
         const folders = await listVipMusicFolders(parentId === rootId ? undefined : parentId);
-        const match = findFolderBySlug(folders, segment);
+        let match = findFolderBySlug(folders, segment);
+        let matchSiblings = folders;
+
+        // A busca pode gerar links a partir de raízes por ano sem incluir o ano
+        // na URL (ex.: /janeiro-2025/...); encontre o mês dentro do ano correto.
+        if (!match && parentId === rootId && index === 0) {
+          const yearInSlug = segment.match(/(?:^|-)((?:19|20)\d{2})(?:-|$)/)?.[1];
+          const yearFolders = folders.filter((folder) => isYearFolderName(folder.name));
+          const candidateYears = yearInSlug
+            ? yearFolders.filter((folder) => folder.name.trim() === yearInSlug)
+            : yearFolders;
+
+          for (const yearFolder of candidateYears) {
+            const yearChildren = await listVipMusicFolders(yearFolder.id);
+            const yearMatch = findFolderBySlug(yearChildren, segment);
+            if (!yearMatch) continue;
+            match = yearMatch;
+            matchSiblings = yearChildren;
+            break;
+          }
+        }
+
         if (!match) {
           return NextResponse.json({ error: "Pasta não encontrada." }, { status: 404 });
         }
-        siblings = folders;
+        siblings = matchSiblings;
         resolvedPath.push({ slug: segment, id: match.id, name: match.name });
         parentId = match.id;
       }

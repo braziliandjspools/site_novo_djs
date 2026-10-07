@@ -8,7 +8,7 @@ import { AtualizacoesPlayerLayout } from "./AtualizacoesPlayerLayout";
 export const metadata: Metadata = buildPageMetadata("musicas-atualizacoes");
 
 /** Provider compartilhado — a barra em si fica na página raiz e no layout das pastas. */
-export default function AtualizacoesLayout({ children }: LayoutProps<"/musicas/atualizacoes">) {
+export default function AtualizacoesLayout({ children }: { children: import("react").ReactNode }) {
   return (
     <Suspense fallback={<MusicasCenterLoading label="Carregando atualizações…" />}>
       <AtualizacoesSearchProvider>
