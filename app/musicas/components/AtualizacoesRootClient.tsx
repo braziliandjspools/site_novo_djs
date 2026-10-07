@@ -132,16 +132,16 @@ function AcervoCard({
           <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
         </span>
       </Link>
-      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1" : "flex flex-col px-3 pb-3 pt-2.5 sm:px-3.5 sm:pb-3.5 sm:pt-3"}`}>
+      <div className={`min-w-0 flex-1 ${view === "list" ? "py-1 pr-1 text-left" : "flex flex-col items-center px-3 pb-3 pt-2.5 text-center sm:px-3.5 sm:pb-3.5 sm:pt-3"}`}>
         <p className="mb-1 truncate text-[9px] font-extrabold uppercase tracking-[0.16em] text-[#60cdff]/80">
-          {statusLabel || (isNew ? "Adicionado recentemente" : "Catálogo BRS")}
+          Catálogo BRS
         </p>
-        <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="outline-none focus-visible:text-[#60cdff]">
+        <Link href={href} prefetch={false} onMouseEnter={prefetch} onFocus={prefetch} className="block w-full outline-none focus-visible:text-[#60cdff]">
           <h3 className="line-clamp-2 text-[13px] font-extrabold leading-snug text-white transition group-hover/acervo:text-[#8ad4ff] sm:text-[15px]">
             {title}
           </h3>
         </Link>
-        <div className={`flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-400 sm:text-[11px] ${view === "list" ? "mt-2" : "mt-2"}`}>
+        <div className={`flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-400 sm:text-[11px] ${view === "grid" ? "justify-center" : ""} mt-2`}>
           {hasFolderStats ? (
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5">
               <FolderOpen className="h-3.5 w-3.5 text-[#60cdff]/80" />

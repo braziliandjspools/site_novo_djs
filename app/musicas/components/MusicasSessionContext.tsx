@@ -7,6 +7,7 @@ export type MusicasSessionValue = {
   hasVip: boolean;
   userName: string;
   userEmail: string;
+  profileImageUrl: string | null;
   openLogin: () => void;
   onLogout: () => void;
 };

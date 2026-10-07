@@ -35,6 +35,7 @@ type SidebarProps = {
   connectionState: ConnectionState;
   syncError?: string | null;
   userName: string;
+  profileImageUrl?: string | null;
   onLogout: () => void;
   counts?: {
     downloads: number;
@@ -72,6 +73,7 @@ export function Sidebar({
   connectionState,
   syncError,
   userName,
+  profileImageUrl,
   onLogout,
   counts,
 }: SidebarProps) {
@@ -79,19 +81,19 @@ export function Sidebar({
   const firstName = userName.split(" ")[0] ?? userName;
 
   return (
-    <aside className="flex h-full w-[248px] flex-shrink-0 flex-col border-r border-[var(--line)] bg-[var(--bg-sidebar)]">
-      <div className="px-4 pb-3 pt-4">
-        <BrsLogo className="h-7 w-auto max-w-[160px] object-contain object-left opacity-95" />
-        <p className="mt-2 text-[0.68rem] font-medium tracking-[0.12em] text-white/45 uppercase">
+    <aside className="app-sidebar flex h-full w-[260px] flex-shrink-0 flex-col border-r border-[var(--line)] bg-[var(--bg-sidebar)]">
+      <div className="app-brand-block px-5 pb-5 pt-6">
+        <BrsLogo className="h-8 w-auto max-w-[172px] object-contain object-left opacity-95" />
+        <p className="mt-2.5 text-[0.66rem] font-semibold tracking-[0.15em] text-white/45 uppercase">
           {DOWNLOADER_NAME}
         </p>
       </div>
 
-      <div className="px-3">
+      <div className="app-connection-status px-3" title={device.deviceName}>
         <ConnectionStatus device={device} connectionState={connectionState} error={syncError} />
       </div>
 
-      <nav className="mt-4 flex-1 space-y-0.5 overflow-y-auto px-2.5">
+      <nav className="app-nav mt-3 flex-1 space-y-1 overflow-y-auto px-3">
         {NAV_ITEMS.filter(isNavVisible).map(({ id, labelKey, icon: Icon, countKey }) => {
           const active = activeRoute === id;
           const badge = countKey && counts ? counts[countKey] : 0;
@@ -102,18 +104,18 @@ export function Sidebar({
               type="button"
               onClick={() => onNavigate(id)}
               aria-current={active ? "page" : undefined}
-              className={`win-nav-item group flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-left text-[0.875rem] font-medium ${
+              className={`win-nav-item group flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3.5 py-3 text-left text-[0.875rem] font-medium ${
                 active ? "win-nav-active" : ""
               }`}
             >
               <Icon
                 className={`win-nav-icon h-4 w-4 flex-shrink-0 ${
-                  active ? "text-[#8ad4ff]" : "text-white/40"
+                  active ? "text-[#1ed760]" : "text-white/45"
                 }`}
               />
               <span className="flex-1 text-white">{t(labelKey)}</span>
               {badge > 0 && (
-                <span className="min-w-5 rounded-[4px] bg-[#60cdff]/15 px-1.5 py-0.5 text-center text-[0.68rem] font-semibold leading-none text-[#8ad4ff]">
+                <span className="min-w-5 rounded-full bg-[#1db954]/15 px-1.5 py-1 text-center text-[0.68rem] font-semibold leading-none text-[#1ed760]">
                   {badge}
                 </span>
               )}
@@ -122,10 +124,19 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="m-2.5 flex items-center gap-3 rounded-[var(--radius-lg)] border border-white/10 bg-[#0a0a0a] px-3 py-2.5 transition-colors hover:border-[#60cdff]/35 hover:bg-[#60cdff]/[0.06]">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-[0.8rem] font-semibold text-white">
-          {(firstName[0] ?? "B").toUpperCase()}
-        </span>
+      <div className="app-user-card m-3 flex items-center gap-3 rounded-[var(--radius-lg)] border border-white/10 bg-[#171817] px-3 py-3 transition-colors hover:border-[#1db954]/35 hover:bg-[#1db954]/[0.06]">
+        {profileImageUrl ? (
+          <img
+            src={profileImageUrl}
+            alt="Foto do perfil"
+            className="h-9 w-9 flex-shrink-0 rounded-full border border-white/15 object-cover"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#1db954]/15 text-[0.8rem] font-semibold text-[#1ed760]">
+            {(firstName[0] ?? "B").toUpperCase()}
+          </span>
+        )}
         <div className="min-w-0">
           <p className="truncate text-[0.8125rem] font-semibold text-white">
             {t("navHello", { name: firstName })}
@@ -133,7 +144,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onLogout}
-            className="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-medium text-white/45 transition-colors hover:text-[#8ad4ff]"
+            className="mt-0.5 inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-medium text-white/45 transition-colors hover:text-[#1ed760]"
           >
             <LogOut className="h-3.5 w-3.5" />
             {t("navLogout")}

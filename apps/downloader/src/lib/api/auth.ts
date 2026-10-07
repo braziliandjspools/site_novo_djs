@@ -18,6 +18,7 @@ type SessionResponse = {
     name: string;
     email?: string;
     whatsapp?: string | null;
+    profileImageUrl?: string | null;
     plan: string;
     planLabel?: string;
     services?: PlanServices;
@@ -57,6 +58,7 @@ export function mapSessionUser(user: NonNullable<SessionResponse["user"]>): Auth
     name: user.name,
     email: user.email,
     whatsapp: user.whatsapp,
+    profileImageUrl: user.profileImageUrl ?? null,
     plan: user.plan,
     planLabel: user.planLabel || user.servicesLabel || user.plan,
     services: user.services,

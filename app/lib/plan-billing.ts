@@ -61,6 +61,9 @@ export function buildDownloaderAccountPayload(user: PortalUser) {
     name: user.name,
     email: user.email,
     whatsapp: user.whatsapp,
+    profileImageUrl: user.profileImageKey
+      ? `/api/r2/${user.profileImageKey.split("/").map((part) => encodeURIComponent(part)).join("/")}`
+      : null,
     plan: user.plan,
     planLabel: servicesLabel,
     services: user.services,

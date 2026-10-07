@@ -155,6 +155,7 @@ function AuthenticatedApp() {
       title={t(meta.title)}
       subtitle={t(meta.subtitle)}
       userName={user.name}
+      profileImageUrl={user.profileImageUrl}
       device={device}
       connectionState={connectionState}
       syncError={workerError}

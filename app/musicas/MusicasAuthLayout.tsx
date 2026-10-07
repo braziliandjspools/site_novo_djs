@@ -23,6 +23,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
   const [hasVip, setHasVip] = useState(false);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const didBootRef = useRef(false);
 
@@ -38,17 +39,19 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
       const data = (await res.json()) as {
         authenticated?: boolean;
         hasVip?: boolean;
-        user?: { name: string; email?: string | null } | null;
+        user?: { name: string; email?: string | null; profileImageUrl?: string | null } | null;
       };
       setAuthenticated(Boolean(data.authenticated));
       setHasVip(Boolean(data.hasVip));
       setUserName(data.user?.name ?? "");
       setUserEmail(data.user?.email ?? "");
+      setProfileImageUrl(data.user?.profileImageUrl ?? null);
     } catch {
       setAuthenticated(false);
       setHasVip(false);
       setUserName("");
       setUserEmail("");
+      setProfileImageUrl(null);
     } finally {
       setLoading(false);
     }
@@ -74,10 +77,11 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
       hasVip,
       userName,
       userEmail,
+      profileImageUrl,
       openLogin: goToLogin,
       onLogout: () => void handleLogout(),
     }),
-    [authenticated, goToLogin, hasVip, userEmail, userName],
+    [authenticated, goToLogin, hasVip, profileImageUrl, userEmail, userName],
   );
 
   if (pathname === "/musicas/entrar") {
@@ -105,6 +109,7 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                 <MusicasTopNav
                   authenticated={authenticated}
                   userName={userName}
+                  profileImageUrl={profileImageUrl}
                   hasVip={hasVip}
                   onLogout={() => void handleLogout()}
                   onLogin={goToLogin}

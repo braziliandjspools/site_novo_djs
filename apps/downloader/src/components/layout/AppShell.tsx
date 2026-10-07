@@ -17,6 +17,7 @@ type AppShellProps = {
   title: string;
   subtitle?: string;
   userName: string;
+  profileImageUrl?: string | null;
   device: DeviceInfo;
   connectionState: ConnectionState;
   syncError?: string | null;
@@ -36,6 +37,7 @@ export function AppShell({
   title,
   subtitle,
   userName,
+  profileImageUrl,
   device,
   connectionState,
   syncError,
@@ -48,7 +50,7 @@ export function AppShell({
   const { t } = useLocale();
 
   return (
-    <div className="flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
+    <div className="app-frame flex h-full min-h-0 bg-[var(--background)] text-[var(--foreground)]">
       <UpdateAvailableModal />
       <Sidebar
         activeRoute={activeRoute}
@@ -57,14 +59,15 @@ export function AppShell({
         connectionState={connectionState}
         syncError={syncError}
         userName={userName}
+        profileImageUrl={profileImageUrl}
         counts={counts}
         onLogout={onLogout}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="relative z-50 flex flex-shrink-0 items-center justify-between gap-4 border-b border-[var(--line)] bg-[var(--bg-sidebar)] px-5 py-3">
+        <header className="app-topbar relative z-50 flex flex-shrink-0 items-center justify-between gap-4 border-b border-[var(--line)] bg-[var(--bg-sidebar)] px-6 py-4">
           <div className="min-w-0">
-            <h1 className="truncate text-[1.05rem] font-semibold tracking-tight text-white">{title}</h1>
+            <h1 className="app-topbar-title truncate font-display text-[1.08rem] font-semibold tracking-tight text-white">{title}</h1>
             {subtitle && (
               <p className="mt-0.5 max-w-2xl truncate text-[0.78rem] leading-snug text-[var(--text-subtle)]">
                 {subtitle}
@@ -89,7 +92,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="app-mesh min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <main className="app-main app-mesh min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-8">
           <div key={activeRoute} className="animate-fade-up">{children}</div>
         </main>
       </div>

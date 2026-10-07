@@ -20,6 +20,7 @@ export type AuthUser = {
   name: string;
   email?: string;
   whatsapp?: string | null;
+  profileImageUrl?: string | null;
   plan: string;
   planLabel?: string;
   services?: PlanServices;

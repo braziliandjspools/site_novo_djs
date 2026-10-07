@@ -26,7 +26,14 @@ export async function GET(request: Request) {
     });
   }
 
-  const account = buildDownloaderAccountPayload(session.user);
+  const accountPayload = buildDownloaderAccountPayload(session.user);
+  const account = {
+    ...accountPayload,
+    // O Downloader roda em um WebView com origem própria; devolva a URL do site completa.
+    profileImageUrl: accountPayload.profileImageUrl
+      ? new URL(accountPayload.profileImageUrl, request.url).toString()
+      : null,
+  };
   const hasVip = session.canPlay;
 
   return withDownloaderCorsJson(request, {

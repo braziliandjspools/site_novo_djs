@@ -8,7 +8,7 @@ import { MusicasUserMenu } from "../musicas/components/MusicasUserMenu";
 type SessionPayload = {
   authenticated?: boolean;
   hasVip?: boolean;
-  user?: { name?: string } | null;
+  user?: { name?: string; profileImageUrl?: string | null } | null;
 };
 
 /** Acesso do usuário no header marketing — igual /musicas e /portal. */
@@ -19,6 +19,7 @@ export function MarketingAuthControls({ compact = false }: { compact?: boolean }
   const [authenticated, setAuthenticated] = useState(false);
   const [hasVip, setHasVip] = useState(false);
   const [userName, setUserName] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,11 +31,13 @@ export function MarketingAuthControls({ compact = false }: { compact?: boolean }
         setAuthenticated(Boolean(data.authenticated));
         setHasVip(Boolean(data.hasVip));
         setUserName(data.user?.name?.trim() || "Usuário");
+        setProfileImageUrl(data.user?.profileImageUrl ?? null);
       } catch {
         if (!cancelled) {
           setAuthenticated(false);
           setHasVip(false);
           setUserName("");
+          setProfileImageUrl(null);
         }
       } finally {
         if (!cancelled) setReady(true);
@@ -51,6 +54,7 @@ export function MarketingAuthControls({ compact = false }: { compact?: boolean }
     setAuthenticated(false);
     setHasVip(false);
     setUserName("");
+    setProfileImageUrl(null);
     router.refresh();
     router.push("/");
   }, [router]);
@@ -79,5 +83,5 @@ export function MarketingAuthControls({ compact = false }: { compact?: boolean }
     );
   }
 
-  return <MusicasUserMenu userName={userName} hasVip={hasVip} onLogout={() => void handleLogout()} />;
+  return <MusicasUserMenu userName={userName} profileImageUrl={profileImageUrl} hasVip={hasVip} onLogout={() => void handleLogout()} />;
 }

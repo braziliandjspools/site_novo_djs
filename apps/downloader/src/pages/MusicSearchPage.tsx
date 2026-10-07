@@ -34,7 +34,7 @@ import { useLocale } from "../i18n/LocaleContext";
 
 const DEBOUNCE_MS = 280;
 const PAGE_SIZE = 24;
-const SEARCH_CARD_ACCENTS = ["#60cdff", "#a78bfa", "#f472b6", "#fbbf24", "#34d399", "#fb7185"] as const;
+const SEARCH_CARD_ACCENTS = ["#1db954"] as const;
 const SEARCH_BANNER_URL =
   "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/cf5a5a0a-a57e-4b94-9e2a-fa5bc1488305.png";
 
@@ -303,38 +303,38 @@ export function MusicSearchPage() {
 
   return (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black">
+      <div className="search-banner relative overflow-hidden rounded-2xl border border-white/10 bg-black">
         <img
           src={SEARCH_BANNER_URL}
           alt="Pesquise no Downloader"
-          className="h-auto w-full object-cover object-center opacity-90"
+          className="search-banner-image h-auto w-full object-cover object-center opacity-90"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20" />
-      </div>
-
-      <section className="border-b border-white/10 pb-5">
-        <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="search-banner-shade pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20" />
+        <div className="search-banner-content absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6">
           <div className="min-w-0">
-            <p className="text-eyebrow text-[#8ad4ff]">Catálogo BRS</p>
-            <h2 className="mt-1 font-display text-[1.45rem] font-semibold tracking-tight text-white">
+            <p className="text-eyebrow text-[#1ed760]">BRS · catálogo</p>
+            <h2 className="mt-2 font-display text-[1.65rem] font-semibold tracking-tight text-white sm:text-3xl">
               {t("searchTitle").replace(/^🔎\s*/, "")}
             </h2>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-white/55">{t("searchSubtitle")}</p>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-white/75">{t("searchSubtitle")}</p>
           </div>
           {results.length > 0 ? (
-            <span className="shrink-0 border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 py-1 text-[11px] font-semibold tabular-nums text-[#8ad4ff]">
+            <span className="search-result-count shrink-0 rounded-full border border-[#1db954]/40 bg-black/50 px-3.5 py-1.5 text-xs font-semibold tabular-nums text-[#1ed760] backdrop-blur">
               {results.length}
             </span>
           ) : null}
         </div>
-        <label className="relative block">
+      </div>
+
+      <section className="search-control-panel">
+        <label className="search-field relative block">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-white/40" />
           <input
             type="search"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("searchPlaceholder")}
-            className="w-full border border-white/12 bg-black py-3.5 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-[#60cdff]/55 focus:ring-1 focus:ring-[#60cdff]/25"
+            className="w-full border border-white/12 bg-black py-3.5 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-[#1db954]/55 focus:ring-1 focus:ring-[#1db954]/25"
             autoFocus
           />
           {draft ? (
@@ -342,7 +342,7 @@ export function MusicSearchPage() {
               type="button"
               aria-label={t("searchClear")}
               onClick={() => setDraft("")}
-              className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center text-white/45 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
+              className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center text-white/45 transition hover:bg-[#1db954]/10 hover:text-[#1ed760]"
             >
               <X className="h-4 w-4" />
             </button>
@@ -352,7 +352,7 @@ export function MusicSearchPage() {
 
       {loading ? (
         <div className="flex items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-4 py-16 text-sm text-white">
-          <Loader2 className="h-4 w-4 animate-spin text-[#8ad4ff]" />
+          <Loader2 className="h-4 w-4 animate-spin text-[#1ed760]" />
           {t("searchSearching")}
         </div>
       ) : null}
@@ -381,7 +381,7 @@ export function MusicSearchPage() {
               event.preventDefault();
               void openPlatform(whatsappHref);
             }}
-            className="mt-5 inline-flex h-10 items-center gap-2 bg-white px-4 text-sm font-bold text-black transition hover:bg-[#8ad4ff]"
+            className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-[#1db954] px-4 text-sm font-bold text-[#07120a] transition hover:bg-[#1ed760]"
           >
             <MessageCircle className="h-4 w-4" />
             {t("searchRequestWhatsApp")}
@@ -395,11 +395,11 @@ export function MusicSearchPage() {
             <button
               type="button"
               onClick={toggleSelectAll}
-              className="inline-flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-[#60cdff]/10 hover:text-[#8ad4ff]"
+              className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold text-white/60 transition hover:bg-[#1db954]/10 hover:text-[#1ed760]"
             >
               {selectedCount > 0 &&
               results.filter((track) => track.downloadAvailable).every((track) => selectedIds.has(track.trackId)) ? (
-                <CheckSquare className="h-4 w-4 text-[#60cdff]" />
+                <CheckSquare className="h-4 w-4 text-[#1db954]" />
               ) : (
                 <Square className="h-4 w-4" />
               )}
@@ -440,9 +440,9 @@ export function MusicSearchPage() {
                     aria-label={selected ? t("searchClearSelection") : t("searchSelectAll")}
                     onClick={() => toggleSelected(track.trackId)}
                     disabled={!track.downloadAvailable}
-                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/40 transition group-hover:text-[#8ad4ff] disabled:opacity-30"
+                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-white/40 transition group-hover:text-[#1ed760] disabled:opacity-30"
                   >
-                    {selected ? <CheckSquare className="h-4 w-4 text-[#60cdff]" /> : <Square className="h-4 w-4" />}
+                    {selected ? <CheckSquare className="h-4 w-4 text-[#1db954]" /> : <Square className="h-4 w-4" />}
                   </button>
                   <button
                     type="button"
@@ -463,7 +463,7 @@ export function MusicSearchPage() {
                   <div className="min-w-0">
                     <p
                       className={`truncate text-[0.95rem] font-semibold transition ${
-                        active ? "text-[#8ad4ff]" : "text-white group-hover:text-[#8ad4ff]"
+                        active ? "text-[#1ed760]" : "text-white group-hover:text-[#1ed760]"
                       }`}
                     >
                       {track.title}
@@ -478,7 +478,7 @@ export function MusicSearchPage() {
                       <button
                         type="button"
                         onClick={() => void openPlatform(catalogUrl)}
-                        className="hidden h-9 items-center gap-1 border border-white/12 px-2.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] sm:inline-flex"
+                        className="hidden h-9 items-center gap-1 rounded-lg border border-white/12 px-2.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white/70 transition hover:border-[#1db954]/40 hover:bg-[#1db954]/10 hover:text-[#1ed760] sm:inline-flex"
                       >
                         <ExternalLink className="h-3 w-3" />
                         {t("searchOpenCatalog")}

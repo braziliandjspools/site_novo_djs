@@ -9,11 +9,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "border border-white/15 bg-white text-black hover:border-[#60cdff]/50 hover:bg-[#8ad4ff] active:bg-[#60cdff] disabled:hover:bg-white",
+    "border border-[#1db954]/70 bg-[#1db954] text-[#07120a] shadow-[0_8px_24px_rgba(29,185,84,0.18)] hover:border-[#1ed760] hover:bg-[#1ed760] active:bg-[#19c653] disabled:hover:bg-[#1db954]",
   secondary:
-    "border border-white/12 bg-transparent text-white hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] active:bg-[#60cdff]/15 disabled:opacity-50",
+    "border border-white/10 bg-white/[0.035] text-white hover:border-[#1db954]/40 hover:bg-[#1db954]/10 hover:text-[#1ed760] active:bg-[#1db954]/15 disabled:opacity-50",
   ghost:
-    "text-white/70 hover:bg-[#60cdff]/10 hover:text-[#8ad4ff] active:bg-[#60cdff]/15 disabled:opacity-50",
+    "text-white/70 hover:bg-[#1db954]/10 hover:text-[#1ed760] active:bg-[#1db954]/15 disabled:opacity-50",
   danger:
     "border border-red-400/30 bg-[#3a2020] text-[#ffb3ba] hover:bg-[#4a2828] active:bg-[#5a3030] disabled:opacity-50",
 };

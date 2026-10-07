@@ -15,6 +15,7 @@ import { SiteNotificationBell } from "../components/notifications/SiteNotificati
 type MusicasTopNavProps = {
   authenticated: boolean;
   userName: string;
+  profileImageUrl: string | null;
   hasVip: boolean;
   onLogout: () => void;
   onLogin: () => void;
@@ -36,6 +37,7 @@ function navActive(pathname: string, href: string) {
 export function MusicasTopNav({
   authenticated,
   userName,
+  profileImageUrl,
   hasVip,
   onLogout,
   onLogin: _onLogin,
@@ -168,7 +170,7 @@ export function MusicasTopNav({
           )}
 
           {authenticated && (
-            <MusicasUserMenu userName={userName} hasVip={hasVip} onLogout={onLogout} />
+            <MusicasUserMenu userName={userName} profileImageUrl={profileImageUrl} hasVip={hasVip} onLogout={onLogout} />
           )}
 
           <button

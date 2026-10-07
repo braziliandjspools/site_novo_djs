@@ -160,14 +160,14 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
                 }
               }}
               placeholder={t("importPlaceholder")}
-              className="w-full rounded-lg border border-zinc-800 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white outline-none placeholder:text-zinc-600 transition-colors hover:border-[#60cdff]/35 focus:border-[#60cdff]/45 focus:ring-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#60cdff]/30"
+              className="w-full rounded-xl border border-zinc-800 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white outline-none placeholder:text-zinc-600 transition-colors hover:border-[#1db954]/35 focus:border-[#1db954]/45 focus:ring-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1db954]/30"
             />
           </div>
           <Button
             variant="secondary"
             disabled={validating || !url.trim()}
             onClick={() => void handleValidate()}
-            className="flex-shrink-0 hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-[#60cdff]"
+            className="flex-shrink-0 hover:border-[#1db954]/40 hover:bg-[#1db954]/10 hover:text-[#1ed760]"
           >
             {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {t("importValidate")}
@@ -176,7 +176,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
 
         {error && <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">{error}</p>}
         {success && (
-          <p className="flex items-center gap-2 rounded-lg bg-[#60cdff]/10 px-3 py-2 text-xs text-[#60cdff]">
+          <p className="flex items-center gap-2 rounded-lg bg-[#1db954]/10 px-3 py-2 text-xs text-[#1ed760]">
             <CheckCircle2 className="h-3.5 w-3.5" />
             {success}
           </p>
@@ -190,7 +190,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
                 ? t("importArtistLabel")
                 : stripForcedFolderTreePrefix(preview.relativePath) || preview.relativePath}
             </p>
-            <p className="mt-3 flex items-center gap-2 text-lg font-black tabular-nums text-[#60cdff]">
+            <p className="mt-3 flex items-center gap-2 text-lg font-black tabular-nums text-[#1ed760]">
               <span>
               {(preview.dates?.length ?? 0) > 0 ? (
                 <>
@@ -218,7 +218,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
               <button
                 type="button"
                 onClick={() => setHelpOpen(true)}
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/15 text-zinc-300 transition hover:border-[#60cdff]/50 hover:text-[#60cdff]"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/15 text-zinc-300 transition hover:border-[#1db954]/50 hover:text-[#1ed760]"
                 aria-label={t("importBackupHelp")}
                 title={t("importBackupHelp")}
               >
@@ -296,7 +296,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
               href="https://wa.me/5551935052274"
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex font-semibold text-[#60cdff] transition hover:text-[#8ad4ff] hover:underline"
+              className="mt-3 inline-flex font-semibold text-[#1db954] transition hover:text-[#1ed760] hover:underline"
             >
               WhatsApp +55 51 93505-2274
             </a>
@@ -312,7 +312,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
   if (embedded) {
     return (
       <div className="rounded-2xl border border-white/15 bg-black/55 p-4 backdrop-blur-md">
-        <p className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-[#60cdff]">{t("importTitle")}</p>
+        <p className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-[#1db954]">{t("importTitle")}</p>
         <p className="mt-1 text-xs text-zinc-300">{t("importPanelDesc")}</p>
         <div className="mt-3">{form}</div>
       </div>
