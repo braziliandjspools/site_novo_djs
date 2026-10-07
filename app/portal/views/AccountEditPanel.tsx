@@ -7,10 +7,9 @@ import type { PortalData } from "../portal-types";
 
 type AccountEditPanelProps = {
   user: PortalData["user"];
-  onUpdated: () => void;
 };
 
-export function AccountEditPanel({ user, onUpdated }: AccountEditPanelProps) {
+export function AccountEditPanel({ user }: AccountEditPanelProps) {
   const [name, setName] = useState(user.name);
   const [whatsapp, setWhatsapp] = useState(user.whatsapp);
   const [photoUrl, setPhotoUrl] = useState(user.profileImageUrl);
@@ -41,7 +40,7 @@ export function AccountEditPanel({ user, onUpdated }: AccountEditPanelProps) {
       const json = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(json.error || "Não foi possível salvar.");
       setMessage("Seus dados foram atualizados.");
-      onUpdated();
+      window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível salvar.");
     } finally {
@@ -61,7 +60,7 @@ export function AccountEditPanel({ user, onUpdated }: AccountEditPanelProps) {
       if (!res.ok) throw new Error(json.error || "Não foi possível enviar a foto.");
       setPhotoUrl(json.imageUrl || null);
       setMessage("Foto atualizada e armazenada no R2.");
-      onUpdated();
+      window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível enviar a foto.");
     } finally {
