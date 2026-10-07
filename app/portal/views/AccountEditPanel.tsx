@@ -21,6 +21,9 @@ export function AccountEditPanel({ user }: AccountEditPanelProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const status = new URLSearchParams(window.location.search).get("senha");
+    if (status === "confirmada") setMessage("Senha alterada com sucesso.");
+    if (status === "token-invalido") setError("O link de confirmação expirou ou já foi utilizado.");
     setName(user.name);
     setWhatsapp(user.whatsapp);
     setPhotoUrl(user.profileImageUrl);
