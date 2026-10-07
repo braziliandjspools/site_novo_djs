@@ -8,6 +8,7 @@ import { formatDateBr, type PortalData } from "../portal-types";
 import { AllavsoftLicensesPanel } from "./AllavsoftLicensesPanel";
 import { AccountPaymentsPanel } from "./AccountPaymentsPanel";
 import { DownloaderStatsPanel } from "./DownloaderStatsPanel";
+import { AccountEditPanel } from "./AccountEditPanel";
 import { PortalPlanChangePanel } from "./PortalPlanChangePanel";
 import {
   ALLAVSOFT_INSTALLER_VERSION,
@@ -166,7 +167,11 @@ export function AccountView({ data }: { data: PortalData }) {
     <div className="space-y-6">
       <PortalPageHeader title="Minha Conta" subtitle="Informações do seu cadastro e assinatura." />
 
-      <PortalCard title="Dados pessoais">
+      <PortalCard title="Editar meus dados">
+        <AccountEditPanel user={user} onUpdated={() => window.location.reload()} />
+      </PortalCard>
+
+      <PortalCard title="Resumo da conta">
         <dl className="grid gap-4 sm:grid-cols-2">
           {rows.map(([label, value]) => (
             <div key={label} className="rounded-lg border border-zinc-800 bg-[#0a0a0a] px-4 py-3">
@@ -191,11 +196,6 @@ export function AccountView({ data }: { data: PortalData }) {
 
       <AccountPaymentsPanel services={user.services} serviceBilling={user.serviceBilling} />
 
-      <PortalCard title="Segurança">
-        <p className="text-sm text-zinc-400">
-          Para alterar sua senha ou dados cadastrais, entre em contato com o suporte pelo WhatsApp.
-        </p>
-      </PortalCard>
     </div>
   );
 }
