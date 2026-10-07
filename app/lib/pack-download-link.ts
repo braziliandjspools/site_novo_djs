@@ -29,6 +29,7 @@ export type ParsedPackLink = {
   kind: "pack";
   slug: string;
   root: "vip" | "colecoes";
+  filters?: { day?: string; pool?: string; style?: string };
 };
 
 export type ParsedArtistLink = {
@@ -92,6 +93,11 @@ export function parsePackDownloadInput(input: string): ParsedDownloadLink | null
     const kindParam = url.searchParams.get("kind")?.trim().toLowerCase();
     const q = url.searchParams.get("slug")?.trim();
     const rootParam = url.searchParams.get("root")?.trim().toLowerCase();
+    const filters = {
+      ...(url.searchParams.get("dia")?.trim() ? { day: url.searchParams.get("dia")!.trim() } : {}),
+      ...(url.searchParams.get("pool")?.trim() ? { pool: url.searchParams.get("pool")!.trim() } : {}),
+      ...(url.searchParams.get("estilo")?.trim() ? { style: url.searchParams.get("estilo")!.trim() } : {}),
+    };
     if (q) {
       const slug = q.replace(/^\/+|\/+$/g, "");
       if (kindParam === "artist") {
@@ -102,12 +108,13 @@ export function parsePackDownloadInput(input: string): ParsedDownloadLink | null
         kind: "pack",
         slug,
         root: rootParam === "colecoes" ? "colecoes" : "vip",
+        ...(Object.keys(filters).length ? { filters } : {}),
       };
     }
     const artist = slugFromArtistPathname(url.pathname);
     if (artist) return artist;
     const fromPath = slugFromPackPathname(url.pathname);
-    if (fromPath) return fromPath;
+    if (fromPath) return Object.keys(filters).length ? { ...fromPath, filters } : fromPath;
   } catch {
     /* não é URL absoluta */
   }

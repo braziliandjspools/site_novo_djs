@@ -69,7 +69,10 @@ export async function GET(request: Request) {
     }
 
     const root = rootParam ?? (parsed.kind === "pack" ? parsed.root : "vip");
-    const result = await previewPackBySlug(parsed.slug, { root });
+    const result = await previewPackBySlug(parsed.slug, {
+      root,
+      filters: parsed.kind === "pack" ? parsed.filters : undefined,
+    });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });
     }
@@ -93,6 +96,7 @@ export async function GET(request: Request) {
       root: result.folder.root,
       downloadUrl,
       dates: result.dates ?? [],
+      filtered: "filtered" in result ? result.filtered : false,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao validar a pasta.";

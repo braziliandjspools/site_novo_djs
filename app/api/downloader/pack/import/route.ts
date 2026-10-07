@@ -5,6 +5,8 @@ import {
   importArtistJobsBySlug,
   importPackJobsBySlug,
   parsePackDownloadInput,
+  resolvePackFilterTargets,
+  resolvePackFolderBySlug,
 } from "../../../../lib/pack-download";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +64,7 @@ export async function POST(request: Request) {
       : null;
   const offset = typeof data.offset === "number" && Number.isFinite(data.offset) ? data.offset : 0;
   const limit = typeof data.limit === "number" && Number.isFinite(data.limit) ? data.limit : undefined;
-  const targets = Array.isArray(data.targets)
+  let targets = Array.isArray(data.targets)
     ? data.targets.flatMap((item) => {
         if (!item || typeof item !== "object") return [];
         const row = item as { folderId?: unknown; folderName?: unknown; relativePath?: unknown };
@@ -110,12 +112,27 @@ export async function POST(request: Request) {
       data.root === "colecoes" || (parsed.kind === "pack" && parsed.root === "colecoes")
         ? "colecoes"
         : "vip";
+    if (parsed.kind === "pack" && parsed.filters && Object.values(parsed.filters).some(Boolean)) {
+      const folder = await resolvePackFolderBySlug(parsed.slug, { root });
+      if (!folder) {
+        return withDownloaderCorsJson(
+          request,
+          { error: "Pasta não encontrada. Confira o link copiado no site." },
+          { status: 404 },
+        );
+      }
+      targets = (await resolvePackFilterTargets(folder, parsed.filters)).targets;
+    }
     const result = await importPackJobsBySlug(access.user.id, parsed.slug, {
       targetDeviceId,
       root,
       offset,
       limit,
-      targets,
+      ...(parsed.kind === "pack" && parsed.filters && Object.values(parsed.filters).some(Boolean)
+        ? { targets }
+        : Array.isArray(data.targets)
+          ? { targets }
+          : {}),
     });
     if ("error" in result) {
       return withDownloaderCorsJson(request, { error: result.error }, { status: 404 });

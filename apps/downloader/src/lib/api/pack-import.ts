@@ -23,6 +23,7 @@ export type PackPreview = {
   trackCountIsEstimate?: boolean;
   subfolderCount?: number;
   dates?: PackDateOption[];
+  filtered?: boolean;
 };
 
 export type PackStyleOption = { folderId: string; name: string; trackCount?: number };

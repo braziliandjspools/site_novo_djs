@@ -16,6 +16,7 @@ import { ensureAudioExtension, type PreviewTrack } from "./google-drive";
 import { createDownloadJobsBatch, type DownloadJobInput } from "./downloader";
 import { withForcedFolderTree } from "./force-folder-tree";
 import { parsePackDownloadInput } from "./pack-download-link";
+import { slugifyFolderName } from "./vip-music-slugs";
 import { isDriveAudioFile } from "./folder-cover";
 import { mapPool } from "./map-pool";
 import { findTracksByArtistSlug } from "./vip-artist-tracks";
@@ -135,10 +136,28 @@ async function collectTracksRecursive(
  * Validação rápida: confirma que a pasta existe sem varrer milhares de MP3
  * (mês inteiro pode passar de 30s e estourar o timeout do app desktop).
  */
-export async function previewPackBySlug(slug: string, options?: { root?: PackRoot }) {
+export async function previewPackBySlug(
+  slug: string,
+  options?: { root?: PackRoot; filters?: { day?: string; pool?: string; style?: string } },
+) {
   const folder = await resolvePackFolderBySlug(slug, options);
   if (!folder) {
     return { error: "Pasta não encontrada. Confira o link copiado no site." as const };
+  }
+
+  if (options?.filters && Object.values(options.filters).some(Boolean)) {
+    const filtered = await resolvePackFilterTargets(folder, options.filters);
+    return {
+      ok: true as const,
+      folder,
+      trackCount: filtered.trackCount,
+      sampleTitles: [] as string[],
+      hasSubfolders: false,
+      trackCountIsEstimate: false,
+      subfolderCount: filtered.targets.length,
+      dates: [] as PackDateOption[],
+      filtered: true,
+    };
   }
 
   const dates = await listPackDates(folder.folderId, folder.folderName);
@@ -248,7 +267,8 @@ export async function importPackJobsBySlug(
 
   const selected = options?.targets?.filter((target) => target.folderId?.trim()) ?? [];
   const dayByFolder = await mapTargetDays(folder.folderId, folder.folderName, selected);
-  const tracks = selected.length
+  const hasExplicitTargets = options?.targets !== undefined;
+  const tracks = hasExplicitTargets
     ? (
         await mapPool(selected, 4, (target) => {
           const dayName = dayByFolder.get(target.folderId) ?? "";
@@ -328,6 +348,53 @@ export type PackPoolOption = {
   trackCount: number;
   styles: PackStyleOption[];
 };
+
+export type PackFilterTarget = { folderId: string; folderName: string; relativePath: string };
+
+/** Resolve filtros da URL para pastas reais do Drive, preservando o recorte no Downloader. */
+export async function resolvePackFilterTargets(
+  folder: PackResolvedFolder,
+  filters: { day?: string; pool?: string; style?: string },
+) {
+  const dates = await listPackDates(folder.folderId, folder.folderName);
+  const selectedDates = filters.day
+    ? dates.filter((date) => date.key === filters.day)
+    : dates;
+  const targets: PackFilterTarget[] = [];
+  let trackCount = 0;
+  const poolSlug = filters.pool?.trim();
+  const styleSlug = filters.style?.trim();
+
+  for (const date of selectedDates) {
+    const contents = await listPackDayContents(date.folderId);
+    for (const pool of contents.pools) {
+      if (poolSlug && slugifyFolderName(pool.name) !== poolSlug) continue;
+      if (styleSlug) {
+        for (const style of pool.styles) {
+          if (slugifyFolderName(style.name) !== styleSlug) continue;
+          targets.push({
+            folderId: style.folderId,
+            folderName: style.name,
+            relativePath: `${pool.name}/${style.name}`,
+          });
+          trackCount += style.trackCount;
+        }
+      } else {
+        targets.push({ folderId: pool.folderId, folderName: pool.name, relativePath: pool.name });
+        trackCount += pool.trackCount;
+      }
+    }
+    if (!poolSlug) {
+      for (const style of contents.styles) {
+        if (styleSlug && slugifyFolderName(style.name) !== styleSlug) continue;
+        targets.push({ folderId: style.folderId, folderName: style.name, relativePath: style.name });
+        trackCount += style.trackCount;
+      }
+    }
+  }
+
+  return { targets, trackCount, dates: selectedDates };
+}
 
 export type PackDayContents = {
   pools: PackPoolOption[];
