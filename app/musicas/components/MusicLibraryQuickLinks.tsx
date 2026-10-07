@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   Mic2,
-  MonitorDown,
   RefreshCw,
   Sparkles,
 } from "lucide-react";
@@ -17,7 +16,7 @@ const QUICK_LINKS: Array<{
   icon: LucideIcon;
 }> = [
   {
-    href: "/musicas/atualizacoes",
+    href: "/musicas/atualizacoes/2026/outubro-2026",
     title: "Atualizações",
     subtitle: "Packs VIP",
     icon: RefreshCw,
