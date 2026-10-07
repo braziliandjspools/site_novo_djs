@@ -24,6 +24,7 @@ export type { PortalView };
 
 type PortalShellProps = {
   userName: string;
+  profileImageUrl: string | null;
   activeView: PortalView;
   onNavigate: (view: PortalView) => void;
   onLogout: () => void;
@@ -78,6 +79,7 @@ function NavLink({
 
 export function PortalShell({
   userName,
+  profileImageUrl,
   activeView,
   onNavigate,
   onLogout,
@@ -202,7 +204,7 @@ export function PortalShell({
               <span className="hidden rounded-full border border-[#009739]/40 bg-[#009739]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1db954] sm:inline">
                 Online
               </span>
-              <MusicasUserMenu userName={userName} hasVip={vipActive} onLogout={() => void onLogout()} />
+              <MusicasUserMenu userName={userName} profileImageUrl={profileImageUrl} hasVip={vipActive} onLogout={() => void onLogout()} />
             </div>
           </div>
         </header>
