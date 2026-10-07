@@ -130,6 +130,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
   return (
     <PortalShell
       userName={portalData.user.name}
+      profileImageUrl={portalData.user.profileImageUrl}
       activeView={activeView}
       onNavigate={navigate}
       onLogout={() => void handleLogout()}
