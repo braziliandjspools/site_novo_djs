@@ -617,6 +617,7 @@ export function serializePortalUser(user: PortalUser) {
     name: user.name,
     email: user.email,
     whatsapp: user.whatsapp,
+    profileImageKey: user.profileImageKey,
     plan: user.plan,
     planLabel: getServicesLabel(user.services),
     services: user.services,
