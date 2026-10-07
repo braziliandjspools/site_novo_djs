@@ -460,11 +460,6 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     return actions;
   }, [menuActions, canDownload, isDownloading, onDownload]);
 
-  const rowBg =
-    isHighlighted || isSelected || isActive
-      ? "bg-[#102018]"
-      : "bg-[#0b0e0c] hover:bg-[#141c16]";
-
   function handleSeekClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     const ratio = (event.clientX - rect.left) / rect.width;
@@ -656,11 +651,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className={`tablemusic-row group/row relative hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#60cdff]/20 after:to-transparent last:after:hidden transition-[background-color,box-shadow] duration-200 ease-out ${rowBg} ${
-        isActive || isPlaying || isSelected || isHighlighted
-          ? "shadow-[inset_3px_0_0_0_#60cdff]"
-          : "hover:shadow-[inset_3px_0_0_0_rgba(96,205,255,0.55)]"
-      }`}
+      className="tablemusic-row group/row relative bg-transparent transition-colors duration-200 hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-white/[0.08] last:after:hidden"
     >
       {/* Mobile */}
       <div className="flex items-center gap-2.5 px-3 py-3 md:hidden">
@@ -1662,7 +1653,7 @@ export function VipMusicTrackList({
         <MusicasTableLoadingOverlay label={`Carregando página ${String(page).padStart(2, "0")}…`} />
       ) : null}
       {useStreaming ? (
-        <div className="w-full min-w-0 space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
+        <div className="w-full min-w-0 space-y-3 border-b border-white/10 bg-[#202020] py-3">
           {hasCatalogFilters ? (
             <section className="w-full min-w-0 overflow-hidden rounded-xl border border-[#60cdff]/20 bg-[#111416] shadow-[0_12px_30px_rgba(0,0,0,0.18)]" aria-label="Filtros do acervo">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] bg-gradient-to-r from-[#60cdff]/[0.08] via-transparent to-transparent px-3.5 py-3 sm:px-4">

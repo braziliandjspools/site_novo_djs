@@ -1013,10 +1013,10 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
               <section className="w-full min-w-0 overflow-hidden rounded-2xl border border-[#60cdff]/35 bg-black">
                 <div className="h-1 w-full bg-[#60cdff]" />
                 <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                  <div className="min-w-0 font-[family-name:var(--font-josefin-thin)] font-thin">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-[#60cdff]">BRS Downloader</p>
-                    <h2 className="mt-1 text-lg text-white sm:text-xl">Baixe organizado por pool e por dia</h2>
-                    <p className="mt-1 max-w-xl text-[15px] leading-relaxed text-zinc-300 sm:text-base">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#60cdff]">BRS Downloader</p>
+                    <h2 className="mt-1 text-base font-bold text-white">Baixe organizado por pool e por dia</h2>
+                    <p className="mt-1 max-w-xl text-sm leading-relaxed text-zinc-400">
                       Copie o link desta pasta e cole no BRS Downloader. O app pergunta o dia, a pool e os estilos, e grava as músicas nas pastas certas.
                     </p>
                   </div>
