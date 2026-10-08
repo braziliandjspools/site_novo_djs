@@ -5,7 +5,12 @@ import { JsonLd } from "../../components/JsonLd";
 import { breadcrumbJsonLd, collectionPageJsonLd } from "../../lib/seo";
 
 export default async function AlbunsPage() {
-  const data = await listCollections();
+  let data: Awaited<ReturnType<typeof listCollections>> = { configured: false, rootFolderId: null, collections: [] };
+  try {
+    data = await listCollections();
+  } catch (error) {
+    console.error("[musicas/albuns] Falha ao carregar catálogo:", error);
+  }
   return (
     <>
       <JsonLd data={breadcrumbJsonLd([{ name: "Início", path: "/" }, { name: "Músicas", path: "/musicas" }, { name: "Álbuns", path: "/musicas/albuns" }])} />
