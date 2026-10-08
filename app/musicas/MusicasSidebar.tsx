@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LogIn, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, Disc3, LogIn, LogOut, Menu, X } from "lucide-react";
 import { BrsLogo } from "../components/BrsLogo";
 import { APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
@@ -27,6 +27,7 @@ const PLATFORM_NAV = [
   { href: "/musicas", label: "Início" },
   { href: "/musicas/atualizacoes", label: "Atualizações" },
   { href: "/musicas/artistas", label: "Artistas" },
+  { href: "/musicas/albuns", label: "Álbuns" },
 ] as const;
 
 function navActive(pathname: string, href: string) {
