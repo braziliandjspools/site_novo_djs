@@ -82,6 +82,12 @@ export function MusicSearchPage() {
     return () => window.clearTimeout(handle);
   }, [draft]);
 
+  // Inicia a leitura do catálogo ao abrir a aba, para aproveitar o tempo antes da primeira busca.
+  useEffect(() => {
+    if (!sessionToken) return;
+    void searchMusicCatalog(sessionToken, "", PAGE_SIZE).catch(() => undefined);
+  }, [sessionToken]);
+
   useEffect(() => {
     if (!sessionToken) return;
     if (query.length < 2) {

@@ -608,9 +608,14 @@ export async function searchVipMusic(
   return results;
 }
 
-/** Aquece o índice completo do acervo sem bloquear a UI. */
-export function warmVipMusicSearchIndex(): Promise<TrackCatalogIndex> {
-  return getTrackCatalogIndex(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+/** Aquece o recorte que será pesquisado, sem varrer o acervo inteiro à toa. */
+export function warmVipMusicSearchIndex(
+  options?: Pick<VipMusicSearchOptions, "recentMonths" | "recentDays">,
+): Promise<TrackCatalogIndex> {
+  return getTrackCatalogIndex(
+    options?.recentMonths ?? Number.POSITIVE_INFINITY,
+    options?.recentDays ?? Number.POSITIVE_INFINITY,
+  );
 }
 
 export function clearVipMusicSearchCaches() {
