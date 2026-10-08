@@ -2,11 +2,10 @@ import Link from "next/link";
 import { Disc3, FolderOpen, Music2 } from "lucide-react";
 import { listCollections } from "../../lib/vip-collections";
 import { JsonLd } from "../../components/JsonLd";
-import { breadcrumbJsonLd, collectionPageJsonLd, SEO_PAGES } from "../../lib/seo";
+import { breadcrumbJsonLd, collectionPageJsonLd } from "../../lib/seo";
 
 export default async function AlbunsPage() {
   const data = await listCollections();
-  const page = SEO_PAGES["musicas"];
   return (
     <>
       <JsonLd data={breadcrumbJsonLd([{ name: "Início", path: "/" }, { name: "Músicas", path: "/musicas" }, { name: "Álbuns", path: "/musicas/albuns" }])} />
