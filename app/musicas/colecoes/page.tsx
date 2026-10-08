@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CollectionsBrowseClient } from "../components/CollectionsBrowseClient";
-import { getCollectionsRootFolderId, listCollections } from "../../lib/vip-collections";
+import { getCollectionsRootFolderId } from "../../lib/vip-collections";
 
 export const metadata: Metadata = {
   title: "Coleções | Brazilian Remix Service",
