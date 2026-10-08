@@ -62,6 +62,7 @@ function looksLikeCollectionsRoot(name: string) {
     slug === "colecoes" ||
     slug === "collections" ||
     slug === "discografias" ||
+    slug === "albuns" ||
     slug.startsWith("colecoes-") ||
     slug.startsWith("discografias-")
   );
