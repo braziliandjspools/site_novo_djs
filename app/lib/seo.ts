@@ -38,6 +38,7 @@ export type SeoPageKey =
   | "musicas-home"
   | "musicas-atualizacoes"
   | "musicas-artistas"
+  | "musicas-albuns"
   | "musicas-entrar"
   | "dj-pool-brasil"
   | "remix-service-brasil"
@@ -230,6 +231,18 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "weekly",
     priority: 0.8,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  "musicas-albuns": {
+    key: "musicas-albuns",
+    path: "/musicas/albuns",
+    title: `Álbuns e coleções para DJs | ${SITE_NAME}`,
+    description: "Álbuns, coleções e volumes do acervo BRS organizados para encontrar repertório e preparar seus sets.",
+    ogImage: "musicas",
+    keywords: [...SHARED_KEYWORDS, "álbuns para DJ", "coleções DJ", "volumes de música"],
+    sitemap: true,
+    changeFrequency: "weekly",
+    priority: 0.85,
     lastModified: SEO_STATIC_LASTMOD,
   },
   "musicas-entrar": {
