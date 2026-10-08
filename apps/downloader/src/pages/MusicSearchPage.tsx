@@ -57,6 +57,7 @@ export function MusicSearchPage() {
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MusicSearchTrack[]>([]);
+  const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [queuedIds, setQueuedIds] = useState<Set<string>>(() => new Set());
@@ -85,6 +86,7 @@ export function MusicSearchPage() {
     if (!sessionToken) return;
     if (query.length < 2) {
       setResults([]);
+      setTotalResults(0);
       setError(null);
       setLoading(false);
       setSelectedIds(new Set());
@@ -94,15 +96,18 @@ export function MusicSearchPage() {
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
+    setTotalResults(0);
     void searchMusicCatalog(sessionToken, query, PAGE_SIZE)
       .then((body) => {
         if (requestId !== requestIdRef.current) return;
         setResults(body.results ?? []);
+        setTotalResults(body.total ?? body.results?.length ?? 0);
         setSelectedIds(new Set());
       })
       .catch((err) => {
         if (requestId !== requestIdRef.current) return;
         setResults([]);
+        setTotalResults(0);
         setSelectedIds(new Set());
         setError(formatApiError(err));
       })
@@ -318,9 +323,13 @@ export function MusicSearchPage() {
             </h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-white/75">{t("searchSubtitle")}</p>
           </div>
-          {results.length > 0 ? (
+          {loading ? (
+            <span className="search-result-count shrink-0 rounded-full border border-white/15 bg-black/60 px-3.5 py-1.5 text-xs font-semibold tabular-nums text-white/80 backdrop-blur">
+              {t("searchSearchingCount", { count: PAGE_SIZE })}
+            </span>
+          ) : results.length > 0 ? (
             <span className="search-result-count shrink-0 rounded-full border border-[#1db954]/40 bg-black/50 px-3.5 py-1.5 text-xs font-semibold tabular-nums text-[#1ed760] backdrop-blur">
-              {results.length}
+              {t("searchResultsCount", { shown: results.length, total: totalResults })}
             </span>
           ) : null}
         </div>
@@ -334,7 +343,7 @@ export function MusicSearchPage() {
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("searchPlaceholder")}
-            className="w-full border border-white/12 bg-black py-3.5 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-[#1db954]/55 focus:ring-1 focus:ring-[#1db954]/25"
+            className="w-full border border-white/12 bg-black py-3.5 pl-12 pr-12 text-[15px] text-white outline-none placeholder:text-white/35 transition focus:border-white/30 focus:ring-0"
             autoFocus
           />
           {draft ? (
@@ -351,9 +360,14 @@ export function MusicSearchPage() {
       </section>
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 border border-white/10 bg-[#0a0a0a] px-4 py-16 text-sm text-white">
-          <Loader2 className="h-4 w-4 animate-spin text-[#1ed760]" />
-          {t("searchSearching")}
+        <div className="search-loading-state flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-gradient-to-br from-[#151515] to-[#090909] px-5 py-10 text-center text-sm text-white" role="status" aria-live="polite">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[#60cdff]/25 bg-[#60cdff]/[0.08]">
+            <Loader2 className="h-5 w-5 animate-spin text-[#60cdff]" />
+          </span>
+          <span className="font-semibold text-white">{t("searchSearching", { count: PAGE_SIZE, query })}</span>
+          <span className="h-1 w-48 max-w-full overflow-hidden rounded-full bg-white/10">
+            <span className="search-loading-bar block h-full w-1/3 rounded-full bg-[#60cdff]" />
+          </span>
         </div>
       ) : null}
 

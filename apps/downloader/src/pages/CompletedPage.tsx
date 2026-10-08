@@ -17,7 +17,7 @@ export function CompletedPage() {
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffffff]">
             {t("completedTitle")}
           </p>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-white/75">
             {jobs.length === 0
               ? t("completedNoneRecent")
               : t("completedSummary", { count: jobs.length })}

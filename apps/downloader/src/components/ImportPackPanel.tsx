@@ -139,7 +139,7 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
         </label>
         <div className="flex gap-2">
           <div className="relative min-w-0 flex-1">
-            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/75" />
             <input
               id="pack-link"
               type="text"
@@ -160,14 +160,14 @@ export function ImportPackPanel({ embedded = false }: { embedded?: boolean }) {
                 }
               }}
               placeholder={t("importPlaceholder")}
-              className="w-full rounded-xl border border-zinc-800 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white outline-none placeholder:text-zinc-600 transition-colors hover:border-[#1db954]/35 focus:border-[#1db954]/45 focus:ring-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1db954]/30"
+              className="w-full rounded-xl border border-white/15 bg-black/50 py-2.5 pl-10 pr-3 text-sm text-white outline-none placeholder:text-zinc-500 transition-colors hover:border-white/25 focus:border-white/35 focus:ring-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
             />
           </div>
           <Button
             variant="secondary"
             disabled={validating || !url.trim()}
             onClick={() => void handleValidate()}
-            className="flex-shrink-0 hover:border-[#1db954]/40 hover:bg-[#1db954]/10 hover:text-[#1ed760]"
+            className="flex-shrink-0 hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
           >
             {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {t("importValidate")}

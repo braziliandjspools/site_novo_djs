@@ -1,12 +1,10 @@
-# Downloads p˙blicos
+# Downloads p√∫blicos
 
-Instaladores do BRS Downloader servidos pelo site para atualizaÁ„o in-app.
+Instaladores do BRS Downloader servidos pelo site para atualiza√ß√£o no app.
 
-Mantenha **apenas a vers„o atual** aqui ? cada `.exe` entra em todo deploy e soma no storage.
-Versıes antigas devem ir para GitHub Releases / outro CDN.
+Mantenha apenas a vers√£o atual do instalador nesta pasta: cada `.exe` √© inclu√≠do em todo deploy e ocupa espa√ßo de armazenamento. Vers√µes antigas devem ir para GitHub Releases ou outro CDN.
 
-- `BRS-Downloader_1.0.33_x64-setup.exe` ó Windows x64 (NSIS) ó **atual**
-- `BRS-Android_1.0.0-debug.apk` ? Android (debug) ? app WebView do site
+- `BRS-Downloader_1.0.36_x64-setup.exe` ‚Äî Windows x64 (NSIS) ‚Äî vers√£o atual
+- `BRS-Android_1.0.0-debug.apk` ‚Äî Android (debug), app WebView do site
 
-Allavsoft: download externo (Workupload) via `getAllavsoftDownloadUrl()` ?
-padr„o `https://workupload.com/file/ZtbqKQUe6BV` (sobrescreva com `ALLAVSOFT_DOWNLOAD_URL`).
+Allavsoft: download externo via Workupload, configur√°vel por `ALLAVSOFT_DOWNLOAD_URL`.

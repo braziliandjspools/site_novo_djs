@@ -68,21 +68,22 @@ export function DownloadFinderToolbar({
         })}
       </div>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-500">
-        {(
-          [
-            "downloading",
-            "queued",
-            "completed",
-            "failed",
-            "paused",
-          ] as const satisfies Exclude<DownloadFinderFilter, "all">[]
-        ).map((key) => (
-          <span key={key} className="tabular-nums">
-            {t(FINDER_COUNT_LABEL_KEYS[key])} {counts[key]}
-          </span>
-        ))}
-      </div>
+      <DownloadStatusCounts counts={counts} />
+    </div>
+  );
+}
+
+export function DownloadStatusCounts({ counts }: { counts: DownloadFinderCounts }) {
+  const { t } = useLocale();
+  const keys = ["downloading", "queued", "completed", "failed", "paused"] as const;
+
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-[#1ed760]">
+      {keys.map((key) => (
+        <span key={key} className="tabular-nums">
+          {t(FINDER_COUNT_LABEL_KEYS[key])} {counts[key]}
+        </span>
+      ))}
     </div>
   );
 }

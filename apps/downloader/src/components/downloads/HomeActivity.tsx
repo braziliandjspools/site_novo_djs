@@ -2,21 +2,19 @@ import { useMemo, useState } from "react";
 import { Activity } from "lucide-react";
 import { useDownloadManager } from "../../context/DownloadManagerContext";
 import { useLocale } from "../../i18n/LocaleContext";
-import { filterFinderJobs, type DownloadFinderFilter } from "../../lib/download/job-finder";
-import { DownloadFinderToolbar } from "./DownloadFinderToolbar";
+import { countFinderJobs } from "../../lib/download/job-finder";
+import { DownloadStatusCounts } from "./DownloadFinderToolbar";
 import { JobRow } from "./JobRow";
 
 export function HomeActivity() {
   const { t } = useLocale();
   const { jobs, activeJobIds, jobMetrics, pauseJob, resumeJob, retryJob } = useDownloadManager();
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<DownloadFinderFilter>("all");
   const [expanded, setExpanded] = useState(false);
-  const result = useMemo(() => filterFinderJobs(jobs, { query, filter }), [jobs, query, filter]);
-  const ordered = useMemo(() => [...result.visible].sort((a, b) => {
+  const counts = useMemo(() => countFinderJobs(jobs), [jobs]);
+  const ordered = useMemo(() => [...jobs].filter((job) => job.status !== "CANCELLED").sort((a, b) => {
     const active = Number(activeJobIds.includes(b.id)) - Number(activeJobIds.includes(a.id));
     return active || (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0);
-  }), [result.visible, activeJobIds]);
+  }), [jobs, activeJobIds]);
   const visible = ordered.slice(0, expanded ? 30 : 4);
   return (
     <section className="studio-activity rounded-2xl border border-white/10 bg-[var(--bg-card)] p-5">
@@ -27,7 +25,7 @@ export function HomeActivity() {
         </div>
         <Activity className="h-5 w-5 text-[var(--accent)]" aria-hidden />
       </div>
-      <DownloadFinderToolbar query={query} onQueryChange={setQuery} filter={filter} onFilterChange={setFilter} counts={result.counts} />
+      <DownloadStatusCounts counts={counts} />
       <div className="mt-4 space-y-2">
         {visible.map(job => (
           <JobRow key={job.id} job={job} isActive={activeJobIds.includes(job.id)} metrics={jobMetrics[job.id]}

@@ -1,6 +1,6 @@
 [package]
 name = "brazilian-packs-downloader"
-version = "1.0.35"
+version = "1.0.36"
 description = "BRS Downloader — fila de downloads da plataforma VIP"
 authors = ["Brazilian Remix Service"]
 edition = "2021"
@@ -33,4 +33,3 @@ fs4 = "0.13"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 walkdir = "2"
 log = "0.4"
-

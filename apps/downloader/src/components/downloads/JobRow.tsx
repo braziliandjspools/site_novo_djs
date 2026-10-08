@@ -72,7 +72,7 @@ function StatusIcon({ status, isActive }: { status: string; isActive: boolean })
     return <Loader2 className="h-3.5 w-3.5 animate-spin text-[#ffffff]" />;
   }
   if (status === "COMPLETED") {
-    return <CheckCircle2 className="h-3.5 w-3.5 text-[#ffffff]" />;
+    return <CheckCircle2 className="h-3.5 w-3.5 text-[#1ed760]" />;
   }
   if (status === "FAILED") {
     return <XCircle className="h-3.5 w-3.5 text-red-400" />;
@@ -172,7 +172,7 @@ export const JobRow = memo(function JobRow({
             <span
               className={`rounded-full px-2 py-0.5 text-[0.68rem] font-extrabold tracking-wide uppercase ${
                 job.status === "COMPLETED"
-                  ? "bg-[#ffffff]/15 text-[#ffffff]"
+                  ? "bg-[#1db954]/15 text-[#1ed760]"
                   : job.status === "FAILED"
                     ? "bg-red-500/15 text-red-400"
                     : job.status === "PAUSED"
@@ -192,7 +192,7 @@ export const JobRow = memo(function JobRow({
           {paused && <p className="mt-1 text-[0.78rem] text-amber-300">{t("jobsPausedNotice")}</p>}
 
           {job.relativePath && (
-            <p className="mt-1 truncate text-[0.65rem] text-zinc-600">
+            <p className={`mt-1 truncate text-[0.65rem] ${job.status === "COMPLETED" ? "text-white/65" : "text-zinc-600"}`}>
               {job.relativePath.replace(/^__BRS_TREE__\//, "")}
             </p>
           )}
@@ -202,7 +202,7 @@ export const JobRow = memo(function JobRow({
               {orgChips.map((chip) => (
                 <span
                   key={chip}
-                  className="rounded-md bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                  className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${job.status === "COMPLETED" ? "bg-[#1db954]/10 text-[#1ed760]" : "bg-white/[0.04] text-zinc-400"}`}
                 >
                   {chip}
                 </span>
@@ -243,7 +243,7 @@ export const JobRow = memo(function JobRow({
           )}
 
           {job.status === "COMPLETED" && (
-            <p className="mt-1 text-xs text-zinc-500">{t("jobsCompletedNotice")}</p>
+            <p className="mt-1 text-xs font-semibold text-[#1ed760]">{t("jobsCompletedNotice")}</p>
           )}
 
           {failed && job.error && <p className="mt-2 text-xs text-red-400">{job.error}</p>}

@@ -35,10 +35,10 @@ const STEPS = [
 
 export default function ComoBaixarPage() {
   const release = getDownloaderReleaseManifest();
-  const version = release?.version ?? "1.0.33";
+  const version = release?.version ?? "1.0.36";
   const downloadUrl =
     release?.downloadUrl ??
-    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.33_x64-setup.exe";
+    "https://www.brazilianremixservice.com.br/downloads/BRS-Downloader_1.0.36_x64-setup.exe";
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
