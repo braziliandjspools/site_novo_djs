@@ -1,4 +1,4 @@
-import { listDriveFolderChildren } from "./google-drive";
+import { listDriveFolderChildren, listDriveFolderParents } from "./google-drive";
 import { findFolderCover, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
 import { GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID } from "./site";
 import {
@@ -77,9 +77,36 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
     return cachedCollectionsRootId;
   }
 
+  // Primeiro procura ao lado da raiz atual do acervo.
+  // Isso cobre o caso clássico: "Brazilian Remix Service" → "ÁLBUNS"
+  // e "Brazilian Remix Service" → "ATUALIZAÇÕES".
   const roots = await listVipMusicFolders();
   const match = roots.find((folder) => looksLikeCollectionsRoot(folder.name));
-  cachedCollectionsRootId = match?.id ?? null;
+  if (match) {
+    cachedCollectionsRootId = match.id;
+    return cachedCollectionsRootId;
+  }
+
+  // Se GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID aponta para uma subpasta
+  // (por exemplo, ATUALIZAÇÕES), os ÁLBUNS podem estar no nível pai.
+  // Sobe um nível no Drive e procura novamente entre as pastas irmãs.
+  try {
+    const parents = await listDriveFolderParents(getVipMusicRootFolderId());
+    for (const parentId of parents) {
+      const siblings = await listDriveFolderChildren(parentId);
+      const sibling = siblings.find(
+        (item) => item.mimeType === FOLDER_MIME && looksLikeCollectionsRoot(item.name),
+      );
+      if (sibling) {
+        cachedCollectionsRootId = sibling.id;
+        return cachedCollectionsRootId;
+      }
+    }
+  } catch {
+    // A raiz do acervo continua funcionando mesmo se o lookup do pai falhar.
+  }
+
+  cachedCollectionsRootId = null;
   return cachedCollectionsRootId;
 }
 
