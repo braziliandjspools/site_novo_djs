@@ -10,7 +10,7 @@ import { displayFolderName, findFolderBySlug, slugifyFolderName } from "./vip-mu
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 
-const COLLECTIONS_ROOT_NAME_RE = /^(colec[oõ]es|collections|discografias)(\b|$)/i;
+const COLLECTIONS_ROOT_NAME_RE = /^(colec[oõ]es|collections|discografias|[aá]lbuns|albums)(\b|$)/i;
 
 export type CollectionListItem = {
   id: string;
