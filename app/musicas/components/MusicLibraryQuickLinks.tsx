@@ -27,6 +27,12 @@ const QUICK_LINKS: Array<{
     subtitle: "Perfis",
     icon: Mic2,
   },
+  {
+    href: "/musicas/colecoes",
+    title: "Coleções",
+    subtitle: "Álbuns e discografias",
+    icon: Disc3,
+  },
 ];
 
 export function MusicLibraryQuickLinks({ className = "" }: { className?: string }) {
