@@ -1,6 +1,9 @@
 import { listDriveFolderChildren, listDriveFolderParents } from "./google-drive";
 import { findFolderCover, isDriveAudioFile, isFolderCoverFile } from "./folder-cover";
-import { GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID } from "./site";
+import {
+  GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID,
+  GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID,
+} from "./site";
 import {
   listVipMusicFolders,
   type VipMusicCatalogResponse,
