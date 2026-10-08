@@ -869,6 +869,25 @@ export function clearDriveChildrenMemo() {
   childrenLiteMemo.clear();
 }
 
+export async function listDriveFolderParents(folderId: string): Promise<string[]> {
+  const token = await getGoogleDriveAccessToken();
+  if (!token) return [];
+  const params = new URLSearchParams({
+    fields: "parents",
+    supportsAllDrives: "true",
+  });
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?${params}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    },
+  );
+  if (!res.ok) return [];
+  const data = (await res.json()) as { parents?: string[] };
+  return data.parents ?? [];
+}
+
 export async function listDriveFolderChildren(folderId: string): Promise<DriveFile[]> {
   if (isDriveForceRefresh()) {
     return listDriveFolderChildrenUncached(folderId, true);
