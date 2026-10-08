@@ -91,7 +91,7 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
   // (por exemplo, ATUALIZAÇÕES), os ÁLBUNS podem estar no nível pai.
   // Sobe um nível no Drive e procura novamente entre as pastas irmãs.
   try {
-    const parents = await listDriveFolderParents(getVipMusicRootFolderId());
+    const parents = await listDriveFolderParents(GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID || "");
     for (const parentId of parents) {
       const siblings = await listDriveFolderChildren(parentId);
       const sibling = siblings.find(
