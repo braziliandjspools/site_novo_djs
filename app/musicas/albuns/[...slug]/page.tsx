@@ -8,7 +8,23 @@ import { breadcrumbJsonLd } from "../../../lib/seo";
 
 export default async function AlbumPathPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
-  const [data, session] = await Promise.all([resolveCollectionsPath(slug.join("/")), getVipMusicSession()]);
+  let data: Awaited<ReturnType<typeof resolveCollectionsPath>>;
+  try {
+    data = await resolveCollectionsPath(slug.join("/"));
+  } catch (error) {
+    console.error("[musicas/albuns] Falha ao resolver álbum:", error);
+    return (
+      <main className="w-full space-y-5">
+        <Link href="/musicas/albuns" className="text-sm text-[#8ad4ff] hover:underline">← Voltar para Álbuns</Link>
+        <section className="rounded-2xl border border-white/10 bg-[#0b0b0b] px-5 py-12 text-center">
+          <Disc3 className="mx-auto h-10 w-10 text-white/20" />
+          <h1 className="mt-4 text-xl font-bold text-white">Álbum temporariamente indisponível</h1>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-white/45">Não foi possível consultar este álbum agora. Tente novamente em alguns instantes.</p>
+        </section>
+      </main>
+    );
+  }
+  const session = await getVipMusicSession();
   const access = vipMusicClientAccess(session);
   const crumbs = [{ name: "Início", path: "/" }, { name: "Músicas", path: "/musicas" }, { name: "Álbuns", path: "/musicas/albuns" }, ...data.resolvedPath.map((item) => ({ name: item.displayName, path: `/musicas/albuns/${item.slug}` }))];
 
