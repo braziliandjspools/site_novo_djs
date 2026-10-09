@@ -112,51 +112,24 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
     return cachedCollectionsRootId;
   }
 
-  // Primeiro procura entre as pastas exibidas na raiz atual do acervo.
-  const roots = await listVipMusicFolders();
-  const match = roots.find((folder) => looksLikeCollectionsRoot(folder.name));
-  if (match) {
-    cachedCollectionsRootId = match.id;
-    return cachedCollectionsRootId;
-  }
-
-  // Procura dentro da raiz configurada, incluindo a estrutura
-  // "Brazilian Remix Service → novidades → ÁLBUNS".
-  if (GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID) {
-    const nestedMatch = await findCollectionsRootBelow(GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID);
-    if (nestedMatch) {
-      cachedCollectionsRootId = nestedMatch;
+  // A raiz configurada é Brazilian Remix Service. A pasta ÁLBUNS deve ser
+  // procurada diretamente dentro dela; não depender do catálogo de novidades,
+  // nem consultar pastas ancestrais que podem devolver 404.
+  try {
+    const children = await listDriveFolderChildren(GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID);
+    const match = children.find(
+      (item) => item.mimeType === FOLDER_MIME && looksLikeCollectionsRoot(item.name),
+    );
+    if (match) {
+      cachedCollectionsRootId = match.id;
       return cachedCollectionsRootId;
     }
-  }
-
-  // Também verifica as pastas irmãs da raiz configurada.
-  try {
-    const parents = await listDriveFolderParents(GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID || "");
-    for (const parentId of parents) {
-      const siblings = await listDriveFolderChildren(parentId);
-      const sibling = siblings.find(
-        (item) => item.mimeType === FOLDER_MIME && looksLikeCollectionsRoot(item.name),
-      );
-      if (sibling) {
-        cachedCollectionsRootId = sibling.id;
-        return cachedCollectionsRootId;
-      }
-
-      // Ex.: a raiz configurada é uma pasta dentro de "novidades",
-      // onde ÁLBUNS também pode estar um nível abaixo.
-      const nestedMatch = await findCollectionsRootBelow(parentId);
-      if (nestedMatch) {
-        cachedCollectionsRootId = nestedMatch;
-        return cachedCollectionsRootId;
-      }
-    }
   } catch {
-    // O catálogo principal continua funcionando se a consulta ao pai falhar.
+    // O build/prerender não deve falhar se a API do Drive estiver temporariamente indisponível.
   }
 
   cachedCollectionsRootId = null;
-  return cachedCollectionsRootId;
+  return null;
 }
 
 async function countFolderContents(folderId: string) {
