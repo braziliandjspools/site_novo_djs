@@ -45,11 +45,6 @@ export function folderHref(slugSegments: string[]): string {
   return `/musicas/atualizacoes/${slugSegments.join("/")}`;
 }
 
-export function collectionsHref(slugSegments: string[] = []): string {
-  if (slugSegments.length === 0) return "/musicas/colecoes";
-  return `/musicas/colecoes/${slugSegments.map(encodeURIComponent).join("/")}`;
-}
-
 /** Slug de artista (mesmo algoritmo das pastas). */
 export function slugifyArtistName(name: string): string {
   return slugifyFolderName(name);

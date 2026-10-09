@@ -10,7 +10,7 @@ export const MUSICAS_FAQS: MusicasFaq[] = [
   },
   {
     q: "Como o acervo está organizado?",
-    a: "Em Atualizações: pasta raiz → mês → pastas (com subpastas) → faixas. Em Coleções: discografias e álbuns com capas. São centenas de pastas e dezenas de milhares de músicas no Drive VIP.",
+    a: "Em Atualizações, navegue da pasta raiz ao mês, às pastas de pool e estilo e às faixas. O acervo VIP reúne pastas e músicas organizadas para preparar seus sets.",
   },
   {
     q: "Como encontro uma música específica?",

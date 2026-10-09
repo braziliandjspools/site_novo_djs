@@ -38,6 +38,9 @@ const nextConfig: NextConfig = {
       { source: "/álbuns", destination: "/musicas/atualizacoes", permanent: true },
       { source: "/albuns", destination: "/musicas/atualizacoes", permanent: true },
       { source: "/albums", destination: "/musicas/atualizacoes", permanent: true },
+      { source: "/musicas/albuns", destination: "/musicas/atualizacoes", permanent: true },
+      { source: "/musicas/albuns/:path*", destination: "/musicas/atualizacoes", permanent: true },
+      { source: "/musicas/colecoes", destination: "/musicas/atualizacoes", permanent: true },
       { source: "/musicas/colecoes/:path*", destination: "/musicas/atualizacoes", permanent: true },
     ];
   },

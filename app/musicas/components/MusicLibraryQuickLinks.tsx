@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import {
-  Disc3,
-  Mic2,
-  RefreshCw,
-  Sparkles,
-} from "lucide-react";
+import { Mic2, RefreshCw, Sparkles } from "lucide-react";
 import { libraryTileTone } from "./MusicLibraryTiles";
 
 const QUICK_LINKS: Array<{
@@ -28,12 +23,6 @@ const QUICK_LINKS: Array<{
     subtitle: "Perfis",
     icon: Mic2,
   },
-  {
-    href: "/musicas/colecoes",
-    title: "Coleções",
-    subtitle: "Álbuns e discografias",
-    icon: Disc3,
-  },
 ];
 
 export function MusicLibraryQuickLinks({ className = "" }: { className?: string }) {
@@ -46,7 +35,7 @@ export function MusicLibraryQuickLinks({ className = "" }: { className?: string 
           Biblioteca
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         {QUICK_LINKS.map((item, index) => {
           const Icon = item.icon;
           return (

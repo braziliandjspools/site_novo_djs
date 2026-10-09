@@ -34,7 +34,7 @@ export const SITE_FAQS: SiteFaq[] = [
   },
   {
     q: "Como acesso o acervo depois de assinar?",
-    a: "Entre em /musicas/entrar com o e-mail e senha da conta VIP. Em Atualizações e Coleções você ouve as faixas e envia packs ao Downloader.",
+    a: "Entre em /musicas/entrar com o e-mail e senha da conta VIP. Em Atualizações, você ouve as faixas e envia packs ao Downloader.",
   },
   {
     q: "Como funciona o BRS Downloader?",
