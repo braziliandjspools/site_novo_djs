@@ -524,9 +524,12 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     () => resolveAtualizacoesMonthBanner(slugSegments),
     [slugSegments],
   );
+  const normalizedSlugSegments = slugSegments.map((part) =>
+    decodeURIComponent(part).trim().toLowerCase(),
+  );
   const isOctober2026Folder =
-    slugSegments.map((part) => decodeURIComponent(part).toLowerCase()).join("/") ===
-    "2026/outubro-2026";
+    normalizedSlugSegments.at(-1) === "outubro-2026" &&
+    normalizedSlugSegments.some((part) => part === "2026" || part === "atualizacoes-2026");
   const showFolderBanner = Boolean(
     showingTracks &&
       data &&
