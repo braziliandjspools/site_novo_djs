@@ -530,6 +530,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
   const showFolderBanner = Boolean(
     showingTracks &&
       data &&
+      !isOctober2026Folder &&
       (monthBannerUrl || isMonthFolderName(data.folderName)),
   );
 
@@ -784,6 +785,17 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
           </span>
         )}
       </nav>
+
+      {isOctober2026Folder ? (
+        <div className="mb-5">
+          <AtualizacoesFolderBanner
+            title="Outubro 2026"
+            trackCount={100}
+            hasMore
+            belowImageUrl={monthBannerUrl}
+          />
+        </div>
+      ) : null}
 
       {showInitialSkeleton && (
         <MusicasTracksSkeleton rows={8} />
