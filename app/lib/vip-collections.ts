@@ -71,6 +71,38 @@ function looksLikeCollectionsRoot(name: string) {
   );
 }
 
+/**
+ * Procura ÁLBUNS também dentro de pastas organizadoras, por exemplo:
+ * Brazilian Remix Service → novidades → ÁLBUNS.
+ * Limita a busca a poucos níveis para não percorrer o acervo inteiro.
+ */
+async function findCollectionsRootBelow(startFolderId: string): Promise<string | null> {
+  let level = [startFolderId];
+  const visited = new Set<string>();
+
+  for (let depth = 0; depth < 3 && level.length > 0; depth += 1) {
+    const childrenByParent = await Promise.all(
+      level.map(async (parentId) => {
+        if (visited.has(parentId)) return [];
+        visited.add(parentId);
+        try {
+          return (await listDriveFolderChildren(parentId)).filter(
+            (item) => item.mimeType === FOLDER_MIME,
+          );
+        } catch {
+          return [];
+        }
+      }),
+    );
+    const children = childrenByParent.flat();
+    const match = children.find((item) => looksLikeCollectionsRoot(item.name));
+    if (match) return match.id;
+    level = children.map((item) => item.id);
+  }
+
+  return null;
+}
+
 export async function getCollectionsRootFolderId(): Promise<string | null> {
   if (GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID) {
     return GOOGLE_DRIVE_VIP_COLLECTIONS_FOLDER_ID;
@@ -80,9 +112,7 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
     return cachedCollectionsRootId;
   }
 
-  // Primeiro procura ao lado da raiz atual do acervo.
-  // Isso cobre o caso clássico: "Brazilian Remix Service" → "ÁLBUNS"
-  // e "Brazilian Remix Service" → "ATUALIZAÇÕES".
+  // Primeiro procura entre as pastas exibidas na raiz atual do acervo.
   const roots = await listVipMusicFolders();
   const match = roots.find((folder) => looksLikeCollectionsRoot(folder.name));
   if (match) {
@@ -90,9 +120,17 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
     return cachedCollectionsRootId;
   }
 
-  // Se GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID aponta para uma subpasta
-  // (por exemplo, ATUALIZAÇÕES), os ÁLBUNS podem estar no nível pai.
-  // Sobe um nível no Drive e procura novamente entre as pastas irmãs.
+  // Procura dentro da raiz configurada, incluindo a estrutura
+  // "Brazilian Remix Service → novidades → ÁLBUNS".
+  if (GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID) {
+    const nestedMatch = await findCollectionsRootBelow(GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID);
+    if (nestedMatch) {
+      cachedCollectionsRootId = nestedMatch;
+      return cachedCollectionsRootId;
+    }
+  }
+
+  // Também verifica as pastas irmãs da raiz configurada.
   try {
     const parents = await listDriveFolderParents(GOOGLE_DRIVE_VIP_MUSIC_FOLDER_ID || "");
     for (const parentId of parents) {
@@ -104,9 +142,17 @@ export async function getCollectionsRootFolderId(): Promise<string | null> {
         cachedCollectionsRootId = sibling.id;
         return cachedCollectionsRootId;
       }
+
+      // Ex.: a raiz configurada é uma pasta dentro de "novidades",
+      // onde ÁLBUNS também pode estar um nível abaixo.
+      const nestedMatch = await findCollectionsRootBelow(parentId);
+      if (nestedMatch) {
+        cachedCollectionsRootId = nestedMatch;
+        return cachedCollectionsRootId;
+      }
     }
   } catch {
-    // A raiz do acervo continua funcionando mesmo se o lookup do pai falhar.
+    // O catálogo principal continua funcionando se a consulta ao pai falhar.
   }
 
   cachedCollectionsRootId = null;
