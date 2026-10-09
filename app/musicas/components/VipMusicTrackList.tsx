@@ -127,8 +127,8 @@ const STREAM_DESKTOP_GRID_SELECT = "tablemusic-grid tablemusic-grid-select";
 function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 md:hidden" aria-hidden>
-        <span>Música</span><span>Ações</span>
+      <div className="flex items-center justify-between border-b border-white/[0.08] bg-gradient-to-r from-[#60cdff]/[0.08] via-[#111416] to-[#111416] px-3.5 py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/60 md:hidden" aria-hidden>
+        <span className="inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#60cdff]" />Faixa</span><span>Ações</span>
       </div>
       <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
         {selectionMode ? <span /> : null}
@@ -648,7 +648,9 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   return (
     <article
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
-      className="tablemusic-row group/row relative bg-transparent transition-colors duration-200 hover:z-10 focus-within:z-10 after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-white/[0.08] last:after:hidden"
+      data-active={isActive ? "true" : undefined}
+      data-selected={isSelected ? "true" : undefined}
+      className="tablemusic-row group/row relative border-l-2 border-l-transparent bg-transparent transition-[background-color,border-color,box-shadow] duration-200 hover:z-10 focus-within:z-10 active:bg-[#60cdff]/[0.07] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-white/[0.08] last:after:hidden"
     >
       {/* Mobile */}
       <div className="flex items-center gap-2.5 px-3 py-3 md:hidden">

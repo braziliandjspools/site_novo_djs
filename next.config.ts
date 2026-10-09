@@ -33,6 +33,14 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "image-cdn-ak.spotifycdn.com" },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/álbuns", destination: "/musicas/atualizacoes", permanent: true },
+      { source: "/albuns", destination: "/musicas/atualizacoes", permanent: true },
+      { source: "/albums", destination: "/musicas/atualizacoes", permanent: true },
+      { source: "/musicas/colecoes/:path*", destination: "/musicas/atualizacoes", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
