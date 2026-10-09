@@ -574,7 +574,7 @@ button {
 
 /* Tabela de faixas: painel escuro, foco azul BRS e leitura clara em todas as telas. */
 .tablemusic {
-  --tablemusic-columns: 44px minmax(0, 1fr) minmax(92px, .42fr) minmax(92px, .42fr) 82px repeat(2, 38px);
+  --tablemusic-columns: 44px minmax(0, 1fr) minmax(92px, .42fr) minmax(92px, .42fr) 74px repeat(2, 38px);
   overflow: hidden;
   border: 1px solid rgb(96 205 255 / .16);
   border-radius: 0;
@@ -600,5 +600,5 @@ button {
   .tablemusic-pool, .tablemusic-style { display: block; }
 }
 @media (min-width: 1024px) {
-  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(112px, .46fr) minmax(112px, .46fr) 82px repeat(2, 38px); }
+  .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(112px, .46fr) minmax(112px, .46fr) 74px repeat(2, 38px); }
 }
