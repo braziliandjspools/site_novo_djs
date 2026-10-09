@@ -727,7 +727,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
                 onDownload();
               }}
               disabled={isDownloading}
-              className="inline-flex h-9 w-[70px] flex-shrink-0 items-center justify-center gap-1 whitespace-nowrap border border-[#e5484d] bg-[#e5484d] px-1.5 text-[10px] font-semibold text-white transition-colors duration-200 hover:border-[#151515] hover:bg-[#151515] hover:text-white disabled:opacity-60"
+              className="inline-flex h-8 w-[86px] flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap border border-[#e5484d] bg-[#e5484d] px-2 text-[11px] font-semibold text-white transition-colors duration-200 hover:border-[#151515] hover:bg-[#151515] hover:text-white disabled:opacity-60"
               title={`Baixar ${display.title}`}
               aria-label={`Baixar ${display.title}`}
             >
