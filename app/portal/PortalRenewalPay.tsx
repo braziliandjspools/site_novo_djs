@@ -70,9 +70,13 @@ export function PortalRenewalPay({ renewables }: PortalRenewalPayProps) {
         cache: "no-store",
         body: JSON.stringify({ renewalService: service }),
       });
-      const data = (await res.json()) as { checkoutUrl?: string; error?: string; loginUrl?: string };
+      const data = (await res.json()) as { checkoutUrl?: string | null; paidWithBalance?: boolean; error?: string; loginUrl?: string };
       if (res.status === 401 && data.loginUrl) {
         window.location.assign(data.loginUrl);
+        return;
+      }
+      if (res.ok && data.paidWithBalance) {
+        window.location.reload();
         return;
       }
       if (!res.ok || !data.checkoutUrl) {
@@ -269,9 +273,13 @@ export function PortalRenewPayButton({
         cache: "no-store",
         body: JSON.stringify({ renewalService: service }),
       });
-      const data = (await res.json()) as { checkoutUrl?: string; error?: string; loginUrl?: string };
+      const data = (await res.json()) as { checkoutUrl?: string | null; paidWithBalance?: boolean; error?: string; loginUrl?: string };
       if (res.status === 401 && data.loginUrl) {
         window.location.assign(data.loginUrl);
+        return;
+      }
+      if (res.ok && data.paidWithBalance) {
+        window.location.reload();
         return;
       }
       if (!res.ok || !data.checkoutUrl) {

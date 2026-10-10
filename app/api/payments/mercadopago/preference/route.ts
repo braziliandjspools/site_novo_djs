@@ -22,6 +22,7 @@ import {
   quotePortalPlanChange,
 } from "../../../../lib/portal-renewals";
 import { checkRateLimit } from "../../../../lib/rate-limit";
+import { getPortalWalletBalance } from "../../../../lib/portal-wallet";
 import type { PlanChangeQuote } from "../../../../lib/billing/plan-change";
 
 export const runtime = "nodejs";
@@ -42,6 +43,7 @@ type PreferenceBody = {
   durationMonths?: unknown;
   durationDays?: unknown;
   duration?: unknown;
+  useWallet?: unknown;
 };
 
 function classifyPreferenceError(message: string): {
@@ -313,6 +315,10 @@ export async function POST(request: Request) {
   }
 
   try {
+    const walletBalance = body.useWallet === false ? 0 : await getPortalWalletBalance(user!.id);
+    const totalCents = Math.max(0, Math.round(Number(plan.amountBrl) * 100));
+    const walletAppliedCents = Math.min(totalCents, Math.floor(walletBalance * 100 + 0.0001));
+    const walletAppliedAmountBrl = (walletAppliedCents / 100).toFixed(2);
     const result = await createMercadoPagoCheckoutPreference({
       plan,
       payer: {
@@ -324,11 +330,15 @@ export async function POST(request: Request) {
       creditBrl: planChangeQuote?.creditBrl,
       catalogAmountBrl: planChangeQuote?.catalogAmountBrl,
       previousDueAt: planChangeQuote?.previousDueAt,
+      walletAppliedAmountBrl: walletAppliedCents > 0 ? walletAppliedAmountBrl : undefined,
     });
 
     return NextResponse.json({
       checkoutUrl: result.checkoutUrl,
       orderId: result.orderId,
+      paidWithBalance: Boolean(result.paidWithBalance),
+      walletAppliedAmountBrl,
+      remainingAmountBrl: ((totalCents - walletAppliedCents) / 100).toFixed(2),
       renewal: renewalMode,
       planChange: Boolean(planChangeQuote),
       ...(planChangeQuote

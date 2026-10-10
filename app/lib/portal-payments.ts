@@ -5,6 +5,7 @@ import { getCanonicalPlanById } from "./billing/plan-catalog";
 import { prisma } from "./prisma";
 import { formatMonthlyValue } from "./portal-users";
 import { buildMercadoPagoExternalReference } from "./mercadopago/order-policy";
+import { PORTAL_WALLET_TOPUP_PLAN_ID, releaseWalletReservation } from "./portal-wallet";
 
 export type PortalPaymentStatusUi = "pago" | "pendente" | "cancelado" | "reembolsado";
 
@@ -75,7 +76,11 @@ export async function listPortalPaymentsForUser(portalUserId: number): Promise<{
   const payments: PortalPaymentRow[] = orders.map((order) => {
     const plan = getCanonicalPlanById(order.planId, { includeInactive: true });
     const mapped = mapMercadoPagoStatus(order.status);
-    const amount = Number(order.amount);
+    const amount = Number(
+      order.planId === PORTAL_WALLET_TOPUP_PLAN_ID
+        ? order.amount
+        : order.amount.add(order.walletAppliedAmount),
+    );
     const isPending = order.status === "PENDING";
     const isOnlineCheckout = order.provider !== ADMIN_BILLING_PROVIDER;
     return {
@@ -86,14 +91,16 @@ export async function listPortalPaymentsForUser(portalUserId: number): Promise<{
           : order.provider === "hotmart"
             ? "hotmart"
             : "mercadopago",
-      providerLabel: providerLabel(order.provider),
+      providerLabel: order.rawStatus === "wallet_paid" ? "Saldo do Portal" : providerLabel(order.provider),
       planId: order.planId,
       planLabel:
         order.provider === ADMIN_BILLING_PROVIDER
           ? order.rawStatus === "admin_vip_cancelled"
             ? "VIP cancelado pelo admin"
             : plan?.title ?? "VIP ativado pelo admin"
-          : (plan?.title ?? order.planId),
+          : order.planId === PORTAL_WALLET_TOPUP_PLAN_ID
+            ? "Recarga de saldo BRS"
+            : (plan?.title ?? order.planId),
       amount,
       amountLabel: formatMonthlyValue(amount),
       currency: order.currency,
@@ -101,13 +108,13 @@ export async function listPortalPaymentsForUser(portalUserId: number): Promise<{
       statusUi: mapped.statusUi,
       statusLabel: mapped.statusLabel,
       rawStatus: order.rawStatus,
-      paymentId: order.mercadoPagoPaymentId,
+      paymentId: order.rawStatus === "wallet_paid" ? null : order.mercadoPagoPaymentId,
       externalReference: order.externalReference,
       createdAt: order.createdAt.toISOString(),
       approvedAt: order.approvedAt?.toISOString() ?? null,
       updatedAt: order.updatedAt.toISOString(),
       canDismiss: isPending && isOnlineCheckout,
-      canRetry: isPending && isOnlineCheckout && Boolean(order.planId),
+      canRetry: isPending && isOnlineCheckout && Boolean(order.planId) && order.planId !== PORTAL_WALLET_TOPUP_PLAN_ID,
     };
   });
 
@@ -136,12 +143,12 @@ export async function dismissPendingPortalPayment(portalUserId: number, orderId:
     return { ok: false as const, error: "Pedido pendente não encontrado.", code: "not_found" };
   }
 
-  await prisma.mercadoPagoOrder.update({
-    where: { id: order.id },
-    data: {
-      status: "CANCELLED",
-      rawStatus: "dismissed_by_user",
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.mercadoPagoOrder.update({
+      where: { id: order.id },
+      data: { status: "CANCELLED", rawStatus: "dismissed_by_user" },
+    });
+    await releaseWalletReservation(tx, order.id);
   });
 
   return { ok: true as const };

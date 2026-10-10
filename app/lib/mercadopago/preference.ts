@@ -4,6 +4,7 @@ import { Preference } from "mercadopago";
 import type { CanonicalPlan } from "../billing/plan-catalog";
 import { getMercadoPagoConfig } from "./client";
 import { getMercadoPagoEnv } from "./env";
+import { applyWalletFundedOrder } from "./process-webhook";
 import {
   attachMercadoPagoPreferenceId,
   createPendingMercadoPagoOrder,
@@ -17,8 +18,9 @@ import {
 } from "./preference-policy";
 
 export type PreferenceCheckoutResult = {
-  checkoutUrl: string;
+  checkoutUrl: string | null;
   orderId: string;
+  paidWithBalance?: boolean;
 };
 
 export {
@@ -42,30 +44,49 @@ export async function createMercadoPagoCheckoutPreference(input: {
   creditBrl?: string;
   catalogAmountBrl?: string;
   previousDueAt?: Date;
+  walletAppliedAmountBrl?: string;
 }): Promise<PreferenceCheckoutResult> {
   const env = getMercadoPagoEnv();
 
   const order = await createPendingMercadoPagoOrder({
     portalUserId: input.payer.id,
     planId: input.plan.id,
-    amount: input.plan.amountBrl,
+    amount: input.walletAppliedAmountBrl
+      ? (Number(input.plan.amountBrl) - Number(input.walletAppliedAmountBrl)).toFixed(2)
+      : input.plan.amountBrl,
+    walletAppliedAmount: input.walletAppliedAmountBrl ?? "0.00",
     payerEmail: input.payer.email,
   });
 
-  const body = buildMercadoPagoPreferenceBody({
-    plan: input.plan,
-    externalReference: order.externalReference,
-    siteUrl: env.siteUrl,
-    payer: input.payer,
-    checkoutKind: input.checkoutKind,
-    creditBrl: input.creditBrl,
-    catalogAmountBrl: input.catalogAmountBrl,
-    previousDueAt: input.previousDueAt,
-  });
+  const paymentAmountBrl = input.walletAppliedAmountBrl
+    ? (Math.round(Number(input.plan.amountBrl) * 100) - Math.round(Number(input.walletAppliedAmountBrl) * 100)) / 100
+    : Number(input.plan.amountBrl);
+
+  if (paymentAmountBrl <= 0) {
+    try {
+      const result = await applyWalletFundedOrder(order.id);
+      if (!result.applied) throw new Error("Não foi possível concluir a compra com saldo.");
+      return { checkoutUrl: null, orderId: order.id, paidWithBalance: true };
+    } catch (error) {
+      await markMercadoPagoOrderPreferenceFailed(order.id);
+      throw error;
+    }
+  }
 
   const idempotencyKey = randomUUID();
 
   try {
+    const body = buildMercadoPagoPreferenceBody({
+      plan: input.plan,
+      externalReference: order.externalReference,
+      siteUrl: env.siteUrl,
+      payer: input.payer,
+      checkoutKind: input.checkoutKind,
+      creditBrl: input.creditBrl,
+      catalogAmountBrl: input.catalogAmountBrl,
+      previousDueAt: input.previousDueAt,
+      paymentAmountBrl: input.walletAppliedAmountBrl ? paymentAmountBrl.toFixed(2) : undefined,
+    });
     const preferenceClient = new Preference(getMercadoPagoConfig());
     const preference = await preferenceClient.create({
       body,

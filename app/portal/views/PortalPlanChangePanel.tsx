@@ -62,12 +62,17 @@ export function PortalPlanChangePanel({
       });
       const data = (await res.json()) as {
         checkoutUrl?: string;
+        paidWithBalance?: boolean;
         error?: string;
         loginUrl?: string;
         code?: string;
       };
       if (res.status === 401 && data.loginUrl) {
         window.location.assign(data.loginUrl);
+        return;
+      }
+      if (res.ok && data.paidWithBalance) {
+        window.location.reload();
         return;
       }
       if (!res.ok || !data.checkoutUrl) {

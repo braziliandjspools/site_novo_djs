@@ -134,11 +134,17 @@ export function AccountPaymentsPanel({
       });
       const json = (await res.json()) as {
         checkoutUrl?: string;
+        paidWithBalance?: boolean;
         error?: string;
         loginUrl?: string;
       };
       if (res.status === 401 && json.loginUrl) {
         window.location.assign(json.loginUrl);
+        return;
+      }
+      if (res.ok && json.paidWithBalance) {
+        showToast("Compra concluída com seu saldo.", "success");
+        await refresh();
         return;
       }
       if (!res.ok || !json.checkoutUrl) {

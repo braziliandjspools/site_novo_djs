@@ -44,6 +44,7 @@ type PlansSectionProps = {
 
 type PreferenceResponse = {
   checkoutUrl?: string;
+  paidWithBalance?: boolean;
   orderId?: string;
   loginUrl?: string;
   error?: string;
@@ -224,6 +225,14 @@ export function PlansSection({
         } else {
           showToast(message, "info", 6000);
         }
+        checkoutInFlight.current = false;
+        setLoadingPlanId(null);
+        return;
+      }
+
+      if (res.ok && data.paidWithBalance) {
+        showToast("Compra concluída com seu saldo. Confira seu acesso no Portal.", "success");
+        router.push("/portal");
         checkoutInFlight.current = false;
         setLoadingPlanId(null);
         return;

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/vercel-build.mjs",
-    "start": "npm run db:ensure-portal && npm run db:portal-scripts && npm run db:brs-productions && npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20261007120000_portal_account_profile/migration.sql && next start",
+    "start": "npm run db:ensure-portal && npm run db:portal-scripts && npm run db:brs-productions && npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20261007120000_portal_account_profile/migration.sql && npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20261010120000_portal_wallet/migration.sql && next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test app/lib/hotmart/hotmart.test.ts app/lib/hotmart/access-policy.ts app/lib/week-calendar.test.ts app/lib/track-display-metadata.test.ts app/lib/mercadopago/orders.test.ts app/lib/mercadopago/preference.test.ts app/lib/mercadopago/webhook.test.ts app/lib/mercadopago/return-policy.test.ts app/lib/billing/plan-catalog.test.ts app/lib/portal-renewals.test.ts app/lib/rate-limit.test.ts app/lib/checkout-ui.test.ts app/lib/music-producer-email.test.ts app/lib/music-studio/prompt.test.ts app/lib/drive-quota.test.ts app/lib/admin-script-input.test.ts app/lib/style-display.test.ts app/lib/password-reset-token.test.ts",

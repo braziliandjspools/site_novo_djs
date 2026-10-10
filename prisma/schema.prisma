@@ -74,6 +74,7 @@ model PortalUser {
   allavsoftLicenseAssignments AllavsoftLicenseAssignment[]
   downloaderQuotaState       DownloaderQuotaState?
   passwordResetTokens        PasswordResetToken[]
+  wallet                     PortalWallet?
 
   @@index([nextDueAt])
   @@index([servicePoolsVipDueAt])
@@ -212,6 +213,7 @@ model MercadoPagoOrder {
   portalUser              PortalUser             @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
   planId                  String                 @map("plan_id")
   amount                  Decimal                @db.Decimal(10, 2)
+  walletAppliedAmount     Decimal                @default(0) @map("wallet_applied_amount") @db.Decimal(10, 2)
   currency                String                 @default("BRL")
   status                  MercadoPagoOrderStatus @default(PENDING)
   provider                String                 @default("mercadopago")
@@ -230,6 +232,44 @@ model MercadoPagoOrder {
   @@index([portalUserId, status])
   @@index([mercadoPagoPreferenceId])
   @@map("mercado_pago_orders")
+}
+
+enum PortalWalletTransactionType {
+  TOP_UP
+  PURCHASE
+  REFUND
+}
+
+enum PortalWalletTransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model PortalWallet {
+  portalUserId Int                         @id @map("portal_user_id")
+  portalUser   PortalUser                  @relation(fields: [portalUserId], references: [id], onDelete: Cascade)
+  balance      Decimal                     @default(0) @db.Decimal(10, 2)
+  updatedAt    DateTime                    @updatedAt @map("updated_at")
+  transactions PortalWalletTransaction[]
+
+  @@map("portal_wallets")
+}
+
+model PortalWalletTransaction {
+  id                 String                         @id @default(uuid()) @db.Uuid
+  portalUserId       Int                            @map("portal_user_id")
+  wallet             PortalWallet                   @relation(fields: [portalUserId], references: [portalUserId], onDelete: Cascade)
+  mercadoPagoOrderId String?                        @db.Uuid @map("mercado_pago_order_id")
+  type               PortalWalletTransactionType
+  status             PortalWalletTransactionStatus  @default(COMPLETED)
+  amount             Decimal                        @db.Decimal(10, 2)
+  description        String
+  createdAt          DateTime                       @default(now()) @map("created_at")
+
+  @@unique([mercadoPagoOrderId, type])
+  @@index([portalUserId, createdAt])
+  @@map("portal_wallet_transactions")
 }
 
 enum SiteNoticeAudience {

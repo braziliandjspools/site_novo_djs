@@ -23,6 +23,14 @@ import {
 import { getMercadoPagoConfig } from "./client";
 import { sendMercadoPagoAccessGrantedEmail, sendMercadoPagoRefundEmail } from "./email";
 import { getMercadoPagoEnv } from "./env";
+import {
+  chargebackWalletPurchase,
+  completeWalletPurchase,
+  creditWalletTopUp,
+  PORTAL_WALLET_TOPUP_PLAN_ID,
+  releaseWalletReservation,
+  reverseWalletTopUp,
+} from "../portal-wallet";
 import { sanitizeMercadoPagoErrorMessage } from "./preference-policy";
 import {
   computeVipAccessPeriodEnd,
@@ -278,8 +286,10 @@ async function applyApprovedAccessInTx(
     },
   });
 
+  await completeWalletPurchase(tx, order.id);
+
   // Valor cobrado no pedido (catálogo ou renovação com billing do usuário).
-  const paidAmountBrl = order.amount.toFixed(2);
+  const paidAmountBrl = order.amount.add(order.walletAppliedAmount).toFixed(2);
 
   if (isAllavsoft) {
     const nextServices = {
@@ -338,13 +348,13 @@ async function applyApprovedAccessInTx(
         NOT: { id: order.id },
       },
       orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
-      select: { planId: true, amount: true },
+      select: { planId: true, amount: true, walletAppliedAmount: true },
     });
 
     const periodContext = resolveVipPeriodContext({
       billingValue: Number(user.servicePoolsVipValue),
       lastApproved: prevOrder
-        ? { planId: prevOrder.planId, amount: Number(prevOrder.amount) }
+        ? { planId: prevOrder.planId, amount: Number(prevOrder.amount.add(prevOrder.walletAppliedAmount)) }
         : null,
     });
 
@@ -514,8 +524,17 @@ async function applyNonApprovedStatusInTx(
     },
   });
 
-  // Só corta acesso se o pedido já tinha liberado (APPROVED → refund/cancel/chargeback).
+  await releaseWalletReservation(tx, order.id);
   if (input.revokeAccess && wasApproved) {
+    if (order.planId === PORTAL_WALLET_TOPUP_PLAN_ID) {
+      await reverseWalletTopUp(tx, order.id);
+    } else {
+      await chargebackWalletPurchase(tx, order.id);
+    }
+  }
+
+  // Só corta acesso se o pedido já tinha liberado (APPROVED → refund/cancel/chargeback).
+  if (input.revokeAccess && wasApproved && order.planId !== PORTAL_WALLET_TOPUP_PLAN_ID) {
     const orderPlan = getCanonicalPlanById(order.planId, { includeInactive: true });
     const isDeemixOrder = orderPlan?.serviceProduct === "deemix";
     const isAllavsoftOrder = orderPlan?.serviceProduct === "allavsoft";
@@ -622,6 +641,56 @@ async function applyNonApprovedStatusInTx(
   };
 }
 
+/** Conclui uma compra integralmente paga pelo saldo, reaproveitando a mesma liberação do webhook. */
+export async function applyWalletFundedOrder(orderId: string) {
+  const initial = await prisma.mercadoPagoOrder.findUnique({ where: { id: orderId } });
+  if (!initial) throw new Error("Pedido do saldo não encontrado.");
+  const now = new Date();
+  const result = await prisma.$transaction(async (tx) => {
+    const applied = await applyApprovedAccessInTx(tx, {
+      orderId,
+      portalUserId: initial.portalUserId,
+      planId: initial.planId,
+      paymentId: `wallet-${orderId}`,
+      rawStatus: "wallet_paid",
+      payerEmail: initial.payerEmail,
+      preferenceId: null,
+      approvedAt: now,
+    });
+    if (applied.applied) await completeWalletPurchase(tx, orderId);
+    return applied;
+  });
+  if (!result.applied) return { applied: false as const };
+
+  try {
+    const fresh = await prisma.mercadoPagoOrder.findUnique({
+      where: { id: orderId },
+      select: {
+        activationEmailSentAt: true,
+        planId: true,
+        portalUser: { select: { email: true, name: true } },
+      },
+    });
+    if (fresh && !fresh.activationEmailSentAt) {
+      const mail = await sendMercadoPagoAccessGrantedEmail({
+        to: fresh.portalUser.email,
+        name: fresh.portalUser.name,
+        planId: fresh.planId,
+        periodEnd: result.periodEnd,
+        planChange: result.planChange ?? null,
+      });
+      if (mail.sent) {
+        await prisma.mercadoPagoOrder.update({ where: { id: orderId }, data: { activationEmailSentAt: new Date() } });
+      }
+    }
+  } catch (error) {
+    logWebhook("falha ao enviar e-mail de compra com saldo", {
+      message: sanitizeMercadoPagoErrorMessage(error),
+    });
+  }
+  return { applied: true as const };
+}
+
 async function processFetchedPayment(
   paymentRaw: unknown,
   env: ReturnType<typeof getMercadoPagoEnv>,
@@ -714,6 +783,44 @@ async function processFetchedPayment(
   try {
     if (shouldGrantAccessForPaymentStatus(payment.status)) {
       const approvedAt = payment.dateApproved ? new Date(payment.dateApproved) : new Date();
+      if (validation.order.planId === PORTAL_WALLET_TOPUP_PLAN_ID) {
+        const txResult = await prisma.$transaction(async (tx) => {
+          const order = await tx.mercadoPagoOrder.findUnique({ where: { id: validation.order.id } });
+          if (!order) throw new Error("Pedido de recarga não encontrado.");
+          const decision = decideWebhookStatusTransition(order, {
+            mercadoPagoPaymentId: payment.id,
+            status: "APPROVED",
+          });
+          if (!decision.apply) return { applied: false as const, reason: decision.reason };
+          await tx.mercadoPagoOrder.update({
+            where: { id: order.id },
+            data: {
+              status: "APPROVED",
+              mercadoPagoPaymentId: payment.id,
+              rawStatus,
+              payerEmail: payment.payerEmail ?? order.payerEmail,
+              mercadoPagoPreferenceId: payment.preferenceId ?? order.mercadoPagoPreferenceId,
+              approvedAt: order.approvedAt ?? (Number.isNaN(approvedAt.getTime()) ? new Date() : approvedAt),
+            },
+          });
+          await creditWalletTopUp(tx, {
+            portalUserId: order.portalUserId,
+            orderId: order.id,
+            amount: order.amount,
+          });
+          return { applied: true as const };
+        });
+        logWebhook("recarga de saldo confirmada", {
+          orderId: validation.order.id,
+          paymentId: payment.id,
+          applied: txResult.applied,
+        });
+        return {
+          ok: true,
+          status: 200,
+          result: txResult.applied ? "approved_access_granted" : txResult.reason,
+        };
+      }
       const txResult = await prisma.$transaction((tx) =>
         applyApprovedAccessInTx(tx, {
           orderId: validation.order.id,

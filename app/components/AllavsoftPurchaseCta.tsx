@@ -16,6 +16,7 @@ type AllavsoftPlanCard = {
 
 type PreferenceResponse = {
   checkoutUrl?: string;
+  paidWithBalance?: boolean;
   orderId?: string;
   loginUrl?: string;
   error?: string;
@@ -78,6 +79,10 @@ function AllavsoftCheckoutInner({ plans, alreadyOwned = false }: AllavsoftPurcha
         return;
       }
 
+      if (res.ok && data.paidWithBalance) {
+        router.push("/portal");
+        return;
+      }
       if (!res.ok || !data.checkoutUrl) {
         setError(friendlyCheckoutError(res.status, data.error));
         inFlight.current = false;

@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "crypto";
 import { Prisma, type MercadoPagoOrder, type MercadoPagoOrderStatus } from "@prisma/client";
 import { prisma } from "../prisma";
+import { reserveWalletForOrder } from "../portal-wallet";
 import {
   buildMercadoPagoExternalReference,
   decideMercadoPagoPaymentUpdate,
@@ -14,6 +15,7 @@ export type CreatePendingMercadoPagoOrderInput = {
   planId: string;
   /** Valor em reais (ex.: 38 ou "38.00"). Convertido para Decimal — nunca float binário no banco. */
   amount: Prisma.Decimal | string | number;
+  walletAppliedAmount?: Prisma.Decimal | string | number;
   payerEmail?: string | null;
   mercadoPagoPreferenceId?: string | null;
 };
@@ -54,20 +56,34 @@ export async function createPendingMercadoPagoOrder(
   const id = randomUUID();
   const externalReference = buildMercadoPagoExternalReference(id);
   const amount = toDecimalAmount(input.amount);
+  const walletAppliedAmount = toDecimalAmount(input.walletAppliedAmount ?? 0);
 
-  return prisma.mercadoPagoOrder.create({
-    data: {
-      id,
-      portalUserId: input.portalUserId,
-      planId: input.planId,
-      amount,
-      currency: MERCADO_PAGO_CURRENCY,
-      status: "PENDING",
-      provider: MERCADO_PAGO_PROVIDER,
-      externalReference,
-      payerEmail: input.payerEmail?.trim().toLowerCase() || null,
-      mercadoPagoPreferenceId: input.mercadoPagoPreferenceId?.trim() || null,
-    },
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.mercadoPagoOrder.create({
+      data: {
+        id,
+        portalUserId: input.portalUserId,
+        planId: input.planId,
+        amount,
+        walletAppliedAmount,
+        currency: MERCADO_PAGO_CURRENCY,
+        status: "PENDING",
+        provider: MERCADO_PAGO_PROVIDER,
+        externalReference,
+        payerEmail: input.payerEmail?.trim().toLowerCase() || null,
+        mercadoPagoPreferenceId: input.mercadoPagoPreferenceId?.trim() || null,
+      },
+    });
+    if (walletAppliedAmount.gt(0)) {
+      const reserved = await reserveWalletForOrder(tx, {
+        portalUserId: input.portalUserId,
+        orderId: order.id,
+        amount: walletAppliedAmount,
+        description: `Saldo aplicado em ${input.planId}`,
+      });
+      if (!reserved) throw new Error("Saldo insuficiente. Atualize o saldo e tente novamente.");
+    }
+    return order;
   });
 }
 
@@ -84,12 +100,13 @@ export async function attachMercadoPagoPreferenceId(orderId: string, preferenceI
 
 /** Marca tentativa cancelada quando a Preference falha após o pedido PENDING. */
 export async function markMercadoPagoOrderPreferenceFailed(orderId: string) {
-  return prisma.mercadoPagoOrder.update({
-    where: { id: orderId },
-    data: {
-      status: "CANCELLED",
-      rawStatus: "preference_create_failed",
-    },
+  return prisma.$transaction(async (tx) => {
+    await tx.mercadoPagoOrder.update({
+      where: { id: orderId },
+      data: { status: "CANCELLED", rawStatus: "preference_create_failed" },
+    });
+    const { releaseWalletReservation } = await import("../portal-wallet");
+    await releaseWalletReservation(tx, orderId);
   });
 }
 

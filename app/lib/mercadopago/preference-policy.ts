@@ -103,6 +103,7 @@ export function buildMercadoPagoPreferenceBody(input: {
   creditBrl?: string;
   catalogAmountBrl?: string;
   previousDueAt?: Date;
+  paymentAmountBrl?: string;
 }): MercadoPagoPreferenceBody {
   const base = input.siteUrl.replace(/\/$/, "");
   if (!base.startsWith("https://")) {
@@ -121,7 +122,7 @@ export function buildMercadoPagoPreferenceBody(input: {
     );
   }
 
-  const unitPrice = Number(input.plan.amountBrl);
+  const unitPrice = Number(input.paymentAmountBrl ?? input.plan.amountBrl);
   if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
     throw new Error("Preço do plano inválido no catálogo.");
   }
@@ -131,7 +132,9 @@ export function buildMercadoPagoPreferenceBody(input: {
       {
         id: input.plan.id,
         title: input.plan.title,
-        description: input.plan.description,
+        description: input.paymentAmountBrl
+          ? `${input.plan.description} · diferença após uso do saldo BRS`
+          : input.plan.description,
         quantity: 1,
         unit_price: unitPrice,
         currency_id: "BRL",
