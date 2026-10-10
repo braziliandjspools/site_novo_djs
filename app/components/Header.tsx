@@ -102,7 +102,7 @@ export function Header() {
                               {item.label}
                             </span>
                             <span className="mt-0.5 block text-xs normal-case tracking-normal text-zinc-500">
-                              Gerador de texto
+                              {item.description ?? "Ferramenta para DJs"}
                             </span>
                           </span>
                         </a>

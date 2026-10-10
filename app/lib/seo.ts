@@ -33,6 +33,7 @@ export type SeoPageKey =
   | "allavsoft"
   | "musicproducer"
   | "gerador-maiusculas"
+  | "tutoriais"
   | "portal"
   | "musicas"
   | "musicas-home"
@@ -165,6 +166,19 @@ export const SEO_PAGES: Record<SeoPageKey, SeoPageConfig> = {
     sitemap: true,
     changeFrequency: "yearly",
     priority: 0.45,
+    lastModified: SEO_STATIC_LASTMOD,
+  },
+  tutoriais: {
+    key: "tutoriais",
+    path: "/tutoriais",
+    title: `Tutoriais para DJs: organização e automação | ${SITE_NAME}`,
+    description:
+      "Aprenda a organizar músicas para DJ com tutoriais práticos sobre inteligência artificial, PowerShell, nomes de arquivos e automação no Windows.",
+    ogImage: "home",
+    keywords: ["tutoriais para DJs", "organizar músicas MP3", "PowerShell para DJs", "Gemini música"],
+    sitemap: true,
+    changeFrequency: "monthly",
+    priority: 0.55,
     lastModified: SEO_STATIC_LASTMOD,
   },
   portal: {

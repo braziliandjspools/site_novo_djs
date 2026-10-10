@@ -1,10 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { CreditCard, Home, Mic2, Type, UserCircle, Video, Wrench } from "lucide-react";
+import { BookOpen, CreditCard, Home, Mic2, Type, UserCircle, Video, Wrench } from "lucide-react";
 
 export type SiteNavLink = {
   href: string;
   label: string;
   icon: LucideIcon;
+  description?: string;
   external?: boolean;
 };
 
@@ -19,7 +20,18 @@ export const SITE_PRIMARY_NAV: SiteNavLink[] = [
 
 /** Itens do menu Ferramentas. */
 export const SITE_TOOL_LINKS: SiteNavLink[] = [
-  { href: "/gerador-maiusculas", label: "Maiúsculas", icon: Type },
+  {
+    href: "/gerador-maiusculas",
+    label: "Maiúsculas",
+    icon: Type,
+    description: "Gerador de texto",
+  },
+  {
+    href: "/tutoriais",
+    label: "Tutoriais",
+    icon: BookOpen,
+    description: "Guias práticos para DJs",
+  },
 ];
 
 export const SITE_TOOLS_MENU = {
