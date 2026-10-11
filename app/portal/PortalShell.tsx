@@ -181,8 +181,8 @@ export function PortalShell({
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <header className={`${APP_TOP_CHROME} z-20`}>
           <div className="br-stripe" />
-          <div className={`${APP_TOP_CHROME_ROW} h-auto min-h-16 flex-wrap justify-between gap-y-2 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:flex-nowrap sm:gap-y-0 sm:py-0 sm:pt-0 ${APP_TOP_CHROME_ROW_H} max-w-none sm:px-6`}>
-            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className={`${APP_TOP_CHROME_ROW} min-h-16 flex-nowrap justify-between gap-2 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:py-0 sm:pt-0 ${APP_TOP_CHROME_ROW_H} max-w-none px-3 sm:px-6`}>
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
@@ -194,12 +194,12 @@ export function PortalShell({
                 <p className="truncate text-sm font-bold tracking-[-0.01em] text-white">
                   Olá, <span className="text-[#1db954]">{firstName}</span>
                 </p>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                <p className="truncate text-[10px] font-bold uppercase tracking-[0.1em] text-zinc-500 sm:text-[11px] sm:tracking-[0.14em]">
                   Área do cliente
                 </p>
               </div>
             </div>
-            <div className="app-no-drag flex w-full flex-shrink-0 items-center justify-end gap-2 sm:w-auto sm:gap-2">
+            <div className="app-no-drag flex flex-shrink-0 items-center justify-end gap-1.5 sm:gap-2">
               <SiteNotificationBell />
               <MusicasUserMenu userName={userName} profileImageUrl={profileImageUrl} hasVip={vipActive} onLogout={() => void onLogout()} />
             </div>
@@ -285,7 +285,7 @@ export function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="group rounded-2xl border border-zinc-800 bg-[#1a1a1a] p-5 transition-colors hover:border-[#009739]/40 hover:bg-[#222] lg:min-h-[148px] lg:p-7">
+    <div className="group min-w-0 w-full rounded-2xl border border-zinc-800 bg-[#1a1a1a] p-4 transition-colors hover:border-[#009739]/40 hover:bg-[#222] sm:p-5 lg:min-h-[148px] lg:p-7">
       <div className="flex h-full items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 lg:text-xs lg:tracking-[0.12em]">
