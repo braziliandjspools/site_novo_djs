@@ -80,8 +80,18 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
   }, []);
 
   async function handleLogout() {
-    await fetch("/api/portal/logout", { method: "POST" });
-    onLogout();
+    try {
+      await fetch("/api/portal/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+    } finally {
+      // Force a fresh request after clearing the session cookie, even if the
+      // logout response is interrupted or the client-side state is stale.
+      onLogout();
+      window.location.replace("/portal");
+    }
   }
 
   if (loading) {
