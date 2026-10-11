@@ -18,7 +18,6 @@ import { BrsLogo } from "../components/BrsLogo";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { MusicasUserMenu } from "../musicas/components/MusicasUserMenu";
-import { PortalWalletMenu } from "./PortalWalletMenu";
 import { portalPath, type PortalView } from "./portal-routes";
 
 export type { PortalView };
@@ -202,7 +201,6 @@ export function PortalShell({
             </div>
             <div className="app-no-drag flex w-full flex-shrink-0 items-center justify-end gap-2 sm:w-auto sm:gap-2">
               <SiteNotificationBell />
-              <PortalWalletMenu />
               <MusicasUserMenu userName={userName} profileImageUrl={profileImageUrl} hasVip={vipActive} onLogout={() => void onLogout()} />
             </div>
           </div>
