@@ -106,14 +106,14 @@ export function PortalWalletMenu() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onMouseDown={(event) => {
+        <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/75 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-sm sm:items-center sm:py-6" onMouseDown={(event) => {
           if (event.target === event.currentTarget && !busy) setOpen(false);
         }}>
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="portal-wallet-title"
-            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#17191a] p-5 shadow-2xl sm:p-7"
+            className="relative my-auto max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[#17191a] p-5 shadow-2xl sm:max-h-[calc(100dvh-3rem)] sm:p-7"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
