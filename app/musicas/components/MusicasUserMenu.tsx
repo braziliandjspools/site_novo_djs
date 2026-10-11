@@ -59,7 +59,7 @@ export function MusicasUserMenu({ userName, profileImageUrl, hasVip, onLogout }:
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]/95 shadow-[0_20px_50px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+          className="fixed left-3 right-3 top-[max(5.5rem,calc(env(safe-area-inset-top)+5rem))] z-[80] mx-auto max-h-[calc(100dvh-7rem)] w-auto max-w-sm overflow-y-auto rounded-xl border border-white/10 bg-[#0a0a0a]/[0.98] shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mx-0 sm:mt-2 sm:max-h-[calc(100dvh-6rem)] sm:w-72 sm:max-w-none"
         >
           <div className="border-b border-white/[0.08] px-4 py-4">
             <p className="truncate text-sm font-bold text-white">{userName}</p>
