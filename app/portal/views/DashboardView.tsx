@@ -27,9 +27,9 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
   const hasRecurringBilling = Boolean(user.services.poolsVip || user.services.deemix);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 max-w-full space-y-6">
       <div>
-        <h1 className="font-display text-3xl tracking-wide text-white">
+        <h1 className="break-words font-display text-3xl tracking-wide text-white">
           {greeting}, <span className="text-[#00ff9d]">{user.name.split(" ")[0]}</span>
         </h1>
         <p className="mt-1 text-sm capitalize text-zinc-500">{formatDateTimeBr(now)}</p>
@@ -38,7 +38,7 @@ export function DashboardView({ data, now, onNavigate }: DashboardViewProps) {
 
       {renewables.length > 0 && <PortalRenewalPay renewables={renewables} />}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
         <StatCard icon={LayoutGrid} label="Serviços ativos" value={String(services)} hint="Licenças no seu plano" />
         <StatCard
           icon={Calendar}
