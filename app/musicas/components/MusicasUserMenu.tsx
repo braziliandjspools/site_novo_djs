@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, CreditCard, HeadphonesIcon, LayoutGrid, LogOut, Music2, User } from "lucide-react";
+import { ChevronDown, CreditCard, HeadphonesIcon, LayoutGrid, LogOut, Music2, User, Wallet } from "lucide-react";
+import { PortalWalletMenu } from "../../portal/PortalWalletMenu";
 
 type MusicasUserMenuProps = {
   userName: string;
@@ -65,6 +66,13 @@ export function MusicasUserMenu({ userName, profileImageUrl, hasVip, onLogout }:
             <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
               {hasVip ? "Plano VIP ativo" : "Sem plano VIP"}
             </p>
+          </div>
+
+          <div className="border-b border-white/[0.08] px-3 py-3">
+            <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+              <Wallet className="h-3.5 w-3.5" /> Saldo e recarga
+            </div>
+            <PortalWalletMenu />
           </div>
 
           <ul className="p-1.5">
