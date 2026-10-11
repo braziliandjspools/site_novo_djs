@@ -182,7 +182,7 @@ export function PortalShell({
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <header className={`${APP_TOP_CHROME} z-20`}>
           <div className="br-stripe" />
-          <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-none justify-between sm:px-6`}>
+          <div className={`${APP_TOP_CHROME_ROW} h-auto min-h-16 flex-wrap justify-between gap-y-2 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:flex-nowrap sm:gap-y-0 sm:py-0 sm:pt-0 ${APP_TOP_CHROME_ROW_H} max-w-none sm:px-6`}>
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
                 type="button"
@@ -200,7 +200,7 @@ export function PortalShell({
                 </p>
               </div>
             </div>
-            <div className="app-no-drag flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+            <div className="app-no-drag flex w-full flex-shrink-0 items-center justify-end gap-2 sm:w-auto sm:gap-2">
               <SiteNotificationBell />
               <PortalWalletMenu />
               <MusicasUserMenu userName={userName} profileImageUrl={profileImageUrl} hasVip={vipActive} onLogout={() => void onLogout()} />
