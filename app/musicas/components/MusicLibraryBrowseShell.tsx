@@ -1,91 +1,29 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { FolderTree, X } from "lucide-react";
-import { AtualizacoesBrowseNavSidebar } from "./AtualizacoesBrowseNavSidebar";
+import type { ReactNode } from "react";
 import type { AtualizacoesBrowseNavSidebarProps } from "./AtualizacoesBrowseNavSidebar";
 
 type MusicLibraryBrowseShellProps = AtualizacoesBrowseNavSidebarProps & {
   children: ReactNode;
-  /** Tabela de faixas: filtros vão no topo da lista; sem nav lateral. */
+  /** Mantido para compatibilidade com as páginas que compõem este shell. */
   hideSidebar?: boolean;
 };
 
-/**
- * Desktop: nav lateral.
- * Mobile: conteúdo full-bleed + sheet “Explorar” (sem sidebar escondida).
- */
-export function MusicLibraryBrowseShell({
-  children,
-  hideSidebar = false,
-  ...navProps
-}: MusicLibraryBrowseShellProps) {
-  const [open, setOpen] = useState(false);
-  const slugKey = navProps.slugSegments.join("/");
-
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [slugKey]);
-
-  if (hideSidebar) {
-    return <div className="min-w-0">{children}</div>;
-  }
-
+/** Área de navegação do catálogo em largura total, sem painel lateral ou drawer. */
+export function MusicLibraryBrowseShell({ children }: MusicLibraryBrowseShellProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)] lg:items-start lg:gap-6">
-      <div className="hidden lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-7.5rem)] lg:self-start lg:overflow-hidden">
-        <AtualizacoesBrowseNavSidebar {...navProps} />
-      </div>
-
-      <div className="min-w-0">
-        <div className="mb-3 flex items-center gap-2 lg:hidden">
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
-          >
-            <FolderTree className="h-4 w-4 text-[#60cdff]" aria-hidden />
-            Explorar pastas
-          </button>
-        </div>
+    <section className="relative isolate min-w-0 w-full overflow-hidden rounded-[24px] border border-white/[0.07] bg-[linear-gradient(145deg,rgba(19,23,28,0.92),rgba(10,12,15,0.82)_45%,rgba(12,15,18,0.95))] shadow-[0_24px_70px_-42px_rgba(0,0,0,0.9)] sm:rounded-[28px]">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-200/45 to-transparent"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full bg-sky-300/[0.035] blur-3xl"
+        aria-hidden
+      />
+      <div className="relative min-w-0 px-3 py-4 sm:px-5 sm:py-5 lg:px-7 lg:py-6">
         {children}
       </div>
-
-      {open ? (
-        <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label="Explorar pastas">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
-            aria-label="Fechar"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden rounded-t-3xl border border-white/10 bg-[#161616] shadow-[0_-20px_60px_rgba(0,0,0,0.55)]">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-              <p className="text-[15px] font-bold text-white">Explorar</p>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80"
-                aria-label="Fechar navegação"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="max-h-[calc(88dvh-3.5rem)] overflow-y-auto overscroll-contain p-3 pb-[max(1rem,env(safe-area-inset-bottom))] [&_aside]:max-h-none [&_aside]:rounded-xl [&_aside]:shadow-none">
-              <AtualizacoesBrowseNavSidebar {...navProps} />
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    </section>
   );
 }
