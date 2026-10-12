@@ -684,10 +684,14 @@ button {
 }
 .music-updates-premium .tablemusic-row .tablemusic-pool button:not(:disabled) {
   color: #7dd3fc !important;
+  font-size: 11px;
+  line-height: 1.25;
   text-decoration-color: rgb(125 211 252 / .65);
 }
 .music-updates-premium .tablemusic-row .tablemusic-style button:not(:disabled) {
   color: #86efac !important;
+  font-size: 11px;
+  line-height: 1.25;
   text-decoration-color: rgb(134 239 172 / .65);
 }
 .music-updates-premium .tablemusic-row .tablemusic-pool button:not(:disabled):hover,
