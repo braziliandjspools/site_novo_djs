@@ -855,14 +855,30 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
     return getDueUrgency(nextDueAt) === "overdue";
   }).length;
 
-  const activeVipUsers = users.filter((user) => {
+  const testAccountEmail = "brazilianremixservice@gmail.com";
+  const payingUsers = users.filter((user) => {
     const draft = drafts[user.id];
-    return Boolean(draft?.active && draft?.services.poolsVip && user.serviceBilling.poolsVip.dueAt);
+    return Boolean(
+      draft?.active &&
+      user.email.trim().toLowerCase() !== testAccountEmail &&
+      (draft.services.poolsVip || draft.services.deemix),
+    );
   });
-  const estimatedVipMonthly = activeVipUsers.reduce(
-    (total, user) => total + (Number(user.vipMonthlyEstimate) || 0),
-    0,
-  );
+  const estimatedMonthlyByUser = (user: AdminUser) => {
+    const draft = drafts[user.id];
+    if (!draft?.active || user.email.trim().toLowerCase() === testAccountEmail) return 0;
+    const vip = draft.services.poolsVip ? Number(user.vipMonthlyEstimate) || 0 : 0;
+    const deemix = draft.services.deemix ? parseBrlInput(draft.serviceBilling.deemix.value) ?? 0 : 0;
+    return Math.round((vip + deemix) * 100) / 100;
+  };
+  const estimatedVipMonthly = payingUsers.reduce((total, user) => total + estimatedMonthlyByUser(user), 0);
+  const monthlyExpenses = [
+    { label: "Google Drive", amount: 24, payment: "Pix automático" },
+    { label: "Servidor VPS", amount: 36, payment: "Cartão" },
+    { label: "Conteúdo", amount: 35, payment: "Pix" },
+  ];
+  const totalMonthlyExpenses = monthlyExpenses.reduce((total, item) => total + item.amount, 0);
+  const estimatedMonthlyRemainder = estimatedVipMonthly - totalMonthlyExpenses;
 
   const selectedUser = selectedUserId != null ? users.find((user) => user.id === selectedUserId) : null;
   const selectedDraft = selectedUserId != null ? drafts[selectedUserId] : null;
@@ -1115,20 +1131,57 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#009739]/30 bg-[#009739]/10 px-4 py-4 sm:px-5">
+          <section className="space-y-4 rounded-xl border border-[#009739]/30 bg-[#009739]/[0.07] p-4 sm:p-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1db954]">
-                  Valor mensal estimado — Pools VIP
+                  Receita mensal estimada dos clientes
                 </p>
                 <p className="mt-1 text-xs text-zinc-400">
-                  {activeVipUsers.length} assinante{activeVipUsers.length === 1 ? "" : "s"} VIP ativo{activeVipUsers.length === 1 ? "" : "s"} ·
-                  planos trimestrais e semestrais convertidos para equivalente mensal.
+                  {payingUsers.length} cliente{payingUsers.length === 1 ? "" : "s"} ativo{payingUsers.length === 1 ? "" : "s"} com serviço recorrente. A conta de teste do proprietário foi excluída.
                 </p>
               </div>
               <p className="font-mono text-xl font-bold tabular-nums text-white sm:text-2xl">
                 {formatBrl(estimatedVipMonthly)}
               </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Gastos por mês</p>
+                <p className="mt-1 font-mono text-xl font-bold text-red-300">{formatBrl(totalMonthlyExpenses)}</p>
+                <div className="mt-3 space-y-2">
+                  {monthlyExpenses.map((expense) => (
+                    <div key={expense.label} className="flex items-start justify-between gap-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="text-zinc-300">{expense.label}</p>
+                        <p className="text-[10px] text-zinc-500">{expense.payment}</p>
+                      </div>
+                      <span className="shrink-0 font-mono text-zinc-300">{formatBrl(expense.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Sobra estimada</p>
+                <p className={`mt-1 font-mono text-xl font-bold ${estimatedMonthlyRemainder >= 0 ? "text-[#00ff9d]" : "text-red-300"}`}>
+                  {formatBrl(estimatedMonthlyRemainder)}
+                </p>
+                <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">Receita estimada menos os gastos fixos informados. Não inclui taxas de pagamento ou outros custos.</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Quem paga</p>
+                <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
+                  {payingUsers.length ? payingUsers.map((user) => (
+                    <div key={user.id} className="flex items-start justify-between gap-2 border-b border-white/[0.06] pb-2 text-xs last:border-0">
+                      <div className="min-w-0">
+                        <p className="break-words text-zinc-200">{drafts[user.id]?.name || user.name}</p>
+                        <p className="break-all text-[10px] text-zinc-500">{user.email}</p>
+                      </div>
+                      <span className="shrink-0 font-mono text-zinc-200">{formatBrl(estimatedMonthlyByUser(user))}/mês</span>
+                    </div>
+                  )) : <p className="text-xs text-zinc-500">Nenhum cliente recorrente ativo.</p>}
+                </div>
+              </div>
             </div>
           </section>
 
