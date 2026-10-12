@@ -682,6 +682,21 @@ button {
 .music-updates-premium [class~="text-[#86e7a7]"] {
   color: #d4d4d8 !important;
 }
+.music-updates-premium .tablemusic-row .tablemusic-pool button:not(:disabled) {
+  color: #7dd3fc !important;
+  text-decoration-color: rgb(125 211 252 / .65);
+}
+.music-updates-premium .tablemusic-row .tablemusic-style button:not(:disabled) {
+  color: #86efac !important;
+  text-decoration-color: rgb(134 239 172 / .65);
+}
+.music-updates-premium .tablemusic-row .tablemusic-pool button:not(:disabled):hover,
+.music-updates-premium .tablemusic-row .tablemusic-style button:not(:disabled):hover,
+.music-updates-premium .tablemusic-row .tablemusic-pool button:not(:disabled):focus-visible,
+.music-updates-premium .tablemusic-row .tablemusic-style button:not(:disabled):focus-visible {
+  text-decoration-line: underline;
+  text-underline-offset: 4px;
+}
 .music-updates-premium input:focus,
 .music-updates-premium select:focus {
   border-color: rgb(255 255 255 / .38) !important;
