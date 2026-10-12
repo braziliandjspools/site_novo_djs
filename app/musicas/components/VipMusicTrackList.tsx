@@ -1572,7 +1572,7 @@ export function VipMusicTrackList({
     visibleTrackSections?.length && shouldGroupByDate,
   );
   const panelClass = layout === "table"
-    ? "musicas-track-panel overflow-hidden !rounded-none border border-[#60cdff]/15 bg-[#202020] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    ? "musicas-track-panel music-table-premium overflow-hidden rounded-2xl border border-white/10 bg-[#202020] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
   const hasCatalogFilters =
     useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || filterOptions.styles.length > 0);
@@ -1694,7 +1694,7 @@ export function VipMusicTrackList({
     ) : null;
 
   return (
-    <div className={separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}>
+    <div className={`${separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass} ${layout === "table" ? "music-updates-premium" : ""}`}>
       {useStreaming ? (
         <div className="space-y-3 border-b border-white/10 bg-[#202020] px-3 py-3 sm:px-4">
           {hasCatalogFilters ? (
@@ -1880,7 +1880,7 @@ export function VipMusicTrackList({
                   {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
-              <div className="tablemusic">
+              <div className={`tablemusic ${layout === "table" ? "tablemusic-premium" : ""}`}>
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
                 {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
@@ -1928,7 +1928,7 @@ export function VipMusicTrackList({
                   ) : null}
                 </header>
               ) : null}
-              <div className="tablemusic">
+              <div className={`tablemusic ${layout === "table" ? "tablemusic-premium" : ""}`}>
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
                 {embedded && useStreaming && sectionIndex === sections.length - 1 && hasMore && onLoadMore ? (
