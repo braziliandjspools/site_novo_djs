@@ -1451,7 +1451,7 @@ export function VipMusicTrackList({
     visibleTrackSections?.length && shouldGroupByDate,
   );
   const panelClass = layout === "table"
-    ? "musicas-track-panel overflow-hidden !rounded-none border border-[#60cdff]/15 bg-[#202020] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
+    ? "musicas-track-panel music-table-premium overflow-hidden rounded-2xl border border-white/10 bg-[#202020] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
   const hasCatalogFilters =
     useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || filterOptions.styles.length > 0);
@@ -1603,7 +1603,7 @@ export function VipMusicTrackList({
   };
 
   return (
-    <div className={`relative ${separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass}`}>
+    <div className={`relative ${separateByFolderDate ? "space-y-4" : embedded ? "" : panelClass} ${layout === "table" ? "music-updates-premium" : ""}`}>
       {pageLoading ? (
         <MusicasTableLoadingOverlay label={`Carregando página ${String(page).padStart(2, "0")}…`} />
       ) : null}
@@ -1825,7 +1825,7 @@ export function VipMusicTrackList({
                   {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
                 </p>
               </header>
-              <div className="tablemusic">
+              <div className={`tablemusic ${layout === "table" ? "tablemusic-premium" : ""}`}>
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
               </div>
@@ -1859,7 +1859,7 @@ export function VipMusicTrackList({
                   ) : null}
                 </header>
               ) : null}
-              <div className="tablemusic">
+              <div className={`tablemusic ${layout === "table" ? "tablemusic-premium" : ""}`}>
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
               </div>

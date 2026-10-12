@@ -602,3 +602,90 @@ button {
 @media (min-width: 1024px) {
   .tablemusic { --tablemusic-columns: 44px minmax(0, 1fr) minmax(112px, .46fr) minmax(112px, .46fr) 90px repeat(2, 38px); }
 }
+
+/* Atualizações: acabamento premium monocromático, sem alterar os outros catálogos. */
+.music-updates-premium {
+  font-family: var(--font-barlow), var(--font-app), sans-serif;
+}
+.music-updates-premium .music-table-premium {
+  border-color: rgb(255 255 255 / .12);
+  background: linear-gradient(145deg, #202124, #17181a 58%, #141517);
+  box-shadow: 0 22px 55px rgb(0 0 0 / .35), inset 0 1px 0 rgb(255 255 255 / .045);
+}
+.music-updates-premium .tablemusic-premium {
+  border-color: rgb(255 255 255 / .1);
+  border-radius: 0 0 1rem 1rem;
+  background: #17181a;
+  box-shadow: none;
+}
+.music-updates-premium .tablemusic-head {
+  color: #d4d4d8;
+  background: linear-gradient(90deg, #292a2d, #222326 52%, #1e1f21);
+  border-bottom-color: rgb(255 255 255 / .12);
+  font-family: var(--font-barlow), sans-serif;
+  font-size: 10px;
+  letter-spacing: .14em;
+}
+.music-updates-premium .tablemusic-row,
+.music-updates-premium .tablemusic-row:nth-child(odd) {
+  background-color: #191a1c;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+.music-updates-premium .tablemusic-row:hover,
+.music-updates-premium .tablemusic-row:focus-within {
+  background: linear-gradient(90deg, rgb(255 255 255 / .085), rgb(255 255 255 / .025) 72%);
+}
+.music-updates-premium .tablemusic-row::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / .12), transparent);
+}
+.music-updates-premium .tablemusic-row [class~="text-[#60cdff]"],
+.music-updates-premium .tablemusic-row [class~="text-sky-200"],
+.music-updates-premium .tablemusic-row [class~="text-[#86e7a7]"] {
+  color: #e4e4e7 !important;
+}
+.music-updates-premium .tablemusic-row [class~="bg-[#60cdff]"] {
+  background-color: #f4f4f5 !important;
+}
+.music-updates-premium .tablemusic-row [class~="text-black"] {
+  color: #18181b !important;
+}
+.music-updates-premium .tablemusic-row [class*="border-[#60cdff]"],
+.music-updates-premium .tablemusic-row [class*="hover:border-[#60cdff]"] {
+  border-color: rgb(255 255 255 / .2) !important;
+}
+.music-updates-premium .tablemusic-row [class*="bg-[#60cdff]/"] {
+  background-color: rgb(255 255 255 / .09) !important;
+}
+.music-updates-premium .tablemusic-row [class*="shadow-[inset_3px_0_0_0_#60cdff]"] {
+  box-shadow: inset 3px 0 0 0 rgb(255 255 255 / .7) !important;
+}
+.music-updates-premium .tablemusic :where(button, a):focus-visible,
+.music-updates-premium :where(input, select, button, a):focus-visible {
+  outline-color: #e4e4e7;
+}
+.music-updates-premium > div[class~="border-b"] {
+  border-color: rgb(255 255 255 / .08);
+  background: linear-gradient(180deg, #242528, #1c1d1f);
+}
+.music-updates-premium [class~="border-[#60cdff]/20"],
+.music-updates-premium [class~="border-[#60cdff]/35"] {
+  border-color: rgb(255 255 255 / .14) !important;
+}
+.music-updates-premium [class~="text-[#60cdff]"] {
+  color: #f4f4f5 !important;
+}
+.music-updates-premium [class~="bg-[#60cdff]"] {
+  color: #18181b !important;
+  background-color: #e4e4e7 !important;
+}
+.music-updates-premium [class~="text-sky-200"],
+.music-updates-premium [class~="text-[#86e7a7]"] {
+  color: #d4d4d8 !important;
+}
+.music-updates-premium input:focus,
+.music-updates-premium select:focus {
+  border-color: rgb(255 255 255 / .38) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .music-updates-premium .tablemusic-row { transition: none; }
+}
