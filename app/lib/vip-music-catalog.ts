@@ -13,6 +13,7 @@ import {
   parseMonthFolderDate,
   parseUpdateDateFolder,
   slugifyFolderName,
+  slugifyStyleName,
   sortVipChildFolders,
 } from "./vip-music-slugs";
 import { isDriveAudioFile, pickCoverFromChildren } from "./folder-cover";
@@ -37,7 +38,7 @@ function updateDayLinks(folders: { name: string }[]) {
   });
 }
 
-/** Pools de cada dia, sem varrer os MP3. Uma pasta direta da data é uma pool. */
+/** Pools diretas das datas selecionadas, sem varrer os MP3. */
 async function listPoolOptionsFromParents(folderIds: string[]): Promise<CatalogFilterOption[]> {
   const pools = new Map<string, string>();
   await mapPool(folderIds, 4, async (folderId) => {
@@ -54,17 +55,57 @@ async function listPoolOptionsFromParents(folderIds: string[]): Promise<CatalogF
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
 
-/** Pools de um mês ou de um dia, sem baixar as faixas. */
-export async function listUpdatePoolOptions(folderId: string, folderName: string): Promise<CatalogFilterOption[]> {
-  if (parseUpdateDateFolder(folderName)) {
-    return listPoolOptionsFromParents([folderId]);
+/** Facetas do mês/dia, sempre calculadas dentro do recorte de data e Pool. */
+export async function listUpdateFilterOptions(
+  folderId: string,
+  folderName: string,
+  dayKey?: string | null,
+  poolSlug?: string | null,
+): Promise<{ filterPools: CatalogFilterOption[]; filterStyles: CatalogFilterOption[] }> {
+  const directDate = parseUpdateDateFolder(folderName);
+  const children = directDate ? [] : await listDriveFolderChildren(folderId);
+  const dates = directDate
+    ? [{ id: folderId, name: folderName }]
+    : children.filter((child) => child.mimeType === FOLDER_MIME && parseUpdateDateFolder(child.name));
+  if (dates.length === 0) {
+    return { filterPools: await listPoolOptionsFromParents([folderId]), filterStyles: [] };
   }
-  const children = await listDriveFolderChildren(folderId);
-  const dates = children.filter(
-    (child) => child.mimeType === FOLDER_MIME && parseUpdateDateFolder(child.name),
-  );
-  if (dates.length === 0) return [];
-  return listPoolOptionsFromParents(dates.map((folder) => folder.id));
+
+  const orderedDates = [...dates].sort((a, b) => {
+    const aKey = parseUpdateDateFolder(a.name)?.key ?? "";
+    const bKey = parseUpdateDateFolder(b.name)?.key ?? "";
+    return bKey.localeCompare(aKey);
+  });
+  const scopedDates = dayKey
+    ? orderedDates.filter((date) => parseUpdateDateFolder(date.name)?.key === dayKey)
+    : orderedDates;
+
+  const filterPools = await listPoolOptionsFromParents(scopedDates.map((date) => date.id));
+  if (!dayKey && !poolSlug) return { filterPools, filterStyles: [] };
+
+  const styles = new Map<string, string>();
+  const poolsByDate = await mapPool(scopedDates, 4, async (date) => {
+    const dateChildren = await listDriveFolderChildren(date.id);
+    return dateChildren.filter((child) =>
+      child.mimeType === FOLDER_MIME && (!poolSlug || slugifyFolderName(child.name) === poolSlug),
+    );
+  });
+  const selectedPools = poolsByDate.flat();
+  const stylesByPool = await mapPool(selectedPools, 4, async (pool) => {
+    const poolChildren = await listDriveFolderChildren(pool.id);
+    return poolChildren.filter((child) => child.mimeType === FOLDER_MIME);
+  });
+  for (const style of stylesByPool.flat()) {
+    const slug = slugifyStyleName(style.name);
+    if (slug) styles.set(slug, displayFolderName(style.name));
+  }
+
+  return {
+    filterPools,
+    filterStyles: [...styles.entries()]
+      .map(([slug, name]) => ({ slug, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+  };
 }
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MAX_TRACK_WALK_DEPTH = 12;
@@ -108,7 +149,8 @@ export type VipMusicCatalogResponse = {
   coverUrl?: string | null;
   /** Todos os pools da pasta, independente da página de faixas carregada. */
   filterPools?: CatalogFilterOption[];
-  /** Todos os estilos da pasta, independente da página de faixas carregada. */
+  /** Estilos disponíveis no recorte de data e Pool, independente da página. */
+  filterStyles?: CatalogFilterOption[];
   /** Dias de atualização do mês (30.09.2026), para a sidebar. */
   updateDays?: { slug: string; label: string; name: string }[];
 };

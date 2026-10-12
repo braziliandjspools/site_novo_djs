@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withDriveForceRefresh } from "../../../lib/drive-fetch-cache";
 import { findFolderBySlug, isYearFolderName } from "../../../lib/vip-music-slugs";
-import { getVipMusicCatalog, getVipMusicRootFolderId, listUpdatePoolOptions, listVipMusicFolders, VIP_MUSIC_TRACKS_PAGE_SIZE } from "../../../lib/vip-music-catalog";
+import { getVipMusicCatalog, getVipMusicRootFolderId, listUpdateFilterOptions, listVipMusicFolders, VIP_MUSIC_TRACKS_PAGE_SIZE } from "../../../lib/vip-music-catalog";
 import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music-access";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       ? (requestedPage - 1) * trackPageSize
       : legacyTrackOffset;
   const trackLimit = trackPageSize;
-  const poolsOnly = searchParams.get("meta") === "pools";
+  const filtersOnly = searchParams.get("meta") === "filters" || searchParams.get("meta") === "pools";
   const dayParam = searchParams.get("dia")?.trim() ?? "";
   const dayKey = /^\d{4}-\d{2}-\d{2}$/.test(dayParam) ? dayParam : null;
   const poolFilter = searchParams.get("pool")?.trim() ?? "";
@@ -74,9 +74,9 @@ export async function GET(request: Request) {
       }
 
       const target = resolvedPath.at(-1);
-      if (poolsOnly && target) {
-        const filterPools = await listUpdatePoolOptions(target.id, target.name);
-        return NextResponse.json({ ok: true, filterPools, ...access });
+      if (filtersOnly && target) {
+        const filterOptions = await listUpdateFilterOptions(target.id, target.name, dayKey, poolFilter || null);
+        return NextResponse.json({ ok: true, ...filterOptions, ...access }, { headers: { "Cache-Control": "no-store, max-age=0" } });
       }
       const catalog = await getVipMusicCatalog(
         target?.id ?? undefined,
