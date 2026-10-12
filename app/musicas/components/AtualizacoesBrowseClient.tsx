@@ -990,7 +990,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 belowImageUrl={isOctober2026Folder ? monthBannerUrl : null}
               />
             ) : null}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#60cdff]/20 bg-[#161616] px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#60cdff]">Faixas da pasta</p>
                   <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
