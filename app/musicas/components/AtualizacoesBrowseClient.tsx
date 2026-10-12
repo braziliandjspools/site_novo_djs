@@ -138,6 +138,11 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     resolveUrl(slugPath, false, currentPage, dayFilter, poolFilter, styleFilter),
   );
   const [data, setData] = useState<ResolveResponse | null>(initialCache);
+  const [filterMeta, setFilterMeta] = useState<{
+    scope: string;
+    filterPools: NonNullable<ResolveResponse["filterPools"]>;
+    filterStyles: NonNullable<ResolveResponse["filterStyles"]>;
+  } | null>(null);
   const [loading, setLoading] = useState(!initialCache);
   const [pageLoading, setPageLoading] = useState(false);
   const browseKey = `${slugPath}|${currentPage}|${dayFilter}|${poolFilter}|${styleFilter}`;
@@ -402,34 +407,34 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     });
   }, [data, slugSegments]);
 
-  const poolsFolderId = data?.level === "tracks" && !data.filterPools ? data.folderId : "";
+  const filtersFolderId = data?.level === "tracks" ? data.folderId : "";
+  const filterMetaScope = `${filtersFolderId}|${dayFilter}|${poolFilter}`;
   useEffect(() => {
-    if (!poolsFolderId) return;
+    if (!filtersFolderId) return;
     let cancelled = false;
     void (async () => {
       try {
-        const body = await fetchMusicasJson<{ filterPools?: { slug: string; name: string }[] }>(
-          `${resolveUrl(slugPath, false, currentPage, dayFilter, poolFilter, styleFilter)}&meta=pools`,
+        const body = await fetchMusicasJson<{
+          filterPools?: { slug: string; name: string }[];
+          filterStyles?: { slug: string; name: string }[];
+        }>(
+          `${resolveUrl(slugPath, false, 1, dayFilter, poolFilter)}&meta=filters`,
         );
         if (cancelled) return;
-        setData((current) =>
-          current && current.folderId === poolsFolderId
-            ? { ...current, filterPools: body.filterPools ?? [] }
-            : current,
-        );
+        setFilterMeta({
+          scope: filterMetaScope,
+          filterPools: body.filterPools ?? [],
+          filterStyles: body.filterStyles ?? [],
+        });
       } catch {
         if (cancelled) return;
-        setData((current) =>
-          current && current.folderId === poolsFolderId && !current.filterPools
-            ? { ...current, filterPools: [] }
-            : current,
-        );
+        setFilterMeta({ scope: filterMetaScope, filterPools: [], filterStyles: [] });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [poolsFolderId, slugPath]);
+  }, [filtersFolderId, filterMetaScope, slugPath, dayFilter, poolFilter]);
 
   const playbackEnabled = Boolean(data?.canPlay);
   const downloadEnabled = Boolean(data?.canDownload ?? data?.canPlayFull);
@@ -910,8 +915,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 relativePath={relativeStyleBase}
                 coverUrl={data.coverUrl}
                 layout="table"
-                filterPools={data.filterPools}
-                filterStyles={data.filterStyles}
+                filterPools={filterMeta?.scope === filterMetaScope ? filterMeta.filterPools : undefined}
+                filterStyles={filterMeta?.scope === filterMetaScope ? filterMeta.filterStyles : undefined}
                 updateDays={data.updateDays}
                 catalogLoading={catalogLoading}
                 page={currentPage}
@@ -1058,8 +1063,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 highlightTrackId={faixaId ?? undefined}
                 autoPlayTrackId={playbackEnabled && faixaId ? faixaId : undefined}
                 layout="table"
-                filterPools={data.filterPools}
-                filterStyles={data.filterStyles}
+                filterPools={filterMeta?.scope === filterMetaScope ? filterMeta.filterPools : undefined}
+                filterStyles={filterMeta?.scope === filterMetaScope ? filterMeta.filterStyles : undefined}
                 updateDays={data.updateDays}
                 catalogLoading={catalogLoading}
                 page={currentPage}

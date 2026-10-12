@@ -17,6 +17,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
   ChevronDown,
+  CalendarDays,
   Copy,
   Download,
   ListPlus,
@@ -43,7 +44,7 @@ import { useMusicasToast } from "./MusicasToast";
 import { useVipMusicPlayer } from "./VipMusicPlayerContext";
 import { VipLockedPlayHint } from "../VipUpgradeGate";
 import { recordContinueFromTrack } from "../lib/music-library-storage";
-import { folderHref, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
+import { folderHref, formatUpdateDateLabel, parseUpdateDateFolder, slugifyFolderName, slugifyStyleName } from "../../lib/vip-music-slugs";
 import { formatStyleNameForDisplay } from "../../lib/style-display";
 import { CollectionContextMenu, type CollectionMenuAction } from "./CollectionContextMenu";
 import { TrackListPagination } from "./TrackListPagination";
@@ -1037,6 +1038,10 @@ export function VipMusicTrackList({
   const filterOptions = useMemo(() => {
     const pools = new Map<string, string>();
     const styles = new Map<string, string>();
+    const dayScopedTracks = tracks.filter((track) => matchesCatalogFilter(track, "", "", dayFilterKey));
+    const poolScopedTracks = dayScopedTracks.filter((track) =>
+      matchesCatalogFilter(track, poolFilterSlug, "", ""),
+    );
 
     for (const option of filterPools ?? []) {
       if (option.slug && option.name) pools.set(option.slug, option.name);
@@ -1044,22 +1049,22 @@ export function VipMusicTrackList({
     for (const option of filterStyles ?? []) {
       if (option.slug && option.name) styles.set(option.slug, option.name);
     }
-    for (const track of tracks) {
+    for (const track of dayScopedTracks) {
       const pool = track.poolName?.trim();
-      const style = track.styleName?.trim();
       // Sem ID de pasta de Pool, não há Pool real para filtrar.
       // Isso evita que um estilo de uma estrutura sem Pool apareça como Pool.
       if (pool) pools.set(slugifyFolderName(pool), pool);
+    }
+    for (const track of poolScopedTracks) {
+      const style = track.styleName?.trim();
       if (style) styles.set(slugifyStyleName(style), style);
     }
-    if (poolFilterSlug && !pools.has(poolFilterSlug)) pools.set(poolFilterSlug, poolFilterSlug);
-    if (styleFilterSlug && !styles.has(styleFilterSlug)) styles.set(styleFilterSlug, styleFilterSlug);
 
     return {
       pools: [...pools.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
       styles: [...styles.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")),
     };
-  }, [filterPools, filterStyles, poolFilterSlug, styleFilterSlug, tracks]);
+  }, [dayFilterKey, filterPools, filterStyles, poolFilterSlug, tracks]);
 
   // Os filtros de Dia/Pool/Estilo continuam filtrando as faixas carregadas.
   // A busca textual da tabela só é aplicada depois que o usuário confirma a pesquisa.
@@ -1442,8 +1447,22 @@ export function VipMusicTrackList({
           day.slug;
         return { key, label: day.label };
       })
-      .filter((day, index, list) => list.findIndex((item) => item.key === day.key) === index);
+      .filter((day, index, list) => list.findIndex((item) => item.key === day.key) === index)
+      .sort((a, b) => b.key.localeCompare(a.key));
   }, [updateDays]);
+
+  const latestFilteredDateLabel = useMemo(() => {
+    const filteredDateKeys = filteredTracks
+      .map((track) => track.updateDate?.trim() ?? "")
+      .filter((key) => /^\d{4}-\d{2}-\d{2}$/.test(key))
+      .sort((a, b) => b.localeCompare(a));
+    const hasActiveFilter = Boolean(dayFilterKey || poolFilterSlug || styleFilterSlug || searchDraft.trim());
+    const latestKey = hasActiveFilter
+      ? filteredDateKeys[0] || (filteredTracks.length > 0 ? dayFilterKey : "")
+      : dayOptions[0]?.key ?? "";
+    if (!latestKey) return "";
+    return dayOptions.find((day) => day.key === latestKey)?.label ?? formatUpdateDateLabel(latestKey);
+  }, [dayFilterKey, dayOptions, filteredTracks, poolFilterSlug, searchDraft, styleFilterSlug]);
 
   const useStreaming = layout === "table" || layout === "default";
   const useDiscography = layout === "discography";
@@ -1654,9 +1673,9 @@ export function VipMusicTrackList({
                         className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
                       >
                         <option value="">Mês inteiro</option>
-                        {dayOptions.map((day) => (
+                        {dayOptions.map((day, index) => (
                           <option key={day.key} value={day.key}>
-                            {day.label}
+                            {index === 0 ? `${day.label} · mais recente` : day.label}
                           </option>
                         ))}
                       </select>
@@ -1711,6 +1730,17 @@ export function VipMusicTrackList({
                   </label>
                 ) : null}
               </div>
+              {latestFilteredDateLabel ? (
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/[0.08] bg-white/[0.025] px-3.5 py-2.5 text-xs sm:px-4">
+                  <CalendarDays className="h-4 w-4 text-white/65" aria-hidden />
+                  <span className="text-white/55">
+                    {activeCatalogFilterCount > 0 || searchDraft.trim()
+                      ? "Última data com atualização neste resultado:"
+                      : "Última data com atualização:"}
+                  </span>
+                  <strong className="font-semibold text-white">{latestFilteredDateLabel}</strong>
+                </div>
+              ) : null}
             </section>
           ) : null}
           <div className="relative w-full min-w-0">
