@@ -62,7 +62,9 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   const getStreamUrl = options?.getStreamUrl;
   const useMediaElement = Boolean(getStreamUrl);
   const onEndedRef = useRef(options?.onEnded);
-  onEndedRef.current = options?.onEnded;
+  useEffect(() => {
+    onEndedRef.current = options?.onEnded;
+  }, [options?.onEnded]);
 
   const ctxRef = useRef<AudioContext | null>(null);
   const bufferRef = useRef<AudioBuffer | null>(null);
@@ -73,7 +75,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   const startAtRef = useRef(0);
   const offsetRef = useRef(0);
   const trackIdRef = useRef<string | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const progressTimerRef = useRef<number | null>(null);
   const stoppingRef = useRef(false);
   const volumeRef = useRef(1);
 
@@ -120,28 +122,42 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   const tick = useCallback(() => {
     if (useMediaElement) {
       const audio = audioRef.current;
-      if (!audio || audio.paused) return;
+      if (!audio || audio.paused) {
+        if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+        return;
+      }
       setState((prev) => ({
         ...prev,
         currentTime: audio.currentTime,
         duration: Number.isFinite(audio.duration) ? audio.duration : prev.duration,
       }));
-      rafRef.current = requestAnimationFrame(tick);
       return;
     }
 
     const ctx = ctxRef.current;
     const buffer = bufferRef.current;
-    if (!ctx || !buffer || !sourceRef.current) return;
+    if (!ctx || !buffer || !sourceRef.current) {
+      if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+      return;
+    }
 
     const elapsed = ctx.currentTime - startAtRef.current;
     const current = Math.min(buffer.duration, offsetRef.current + elapsed);
 
     setState((prev) => ({ ...prev, currentTime: current }));
 
-    if (current >= buffer.duration) return;
-    rafRef.current = requestAnimationFrame(tick);
+    if (current >= buffer.duration) {
+      if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
   }, [useMediaElement]);
+
+  const startProgressPolling = useCallback(() => {
+    if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
+    progressTimerRef.current = window.setInterval(tick, 200);
+  }, [tick]);
 
   const getContext = useCallback(() => {
     if (!ctxRef.current || ctxRef.current.state === "closed") {
@@ -286,7 +302,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
         currentTime: 0,
       }));
     }
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
   }, []);
 
   const playBufferNode = useCallback(async () => {
@@ -309,7 +325,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
       if (stoppingRef.current) {
         stoppingRef.current = false;
         sourceRef.current = null;
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
         return;
       }
 
@@ -321,10 +337,9 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
     source.start(0, offsetRef.current);
     sourceRef.current = source;
 
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(tick);
+    startProgressPolling();
     return true;
-  }, [ensureContextRunning, getContext, handleNaturalEnd, stopSource, tick]);
+  }, [ensureContextRunning, getContext, handleNaturalEnd, startProgressPolling, stopSource]);
 
   const playMediaElement = useCallback(async () => {
     const audio = audioRef.current;
@@ -344,10 +359,9 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
       return false;
     }
 
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(tick);
+    startProgressPolling();
     return true;
-  }, [failLoad, handleNaturalEnd, stopSource, tick]);
+  }, [failLoad, handleNaturalEnd, startProgressPolling, stopSource]);
 
   const play = useCallback(
     async (id: string) => {
@@ -385,7 +399,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
 
       offsetRef.current = audio.currentTime;
       stopSource();
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
 
       setState((prev) => ({
         ...prev,
@@ -404,7 +418,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
     }
 
     stopSource();
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
 
     setState((prev) => ({
       ...prev,
@@ -443,7 +457,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
         const wasPlaying = trackIdRef.current !== null && !audio.paused;
 
         audio.pause();
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
         audio.currentTime = offsetRef.current;
 
         setState((prev) => ({
@@ -465,7 +479,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
       const wasPlaying = trackIdRef.current !== null && sourceRef.current !== null;
 
       stopSource();
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
 
       setState((prev) => ({
         ...prev,
@@ -495,7 +509,7 @@ export function useProtectedPlayer(options?: UseProtectedPlayerOptions) {
   useEffect(() => {
     return () => {
       stopSource();
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (progressTimerRef.current !== null) window.clearInterval(progressTimerRef.current);
       revokeObjectUrl();
       const audio = audioRef.current;
       if (audio) {

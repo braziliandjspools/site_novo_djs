@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { CircleDollarSign, Loader2, Plus, Wallet, X } from "lucide-react";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -105,8 +106,8 @@ export function PortalWalletMenu() {
         </button>
       </div>
 
-      {open && (
-        <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/75 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-sm sm:items-center sm:py-6" onMouseDown={(event) => {
+      {open && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/75 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-sm sm:items-center sm:py-6" onMouseDown={(event) => {
           if (event.target === event.currentTarget && !busy) setOpen(false);
         }}>
           <section
@@ -155,7 +156,8 @@ export function PortalWalletMenu() {
               </button>
             </form>
           </section>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
