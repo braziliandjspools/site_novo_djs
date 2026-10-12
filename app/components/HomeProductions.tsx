@@ -198,25 +198,18 @@ function ProductionCard({
         >
           {production.title}
         </Link>
-        <div className="mt-1.5 flex items-center justify-between gap-2">
-          <p className="min-w-0 truncate text-[12px] text-white/55">
-            {production.producerSlug ? (
-              <Link
-                href={`/p/${production.producerSlug}`}
-                className={isProducer ? "hover:text-[#7eb6ff]" : "hover:text-[#60cdff]"}
-              >
-                {production.producer}
-              </Link>
-            ) : (
-              production.producer
-            )}
-          </p>
-          {version ? (
-            <span className="shrink-0 rounded-md bg-[#141414] px-2 py-0.5 text-[10px] font-semibold text-white">
-              {version}
-            </span>
-          ) : null}
-        </div>
+        <p className="mt-1.5 min-w-0 truncate text-[12px] text-white/55">
+          {production.producerSlug ? (
+            <Link
+              href={`/p/${production.producerSlug}`}
+              className={isProducer ? "hover:text-[#7eb6ff]" : "hover:text-[#60cdff]"}
+            >
+              {production.producer}
+            </Link>
+          ) : (
+            production.producer
+          )}
+        </p>
         <div className="mt-3 flex items-center justify-between gap-2">
           <span
             className={`truncate rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${
@@ -231,25 +224,25 @@ function ProductionCard({
             {dateLabel}
           </span>
         </div>
-        <div className="mt-auto flex gap-2 border-t border-white/[0.06] pt-3">
+        <div className="mt-auto flex min-w-0 gap-1.5 border-t border-white/[0.06] pt-3">
           <button
             type="button"
             onClick={play}
-            className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[11px] font-bold text-white transition active:scale-[0.98] ${
+            className={`inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border px-1.5 text-[11px] font-bold text-white transition active:scale-[0.98] ${
               isProducer
                 ? "border-[#7eb6ff]/25 bg-[#7eb6ff]/10 hover:bg-[#7eb6ff]/18"
                 : "border-white/10 bg-white/[0.04] hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10"
             }`}
           >
             {playing ? <Pause className="h-3 w-3" fill="currentColor" /> : <Play className="h-3 w-3" fill="currentColor" />}
-            {playing ? "Pausar" : access.canPlay ? "Ouvir" : "Entrar"}
+            {playing ? "Pausar" : "Ouvir"}
           </button>
           {production.spotifyUrl ? (
             <a
               href={production.spotifyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-[11px] font-bold text-white transition active:scale-[0.98] ${
+              className={`inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border px-1.5 text-[11px] font-bold text-white transition active:scale-[0.98] ${
                 isProducer
                   ? "border-[#1DB954]/35 bg-[#1DB954]/10 hover:bg-[#1DB954]/20"
                   : "border-[#1DB954]/30 bg-[#1DB954]/10 hover:border-[#1DB954]/50 hover:bg-[#1DB954]/15"
@@ -262,7 +255,7 @@ function ProductionCard({
             <button
               type="button"
               onClick={download}
-              className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-[11px] font-extrabold text-black transition active:scale-[0.98] ${
+              className={`inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-1.5 text-[11px] font-extrabold text-black transition active:scale-[0.98] ${
                 isProducer ? "bg-[#7eb6ff] hover:bg-[#7eb6ff]/80" : "bg-[#60cdff] hover:bg-[#60cdff]/75"
               }`}
             >
@@ -272,10 +265,10 @@ function ProductionCard({
             <button
               type="button"
               onClick={download}
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] text-[11px] font-bold text-zinc-400 transition active:scale-[0.98] hover:border-white/20"
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] px-1.5 text-[11px] font-bold text-zinc-400 transition active:scale-[0.98] hover:border-white/20"
             >
               <Lock className="h-3 w-3" />
-              {access.authenticated ? "Membros" : "Entrar"}
+              {access.authenticated ? "Membros" : "Baixar"}
             </button>
           )}
         </div>

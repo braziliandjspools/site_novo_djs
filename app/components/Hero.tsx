@@ -26,7 +26,7 @@ function readReducedMotion() {
 
 function TypewriterWords({ words }: { words: string[] }) {
   const [index, setIndex] = useState(0);
-  const [text, setText] = useState("");
+  const [text, setText] = useState(words[0] ?? "");
   const [deleting, setDeleting] = useState(false);
   const reduceMotion = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => false);
 
@@ -61,7 +61,7 @@ function TypewriterWords({ words }: { words: string[] }) {
   }
 
   return (
-    <span className="inline-block min-w-0 text-left sm:min-w-[7ch]">
+    <span className="inline-block min-w-[12ch] text-left">
       {text}
       <span className="ml-0.5 inline-block h-[0.9em] w-[0.08em] translate-y-[0.08em] animate-pulse bg-current align-middle" aria-hidden />
     </span>
