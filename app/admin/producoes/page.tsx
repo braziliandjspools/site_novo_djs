@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AdminProducoesPage() {
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-8">
+    <main className="admin-productions-main mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       <AdminProductionsApp />
     </main>
   );

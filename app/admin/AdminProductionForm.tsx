@@ -220,11 +220,13 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
   const coverPreview = form.coverUrl || catalogMediaUrl(form.coverFileId);
 
   return (
-    <form onSubmit={submit} className="grid w-full min-w-0 max-w-full gap-4 overflow-x-hidden text-sm">
-      <fieldset className="grid min-w-0 gap-3 rounded-2xl border border-white/10 bg-[#242424] p-4">
+    <form onSubmit={submit} className="admin-production-form grid w-full min-w-0 max-w-full gap-5 overflow-x-hidden text-sm">
+      <fieldset className="admin-production-section admin-production-info grid min-w-0 gap-3 rounded-2xl border border-white/10 bg-[#242424] p-4 sm:p-6">
         <legend className="px-1 text-xs font-semibold tracking-[0.14em] text-white/50">INFORMAÇÕES</legend>
-        <input className="site-input w-full min-w-0 max-w-full" placeholder="Título" value={form.title} onChange={(e) => set("title", e.target.value)} required />
-        <input className="site-input w-full min-w-0 max-w-full" placeholder="Artista" value={form.artist} onChange={(e) => set("artist", e.target.value)} required />
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <input className="site-input w-full min-w-0 max-w-full" placeholder="Título da produção" value={form.title} onChange={(e) => set("title", e.target.value)} required />
+          <input className="site-input w-full min-w-0 max-w-full" placeholder="Artista" value={form.artist} onChange={(e) => set("artist", e.target.value)} required />
+        </div>
         <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_auto]">
           <select className="site-input w-full min-w-0 max-w-full" value={form.producerId} onChange={(e) => set("producerId", e.target.value)} required>
             <option value="">Selecionar produtor</option>
@@ -248,16 +250,16 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
         </div>
       </fieldset>
 
-      <fieldset className="grid min-w-0 gap-3 rounded-2xl border border-white/10 bg-[#242424] p-4">
+      <fieldset className="admin-production-section admin-production-media grid min-w-0 gap-3 rounded-2xl border border-white/10 bg-[#242424] p-4 sm:p-6">
         <legend className="px-1 text-xs font-semibold tracking-[0.14em] text-white/50">ARQUIVO E CAPA</legend>
         <div className="grid min-w-0 gap-3 lg:grid-cols-2">
-          <div className="min-w-0 rounded-2xl border border-[#1db954]/20 bg-black/20 p-4">
+          <div className="admin-production-source admin-production-drive min-w-0 rounded-2xl border border-[#1db954]/20 bg-black/20 p-4 sm:p-5">
             <div className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-white"><FileAudio className="h-4 w-4 shrink-0 text-[#1db954]" /><span className="min-w-0 truncate">Google Drive</span></div>
             <p className="mt-1 text-xs text-white/45">Cole o link e o BRS lê as tags da faixa.</p>
             <input className="site-input mt-3 w-full min-w-0 max-w-full" placeholder="https://drive.google.com/file/d/..." value={driveLink} onChange={(e) => setDriveLink(e.target.value)} onKeyDown={(event) => { if (event.key !== "Enter") return; event.preventDefault(); void recognizeLink(); }} />
             <button type="button" onClick={() => void recognizeLink()} disabled={Boolean(busy)} className="mt-2 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-bold text-white hover:border-[#1db954]/50 hover:bg-white/5 disabled:opacity-50">Reconhecer Drive</button>
           </div>
-          <div className="min-w-0 rounded-2xl border border-[#7eb6ff]/20 bg-black/20 p-4">
+          <div className="admin-production-source admin-production-r2 min-w-0 rounded-2xl border border-[#7eb6ff]/20 bg-black/20 p-4 sm:p-5">
             <div className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-white"><CloudUpload className="h-4 w-4 shrink-0 text-[#7eb6ff]" /><span className="min-w-0 truncate">Upload R2</span></div>
             <p className="mt-1 text-xs text-white/45">Envie direto para o Cloudflare R2 e reconheça as tags.</p>
             <input ref={audioInputRef} className="hidden" type="file" accept=".mp3,.wav,.flac,.aiff,.aif,audio/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadAudioToR2(file); e.currentTarget.value = ""; }} />
@@ -266,8 +268,8 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
           </div>
         </div>
         {form.fileName ? <div className="flex min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden rounded-xl border border-[#1db954]/20 bg-[#1db954]/5 px-3 py-2 text-xs"><span className="min-w-0 flex-1 truncate text-[#9ef7c0]" title={form.fileName}>{form.fileName}</span><span className="shrink-0 rounded-full bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white/45">{audioSource === "r2" ? "Cloudflare R2" : "Google Drive"}</span></div> : null}
-        <label className="min-w-0 text-xs text-white/60">
-          Capa da produção
+        <label className="admin-production-cover min-w-0 text-xs text-white/60">
+          <span className="mb-2 block font-semibold text-white">Capa da produção <span className="font-normal text-white/35">· opcional</span></span>
           <input className="mt-1 block w-full min-w-0 max-w-full text-xs" type="file" accept=".jpg,.jpeg,.png,.webp,image/*" onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -281,7 +283,7 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
         {coverPreview ? <img src={coverPreview} alt="" className="h-28 w-28 max-w-full rounded-xl object-cover" /> : null}
       </fieldset>
 
-      <fieldset className="grid min-w-0 gap-2 rounded-2xl border border-white/10 bg-[#242424] p-4 sm:grid-cols-2">
+      <fieldset className="admin-production-section admin-production-tech grid min-w-0 gap-2 rounded-2xl border border-white/10 bg-[#242424] p-4 sm:grid-cols-2 sm:gap-3 sm:p-6">
         <legend className="px-1 text-xs font-semibold tracking-[0.14em] text-white/50">FICHA TÉCNICA</legend>
         <input className="site-input w-full min-w-0 max-w-full" placeholder="Duração (04:32)" value={form.duration} onChange={(e) => set("duration", e.target.value)} />
         <input className="site-input w-full min-w-0 max-w-full" placeholder="BPM" value={form.bpm} onChange={(e) => set("bpm", e.target.value)} />
@@ -293,14 +295,17 @@ export function AdminProductionForm({ initial }: { initial?: ProductionDraft }) 
         <input className="site-input w-full min-w-0 max-w-full sm:col-span-2" type="url" placeholder="Spotify (opcional) — https://open.spotify.com/track/..." value={form.spotifyUrl} onChange={(e) => set("spotifyUrl", e.target.value)} />
       </fieldset>
 
-      <div className="flex min-w-0 max-w-full flex-wrap gap-4 text-xs text-white/70">
+      <div className="admin-production-publish flex min-w-0 max-w-full flex-wrap gap-x-5 gap-y-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 text-xs text-white/70 sm:px-5">
         <label className="flex min-w-0 items-center gap-2"><input type="checkbox" checked={form.isPublished} onChange={(e) => set("isPublished", e.target.checked)} /><span className="min-w-0">Publicada em /musicas</span></label>
         <label className="flex min-w-0 items-center gap-2"><input type="checkbox" checked={form.isFeatured} onChange={(e) => set("isFeatured", e.target.checked)} /><span className="min-w-0">Destaque na Home</span></label>
         <label className="flex min-w-0 items-center gap-2"><input type="checkbox" checked={form.isNew} onChange={(e) => set("isNew", e.target.checked)} /><span className="min-w-0">Selo Novo</span></label>
       </div>
       {error ? <p className="min-w-0 max-w-full break-words text-sm text-red-300">{error}</p> : null}
       {busy ? <p className="inline-flex min-w-0 max-w-full items-center gap-2 text-sm text-white/60"><Loader2 className="h-4 w-4 shrink-0 animate-spin" /><span className="truncate">{busy}</span></p> : null}
-      <button type="submit" disabled={Boolean(busy)} className="site-btn-primary w-fit max-w-full rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-60">{form.id ? "Salvar alterações" : "Salvar"}</button>
+      <div className="admin-production-submitbar flex flex-col gap-3 border-t border-white/[0.08] pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-white/40">Confira os dados da faixa antes de salvar. Você pode editar a publicação depois.</p>
+        <button type="submit" disabled={Boolean(busy)} className="admin-production-submit site-btn-primary inline-flex min-h-12 w-full max-w-full items-center justify-center rounded-xl px-7 text-sm font-bold disabled:opacity-60 sm:w-auto">{busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{busy}</> : form.id ? "Salvar alterações" : "Salvar produção"}</button>
+      </div>
     </form>
   );
 }

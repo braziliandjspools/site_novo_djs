@@ -118,7 +118,7 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-4 ${
+      className={`admin-dashboard-stat rounded-2xl border p-4 ${
         accent
           ? "border-[#1db954]/40 bg-[#1db954]/10"
           : "border-white/10 bg-white/[0.03]"
@@ -188,7 +188,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="admin-dashboard space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl tracking-wide text-white">Dashboard</h1>

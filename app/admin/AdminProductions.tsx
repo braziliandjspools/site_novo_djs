@@ -57,8 +57,8 @@ export function AdminProductions() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(29,185,84,0.14),transparent_45%),rgba(255,255,255,0.02)] p-5 sm:p-6">
+    <div className="admin-productions-page space-y-6">
+      <div className="admin-productions-hero rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(29,185,84,0.14),transparent_45%),rgba(255,255,255,0.02)] p-5 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1db954]">Catálogo BRS</p>
