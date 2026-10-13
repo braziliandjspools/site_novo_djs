@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { AdminLogin } from "./AdminLogin";
+import { AdminMenu } from "./AdminMenu";
 
 export function AdminGate({ children }: { children: ReactNode }) {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -15,5 +16,10 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   if (authenticated === null) return <p className="py-16 text-center text-sm text-zinc-500">Carregando...</p>;
   if (!authenticated) return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
-  return children;
+  return (
+    <div className="space-y-5">
+      <AdminMenu />
+      {children}
+    </div>
+  );
 }

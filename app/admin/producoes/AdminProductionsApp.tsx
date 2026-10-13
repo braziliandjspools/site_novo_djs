@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLogin } from "../AdminLogin";
+import { AdminMenu } from "../AdminMenu";
 import { AdminProductions } from "../AdminProductions";
 
 export function AdminProductionsApp() {
@@ -16,5 +17,10 @@ export function AdminProductionsApp() {
 
   if (authenticated === null) return <p className="py-16 text-center text-sm text-zinc-500">Carregando...</p>;
   if (!authenticated) return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
-  return <AdminProductions />;
+  return (
+    <div className="space-y-5">
+      <AdminMenu />
+      <AdminProductions />
+    </div>
+  );
 }

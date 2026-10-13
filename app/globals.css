@@ -890,9 +890,29 @@ button {
 .admin-premium-nav-link {
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
+.admin-premium-nav-links { scrollbar-width: none; }
+.admin-premium-nav-links::-webkit-scrollbar { display: none; }
+.admin-premium-nav-link.is-active {
+  color: #07121a;
+  background: linear-gradient(110deg, #a5e6ff, #60cdff);
+  box-shadow: 0 8px 24px -16px rgb(96 205 255 / .8);
+}
 .admin-premium-nav-link:hover {
   color: #fff;
   background-color: rgb(96 205 255 / .09);
+}
+.admin-premium-nav-link.is-active:hover { color: #07121a; background: linear-gradient(110deg, #b3ebff, #78d5ff); }
+.admin-premium-nav-link:focus-visible,
+.admin-premium-nav-extra button:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 2px;
+}
+@media (max-width: 639px) {
+  .admin-premium-nav-extra {
+    justify-content: flex-end;
+    border-top: 1px solid rgb(255 255 255 / .07);
+    padding-top: 6px;
+  }
 }
 .admin-dashboard-stat {
   background: linear-gradient(145deg, rgb(255 255 255 / .045), rgb(255 255 255 / .015));

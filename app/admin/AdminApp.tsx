@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { Bell, LayoutDashboard, Music2, ScrollText, UsersRound } from "lucide-react";
+import { Bell, UsersRound } from "lucide-react";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminLogin } from "./AdminLogin";
+import { AdminMenu } from "./AdminMenu";
 import { AdminMusicProducerDeliveries } from "./AdminMusicProducerDeliveries";
 import { AdminNotices } from "./AdminNotices";
 import { AdminUsersTable } from "./AdminUsersTable";
@@ -48,22 +48,16 @@ export function AdminApp() {
 
   return (
     <div className="admin-premium-shell w-full min-w-0 space-y-6">
-      <div className="admin-premium-nav overflow-hidden rounded-2xl border border-white/10 bg-[#090b0d] shadow-2xl">
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 p-2">
-          <Link href="/admin" className="admin-premium-nav-link inline-flex items-center gap-2 rounded-xl bg-white/[0.06] px-3 py-2.5 text-xs font-bold text-white"><LayoutDashboard className="h-4 w-4" /> Painel</Link>
-          <Link href="/admin/producoes" className="admin-premium-nav-link inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white"><Music2 className="h-4 w-4" /> Produções</Link>
-          <Link href="/admin/produtores" className="admin-premium-nav-link inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white"><UsersRound className="h-4 w-4" /> Produtores</Link>
-          <Link href="/admin/scripts" className="admin-premium-nav-link inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white"><ScrollText className="h-4 w-4" /> Scripts</Link>
-          <div className="ml-auto flex gap-1">
+      <AdminMenu>
+          <div className="flex gap-1">
             {tabs.filter((tab) => tab.id !== "dashboard").map((tab) => (
-              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`rounded-xl px-3 py-2.5 text-xs font-bold ${activeTab === tab.id ? "bg-[#1db954] text-black" : "text-white/40 hover:text-white"}`}>
+              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} aria-pressed={activeTab === tab.id} className={`rounded-xl px-3 py-2.5 text-xs font-bold ${activeTab === tab.id ? "bg-sky-300 text-[#061018]" : "text-white/45 hover:bg-white/5 hover:text-white"}`}>
                 {tab.id === "users" ? <UsersRound className="inline h-4 w-4" /> : <Bell className="inline h-4 w-4" />}
                 <span className="ml-1 hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>
-        </div>
-      </div>
+      </AdminMenu>
 
       {activeTab === "dashboard" ? (
         <AdminDashboard onLogout={() => setAuthenticated(false)} />

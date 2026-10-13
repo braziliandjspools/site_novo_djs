@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AdminLogin } from "./AdminLogin";
+import { AdminMenu } from "./AdminMenu";
 import { AdminScripts } from "./AdminScripts";
 
 export function AdminScriptsApp() {
@@ -34,5 +35,10 @@ export function AdminScriptsApp() {
     return <AdminLogin onSuccess={checkSession} />;
   }
 
-  return <AdminScripts onLogout={() => setAuthenticated(false)} />;
+  return (
+    <div className="space-y-5">
+      <AdminMenu />
+      <AdminScripts onLogout={() => setAuthenticated(false)} />
+    </div>
+  );
 }
