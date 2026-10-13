@@ -252,24 +252,24 @@ export function AtualizacoesRootClient() {
       : null;
 
   return (
-    <div className="w-full">
-      <header className="relative mb-7 overflow-hidden rounded-[28px] border border-white/10 bg-[#0b0b0b] px-5 py-7 shadow-[0_25px_90px_-45px_rgba(0,0,0,0.8)] sm:px-8 sm:py-10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_15%,rgba(255,255,255,0.06),transparent_52%)]" aria-hidden />
+    <div className="music-updates-page w-full">
+      <header className="updates-home-hero relative mb-7 overflow-hidden rounded-[28px] border border-white/10 bg-[#0b0b0b] px-5 py-7 shadow-[0_25px_90px_-45px_rgba(0,0,0,0.8)] sm:px-8 sm:py-10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_15%,rgba(96,205,255,0.13),transparent_52%)]" aria-hidden />
         <div className="pointer-events-none absolute -right-10 top-0 hidden h-full w-[38%] items-center justify-center opacity-[0.12] sm:flex" aria-hidden>
           <Disc3 className="h-72 w-72 text-white" strokeWidth={0.7} />
         </div>
         <div className="relative z-10 max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white">
+          <span className="updates-brand-pill inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white">
             <Radio className="h-3.5 w-3.5" /> Brazilian Remix Service
           </span>
           <h1 className="mt-5 font-display text-3xl font-black tracking-tight text-white sm:text-5xl">
-            Seu próximo set <span className="text-white">começa aqui.</span>
+            Seu próximo set <span className="text-[#8ad4ff]">começa aqui.</span>
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
             Explore os packs e as últimas atualizações do acervo BRS. Encontre suas faixas, descubra novidades e prepare sua próxima apresentação.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <a href="#acervos" className="inline-flex items-center gap-2 rounded-full bg-[#60cdff] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#60cdff]">
+            <a href="#acervos" className="updates-primary-cta inline-flex items-center gap-2 rounded-full bg-[#60cdff] px-5 py-2.5 text-sm font-bold text-black transition hover:bg-[#8ad4ff]">
               Explorar acervos <ArrowRight className="h-4 w-4" />
             </a>
             <Link href="/musicas/artistas" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.12]">
@@ -277,15 +277,15 @@ export function AtualizacoesRootClient() {
             </Link>
           </div>
           <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-white/10 pt-5">
-            <span className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80">
+            <span className="updates-stat rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80">
               <FolderOpen className="mr-1.5 inline h-3.5 w-3.5 text-white/45" />{folders.length} {folders.length === 1 ? "acervo" : "acervos"}
             </span>
             {typeof trackCount === "number" && trackCount > 0 ? (
-              <span className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80">
+              <span className="updates-stat rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/80">
                 <Music2 className="mr-1.5 inline h-3.5 w-3.5 text-white/45" />{trackCount.toLocaleString("pt-BR")} faixas
               </span>
             ) : null}
-            <span className={`rounded-xl border px-3 py-2 text-xs font-semibold ${hasVip ? "border-[#60cdff]/30 bg-[#60cdff]/10 text-white" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
+            <span className={`updates-stat rounded-xl border px-3 py-2 text-xs font-semibold ${hasVip ? "border-[#60cdff]/30 bg-[#60cdff]/10 text-white" : "border-white/10 bg-white/[0.05] text-zinc-400"}`}>
               {hasVip ? "Premium ativo" : "Só navegação"}
             </span>
             {updatedLabel ? <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400"><RefreshCw className="h-3.5 w-3.5" />Atualizado {updatedLabel}</span> : null}
@@ -303,8 +303,8 @@ export function AtualizacoesRootClient() {
         </div>
       )}
 
-      <section id="acervos" className="mb-10 scroll-mt-24">
-        <div className="mb-6 overflow-hidden rounded-[24px] border border-[#60cdff]/15 bg-[linear-gradient(180deg,rgba(96,205,255,0.08),rgba(12,12,12,0.4)_42%,transparent)] px-4 py-5 sm:px-6 sm:py-6">
+      <section id="acervos" className="updates-acervo-section mb-10 scroll-mt-24">
+        <div className="updates-section-heading mb-6 overflow-hidden rounded-[24px] border border-[#60cdff]/15 bg-[linear-gradient(180deg,rgba(96,205,255,0.08),rgba(12,12,12,0.4)_42%,transparent)] px-4 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-2xl">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#60cdff]">Sua biblioteca</p>
@@ -319,7 +319,7 @@ export function AtualizacoesRootClient() {
           </div>
         </div>
         <div className="mb-6 flex justify-end">
-          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#080808] p-1" aria-label="Visualização do catálogo">
+          <div className="updates-view-switch flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-[#080808] p-1" aria-label="Visualização do catálogo">
             <button type="button" aria-label="Ver em grade" aria-pressed={catalogView === "grid"} onClick={() => setCatalogView("grid")}
               className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "grid" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><Grid2X2 className="h-4 w-4" /></button>
             <button type="button" aria-label="Ver em lista" aria-pressed={catalogView === "list"} onClick={() => setCatalogView("list")}

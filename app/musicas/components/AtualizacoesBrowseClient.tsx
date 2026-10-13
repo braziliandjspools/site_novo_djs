@@ -726,8 +726,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     !(showingStyles && Boolean(weekSlug) && slugSegments.length === 2);
 
   return (
-    <div className="w-full">
-      <div className="mb-3 flex items-center gap-2">
+    <div className="music-updates-page w-full">
+      <div className="updates-page-actions mb-3 flex items-center gap-2">
         <Link
           href={homeParentHref}
           prefetch={false}
@@ -747,7 +747,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       <nav
         ref={breadcrumbNavRef}
         aria-label="Caminho das pastas"
-        className="mb-5 flex w-full max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#60cdff]/15 bg-[#0d130f] p-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="updates-breadcrumb mb-5 flex w-full max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#60cdff]/15 bg-[#0d130f] p-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <Link
           href="/musicas/atualizacoes"
@@ -990,7 +990,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                 belowImageUrl={isOctober2026Folder ? monthBannerUrl : null}
               />
             ) : null}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div className="updates-track-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#60cdff]">Faixas da pasta</p>
                   <h1 className="truncate text-base font-bold text-white" title={currentTitle}>{currentTitle}</h1>
@@ -1030,7 +1030,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                   ) : null}
                 </div>
             </div>
-            <section className="w-full min-w-0 overflow-hidden rounded-2xl border border-[#60cdff]/35 bg-black">
+            <section className="updates-downloader-card w-full min-w-0 overflow-hidden rounded-2xl border border-[#60cdff]/35 bg-black">
                 <div className="h-1 w-full bg-[#60cdff]" />
                 <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                   <div className="min-w-0">

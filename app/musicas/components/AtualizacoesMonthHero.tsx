@@ -81,7 +81,7 @@ export function AtualizacoesMonthHero({
   const countText = `${itemCount.toLocaleString("pt-BR")} ${countLabel}`;
 
   return (
-    <section className="relative mb-6 overflow-hidden rounded-[24px] bg-[#2b2b2b] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
+    <section className="updates-month-hero relative mb-6 overflow-hidden rounded-[24px] bg-[#2b2b2b] shadow-2xl shadow-black/40 ring-1 ring-white/[0.06] sm:mb-8 sm:rounded-[28px]">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         {hasFolderCover ? (
           <>

@@ -29,7 +29,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
   }, [ordered, monthLike, newFolderIds]);
 
   return (
-    <section className="mb-8 w-full min-w-0">
+    <section className="updates-folder-grid mb-8 w-full min-w-0">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-white/[0.08] pb-4">
         <div>
           <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-sky-200/75">
@@ -65,7 +65,7 @@ export function StyleFolderLinks({ folders, slugSegments, newFolderIds }: StyleF
               prefetch={false}
               onMouseEnter={() => prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)}
               onFocus={() => prefetchMusicasJson(`/api/musicas/resolve?slug=${encodeURIComponent(resolveSlug)}`)}
-              className="group min-w-0 rounded-2xl border border-white/[0.07] bg-[#111418] p-2.5 transition duration-300 hover:-translate-y-1 hover:border-sky-200/25 hover:bg-[#171c22] hover:shadow-[0_18px_44px_-28px_rgba(96,205,255,0.48)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200/70 sm:p-3"
+              className="updates-folder-card group min-w-0 rounded-2xl border border-white/[0.07] bg-[#111418] p-2.5 transition duration-300 hover:-translate-y-1 hover:border-sky-200/25 hover:bg-[#171c22] hover:shadow-[0_18px_44px_-28px_rgba(96,205,255,0.48)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200/70 sm:p-3"
             >
               <span className="relative block aspect-square overflow-hidden rounded-xl bg-[radial-gradient(circle_at_32%_22%,rgba(96,205,255,0.2),#101317_68%)]">
                 {cover ? (
