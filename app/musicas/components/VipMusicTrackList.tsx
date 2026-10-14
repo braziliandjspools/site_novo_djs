@@ -651,7 +651,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       id={isHighlighted && setDomAnchor ? `track-${track.id}` : undefined}
       data-active={isActive ? "true" : undefined}
       data-selected={isSelected ? "true" : undefined}
-      className="tablemusic-row group/row relative border-l-2 border-l-transparent bg-transparent transition-[background-color,border-color,box-shadow] duration-200 hover:z-10 focus-within:z-10 active:bg-[#60cdff]/[0.07] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-white/[0.08] last:after:hidden"
+      className="tablemusic-row group/row relative bg-transparent transition-[background-color,box-shadow] duration-200 hover:z-10 focus-within:z-10 active:bg-[#60cdff]/[0.07] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-0 after:h-px after:bg-white/[0.08] last:after:hidden"
     >
       {/* Mobile */}
       <div className="flex items-center gap-2.5 px-3 py-3 md:hidden">
@@ -1627,7 +1627,7 @@ export function VipMusicTrackList({
         <MusicasTableLoadingOverlay label={`Carregando página ${String(page).padStart(2, "0")}…`} />
       ) : null}
       {useStreaming ? (
-        <div className="w-full min-w-0 space-y-3 border-b border-white/10 bg-[#202020] py-3">
+        <div className="w-full min-w-0 space-y-4 bg-transparent py-0">
           {hasCatalogFilters ? (
             <section className="w-full min-w-0 overflow-hidden rounded-xl border border-[#60cdff]/20 bg-[#111416] shadow-[0_12px_30px_rgba(0,0,0,0.18)]" aria-label="Filtros do acervo">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] bg-gradient-to-r from-[#60cdff]/[0.08] via-transparent to-transparent px-3.5 py-3 sm:px-4">
@@ -1744,7 +1744,7 @@ export function VipMusicTrackList({
             </section>
           ) : null}
           <div className="relative w-full min-w-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#60cdff]" aria-hidden />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" aria-hidden />
             <input
               type="text"
               value={searchDraft}
@@ -1755,7 +1755,7 @@ export function VipMusicTrackList({
               }}
               placeholder="Buscar nesta tabela"
               aria-label="Buscar nesta tabela"
-              className="w-full rounded-xl border border-white/10 bg-black py-2.5 pl-10 pr-10 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[#60cdff]/60"
+              className="w-full rounded-xl border border-white/10 bg-[#111312] py-2.5 pl-10 pr-10 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-white/25 focus:ring-0"
             />
             {searchDraft ? (
               <button
@@ -1847,15 +1847,23 @@ export function VipMusicTrackList({
           ) : null}
           {visibleTrackSections?.map((section, sectionIndex, sections) => (
             <div key={section.id} className={embedded && layout === "table" ? "min-w-0" : panelClass}>
-              <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
-                <h3 className="inline-flex items-center bg-[#60cdff] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
-                  {section.title}
-                </h3>
-                <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
-                </p>
-              </header>
+              {layout !== "table" ? (
+                <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
+                  <h3 className="inline-flex items-center bg-[#60cdff] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
+                    {section.title}
+                  </h3>
+                  <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                    {section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}
+                  </p>
+                </header>
+              ) : null}
               <div className={`tablemusic ${layout === "table" ? "tablemusic-premium" : ""}`}>
+                {layout === "table" ? (
+                  <div className="tablemusic-section-title">
+                    <h3>{section.title}</h3>
+                    <span>{section.tracks.length} {section.tracks.length === 1 ? "faixa" : "faixas"}</span>
+                  </div>
+                ) : null}
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
               </div>
@@ -1871,8 +1879,8 @@ export function VipMusicTrackList({
           {(visibleTrackSections ?? [
             { id: "all", title: "", subtitle: "", isNew: false, kind: "upload" as const, tracks: filteredTracks },
           ]).map((section, sectionIndex, sections) => (
-            <section key={section.id} className="border-b border-white/[0.05] last:border-b-0">
-              {trackSections && section.title ? (
+            <section key={section.id} className={layout === "table" ? "min-w-0" : "border-b border-white/[0.05] last:border-b-0"}>
+              {trackSections && section.title && layout !== "table" ? (
                 <header className="flex items-stretch justify-between border-b border-white/10 bg-[#161616]">
                   <h3 className="inline-flex items-center gap-2 bg-[#60cdff] px-3 py-2 text-[12px] font-extrabold tabular-nums tracking-[0.08em] text-black">
                     {section.isNew ? (
@@ -1890,6 +1898,17 @@ export function VipMusicTrackList({
                 </header>
               ) : null}
               <div className={`tablemusic ${layout === "table" ? "tablemusic-premium" : ""}`}>
+                {trackSections && section.title && layout === "table" ? (
+                  <div className="tablemusic-section-title">
+                    <h3>
+                      {section.isNew ? (
+                        <span className="tablemusic-new-label">NEW</span>
+                      ) : null}
+                      {section.title}
+                    </h3>
+                    {section.subtitle ? <span>{section.subtitle}</span> : null}
+                  </div>
+                ) : null}
                 <TableMusicHeader selectionMode={selectionMode && canDownload} />
                 {renderStreamingRows(section.tracks)}
               </div>
