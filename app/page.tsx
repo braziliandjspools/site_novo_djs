@@ -7,12 +7,17 @@ import {
   ChevronDown,
   Headphones,
   Download,
+  FolderTree,
   Infinity,
   KeyRound,
   Layers,
+  Link2,
   ListMusic,
   Monitor,
+  Play,
   RefreshCw,
+  Search,
+  SlidersHorizontal,
   Smartphone,
   Sparkles,
   Users,
@@ -129,11 +134,70 @@ const accessMethods = [
   },
 ];
 
+const homeWorkflow = [
+  {
+    icon: Search,
+    step: "01",
+    title: "Descubra novidades",
+    description: "Explore os acervos e navegue pelas atualizações organizadas por data.",
+    action: "Ver atualizações",
+    href: "/musicas/atualizacoes",
+    color: "green" as const,
+  },
+  {
+    icon: SlidersHorizontal,
+    step: "02",
+    title: "Refine por pool e estilo",
+    description: "Combine os filtros do catálogo para chegar mais rápido às faixas que procura.",
+    action: "Abrir catálogo",
+    href: "/musicas/atualizacoes",
+    color: "yellow" as const,
+  },
+  {
+    icon: Play,
+    step: "03",
+    title: "Ouça antes de escolher",
+    description: "Use os previews para conferir as músicas e decidir o que combina com seu set.",
+    action: "Ouvir previews",
+    href: "/musicas/atualizacoes",
+    color: "blue" as const,
+  },
+  {
+    icon: FolderTree,
+    step: "04",
+    title: "Baixe com organização",
+    description: "Envie pastas ao BRS Downloader e mantenha os arquivos separados por data, pool e estilo.",
+    action: "Conhecer o app",
+    href: "#downloader",
+    color: "green" as const,
+  },
+];
+
 const downloaderHighlights = [
-  "Fila e progresso em tempo real",
-  "Importar pack por link do site",
-  "Organização por pastas e metadados",
-  "Sincronizado com a conta VIP",
+  {
+    icon: ListMusic,
+    title: "Fila e progresso",
+    description: "Acompanhe o andamento dos downloads dentro do aplicativo.",
+    color: "green" as const,
+  },
+  {
+    icon: Link2,
+    title: "Importação por link",
+    description: "Cole o link de uma pasta do site para preparar o download.",
+    color: "yellow" as const,
+  },
+  {
+    icon: FolderTree,
+    title: "Pastas organizadas",
+    description: "Preserve a separação por data, pool e estilo no computador.",
+    color: "blue" as const,
+  },
+  {
+    icon: RefreshCw,
+    title: "Conta sincronizada",
+    description: "Use seu acesso VIP para conectar o app à plataforma.",
+    color: "green" as const,
+  },
 ];
 
 const testimonials = [
@@ -205,6 +269,47 @@ export default async function Home() {
                   <span className="mt-1 block text-sm leading-snug text-zinc-400 sm:mt-2 sm:max-w-sm sm:leading-relaxed">{item.description}</span>
                 </span>
                 <ArrowRight className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#1ed760] transition group-hover:translate-x-1 sm:right-5 sm:top-6 sm:translate-y-0" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="home-workflow-title" className="home-workflow border-b border-white/[0.06] bg-[#101214] px-4 py-11 sm:px-6 md:py-14">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#86efac]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1ed760]" /> Sua rotina com a BRS
+              </p>
+              <h2 id="home-workflow-title" className="mt-2 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                Da busca ao próximo set
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-right">
+              Encontre, ouça e organize seu repertório em um fluxo feito para acompanhar a rotina de quem toca.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {homeWorkflow.map(({ icon: Icon, ...step }) => (
+              <Link
+                key={step.step}
+                href={step.href}
+                className="group home-workflow-card relative flex min-h-44 flex-col border border-white/[0.08] bg-[#151719] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[#1db954]/30 hover:bg-[#191c1e] active:scale-[0.99] sm:p-5"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`flex h-10 w-10 items-center justify-center border ${step.color === "green" ? "border-[#1db954]/20 bg-[#1db954]/10 text-[#86efac]" : step.color === "yellow" ? "border-[#FFDF00]/20 bg-[#FFDF00]/[0.07] text-[#FFDF00]" : "border-sky-300/20 bg-sky-300/[0.08] text-sky-200"}`}>
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-white/25">{step.step}</span>
+                </div>
+                <h3 className="mt-4 font-display text-base font-bold text-white sm:text-lg">{step.title}</h3>
+                <p className="mt-1.5 flex-1 text-xs leading-relaxed text-zinc-400 sm:text-sm">{step.description}</p>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-bold text-white/50 transition group-hover:text-[#86efac]">
+                  {step.action}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </span>
               </Link>
             ))}
           </div>
@@ -460,11 +565,17 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {downloaderHighlights.map((item) => (
-              <div key={item} className="site-panel px-4 py-3 text-center text-sm font-medium text-zinc-300">
-                {item}
-              </div>
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {downloaderHighlights.map(({ icon: Icon, ...item }) => (
+              <article key={item.title} className="home-downloader-feature flex min-h-36 gap-3 border border-white/[0.08] bg-black/20 p-4 transition-colors hover:border-white/[0.16] hover:bg-white/[0.025]">
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center border ${item.color === "green" ? "border-[#1db954]/20 bg-[#1db954]/10 text-[#86efac]" : item.color === "yellow" ? "border-[#FFDF00]/20 bg-[#FFDF00]/[0.07] text-[#FFDF00]" : "border-sky-300/20 bg-sky-300/[0.08] text-sky-200"}`}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-white">{item.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">{item.description}</p>
+                </div>
+              </article>
             ))}
           </div>
 
