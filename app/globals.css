@@ -1023,3 +1023,66 @@ button {
   .admin-production-form .site-input,
   .admin-production-submit { transition: none; }
 }
+
+/* Tabela das atualizações: linhas enxutas e ações retangulares. */
+.music-updates-page .music-updates-premium .tablemusic-premium {
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / .09);
+  border-radius: 1px;
+  background: #141618;
+  box-shadow: none;
+}
+.music-updates-page .music-updates-premium .tablemusic-head {
+  padding-top: 11px;
+  padding-bottom: 11px;
+  border-bottom-color: rgb(255 255 255 / .09);
+  background: #1c1f21;
+  letter-spacing: .1em;
+}
+.music-updates-page .music-updates-premium .tablemusic-row,
+.music-updates-page .music-updates-premium .tablemusic-row:nth-child(odd) {
+  background: #141618;
+  box-shadow: none;
+}
+.music-updates-page .music-updates-premium .tablemusic-row:hover,
+.music-updates-page .music-updates-premium .tablemusic-row:focus-within {
+  border-left-color: transparent;
+  background: #1b1e20;
+  box-shadow: none;
+}
+.music-updates-page .music-updates-premium .tablemusic-row[data-active="true"] {
+  border-left-color: #a1a1aa;
+  background: #202225;
+}
+.music-updates-page .music-updates-premium .tablemusic-row[data-selected="true"] {
+  background: #1d2022;
+}
+.music-updates-page .music-updates-premium .tablemusic-row::after {
+  background: rgb(255 255 255 / .075);
+}
+.music-updates-page .music-updates-premium .tablemusic button {
+  border-radius: 1px !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-download-button {
+  border: 1px solid #e5484d;
+  border-radius: 1px;
+  background: #e5484d;
+  color: #fff;
+  box-shadow: none;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+.music-updates-page .music-updates-premium .tablemusic-download-button:hover:not(:disabled) {
+  border-color: #08090a;
+  background: #08090a;
+  color: #fff;
+}
+.music-updates-page .music-updates-premium .tablemusic-download-button:active:not(:disabled) {
+  background: #000;
+}
+.music-updates-page .music-updates-premium .tablemusic-download-button:focus-visible {
+  outline: 2px solid #f87171;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .music-updates-page .music-updates-premium .tablemusic-download-button { transition: none; }
+}
