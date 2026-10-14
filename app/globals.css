@@ -1024,65 +1024,193 @@ button {
   .admin-production-submit { transition: none; }
 }
 
-/* Tabela das atualizações: linhas enxutas e ações retangulares. */
+/* Barra de ações e tabela com a identidade premium da homepage. */
+.updates-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgb(255 255 255 / .08);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background:
+    radial-gradient(ellipse at 0% 50%, rgb(29 185 84 / .08), transparent 48%),
+    linear-gradient(145deg, #171a19, #101211 72%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .04), 0 18px 36px -30px #000;
+}
+.updates-action-label {
+  flex: 0 0 auto;
+  color: rgb(255 255 255 / .5);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.updates-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.updates-action-buttons .site-btn-ghost {
+  border-color: rgb(29 185 84 / .38);
+  background: linear-gradient(180deg, rgb(29 185 84 / .12), rgb(29 185 84 / .045));
+  color: #86efac;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .045);
+}
+.updates-action-buttons .site-btn-ghost:hover:not(:disabled) {
+  border-color: rgb(29 185 84 / .62);
+  background: linear-gradient(180deg, rgb(29 185 84 / .2), rgb(29 185 84 / .09));
+  color: #bbf7d0;
+  box-shadow: 0 12px 26px -18px rgb(29 185 84 / .72), inset 0 1px 0 rgb(255 255 255 / .08);
+}
+.updates-action-buttons .site-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 14px 30px -16px rgb(29 185 84 / .52), inset 0 1px 0 rgb(255 255 255 / .2);
+}
+.updates-action-buttons :where(button, a):focus-visible {
+  outline: 2px solid #86efac;
+  outline-offset: 3px;
+}
 .music-updates-page .music-updates-premium .tablemusic-premium {
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / .09);
-  border-radius: 1px;
-  background: #141618;
-  box-shadow: none;
+  border: 1px solid rgb(255 255 255 / .1);
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 4% 0%, rgb(29 185 84 / .055), transparent 40%),
+    linear-gradient(155deg, #151918, #101312 62%, #0d100f);
+  box-shadow: 0 22px 50px -34px rgb(0 0 0 / .95), inset 0 1px 0 rgb(255 255 255 / .045);
+  isolation: isolate;
 }
 .music-updates-page .music-updates-premium .tablemusic-head {
-  padding-top: 11px;
-  padding-bottom: 11px;
-  border-bottom-color: rgb(255 255 255 / .09);
-  background: #1c1f21;
-  letter-spacing: .1em;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgb(29 185 84 / .2);
+  background: linear-gradient(100deg, rgb(29 185 84 / .13), rgb(19 25 22 / .97) 42%, #161918);
+  color: rgb(220 252 231 / .72);
+  letter-spacing: .15em;
 }
 .music-updates-page .music-updates-premium .tablemusic-row,
 .music-updates-page .music-updates-premium .tablemusic-row:nth-child(odd) {
-  background: #141618;
+  border-left-color: transparent;
+  background: rgb(255 255 255 / .012);
   box-shadow: none;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.music-updates-page .music-updates-premium .tablemusic-row:nth-child(odd) {
+  background: rgb(255 255 255 / .025);
 }
 .music-updates-page .music-updates-premium .tablemusic-row:hover,
 .music-updates-page .music-updates-premium .tablemusic-row:focus-within {
-  border-left-color: transparent;
-  background: #1b1e20;
-  box-shadow: none;
+  border-left-color: #1db954;
+  background: linear-gradient(90deg, rgb(29 185 84 / .105), rgb(29 185 84 / .035) 42%, rgb(255 255 255 / .025));
+  box-shadow: inset 3px 0 0 #1db954, inset 0 1px 0 rgb(255 255 255 / .025);
 }
 .music-updates-page .music-updates-premium .tablemusic-row[data-active="true"] {
-  border-left-color: #a1a1aa;
-  background: #202225;
+  border-left-color: #1ed760;
+  background: linear-gradient(90deg, rgb(29 185 84 / .15), rgb(29 185 84 / .045) 55%, rgb(255 255 255 / .025));
+  box-shadow: inset 3px 0 0 #1ed760;
 }
 .music-updates-page .music-updates-premium .tablemusic-row[data-selected="true"] {
-  background: #1d2022;
+  background: rgb(29 185 84 / .09);
 }
 .music-updates-page .music-updates-premium .tablemusic-row::after {
-  background: rgb(255 255 255 / .075);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / .09) 18%, rgb(255 255 255 / .045) 82%, transparent);
+}
+.music-updates-page .music-updates-premium .tablemusic-row [class~="text-[#60cdff]"],
+.music-updates-page .music-updates-premium .tablemusic-row [class~="text-sky-200"],
+.music-updates-page .music-updates-premium .tablemusic-row [class~="text-[#86e7a7]"] {
+  color: #86efac !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row [class~="bg-[#60cdff]"] {
+  background-color: #1db954 !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row [class~="text-black"] {
+  color: #061109 !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row [class*="border-[#60cdff]"],
+.music-updates-page .music-updates-premium .tablemusic-row [class*="hover:border-[#60cdff]"] {
+  border-color: rgb(29 185 84 / .28) !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row [class*="bg-[#60cdff]/"] {
+  background-color: rgb(29 185 84 / .1) !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row [class*="shadow-[inset_3px_0_0_0_#60cdff]"] {
+  box-shadow: inset 3px 0 0 #1db954 !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row .tablemusic-pool button:not(:disabled) {
+  color: #7dd3fc !important;
+}
+.music-updates-page .music-updates-premium .tablemusic-row .tablemusic-style button:not(:disabled) {
+  color: #86efac !important;
+}
+.music-updates-page .music-updates-premium .tablemusic :where(button, a):focus-visible,
+.music-updates-page .music-updates-premium :where(input, select, button, a):focus-visible {
+  outline: 2px solid #86efac;
+  outline-offset: 3px;
+}
+.music-updates-page .music-updates-premium > div[class~="border-b"] {
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / .08);
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(100deg, rgb(29 185 84 / .1), #171b19 58%, #151817);
+}
+.music-updates-page .music-updates-premium > div[class~="border-b"] > header {
+  border-bottom-color: rgb(255 255 255 / .075);
+  background: transparent;
 }
 .music-updates-page .music-updates-premium .tablemusic button {
-  border-radius: 1px !important;
+  border-radius: 8px;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 .music-updates-page .music-updates-premium .tablemusic-download-button {
   border: 1px solid #e5484d;
-  border-radius: 1px;
-  background: #e5484d;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f05258, #d9363e);
   color: #fff;
-  box-shadow: none;
-  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  box-shadow: 0 5px 14px -10px rgb(229 72 77 / .8), inset 0 1px 0 rgb(255 255 255 / .18);
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 .music-updates-page .music-updates-premium .tablemusic-download-button:hover:not(:disabled) {
-  border-color: #08090a;
-  background: #08090a;
+  transform: translateY(-1px);
+  border-color: #111;
+  background: #111;
   color: #fff;
 }
 .music-updates-page .music-updates-premium .tablemusic-download-button:active:not(:disabled) {
-  background: #000;
+  transform: translateY(0);
+  background: #050505;
 }
 .music-updates-page .music-updates-premium .tablemusic-download-button:focus-visible {
   outline: 2px solid #f87171;
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+@media (max-width: 639px) {
+  .updates-action-bar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .updates-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .updates-action-buttons > * {
+    min-width: 0;
+  }
+  .updates-action-buttons .site-btn {
+    gap: 6px;
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .music-updates-page .music-updates-premium .tablemusic-download-button { transition: none; }
+  .updates-action-buttons .site-btn,
+  .music-updates-page .music-updates-premium .tablemusic-row,
+  .music-updates-page .music-updates-premium .tablemusic button,
+  .music-updates-page .music-updates-premium .tablemusic-download-button {
+    transition: none;
+  }
 }

@@ -1001,34 +1001,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     {directTracks.length} {directTracks.length === 1 ? "faixa" : "faixas"}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <AtualizacoesDriveSyncButton
-                    compact
-                    label="Sincronizar"
-                    onSynced={async () => {
-                      setRefreshPending(true);
-                      await loadBrowse({ forceRefresh: true });
-                    }}
-                  />
-                  {directTracks.length > 0 && playbackEnabled ? (
-                    <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#60cdff] px-3 text-xs font-bold text-black transition hover:bg-[#8ad4ff] disabled:opacity-50">
-                      {playBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : packPlaying ? <Pause className="h-3.5 w-3.5" fill="currentColor" /> : <Play className="h-3.5 w-3.5" fill="currentColor" />}
-                      {packPlaying ? "Pausar" : "Reproduzir"}
-                    </button>
-                  ) : null}
-                  {directTracks.length > 0 && downloadEnabled ? (
-                    <>
-                      <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 text-xs font-semibold text-[#8ad4ff] transition hover:bg-[#60cdff]/20 disabled:opacity-50">
-                        {sendingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MonitorDown className="h-3.5 w-3.5" />}
-                        Downloader
-                      </button>
-                      <button type="button" onClick={() => void handlePackDownload()} disabled={directTracks.length > 50 || tracksHasMore || downloadingPack} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">
-                        {downloadingPack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                        Baixar pasta
-                      </button>
-                    </>
-                  ) : null}
-                </div>
             </div>
             <section className="updates-downloader-card w-full min-w-0 overflow-hidden rounded-2xl border border-[#60cdff]/35 bg-black">
                 <div className="h-1 w-full bg-[#60cdff]" />
@@ -1048,6 +1020,38 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
                     className="!h-11 !w-auto !gap-2 !rounded-full !border-0 !bg-[#60cdff] !px-4 !text-black hover:!bg-[#8ad4ff] hover:!text-black"
                   />
                 </div>
+            </section>
+            <section className="updates-action-bar" aria-label="Ações do acervo">
+              <p className="updates-action-label">Ações do acervo</p>
+              <div className="updates-action-buttons">
+                <AtualizacoesDriveSyncButton
+                  compact
+                  label="Sincronizar"
+                  className="site-btn site-btn-ghost !h-11 !min-h-11 !w-full !rounded-xl !px-3 !py-2.5 text-xs sm:!w-auto sm:!px-4 sm:text-sm"
+                  onSynced={async () => {
+                    setRefreshPending(true);
+                    await loadBrowse({ forceRefresh: true });
+                  }}
+                />
+                {directTracks.length > 0 && playbackEnabled ? (
+                  <button type="button" onClick={() => void handlePackPlay()} disabled={playBusy} className="site-btn site-btn-ghost !min-h-11 !w-full !rounded-xl !px-3 !py-2.5 text-xs disabled:cursor-wait disabled:opacity-50 sm:!w-auto sm:!px-4 sm:text-sm">
+                    {playBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : packPlaying ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="h-4 w-4" fill="currentColor" />}
+                    {packPlaying ? "Pausar" : "Reproduzir"}
+                  </button>
+                ) : null}
+                {directTracks.length > 0 && downloadEnabled ? (
+                  <>
+                    <button type="button" onClick={() => void handlePackSendToDownloader()} disabled={sendingPack} className="site-btn site-btn-ghost !min-h-11 !w-full !rounded-xl !px-3 !py-2.5 text-xs disabled:cursor-wait disabled:opacity-50 sm:!w-auto sm:!px-4 sm:text-sm">
+                      {sendingPack ? <Loader2 className="h-4 w-4 animate-spin" /> : <MonitorDown className="h-4 w-4" />}
+                      Downloader
+                    </button>
+                    <button type="button" onClick={() => void handlePackDownload()} disabled={directTracks.length > 50 || tracksHasMore || downloadingPack} className="site-btn site-btn-primary !min-h-11 !w-full !rounded-xl !px-3 !py-2.5 text-xs disabled:cursor-not-allowed disabled:opacity-40 sm:!w-auto sm:!px-4 sm:text-sm">
+                      {downloadingPack ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                      Baixar pasta
+                    </button>
+                  </>
+                ) : null}
+              </div>
             </section>
             <div className="space-y-3">
                 <VipMusicTrackList
