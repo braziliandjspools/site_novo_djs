@@ -722,9 +722,9 @@ button {
 .updates-home-hero {
   border-color: rgb(125 211 252 / .16);
   background:
-    radial-gradient(ellipse at 82% 8%, rgb(96 205 255 / .14), transparent 36%),
-    radial-gradient(ellipse at 10% 100%, rgb(96 205 255 / .055), transparent 42%),
-    linear-gradient(125deg, #111619 0%, #090b0d 54%, #101417 100%);
+    linear-gradient(90deg, rgb(7 9 10 / .96) 0%, rgb(7 9 10 / .9) 36%, rgb(7 9 10 / .66) 70%, rgb(7 9 10 / .48) 100%),
+    linear-gradient(0deg, rgb(7 9 10 / .58), transparent 72%),
+    url("https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/688f5455-1d32-45b1-9ee0-a1e3da44aba4.png") 66% center / cover no-repeat;
   box-shadow: 0 32px 90px -48px rgb(0 0 0 / .95), inset 0 1px 0 rgb(255 255 255 / .045);
 }
 .updates-home-hero::after {
@@ -739,6 +739,11 @@ button {
   box-shadow: 0 0 0 1.6rem rgb(125 211 252 / .025), 0 0 0 3.2rem rgb(125 211 252 / .02), 0 0 0 5rem rgb(125 211 252 / .015);
   content: "";
   pointer-events: none;
+}
+@media (max-width: 639px) {
+  .updates-home-hero {
+    background-position: center, center, 70% center;
+  }
 }
 .updates-brand-pill {
   border-color: rgb(125 211 252 / .24);
