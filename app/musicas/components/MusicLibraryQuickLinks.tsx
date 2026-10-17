@@ -12,7 +12,7 @@ const QUICK_LINKS: Array<{
   icon: LucideIcon;
 }> = [
   {
-    href: "/musicas/atualizacoes/2026/outubro-2026",
+    href: "/musicas/atualizacoes/",
     title: "Atualizações",
     subtitle: "Packs VIP",
     icon: RefreshCw,

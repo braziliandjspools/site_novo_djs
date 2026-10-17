@@ -64,7 +64,7 @@ export function MusicasHubClient() {
         <div className="mx-auto mt-6 max-w-3xl">
           <nav aria-label="Seções do acervo" className="flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/musicas/atualizacoes/2026/outubro-2026"
+              href="/musicas/atualizacoes/"
               prefetch={false}
               className="inline-flex h-11 min-w-[168px] items-center justify-center gap-2 rounded-full bg-[#60cdff] px-6 text-sm font-extrabold text-black shadow-[0_10px_28px_rgba(96,205,255,0.28)] transition hover:bg-[#8ad4ff]"
             >
@@ -97,7 +97,7 @@ export function MusicasHubClient() {
         </div>
       </header>
 
-      <OctoberHalloweenPromo updatesHref="/musicas/atualizacoes/2026/outubro-2026" />
+      <OctoberHalloweenPromo updatesHref="/musicas/atualizacoes/" />
 
       <MusicasProductionsSection />
 

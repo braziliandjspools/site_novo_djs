@@ -65,7 +65,7 @@ export function MusicasTopNav({
   }, [pathname, onMobileOpenChange]);
 
   return (
-    <header className="app-top-chrome sticky top-0 z-40 w-full min-w-0 border-b border-white/[0.06] bg-transparent backdrop-blur-md">
+    <header className="app-top-chrome sticky top-0 z-40 w-full min-w-0 border-b border-white/[0.08] bg-[#0b0d0c] backdrop-blur-md">
       <div className="br-stripe" />
 
       <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-[1600px] sm:px-5 lg:px-8`}>

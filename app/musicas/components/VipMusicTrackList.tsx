@@ -17,9 +17,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
   ChevronDown,
+  ChevronRight,
   CalendarDays,
   Copy,
   Download,
+  FolderOpen,
   ListPlus,
   Loader2,
   Lock,
@@ -28,7 +30,6 @@ import {
   Play,
   Search,
   Share2,
-  SlidersHorizontal,
   Square,
   X,
 } from "lucide-react";
@@ -1475,6 +1476,15 @@ export function VipMusicTrackList({
   const hasCatalogFilters =
     useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || filterOptions.styles.length > 0);
   const activeCatalogFilterCount = Number(Boolean(dayFilterKey)) + Number(Boolean(poolFilterSlug)) + Number(Boolean(styleFilterSlug));
+  const driveDayLabel = dayFilterKey
+    ? dayOptions.find((day) => day.key === dayFilterKey)?.label ?? formatUpdateDateLabel(dayFilterKey)
+    : "Mês inteiro";
+  const drivePoolLabel = poolFilterSlug
+    ? filterOptions.pools.find(([slug]) => slug === poolFilterSlug)?.[1] ?? poolFilterSlug.replaceAll("-", " ")
+    : "";
+  const driveStyleLabel = styleFilterSlug
+    ? filterOptions.styles.find(([slug]) => slug === styleFilterSlug)?.[1] ?? styleFilterSlug.replaceAll("-", " ")
+    : "";
 
   function renderStreamingRows(sectionTracks: PreviewTrack[]) {
     return sectionTracks.map((track, index) => {
@@ -1629,11 +1639,11 @@ export function VipMusicTrackList({
       {useStreaming ? (
         <div className="w-full min-w-0 space-y-4 bg-transparent py-0">
           {hasCatalogFilters ? (
-            <section className="w-full min-w-0 overflow-hidden rounded-xl border border-[#60cdff]/20 bg-[#111416] shadow-[0_12px_30px_rgba(0,0,0,0.18)]" aria-label="Filtros do acervo">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] bg-gradient-to-r from-[#60cdff]/[0.08] via-transparent to-transparent px-3.5 py-3 sm:px-4">
+            <section className="music-drive-filter w-full min-w-0 overflow-hidden rounded-2xl" aria-label="Filtros do acervo">
+              <div className="music-drive-filter-heading flex flex-wrap items-center justify-between gap-3 px-3.5 py-3 sm:px-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#60cdff]/25 bg-[#60cdff]/[0.08] text-[#60cdff]">
-                    <SlidersHorizontal className="h-4 w-4" aria-hidden />
+                  <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[#60cdff]/20 bg-[#60cdff]/[0.07] text-[#8ad4ff]">
+                    <FolderOpen className="h-4 w-4" aria-hidden />
                   </span>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-white">Filtrar músicas</p>
@@ -1658,19 +1668,38 @@ export function VipMusicTrackList({
                   ) : null}
                 </div>
               </div>
-              <div className="grid w-full min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
+              <nav className="music-drive-path mx-3.5 flex min-w-0 flex-wrap items-center gap-1.5 sm:mx-4" aria-label="Caminho dos filtros">
+                <span className="music-drive-path-root"><FolderOpen className="h-3.5 w-3.5" aria-hidden />Acervo</span>
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-white/25" aria-hidden />
+                <span className="music-drive-path-item">{driveDayLabel}</span>
+                {drivePoolLabel ? (
+                  <>
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-white/25" aria-hidden />
+                    <span className="music-drive-path-item">{drivePoolLabel}</span>
+                  </>
+                ) : null}
+                {driveStyleLabel ? (
+                  <>
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-white/25" aria-hidden />
+                    <span className="music-drive-path-item">{formatStyleNameForDisplay(driveStyleLabel)}</span>
+                  </>
+                ) : null}
+              </nav>
+              <div className="music-drive-filter-grid grid w-full min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
                 {dayOptions.length > 0 ? (
-                  <label className="block min-w-0">
-                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                  <label className="music-drive-filter-field music-drive-filter-field-day block min-w-0">
+                    <span className="music-drive-filter-label mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em]">
+                      <CalendarDays className="h-3.5 w-3.5" aria-hidden />
                       Dia
                     </span>
-                    <span className="relative block">
+                    <span className="music-drive-select-wrap relative block">
+                      <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" aria-hidden />
                       <select
                         value={dayFilterKey}
                         onChange={(event) =>
                           writeCatalogQuery({ dia: event.target.value, pool: "", style: "" })
                         }
-                        className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
+                        className="music-drive-select h-12 w-full appearance-none rounded-xl px-10 pr-10 text-sm text-white outline-none transition-colors"
                       >
                         <option value="">Mês inteiro</option>
                         {dayOptions.map((day, index) => (
@@ -1684,17 +1713,19 @@ export function VipMusicTrackList({
                   </label>
                 ) : null}
                 {filterOptions.pools.length > 0 ? (
-                  <label className="block min-w-0">
-                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                  <label className="music-drive-filter-field music-drive-filter-field-pool block min-w-0">
+                    <span className="music-drive-filter-label mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em]">
+                      <FolderOpen className="h-3.5 w-3.5" aria-hidden />
                       Pool
                     </span>
-                    <span className="relative block">
+                    <span className="music-drive-select-wrap relative block">
+                      <FolderOpen className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" aria-hidden />
                       <select
                         value={poolFilterSlug}
                         onChange={(event) =>
                           writeCatalogQuery({ pool: event.target.value, style: "" })
                         }
-                        className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
+                        className="music-drive-select h-12 w-full appearance-none rounded-xl px-10 pr-10 text-sm text-white outline-none transition-colors"
                       >
                         <option value="">Todos os pools</option>
                         {filterOptions.pools.map(([slug, name]) => (
@@ -1708,15 +1739,17 @@ export function VipMusicTrackList({
                   </label>
                 ) : null}
                 {filterOptions.styles.length > 0 ? (
-                  <label className="block min-w-0">
-                    <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                  <label className="music-drive-filter-field music-drive-filter-field-style block min-w-0">
+                    <span className="music-drive-filter-label mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em]">
+                      <FolderOpen className="h-3.5 w-3.5" aria-hidden />
                       Estilo
                     </span>
-                    <span className="relative block">
+                    <span className="music-drive-select-wrap relative block">
+                      <FolderOpen className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" aria-hidden />
                       <select
                         value={styleFilterSlug}
                         onChange={(event) => writeCatalogQuery({ style: event.target.value })}
-                        className="h-12 w-full appearance-none border border-white/[0.12] bg-[#191d20] px-3.5 pr-10 text-sm text-white outline-none transition-colors hover:border-white/20 focus:border-[#60cdff]/60 focus:ring-2 focus:ring-[#60cdff]/10"
+                        className="music-drive-select h-12 w-full appearance-none rounded-xl px-10 pr-10 text-sm text-white outline-none transition-colors"
                       >
                         <option value="">Todos os estilos</option>
                         {filterOptions.styles.map(([slug, name]) => (

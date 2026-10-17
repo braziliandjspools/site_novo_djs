@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Ghost, Mic2, MonitorDown, RefreshCw } from "lucide-react";
 
-export function OctoberHalloweenPromo({ updatesHref = "/musicas/atualizacoes" }: { updatesHref?: string }) {
+export function OctoberHalloweenPromo({ updatesHref = "/musicas/atualizacoes/" }: { updatesHref?: string }) {
+  const promoArtwork = "https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/688f5455-1d32-45b1-9ee0-a1e3da44aba4.png";
   const actions = [
     {
       href: updatesHref,
@@ -26,11 +27,17 @@ export function OctoberHalloweenPromo({ updatesHref = "/musicas/atualizacoes" }:
   return (
     <section
       aria-labelledby="october-halloween-title"
-      className="relative isolate overflow-hidden rounded-2xl border border-orange-300/20 bg-gradient-to-br from-[#21130f] via-[#151217] to-[#101318] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.3)] sm:p-6"
+      className="october-halloween-promo relative isolate overflow-hidden rounded-2xl border border-orange-300/20 bg-[#101010] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.3)] sm:p-6"
     >
+      <div
+        className="october-halloween-art pointer-events-none absolute inset-0 -z-20"
+        style={{ backgroundImage: `url("${promoArtwork}")` }}
+        aria-hidden
+      />
+      <div className="october-halloween-shade pointer-events-none absolute inset-0 -z-10" aria-hidden />
       <div className="pointer-events-none absolute -right-16 -top-24 -z-10 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 left-1/3 -z-10 h-52 w-52 rounded-full bg-violet-500/[0.08] blur-3xl" />
-      <div className="relative flex flex-col gap-5">
+      <div className="relative z-10 flex flex-col gap-5">
         <div className="flex items-start gap-3 sm:items-center sm:gap-4">
           <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-orange-300/25 bg-orange-400/10 text-orange-200 shadow-[0_0_28px_rgba(249,115,22,0.12)] sm:h-14 sm:w-14">
             <Ghost className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden />
