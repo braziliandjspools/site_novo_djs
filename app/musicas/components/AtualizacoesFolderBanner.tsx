@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 
 type AtualizacoesFolderBannerProps = {
   title: string;
@@ -6,6 +7,7 @@ type AtualizacoesFolderBannerProps = {
   hasMore?: boolean;
   imageUrl?: string | null;
   belowImageUrl?: string | null;
+  description?: ReactNode;
 };
 
 /** Banner full-bleed antes de “Faixas da pasta” nas pastas de mês. */
@@ -15,6 +17,7 @@ export function AtualizacoesFolderBanner({
   hasMore = false,
   imageUrl,
   belowImageUrl,
+  description,
 }: AtualizacoesFolderBannerProps) {
   const countLabel = `${trackCount.toLocaleString("pt-BR")}${hasMore ? "+" : ""} ${
     trackCount === 1 ? "faixa" : "faixas"
@@ -46,6 +49,11 @@ export function AtualizacoesFolderBanner({
           {title}
         </h2>
         <p className="mt-2 text-sm font-semibold tabular-nums text-white/65 sm:text-base">{countLabel}</p>
+        {description ? (
+          <div className="mt-5 max-w-4xl border-t border-white/10 pt-4 text-justify text-xs leading-relaxed text-white/75 sm:mt-6 sm:pt-5 sm:text-sm">
+            {description}
+          </div>
+        ) : null}
       </div>
       {belowImageUrl?.trim() ? (
         <div className="relative overflow-hidden border-t border-white/[0.08] bg-[#141414]">
