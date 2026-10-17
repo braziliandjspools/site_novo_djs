@@ -801,23 +801,6 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
             trackCount={100}
             hasMore
             belowImageUrl={monthBannerUrl}
-            description={
-              <div className="space-y-3">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#8ad4ff] sm:text-xs">
-                  🎃 ATUALIZAÇÕES | OUTUBRO 2026 👻
-                </p>
-                <p>
-                  Outubro chegou trazendo o clima sombrio e arrepiante do Halloween! 🦇🕸️ É hora de preparar seus sets para as festas mais assustadoras do ano, descobrir novidades e renovar seu repertório com muita música boa.
-                </p>
-                <p>
-                  🔥 Explore novas músicas, descubra sons para diferentes pistas e encontre aquela faixa perfeita para surpreender o público. Deixe o clima de Halloween invadir seus sets e transforme cada festa em uma experiência inesquecível!
-                </p>
-                <p>
-                  💀 Novidades, energia e muita música esperam por você na <strong className="font-extrabold text-white">Brazilian Remix Service</strong>.
-                </p>
-                <p className="font-extrabold text-white">🎶 Seu próximo set começa aqui.</p>
-              </div>
-            }
           />
         </div>
       ) : null}
