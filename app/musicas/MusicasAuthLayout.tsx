@@ -112,7 +112,6 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                   profileImageUrl={profileImageUrl}
                   hasVip={hasVip}
                   onLogout={() => void handleLogout()}
-                  onLogin={goToLogin}
                   mobileOpen={mobileOpen}
                   onMobileOpenChange={setMobileOpen}
                 />

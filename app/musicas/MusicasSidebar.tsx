@@ -10,6 +10,7 @@ import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
 import { checkoutUrl } from "../lib/site";
 import { MusicasUserMenu } from "./components/MusicasUserMenu";
 import { MusicasHeaderDownloader } from "./components/MusicasHeaderDownloader";
+import { PageLanguageSwitcher } from "../components/PageLanguageSwitcher";
 import { SiteNotificationBell } from "../components/notifications/SiteNotificationBell";
 
 type MusicasTopNavProps = {
@@ -18,7 +19,6 @@ type MusicasTopNavProps = {
   profileImageUrl: string | null;
   hasVip: boolean;
   onLogout: () => void;
-  onLogin: () => void;
   mobileOpen: boolean;
   onMobileOpenChange: (open: boolean) => void;
 };
@@ -40,19 +40,19 @@ export function MusicasTopNav({
   profileImageUrl,
   hasVip,
   onLogout,
-  onLogin: _onLogin,
   mobileOpen,
   onMobileOpenChange,
 }: MusicasTopNavProps) {
   const pathname = usePathname();
   const firstName = authenticated ? userName.split(" ")[0] : "Visitante";
-  const [siteOpen, setSiteOpen] = useState(false);
+  const [siteMenu, setSiteMenu] = useState({ pathname: "", open: false });
+  const siteOpen = siteMenu.pathname === pathname && siteMenu.open;
   const siteRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onDocClick(event: MouseEvent) {
       if (siteRef.current && !siteRef.current.contains(event.target as Node)) {
-        setSiteOpen(false);
+        setSiteMenu((menu) => ({ ...menu, open: false }));
       }
     }
     document.addEventListener("mousedown", onDocClick);
@@ -61,7 +61,6 @@ export function MusicasTopNav({
 
   useEffect(() => {
     onMobileOpenChange(false);
-    setSiteOpen(false);
   }, [pathname, onMobileOpenChange]);
 
   return (
@@ -103,7 +102,12 @@ export function MusicasTopNav({
           <div ref={siteRef} className="relative">
             <button
               type="button"
-              onClick={() => setSiteOpen((open) => !open)}
+              onClick={() =>
+                setSiteMenu((menu) => ({
+                  pathname,
+                  open: !(menu.pathname === pathname && menu.open),
+                }))
+              }
               aria-expanded={siteOpen}
               className={`relative inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-colors lg:px-3.5 lg:text-[14px] ${
                 siteOpen ? "text-white" : "text-white/55 hover:text-white"
@@ -120,7 +124,7 @@ export function MusicasTopNav({
                   <Link
                     key={href}
                     href={href}
-                    onClick={() => setSiteOpen(false)}
+                    onClick={() => setSiteMenu((menu) => ({ ...menu, open: false }))}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.04] hover:text-white"
                   >
                     <Icon className="h-4 w-4 text-[#60cdff]/80" />
@@ -135,7 +139,7 @@ export function MusicasTopNav({
                   <Link
                     key={href}
                     href={href}
-                    onClick={() => setSiteOpen(false)}
+                    onClick={() => setSiteMenu((menu) => ({ ...menu, open: false }))}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.04] hover:text-white"
                   >
                     <Icon className="h-4 w-4 text-[#60cdff]/80" />
@@ -148,6 +152,11 @@ export function MusicasTopNav({
         </nav>
 
         <div className="app-no-drag ml-auto flex flex-shrink-0 items-center gap-1 sm:gap-2">
+          {!authenticated && (
+            <div className="hidden md:block">
+              <PageLanguageSwitcher compact />
+            </div>
+          )}
           <MusicasHeaderDownloader />
           <SiteNotificationBell />
 
@@ -238,6 +247,7 @@ export function MusicasTopNav({
           </nav>
 
           <div className="mt-4 space-y-3 border-t border-white/[0.06] px-1 pt-4">
+            {!authenticated && <PageLanguageSwitcher fullWidth />}
             <p className="px-2 text-xs text-white/40">
               <span className="font-semibold text-white">{firstName}</span>
               {" · "}

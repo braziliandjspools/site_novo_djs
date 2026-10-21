@@ -8,6 +8,7 @@ import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib
 import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
 import { BrsLogo } from "./BrsLogo";
 import { MarketingAuthControls } from "./MarketingAuthControls";
+import { PageLanguageSwitcher } from "./PageLanguageSwitcher";
 import { SiteNotificationBell } from "./notifications/SiteNotificationBell";
 
 const navLinkClass =
@@ -117,6 +118,7 @@ export function Header() {
           <div className="app-no-drag hidden items-center gap-2 lg:flex">
             <SiteNotificationBell compact />
             <MarketingAuthControls />
+            <PageLanguageSwitcher compact />
             <Link
               href="/musicas"
               className="inline-flex flex-shrink-0 items-center gap-2 rounded-full border border-[#009739]/45 bg-[#009739]/12 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#1db954] transition-all hover:border-[#1db954] hover:bg-[#009739]/22 hover:text-white"
@@ -225,6 +227,7 @@ export function Header() {
                 >
                   Plataforma
                 </Link>
+                <PageLanguageSwitcher className="mt-3" fullWidth />
               </nav>
               <div className="border-t border-white/10 p-4 text-center text-[11px] tracking-[-0.01em] text-gray-500">
                 Verde · Amarelo · Azul
