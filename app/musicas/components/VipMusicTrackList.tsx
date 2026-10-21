@@ -129,8 +129,8 @@ const STREAM_DESKTOP_GRID_SELECT = "tablemusic-grid tablemusic-grid-select";
 function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-white/[0.08] bg-gradient-to-r from-[#60cdff]/[0.08] via-[#111416] to-[#111416] px-3.5 py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/60 md:hidden" aria-hidden>
-        <span className="inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#60cdff]" />Faixa</span><span>Ações</span>
+      <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#191a1c] px-3.5 py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/60 md:hidden" aria-hidden>
+        <span>Faixa</span><span>Ações</span>
       </div>
       <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
         {selectionMode ? <span /> : null}
@@ -314,6 +314,7 @@ type StreamingRowProps = {
   onQueueNext: () => void;
   onShare: () => void;
   onCopyLink: () => void;
+  onCopyTrackMetadata: (track: PreviewTrack) => void;
   onPoolFilter?: (slug: string) => void;
   onStyleFilter?: (slug: string) => void;
 };
@@ -342,6 +343,7 @@ function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
       prev.displayDuration === next.displayDuration &&
       prev.isDownloading === next.isDownloading &&
       prev.isSendingToDownloader === next.isSendingToDownloader &&
+      prev.onCopyTrackMetadata === next.onCopyTrackMetadata &&
       prev.onToggle === next.onToggle &&
       prev.onSeek === next.onSeek
     );
@@ -360,7 +362,8 @@ function streamingRowEqual(prev: StreamingRowProps, next: StreamingRowProps) {
     prev.isHighlighted === next.isHighlighted &&
     prev.displayDuration === next.displayDuration &&
     prev.isDownloading === next.isDownloading &&
-    prev.isSendingToDownloader === next.isSendingToDownloader
+    prev.isSendingToDownloader === next.isSendingToDownloader &&
+    prev.onCopyTrackMetadata === next.onCopyTrackMetadata
   );
 }
 
@@ -391,6 +394,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   onQueueNext,
   onShare,
   onCopyLink,
+  onCopyTrackMetadata,
   onPoolFilter,
   onStyleFilter,
 }: StreamingRowProps) {
@@ -427,6 +431,14 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       });
     }
     actions.push(
+      {
+        id: "copy-track-metadata",
+        label: "Copiar música e artista",
+        icon: Copy,
+        onClick: () => {
+          void onCopyTrackMetadata(track);
+        },
+      },
       { id: "copy", label: "Copiar link", icon: Copy, onClick: onCopyLink },
       { id: "share", label: "Compartilhar", icon: Share2, onClick: onShare },
     );
@@ -436,28 +448,13 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
     canPlay,
     isSendingToDownloader,
     onCopyLink,
+    onCopyTrackMetadata,
     onQueueNext,
     onSendToDownloader,
     onShare,
+    track,
     onToggle,
   ]);
-
-  const mobileMenuActions = useMemo(() => {
-    const actions = [...menuActions];
-    const extras: CollectionMenuAction[] = [];
-    if (canDownload) {
-      extras.push({
-        id: "download-browser",
-        label: "Baixar",
-        icon: Download,
-        disabled: isDownloading,
-        onClick: onDownload,
-      });
-    }
-    const beforeCopy = actions.findIndex((action) => action.id === "copy");
-    actions.splice(beforeCopy, 0, ...extras);
-    return actions;
-  }, [menuActions, canDownload, isDownloading, onDownload]);
 
   function handleSeekClick(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -667,11 +664,26 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
             </p>
           ) : null}
         </div>
-        <div className="flex flex-shrink-0 items-center">
+        <div className="flex flex-shrink-0 items-center gap-1">
+          {canDownload ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDownload();
+              }}
+              disabled={isDownloading}
+              className="tablemusic-download-button tablemusic-mobile-download-button inline-flex h-10 w-10 flex-shrink-0 items-center justify-center disabled:cursor-wait disabled:opacity-55"
+              title={`Baixar ${display.title}`}
+              aria-label={isDownloading ? `Baixando ${display.title}` : `Baixar ${display.title}`}
+            >
+              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            </button>
+          ) : null}
           <CollectionContextMenu
             label={`Opções · ${display.title}`}
             buttonClassName="!h-10 !w-10 rounded-xl text-white/55 hover:bg-white/[0.06] hover:text-white"
-            actions={mobileMenuActions}
+            actions={menuActions}
           />
         </div>
       </div>
@@ -1419,6 +1431,21 @@ export function VipMusicTrackList({
     [pathname, searchParams, showToast],
   );
 
+  const copyTrackMetadata = useCallback(
+    async (track: PreviewTrack) => {
+      const display = getTrackDisplayMetadata(track);
+      const artist = display.artist.replace(/^[\s\-–—:]+/, "").trim();
+      const value = artist ? `${artist} - ${display.title}` : display.title;
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast("Nome da música e artista copiados");
+      } catch {
+        showToast("Não foi possível copiar os dados da música.", "error");
+      }
+    },
+    [showToast],
+  );
+
   const shareTrack = useCallback(
     async (track: PreviewTrack) => {
       const display = getTrackDisplayMetadata(track);
@@ -1523,6 +1550,7 @@ export function VipMusicTrackList({
           }}
           onShare={() => void shareTrack(track)}
           onCopyLink={() => copyTrackLink(track)}
+          onCopyTrackMetadata={copyTrackMetadata}
           onPoolFilter={(slug) => writeCatalogQuery({ pool: slug, style: "" })}
           onStyleFilter={(slug) => writeCatalogQuery({ style: slug })}
         />
