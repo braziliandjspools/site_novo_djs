@@ -9,6 +9,8 @@ import {
   Play,
   SkipBack,
   SkipForward,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { PLACEHOLDER } from "../../lib/theme";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
@@ -33,6 +35,8 @@ export function VipMiniPlayerBar() {
   const player = useVipMusicPlayer();
   const sync = useDownloaderSync();
   const { showToast } = useMusicasToast();
+  const [muted, setMuted] = useState(false);
+  const [volumeBeforeMute, setVolumeBeforeMute] = useState(1);
   const [sending, setSending] = useState(false);
   const [failedArtworkTrackId, setFailedArtworkTrackId] = useState<string | null>(null);
 
@@ -47,6 +51,7 @@ export function VipMiniPlayerBar() {
     ? fallbackCoverSrc
     : playerTrackCoverUrl(track, "404");
   const handleArtworkError = () => setFailedArtworkTrackId(track.id);
+  const volume = muted ? 0 : player.volume;
 
   async function handleSend() {
     const current = player.currentTrack;
@@ -75,138 +80,185 @@ export function VipMiniPlayerBar() {
     }
   }
 
+  function toggleMute() {
+    if (muted || player.volume === 0) {
+      const restore = volumeBeforeMute > 0 ? volumeBeforeMute : 0.8;
+      player.setVolume(restore);
+      setMuted(false);
+      return;
+    }
+    setVolumeBeforeMute(player.volume);
+    player.setVolume(0);
+    setMuted(true);
+  }
+
   return (
     <>
-      <div
-        className="player-shell player-shell--vip fixed inset-x-2 bottom-0 z-[70] overflow-hidden rounded-[20px] border border-white/10 md:hidden"
-        role="region"
-        aria-label="Player de música"
-      >
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={coverSrc} alt="" onError={handleArtworkError} className="h-full w-full scale-110 object-cover opacity-35 blur-2xl" />
-          <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(7,10,14,.96),rgba(9,15,20,.94)_55%,rgba(5,12,17,.97))]" />
-          <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#60cdff]/70 to-transparent" />
-        </div>
+    <div className="player-shell player-shell--vip fixed bottom-0 left-0 right-0 z-50 hidden overflow-hidden rounded-none border-x-0 border-b-0 md:block">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={coverSrc} alt="" onError={handleArtworkError} className="h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a1210]/95 via-[#0e1a16]/88 to-[#121816]/92" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#60cdff]/50 to-transparent" />
+      </div>
 
-        <div className="relative z-10 flex items-center gap-3 px-3 pt-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={coverSrc}
-            alt=""
-            onError={handleArtworkError}
-            className="h-11 w-11 flex-shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/15"
-          />
-          <div className="min-w-0 flex-1 font-[family-name:var(--font-player)]">
-            <p className="truncate text-[13px] font-bold tracking-tight text-white" title={display.title}>
-              {display.title}
-            </p>
-            <p className="mt-0.5 truncate text-[11px] text-white/60" title={[display.artist, albumOrPack].filter(Boolean).join(" · ")}>
-              <ArtistNameLink artist={display.artist} className="text-white/70" splitCredits={false} />
-              {albumOrPack ? <span className="text-white/40"> · {albumOrPack}</span> : null}
-            </p>
-          </div>
+      <div className="relative z-10 mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:gap-4 sm:px-6 sm:py-3.5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={coverSrc}
+          alt=""
+          onError={handleArtworkError}
+          className="h-14 w-14 flex-shrink-0 rounded-xl object-cover shadow-[0_10px_28px_rgba(0,0,0,0.45)] ring-2 ring-white/15 sm:h-16 sm:w-16"
+        />
 
-          {hasVip ? (
-            <div className="flex flex-shrink-0 items-center gap-1.5">
-              <Link
-                href={`/api/musicas/download/${track.id}`}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white/85 transition hover:border-[#60cdff]/40 hover:bg-[#60cdff]/10 hover:text-white active:scale-95"
-                title="Baixar faixa atual"
-                aria-label={`Baixar ${display.title}`}
-              >
-                <Download className="h-[17px] w-[17px]" />
-              </Link>
-              <button
-                type="button"
-                disabled={sending}
-                onClick={() => void handleSend()}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#60cdff]/25 bg-[#60cdff]/[0.09] text-[#a8e7ff] transition hover:bg-[#60cdff]/15 active:scale-95 disabled:opacity-50"
-                title="Enviar ao Downloader"
-                aria-label="Enviar faixa ao Downloader"
-              >
-                <MonitorDown className="h-[17px] w-[17px]" />
-              </button>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="relative z-10 mt-2 flex items-center gap-2 px-3">
-          <span className="w-8 text-right text-[9px] tabular-nums text-white/50">{formatTime(player.currentTime)}</span>
-          <div
-            className="group/seek relative h-1.5 min-w-0 flex-1 cursor-pointer overflow-visible rounded-full bg-white/15"
-            role="slider"
-            tabIndex={0}
-            aria-label="Progresso da música"
-            aria-valuemin={0}
-            aria-valuemax={Math.round(player.duration || 0)}
-            aria-valuenow={Math.round(player.currentTime)}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowRight" || event.key === "ArrowUp") {
-                event.preventDefault();
-                void player.seekBy(5);
-              } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
-                event.preventDefault();
-                void player.seekBy(-5);
-              } else if (event.key === "Home") {
-                event.preventDefault();
-                void player.seek(0);
-              } else if (event.key === "End") {
-                event.preventDefault();
-                void player.seek(1);
-              }
-            }}
-            onClick={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              if (!rect.width) return;
-              void player.seek((event.clientX - rect.left) / rect.width);
-            }}
+        <div className="flex flex-shrink-0 items-center gap-0.5 sm:gap-1">
+          <button
+            type="button"
+            onClick={() => void player.seekBy(-10)}
+            className="hidden h-9 w-9 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white sm:inline-flex"
+            title="Voltar 10s"
+            aria-label="Voltar 10 segundos"
           >
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#43b9e9] via-[#60cdff] to-[#9ae8ff] transition-[width] duration-75"
-              style={{ width: `${player.progress}%` }}
-            />
-            <span
-              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-white shadow-[0_0_10px_rgba(96,205,255,.8)]"
-              style={{ left: `calc(${player.progress}% - 5px)` }}
-            />
-          </div>
-          <span className="w-8 text-[9px] tabular-nums text-white/50">{formatTime(player.duration)}</span>
-        </div>
-
-        <div className="relative z-10 flex items-center justify-center gap-5 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-1.5">
+            <SkipBack className="h-4 w-4" />
+          </button>
           <button
             type="button"
             onClick={() => void player.playPrevious()}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white active:scale-95"
-            title="Faixa anterior"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
+            title="Anterior"
             aria-label="Faixa anterior"
           >
-            <SkipBack className="h-[18px] w-[18px] fill-current" />
+            <SkipBack className="h-4 w-4 fill-current" />
           </button>
           <button
             type="button"
             onClick={() => {
               if (isPlaying) player.pause();
-              else if (player.playingFolderId) void player.toggleTrack(player.playingFolderId, track.id);
+              else if (player.playingFolderId) {
+                void player.toggleTrack(player.playingFolderId, track.id);
+              }
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#8de1ff] to-[#41b8ed] text-[#061018] shadow-[0_5px_22px_rgba(65,184,237,.3)] transition-transform hover:scale-[1.04] active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#2dff7a] to-[#60cdff] text-black shadow-[0_8px_24px_rgba(96,205,255,0.4)] transition-transform hover:scale-[1.05] active:scale-95"
             aria-label={isPlaying ? "Pausar" : "Tocar"}
           >
-            {isPlaying ? <Pause className="h-5 w-5" fill="currentColor" /> : <Play className="h-5 w-5 pl-0.5" fill="currentColor" />}
+            {isPlaying ? (
+              <Pause className="h-5 w-5" fill="currentColor" />
+            ) : (
+              <Play className="h-5 w-5 pl-0.5" fill="currentColor" />
+            )}
           </button>
           <button
             type="button"
             onClick={() => void player.playNext()}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white active:scale-95"
-            title="Próxima faixa"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
+            title="Próxima"
             aria-label="Próxima faixa"
           >
-            <SkipForward className="h-[18px] w-[18px] fill-current" />
+            <SkipForward className="h-4 w-4 fill-current" />
+          </button>
+          <button
+            type="button"
+            onClick={() => void player.seekBy(10)}
+            className="hidden h-9 w-9 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white sm:inline-flex"
+            title="Avançar 10s"
+            aria-label="Avançar 10 segundos"
+          >
+            <SkipForward className="h-4 w-4" />
           </button>
         </div>
+
+        <div className="min-w-0 flex-1 font-[family-name:var(--font-player)]">
+          <p className="truncate text-[15px] font-bold tracking-tight text-white sm:text-base" title={display.title}>
+            {display.title}
+          </p>
+          <p
+            className="mt-0.5 truncate text-[12px] text-white/55 sm:text-[13px]"
+            title={[display.artist, albumOrPack].filter(Boolean).join(" · ")}
+          >
+            <ArtistNameLink
+              artist={display.artist}
+              className="text-white/70 hover:text-[#60cdff]"
+              splitCredits={false}
+            />
+            {albumOrPack ? <span className="text-white/35"> · {albumOrPack}</span> : null}
+          </p>
+          <div className="mt-2 flex items-center gap-2.5">
+            <span className="w-9 text-right text-[10px] tabular-nums text-white/40">
+              {formatTime(player.currentTime)}
+            </span>
+            <div
+              className="player-progress-track group/seek relative h-1.5 flex-1 cursor-pointer overflow-visible rounded-full bg-white/15"
+              onClick={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const ratio = (event.clientX - rect.left) / rect.width;
+                void player.seek(ratio);
+              }}
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#00b4d8] via-[#60cdff] to-[#2dff7a] transition-[width] duration-75"
+                style={{ width: `${player.progress}%` }}
+              />
+              <span
+                className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-md transition group-hover/seek:opacity-100"
+                style={{ left: `calc(${player.progress}% - 6px)` }}
+              />
+            </div>
+            <span className="w-9 text-[10px] tabular-nums text-white/40">
+              {formatTime(player.duration)}
+            </span>
+          </div>
+        </div>
+
+        <div className="hidden flex-shrink-0 items-center gap-2 md:flex">
+          <button
+            type="button"
+            onClick={toggleMute}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white"
+            aria-label={muted || volume === 0 ? "Ativar som" : "Silenciar"}
+          >
+            {muted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            onChange={(event) => {
+              const next = Number(event.target.value);
+              setMuted(next === 0);
+              player.setVolume(next);
+            }}
+            className="player-volume h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-white/15 accent-[#60cdff]"
+            aria-label="Volume"
+          />
+        </div>
+
+        <div className="flex flex-shrink-0 items-center gap-1">
+          {hasVip ? (
+            <>
+              <Link
+                href={`/api/musicas/download/${track.id}`}
+                className="rounded-xl border border-white/10 bg-white/[0.04] p-2 text-zinc-300 transition hover:border-[#60cdff]/40 hover:text-white"
+                title="Baixar faixa"
+              >
+                <Download className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                disabled={sending}
+                onClick={() => void handleSend()}
+                className="rounded-xl border border-[#60cdff]/35 bg-[#60cdff]/15 p-2 text-[#60cdff] transition hover:bg-[#60cdff]/25 disabled:opacity-50"
+                title="Enviar ao Downloader"
+              >
+                <MonitorDown className="h-4 w-4" />
+              </button>
+            </>
+          ) : null}
+        </div>
       </div>
-      <div className="h-[calc(150px+env(safe-area-inset-bottom))] md:hidden" aria-hidden="true" />
+    </div>
+    <div className="hidden h-28 md:block" aria-hidden="true" />
     </>
   );
 }
