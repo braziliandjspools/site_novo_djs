@@ -129,7 +129,7 @@ const STREAM_DESKTOP_GRID_SELECT = "tablemusic-grid tablemusic-grid-select";
 function TableMusicHeader({ selectionMode }: { selectionMode: boolean }) {
   return (
     <>
-      <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#191a1c] px-3.5 py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/60 md:hidden" aria-hidden>
+      <div className="tablemusic-mobile-head flex items-center justify-between border-b border-white/[0.08] bg-[#191a1c] px-3.5 py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/60 md:hidden" aria-hidden>
         <span>Faixa</span><span>Ações</span>
       </div>
       <div className={`${selectionMode ? STREAM_DESKTOP_GRID_SELECT : STREAM_DESKTOP_GRID} tablemusic-head`} aria-hidden>
@@ -271,7 +271,7 @@ function MobilePlayingTitle({ title, active }: { title: string; active: boolean 
   }, [title]);
 
   return (
-    <span ref={viewportRef} className="block min-w-0 w-full overflow-hidden md:hidden">
+    <span ref={viewportRef} className="tablemusic-mobile-track-title block min-w-0 w-full overflow-hidden md:hidden">
       <span
         style={{ "--brs-marquee-distance": `${motion.distance}px`, "--brs-marquee-duration": `${motion.duration}s` } as CSSProperties}
         className={`flex w-max max-w-none items-center whitespace-nowrap text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] ${
@@ -473,7 +473,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   }
 
   const coverButtonClass =
-    "group/play relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl ring-1 ring-white/[0.08] shadow-[0_8px_20px_-12px_rgba(0,0,0,0.7)] transition-[transform,box-shadow] duration-200 ease-out group-hover/row:scale-[1.03] group-hover/row:ring-white/[0.14] disabled:opacity-40 md:h-11 md:w-11";
+    "tablemusic-cover-play group/play relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl ring-1 ring-white/[0.08] shadow-[0_8px_20px_-12px_rgba(0,0,0,0.7)] transition-[transform,box-shadow] duration-200 ease-out group-hover/row:scale-[1.03] group-hover/row:ring-white/[0.14] disabled:opacity-40 md:h-11 md:w-11";
 
   const playButton = canPlay ? (
     <button
@@ -540,7 +540,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
   const isRecentlyAdded = Number.isFinite(uploadedAt) && uploadedAt <= Date.now() && Date.now() - uploadedAt < 7 * 86_400_000;
 
   const titleBlock = (
-    <div className="min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
+    <div className="tablemusic-track-copy min-w-0 flex-1 overflow-hidden font-[family-name:var(--font-player)] transition-transform duration-200 ease-out group-hover/row:translate-x-0.5">
       <p className="min-w-0 w-full overflow-hidden text-left" title={a11yName}>
         <span className="flex min-w-0 items-center gap-2">
           <MobilePlayingTitle title={display.title} active={isPlaying} />
@@ -551,7 +551,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
           ) : null}
         </span>
         <span
-          className={`hidden truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] md:block ${
+          className={`tablemusic-track-title-text hidden truncate text-[12px] font-semibold leading-snug tracking-[-0.02em] transition-colors duration-200 sm:text-[13px] md:block ${
             isActive || isPlaying ? "text-[#60cdff]" : "text-white"
           }`}
         >
@@ -561,7 +561,7 @@ const StreamingTrackRow = memo(function StreamingTrackRow({
       {isRecentlyAdded ? <span className="mt-1 inline-flex rounded border border-[#60cdff]/40 bg-[#60cdff]/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[#86efac]">Nova</span> : null}
       <ArtistNameLink
         artist={artistLabel}
-        className="mt-0.5 block whitespace-normal break-words text-[12px] leading-snug text-white/50"
+        className="tablemusic-track-artist mt-0.5 block whitespace-normal break-words text-[12px] leading-snug text-white/50"
       />
       <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.08em] md:hidden">
         {track.poolName?.trim() ? (

@@ -9,7 +9,6 @@ import { MusicasTopNav } from "./MusicasSidebar";
 import { MusicasMobileNav } from "./components/MusicasMobileNav";
 import { MusicasGuestBanner } from "./VipUpgradeGate";
 import { VipMusicPlayerProvider } from "./components/VipMusicPlayerContext";
-import { VipMiniPlayerBar } from "./components/VipMiniPlayerBar";
 import { MusicasAuthShellSkeleton, MusicasCenterLoading } from "./components/MusicasSkeletons";
 import { DownloaderConfirmProvider } from "./components/DownloaderBulkConfirm";
 
@@ -125,7 +124,6 @@ export function MusicasAuthLayout({ children }: MusicasAuthLayoutProps) {
                 </main>
                 <MusicasMobileNav />
               </div>
-              <VipMiniPlayerBar />
             </VipMusicPlayerProvider>
           </MusicasToastProvider>
         </DownloaderConfirmProvider>
