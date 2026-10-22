@@ -1570,3 +1570,165 @@ button {
     transition: none;
   }
 }
+
+/* Atualizações: os catálogos e painéis acompanham a paleta midnight da tabela. */
+.music-updates-page {
+  --updates-midnight: #111a24;
+  --updates-midnight-deep: #0c121a;
+  --updates-ice: #9de0ff;
+  --updates-lavender: #a69de2;
+}
+.music-updates-page::before {
+  background: radial-gradient(ellipse, rgb(83 150 203 / .11), rgb(111 103 174 / .035) 42%, transparent 72%);
+}
+.music-updates-page .updates-home-hero {
+  border-color: rgb(130 183 220 / .2);
+  background:
+    linear-gradient(90deg, rgb(8 13 19 / .97) 0%, rgb(10 16 24 / .92) 38%, rgb(13 18 28 / .76) 72%, rgb(16 18 31 / .58) 100%),
+    linear-gradient(0deg, rgb(8 12 18 / .72), transparent 72%),
+    url("https://pub-169b30d0b1454cd1abcbcc7f2a4d3a5f.r2.dev/banners/daf5465f-54d8-426b-92a0-9f2516783f07.png") 66% center / cover no-repeat;
+  box-shadow: 0 32px 90px -48px rgb(0 0 0 / .95), inset 0 1px 0 rgb(210 232 250 / .055);
+}
+.music-updates-page .updates-section-heading {
+  border-color: rgb(130 183 220 / .17);
+  background:
+    radial-gradient(ellipse at 92% 0%, rgb(96 157 205 / .13), transparent 47%),
+    linear-gradient(112deg, #172331, #111923 68%, #10131c);
+}
+.music-updates-page #acervos article[class*="group/acervo"] {
+  border-color: rgb(130 183 220 / .15);
+  background: linear-gradient(145deg, #172331, #101721 72%, #11141e);
+  box-shadow: inset 0 1px 0 rgb(210 232 250 / .045), 0 18px 40px -34px #000;
+}
+.music-updates-page #acervos article[class*="group/acervo"]:hover {
+  border-color: rgb(157 224 255 / .4);
+  background: linear-gradient(145deg, #1b2b3b, #111c2a 72%, #171a28);
+  box-shadow: inset 0 1px 0 rgb(210 232 250 / .07), 0 22px 42px -30px rgb(73 143 193 / .3);
+}
+.music-updates-page .updates-view-switch {
+  border-color: rgb(130 183 220 / .19);
+  background: linear-gradient(145deg, #172331, #0e151f 68%, #141622);
+}
+.music-updates-page .updates-breadcrumb {
+  border-color: rgb(130 183 220 / .17);
+  background: linear-gradient(110deg, #152230, #0d151f 72%, #121522);
+}
+.music-updates-page .updates-month-hero {
+  border-color: rgb(130 183 220 / .2);
+  background-color: #111a24;
+}
+.music-updates-page .updates-folder-card {
+  background: linear-gradient(145deg, #172331, #101721 72%, #121520);
+  box-shadow: inset 0 1px 0 rgb(210 232 250 / .045), 0 14px 30px -28px #000;
+}
+.music-updates-page .updates-downloader-card {
+  border-color: rgb(130 183 220 / .22);
+  background:
+    radial-gradient(ellipse at 100% 0%, rgb(91 148 195 / .12), transparent 48%),
+    linear-gradient(125deg, #152230, #0d141e 72%, #121522);
+}
+.music-updates-page .updates-downloader-card > div:first-child {
+  background: linear-gradient(90deg, #9de0ff, #a69de2 56%, transparent);
+}
+.music-updates-page .music-updates-premium [aria-label="Filtros do acervo"],
+.music-updates-page .music-updates-premium .music-drive-filter {
+  border-color: rgb(130 183 220 / .18);
+  background: linear-gradient(145deg, #172331, #101721 72%, #141622);
+}
+
+/* Outubro 2026: moldura sazonal de Halloween; a tabela mantém o tema midnight. */
+.updates-october-halloween-page::before {
+  background: radial-gradient(ellipse, rgb(180 95 68 / .1), rgb(121 84 158 / .055) 42%, transparent 72%);
+}
+.updates-october-halloween-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgb(220 146 93 / .24);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgb(36 23 27 / .72), rgb(18 20 30 / .84) 58%, rgb(23 20 35 / .76));
+  box-shadow: 0 22px 54px -36px rgb(0 0 0 / .9), inset 0 1px 0 rgb(255 227 197 / .045);
+}
+.updates-october-halloween-banner::before,
+.updates-october-halloween-banner::after {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  filter: blur(40px);
+}
+.updates-october-halloween-banner::before {
+  top: -90px;
+  right: 8%;
+  width: 210px;
+  height: 170px;
+  background: rgb(233 117 61 / .13);
+}
+.updates-october-halloween-banner::after {
+  right: 34%;
+  bottom: -110px;
+  width: 220px;
+  height: 150px;
+  background: rgb(145 105 199 / .12);
+}
+.updates-october-season-label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  color: #f2d6c1;
+  font-family: var(--font-sora), var(--font-app), sans-serif;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.updates-october-season-icon {
+  display: inline-flex;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(231 151 100 / .28);
+  border-radius: 8px;
+  background: rgb(227 128 73 / .1);
+  color: #ffbf83;
+}
+.updates-october-season-spark {
+  margin-left: auto;
+  color: #c5a7e8;
+  font-size: 15px;
+}
+.updates-october-halloween-card {
+  border-color: rgb(220 146 93 / .23) !important;
+  background-color: #151820 !important;
+}
+.updates-october-halloween-card > div:first-child {
+  background: radial-gradient(ellipse at 13% 20%, rgb(223 130 75 / .16), transparent 45%), radial-gradient(ellipse at 87% 80%, rgb(126 94 170 / .19), transparent 50%) !important;
+}
+.updates-october-halloween-card > div:nth-child(2) {
+  background: linear-gradient(90deg, #d98d5f, #b99adf 58%, transparent) !important;
+}
+.updates-october-halloween-card > div:nth-child(3) > div:nth-child(2) > p:first-child {
+  color: #efb383 !important;
+}
+.updates-october-halloween-card h2 {
+  text-shadow: 0 6px 34px rgb(228 134 77 / .15);
+}
+.updates-october-halloween-card > div:nth-child(3) > div:nth-child(2) > div:nth-of-type(2) > span {
+  border-color: rgb(220 146 93 / .22);
+  background: linear-gradient(135deg, rgb(208 125 73 / .11), rgb(124 97 164 / .11));
+}
+@media (max-width: 639px) {
+  .updates-october-season-label {
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 9px;
+    letter-spacing: .11em;
+  }
+}

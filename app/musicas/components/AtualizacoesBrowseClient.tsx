@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ArrowLeft, ChevronRight, Download, Home, Loader2, MonitorDown, Pause, Play } from "lucide-react";
+import { ArrowLeft, ChevronRight, Download, Ghost, Home, Loader2, MonitorDown, Pause, Play } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -726,7 +726,7 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
     !(showingStyles && Boolean(weekSlug) && slugSegments.length === 2);
 
   return (
-    <div className="music-updates-page w-full">
+    <div className={`music-updates-page w-full${isOctober2026Folder ? " updates-october-halloween-page" : ""}`}>
       <div className="updates-page-actions mb-3 flex items-center gap-2">
         <Link
           href={homeParentHref}
@@ -795,12 +795,18 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
       </nav>
 
       {isOctober2026Folder ? (
-        <div className="mb-5">
+        <div className="updates-october-halloween-banner mb-5">
+          <div className="updates-october-season-label" aria-label="Especial de Halloween de outubro de 2026">
+            <span className="updates-october-season-icon"><Ghost className="h-4 w-4" aria-hidden /></span>
+            <span>Especial de Halloween <span aria-hidden="true">·</span> Outubro 2026</span>
+            <span className="updates-october-season-spark" aria-hidden="true">✦</span>
+          </div>
           <AtualizacoesFolderBanner
             title="Outubro 2026"
             trackCount={100}
             hasMore
             belowImageUrl={monthBannerUrl}
+            className="updates-october-halloween-card"
           />
         </div>
       ) : null}
