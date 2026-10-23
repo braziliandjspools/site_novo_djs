@@ -30,6 +30,7 @@ type PageLanguageSwitcherProps = {
   className?: string;
   compact?: boolean;
   fullWidth?: boolean;
+  floating?: boolean;
 };
 
 function isPrivatePath(pathname: string) {
@@ -40,6 +41,7 @@ export function PageLanguageSwitcher({
   className = "",
   compact = false,
   fullWidth = false,
+  floating = false,
 }: PageLanguageSwitcherProps) {
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -83,28 +85,33 @@ export function PageLanguageSwitcher({
   }
 
   return (
-    <div ref={rootRef} className={`relative ${className}`}>
+    <div
+      ref={rootRef}
+      className={`${floating ? "fixed bottom-24 right-4 z-[90] sm:right-6" : "relative"} ${className}`}
+    >
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Traduzir esta página"
-        className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3 text-xs font-semibold text-white/75 transition hover:border-[#60cdff]/35 hover:bg-[#60cdff]/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60cdff]/50 ${fullWidth ? "w-full" : ""}`}
+        className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3 text-xs font-semibold text-white/75 transition hover:border-[#60cdff]/35 hover:bg-[#60cdff]/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60cdff]/50 ${fullWidth ? "w-full" : ""} ${floating ? "h-11 w-11 border-white/15 bg-[#121820]/95 p-0 text-white shadow-[0_8px_28px_rgba(0,0,0,0.45)] backdrop-blur-xl hover:border-[#60cdff]/45 hover:bg-[#17232c]" : ""}`}
       >
         <Languages className="h-4 w-4 text-[#8ad4ff]" aria-hidden="true" />
         {!compact && <span>Idioma</span>}
-        <ChevronDown
-          className={`h-3.5 w-3.5 text-white/45 transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
+        {!floating && (
+          <ChevronDown
+            className={`h-3.5 w-3.5 text-white/45 transition-transform ${open ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+        )}
       </button>
 
       {open && (
         <div
           role="menu"
           aria-label="Idioma da página"
-          className={`absolute z-[120] w-64 overflow-hidden rounded-xl border border-white/10 bg-[#111315] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.65)] ${fullWidth ? "bottom-[calc(100%+0.65rem)] left-0" : "right-0 top-[calc(100%+0.65rem)]"}`}
+          className={`absolute z-[120] w-64 overflow-hidden rounded-xl border border-white/10 bg-[#111315] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.65)] ${floating || fullWidth ? "bottom-[calc(100%+0.65rem)] right-0" : "right-0 top-[calc(100%+0.65rem)]"}`}
         >
           <p className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-white/40">
             Traduzir página

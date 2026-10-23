@@ -1,4 +1,5 @@
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MUSIC_PRODUCER_BRIEFING_MODEL = "liquid/lfm-2.5-2.6b:free";
 
 export type BriefingIdeaInput = {
   idea?: string;
@@ -16,25 +17,29 @@ export type BriefingIdeaResult = {
   occasion: string;
 };
 
-const SYSTEM_PROMPT = `Você é um assistente criativo da BRS — Brazilian Remix Service, especializado em produção musical personalizada no Brasil.
+const SYSTEM_PROMPT = `Você é o assistente criativo da BRS — Brazilian Remix Service, especializado em composições e produção musical personalizada.
 
-Com base no que o cliente descrever, crie um conceito musical completo pronto para orientar a produção.
+Use principalmente a ideia escrita pelo cliente em "Sua ideia em poucas palavras". Quando houver um briefing detalhado, siga fielmente seus gêneros, referências, idioma, clima, andamento e instruções; não substitua por um estilo padrão. Transforme a descrição em um direcionamento musical específico e uma letra original completa, prontos para a equipe de produção.
 
 Responda SOMENTE com JSON válido, sem markdown, neste formato exato:
 {
   "projectType": "tipo de produção sugerido (ex.: Música produzida, Jingle e vinheta, Intro / drop para DJ...)",
   "idea": "resumo criativo da ideia em 2 a 4 frases: tema, emoção, público e objetivo da faixa",
-  "lyrics": "letra completa com texto em português do Brasil, mas TODOS os marcadores de estrutura OBRIGATORIAMENTE em inglês: [Intro], [Verse 1], [Verse 2], [Pre-Chorus], [Chorus], [Bridge], [Outro], [Hook], [Drop] quando fizer sentido. Nunca use Verso, Refrão, Ponte ou Pré-refrão em português nos marcadores.",
-  "style": "written musical style description in English: genre, mood, vocals, instrumentation, approximate BPM, production and atmosphere. Ex.: Brazilian pop, emotional female vocal, warm acoustic guitar, soft drums, 95 BPM, uplifting, radio-ready production",
+  "lyrics": "letra completa no idioma explicitamente pedido pelo cliente; se nenhum idioma for indicado, use inglês. Só escreva em português se o cliente pedir português. Organize com nomes de seção entre colchetes, como [Intro], [Verse 1], [Pre-Chorus], [Drop], [Chorus], [Bridge] e [Outro], respeitando o idioma solicitado quando aplicável.",
+  "style": "direcionamento musical pronto para produção, no idioma explicitamente indicado pelo cliente ou em inglês se não houver indicação, refletindo gênero, referências, clima, voz, ritmo, instrumentos, BPM quando aplicável e atmosfera",
   "occasion": "ocasião ou contexto de uso"
 }
 
 Regras:
 - Escreva idea e occasion em português do Brasil.
-- O campo style deve ser SEMPRE em inglês, conciso (1 a 3 linhas), descritivo e útil para a equipe de produção.
-- O texto cantado dentro de lyrics deve ser em português do Brasil.
-- Os marcadores de seção em lyrics devem ser SEMPRE em inglês: [Intro], [Verse], [Pre-Chorus], [Chorus], [Bridge], [Outro], etc.
-- A letra deve ser original, específica ao pedido e pronta para revisão humana.
+- O campo style deve ser conciso (1 a 3 linhas), pronto para orientar a produção e diretamente relacionado ao que o cliente descreveu. Use o idioma pedido; se não houver indicação, escreva em inglês. Preserve gêneros e referências específicas e não acrescente estilos incompatíveis.
+- Escreva a letra no idioma que o cliente solicitar. Se não especificar idioma, escreva em inglês. Só use português quando o cliente pedir explicitamente português; não deduza o idioma da letra apenas pelo idioma em que a ideia foi digitada.
+- Respeite instruções detalhadas de estilo, idioma vocal, gênero, estrutura, andamento e produção, mesmo quando forem diferentes dos exemplos deste prompt. Se houver um prompt rico, trate seus detalhes como requisitos e não como sugestões.
+- Use nomes de seção entre colchetes, como [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Bridge], [Outro], [Hook] e [Drop]. Se o cliente pedir os marcadores em outro idioma, siga o pedido; caso contrário, use os nomes em inglês. Nunca deixe nomes de seção fora de colchetes.
+- A letra deve ter estrutura e desenvolvimento completos, com versos, refrão marcante e outras seções adequadas ao tipo de projeto. Adapte o tamanho: uma vinheta ou intro deve ser curta; uma música completa deve ter desenvolvimento suficiente para uma produção integral.
+- TODA orientação que não seja texto cantado deve ficar em uma linha própria dentro de colchetes: instruções de arranjo, voz, instrumentos, efeitos, dinâmica, variações, builds, drops, transições e finalização. Nunca deixe comandos ou descrições de performance fora de [ ].
+- Dentro de lyrics, deixe sem colchetes somente as palavras que devem ser cantadas. Não coloque explicações antes ou depois da letra.
+- Exemplo de orientação válida: [Clear upbeat female pop vocal]; [EDM riser, fast claps, pitch building up]; [Massive festival progressive house drop, euphoric lead synth and driving bass]. Crie os elementos de acordo com o briefing, sem copiar esse exemplo literalmente.
 - Se o cliente pedir regeneração ou já houver conteúdo, crie uma variação diferente mantendo o briefing.
 - Tipos comuns de projectType: Intro / drop para DJ, Jingle e vinheta, Música produzida, Remix personalizado, Letra exclusiva + produção, Distribuição digital.`;
 
@@ -61,20 +66,50 @@ function buildUserPrompt(input: BriefingIdeaInput) {
   }
 
   if (parts.length === 0) {
-    return "O cliente ainda não deu detalhes. Sugira uma ideia criativa para uma música personalizada de homenagem de aniversário, com letra completa e estilo descrito por escrito.";
+    return "O cliente ainda não deu detalhes. Crie uma proposta original de música personalizada em inglês, mantendo todas as instruções não cantadas entre colchetes.";
   }
 
   return parts.join("\n");
 }
 
 function extractJson(raw: string): BriefingIdeaResult {
-  const trimmed = raw.trim();
-  const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
+  const trimmed = raw
+    .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, "")
+    .replace(/```(?:json)?/gi, "")
+    .replace(/```/g, "")
+    .trim();
+  const start = trimmed.indexOf("{");
+  if (start < 0) {
     throw new Error("Resposta da IA sem JSON válido.");
   }
 
-  const parsed = JSON.parse(jsonMatch[0]) as Partial<BriefingIdeaResult & { message?: string; sunoStyle?: string }>;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let json = "";
+
+  for (let index = start; index < trimmed.length; index += 1) {
+    const char = trimmed[index];
+    json += char;
+
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+
+    if (char === '"') inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) break;
+    }
+  }
+
+  if (depth !== 0) throw new Error("Resposta da IA sem JSON válido.");
+
+  const parsed = JSON.parse(json) as Partial<BriefingIdeaResult & { message?: string; sunoStyle?: string }>;
 
   const projectType = parsed.projectType?.trim();
   const idea = parsed.idea?.trim() || parsed.message?.trim();
@@ -91,7 +126,6 @@ function extractJson(raw: string): BriefingIdeaResult {
 
 export async function generateBriefingIdea(input: BriefingIdeaInput): Promise<BriefingIdeaResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.OPENROUTER_MODEL ?? "google/gemini-3.7-flash";
 
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY não configurada.");
@@ -106,8 +140,9 @@ export async function generateBriefingIdea(input: BriefingIdeaInput): Promise<Br
       "X-Title": "Brazilian Remix Service Music Producer",
     },
     body: JSON.stringify({
-      model,
-      temperature: input.regenerate ? 0.95 : 0.85,
+      model: MUSIC_PRODUCER_BRIEFING_MODEL,
+      temperature: input.regenerate ? 0.9 : 0.75,
+      max_tokens: 2200,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: buildUserPrompt(input) },

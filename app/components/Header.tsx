@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
@@ -15,6 +16,8 @@ const navLinkClass =
   "group relative px-3 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:text-white";
 
 export function Header() {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
   const [isOpen, setIsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
@@ -42,7 +45,13 @@ export function Header() {
     <>
       <header className={APP_TOP_CHROME}>
         <div className="br-stripe" />
-        <div className={`${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-6xl md:px-6`}>
+        <div
+          className={
+            isHomePage
+              ? "relative mx-0 flex h-16 w-full min-w-0 items-center gap-3 px-4 sm:px-6 md:h-[72px] lg:px-8"
+              : `${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-6xl md:px-6`
+          }
+        >
           <div className="mr-auto flex min-w-0 flex-shrink-0 items-center lg:mr-0">
             <BrsLogo
               href="/"
@@ -116,15 +125,14 @@ export function Header() {
           </nav>
 
           <div className="app-no-drag hidden items-center gap-2 lg:flex">
-            <SiteNotificationBell compact />
-            <MarketingAuthControls />
-            <PageLanguageSwitcher compact />
             <Link
               href="/musicas"
               className="inline-flex flex-shrink-0 items-center gap-2 rounded-full border border-[#009739]/45 bg-[#009739]/12 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#1db954] transition-all hover:border-[#1db954] hover:bg-[#009739]/22 hover:text-white"
             >
               Plataforma
             </Link>
+            <SiteNotificationBell compact />
+            <MarketingAuthControls />
           </div>
 
           <div className="app-no-drag ml-auto flex shrink-0 items-center gap-1 lg:hidden">
@@ -227,7 +235,6 @@ export function Header() {
                 >
                   Plataforma
                 </Link>
-                <PageLanguageSwitcher className="mt-3" fullWidth />
               </nav>
               <div className="border-t border-white/10 p-4 text-center text-[11px] tracking-[-0.01em] text-gray-500">
                 Verde · Amarelo · Azul
@@ -236,6 +243,7 @@ export function Header() {
           </>,
           document.body,
         )}
+      <PageLanguageSwitcher floating compact />
     </>
   );
 }
