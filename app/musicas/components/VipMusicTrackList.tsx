@@ -34,6 +34,7 @@ import {
   X,
 } from "lucide-react";
 import { type PreviewTrack } from "../../lib/google-drive";
+import type { VipMusicSearchHit } from "../../lib/vip-music-search";
 import { getTrackDisplayMetadata } from "../../lib/track-display-metadata";
 import { PLACEHOLDER } from "../../lib/theme";
 import { startBrowserTrackDownload } from "../lib/browser-download-file";
@@ -108,6 +109,26 @@ function trackCatalogSlugs(track: PreviewTrack) {
 
 function foldSearch(value: string) {
   return value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR");
+}
+
+function searchHitToTrack(hit: VipMusicSearchHit): PreviewTrack {
+  return {
+    id: hit.id,
+    pack: hit.path,
+    fileName: hit.fileName,
+    title: hit.title ?? hit.label,
+    artist: hit.artist ?? "",
+    modifiedAt: hit.modifiedAt ?? null,
+    updateDate: hit.updateDate ?? null,
+    styleName: hit.styleName ?? null,
+    poolName: hit.poolName ?? null,
+    musicalKey: hit.musicalKey ?? null,
+    bpm: hit.bpm == null ? null : String(hit.bpm),
+    bpmFrom: hit.bpmFrom ?? hit.bpm ?? null,
+    bpmTo: hit.bpmTo ?? null,
+    version: hit.version ?? null,
+    editType: hit.editType ?? null,
+  };
 }
 
 function matchesCatalogFilter(
@@ -996,6 +1017,11 @@ export function VipMusicTrackList({
   const dayFilterKey = searchParams.get("dia") ?? "";
   const searchQuery = searchParams.get("busca") ?? "";
   const [searchDraft, setSearchDraft] = useState(searchQuery);
+  const [catalogSearchState, setCatalogSearchState] = useState<{
+    key: string;
+    status: "loading" | "ready" | "error";
+    tracks: PreviewTrack[];
+  } | null>(null);
 
   const writeCatalogQuery = useCallback(
     (next: { pool?: string; style?: string; busca?: string; dia?: string }) => {
@@ -1034,6 +1060,60 @@ export function VipMusicTrackList({
   useEffect(() => {
     setSearchDraft(new URLSearchParams(window.location.search).get("busca") ?? "");
   }, [folderId]);
+
+  const normalizedSearchQuery = searchDraft.trim();
+  const catalogSearchKey = [folderId, normalizedSearchQuery, poolFilterSlug, styleFilterSlug, dayFilterKey].join("|");
+  const needsCatalogSearch = layout === "table" && normalizedSearchQuery.length >= 2;
+
+  useEffect(() => {
+    if (!needsCatalogSearch) return;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setCatalogSearchState({ key: catalogSearchKey, status: "loading", tracks: [] });
+      const params = new URLSearchParams({
+        q: normalizedSearchQuery,
+        folderId,
+        limit: "100",
+      });
+      if (poolFilterSlug) params.set("pool", poolFilterSlug);
+      if (styleFilterSlug) params.set("estilo", styleFilterSlug);
+      if (dayFilterKey) params.set("dia", dayFilterKey);
+
+      void fetch(`/api/musicas/search?${params.toString()}`, {
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          const body = (await response.json()) as { results?: VipMusicSearchHit[]; error?: string };
+          if (!response.ok) throw new Error(body.error ?? "Não foi possível pesquisar este acervo.");
+          setCatalogSearchState({
+            key: catalogSearchKey,
+            status: "ready",
+            tracks: (body.results ?? []).filter((hit) => hit.type === "track").map(searchHitToTrack),
+          });
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          const message = error instanceof Error ? error.message : "Não foi possível pesquisar este acervo.";
+          setCatalogSearchState({ key: catalogSearchKey, status: "error", tracks: [] });
+          console.error("[musicas/catalog-search]", message);
+        });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [catalogSearchKey, dayFilterKey, folderId, needsCatalogSearch, normalizedSearchQuery, poolFilterSlug, styleFilterSlug]);
+
+  const currentCatalogSearch = catalogSearchState?.key === catalogSearchKey ? catalogSearchState : null;
+  const catalogSearchLoading = needsCatalogSearch && currentCatalogSearch?.status !== "ready" && currentCatalogSearch?.status !== "error";
+  const catalogSearchError = currentCatalogSearch?.status === "error";
+  const catalogSearchTracks = useMemo(
+    () => (currentCatalogSearch?.status === "ready" ? currentCatalogSearch.tracks : []),
+    [currentCatalogSearch],
+  );
 
   const autoPlayedRef = useRef<string | null>(null);
   const loadMoreRef = useRef(onLoadMore);
@@ -1079,13 +1159,16 @@ export function VipMusicTrackList({
     };
   }, [dayFilterKey, filterPools, filterStyles, poolFilterSlug, tracks]);
 
-  // Os filtros de Dia/Pool/Estilo continuam filtrando as faixas carregadas.
-  // A busca textual da tabela só é aplicada depois que o usuário confirma a pesquisa.
+  // A busca textual usa o índice completo do acervo; os filtros locais continuam
+  // garantindo que cada faixa respeite o dia, a pool e o estilo selecionados.
   const filteredTracks = useMemo(() => {
     const query = foldSearch(searchDraft.trim());
-    return tracks.filter((track) => {
+    const searchableTracks = needsCatalogSearch && catalogSearchTracks.length > 0
+      ? catalogSearchTracks
+      : tracks;
+    return searchableTracks.filter((track) => {
       if (!matchesCatalogFilter(track, poolFilterSlug, styleFilterSlug, dayFilterKey)) return false;
-      if (!query) return true;
+      if (!query || (needsCatalogSearch && catalogSearchTracks.length > 0)) return true;
       const display = getTrackDisplayMetadata(track);
       const haystack = foldSearch(
         [display.title, display.artist, track.poolName, track.styleName, track.fileName, track.title]
@@ -1094,7 +1177,7 @@ export function VipMusicTrackList({
       );
       return haystack.includes(query);
     });
-  }, [dayFilterKey, poolFilterSlug, searchDraft, styleFilterSlug, tracks]);
+  }, [catalogSearchTracks, dayFilterKey, needsCatalogSearch, poolFilterSlug, searchDraft, styleFilterSlug, tracks]);
 
   const visibleTrackSections = useMemo(
     () => (shouldGroupByDate ? groupTracksByUploadDate(filteredTracks) : null),
@@ -1631,6 +1714,7 @@ export function VipMusicTrackList({
 
   const listFooter = (isLastSection: boolean) => {
     if (!isLastSection) return null;
+    if (needsCatalogSearch) return null;
     if (onPageChange && pageCount > 1) {
       return (
         <TrackListPagination
@@ -1836,7 +1920,7 @@ export function VipMusicTrackList({
       ) : null}
 
       {useStreaming && filteredTracks.length === 0 ? (
-        catalogLoading || loadingMore || pageLoading ? (
+        catalogLoading || catalogSearchLoading || loadingMore || pageLoading ? (
           <div className="flex justify-center px-4 py-10">
             <MusicasToastLoading
               label={searchDraft.trim() || activeCatalogFilterCount > 0 ? "Pesquisando as músicas…" : "Carregando músicas…"}
@@ -1844,7 +1928,9 @@ export function VipMusicTrackList({
           </div>
         ) : (
           <p className="px-4 py-10 text-center text-sm text-zinc-400">
-            {searchDraft.trim()
+            {catalogSearchError
+              ? "Não foi possível concluir a busca neste acervo. Tente novamente."
+              : searchDraft.trim()
               ? `Nenhuma música encontrada para “${searchDraft.trim()}”.`
               : activeCatalogFilterCount > 0
                 ? "Nenhuma música neste filtro."

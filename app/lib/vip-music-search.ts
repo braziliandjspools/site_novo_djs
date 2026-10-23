@@ -35,6 +35,17 @@ export type VipMusicSearchHit = {
   version?: string | null;
   bpm?: number | null;
   relativePath?: string;
+  monthFolderId?: string;
+  weekFolderId?: string;
+  poolFolderId?: string;
+  styleName?: string;
+  poolName?: string;
+  updateDate?: string | null;
+  modifiedAt?: string | null;
+  musicalKey?: string | null;
+  bpmFrom?: number | null;
+  bpmTo?: number | null;
+  editType?: string | null;
 };
 
 export type VipMusicSearchOptions = {
@@ -44,6 +55,11 @@ export type VipMusicSearchOptions = {
   recentMonths?: number;
   /** Quantos dias mais recentes varrer na 1ª passagem. */
   recentDays?: number;
+  /** Limita a busca às faixas abaixo da pasta aberta na tabela. */
+  folderId?: string;
+  poolSlug?: string;
+  styleSlug?: string;
+  updateDate?: string;
 };
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
@@ -80,11 +96,16 @@ function matches(text: string, query: string) {
 type StyleScanTarget = {
   id: string;
   name: string;
+  monthFolderId: string;
   monthSlug: string;
   monthLabel: string;
+  weekFolderId?: string;
   weekSlug?: string;
   weekLabel?: string;
+  updateDate?: string | null;
+  poolFolderId?: string;
   poolSlug?: string;
+  poolName?: string;
   relativePath: string;
   /** Ordenação: dias/meses mais novos primeiro. */
   sortKey: string;
@@ -233,11 +254,16 @@ async function buildStyleIndex(options?: {
             styles.push({
               id: style.id,
               name: style.name,
+              monthFolderId: month.id,
               monthSlug,
               monthLabel,
+              weekFolderId: dateFolder.id,
               weekSlug: slugifyFolderName(dateFolder.name),
               weekLabel: dateLabel,
+              updateDate: dateKey,
+              poolFolderId: pool.id,
               poolSlug: slugifyFolderName(pool.name),
+              poolName: poolLabel,
               relativePath: `${monthLabel}/${dateLabel}/${poolLabel}/${styleLabel}`.slice(0, 900),
               sortKey: `${dateKey}|${poolLabel}|${styleLabel}`,
             });
@@ -281,10 +307,13 @@ async function buildStyleIndex(options?: {
           styles.push({
             id: style.id,
             name: style.name,
+            monthFolderId: month.id,
             monthSlug,
             monthLabel,
+            weekFolderId: week.id,
             weekSlug,
             weekLabel,
+            updateDate: parseUpdateDateFolder(week.name)?.key ?? null,
             relativePath: `${monthLabel}/${weekLabel}/${styleLabel}`.slice(0, 900),
             sortKey: `${monthSlug}|${weekSlug}|${styleLabel}`,
           });
@@ -309,6 +338,7 @@ async function buildStyleIndex(options?: {
       styles.push({
         id: style.id,
         name: style.name,
+        monthFolderId: month.id,
         monthSlug,
         monthLabel,
         relativePath: `${monthLabel}/${styleLabel}`.slice(0, 900),
@@ -353,11 +383,16 @@ type IndexedAudio = {
   haystack: string;
   monthSlug: string;
   monthLabel: string;
+  monthFolderId: string;
+  weekFolderId?: string;
   weekSlug?: string;
   weekLabel?: string;
+  updateDate?: string | null;
   styleName: string;
   styleFolderId: string;
+  poolFolderId?: string;
   poolSlug?: string;
+  poolName?: string;
   modifiedAt: string;
   title: string;
   relativePath: string;
@@ -402,11 +437,16 @@ function pushAudioFile(
     ),
     monthSlug: style.monthSlug,
     monthLabel: style.monthLabel,
+    monthFolderId: style.monthFolderId,
+    weekFolderId: style.weekFolderId,
     weekSlug: style.weekSlug,
     weekLabel: style.weekLabel,
+    updateDate: style.updateDate,
     styleName: style.name,
     styleFolderId: style.id,
+    poolFolderId: style.poolFolderId,
     poolSlug: style.poolSlug,
+    poolName: style.poolName,
     modifiedAt: file.createdTime ?? file.modifiedTime ?? "",
     title: meta.title,
     relativePath,
@@ -541,6 +581,9 @@ function indexedToHit(
     styleSlug: slugifyFolderName(track.styleName),
     poolSlug: track.poolSlug,
     styleFolderId: track.styleFolderId,
+    monthFolderId: track.monthFolderId,
+    weekFolderId: track.weekFolderId,
+    poolFolderId: track.poolFolderId,
     page: pageInfo?.page,
     totalPages: pageInfo?.totalPages,
     fileName: track.fileName,
@@ -548,6 +591,14 @@ function indexedToHit(
     artist: display.artist,
     version: meta.version,
     bpm: meta.bpmFrom,
+    bpmFrom: meta.bpmFrom,
+    bpmTo: meta.bpmTo,
+    musicalKey: meta.musicalKey,
+    editType: meta.editType,
+    modifiedAt: track.modifiedAt || null,
+    updateDate: track.updateDate ?? null,
+    styleName: track.styleName,
+    poolName: track.poolName,
     relativePath: track.relativePath,
   };
 }
@@ -582,11 +633,16 @@ export async function searchVipMusic(
   const q = query.trim();
   if (q.length < 2) return [];
 
-  const max = Math.min(Math.max(limit, 1), 60);
+  const max = Math.min(Math.max(limit, 1), 100);
   const tracksOnly = Boolean(options?.tracksOnly);
   const recentMonths = options?.recentMonths ?? Number.POSITIVE_INFINITY;
   const recentDays = options?.recentDays ?? Number.POSITIVE_INFINITY;
-  const cacheKey = `${tracksOnly ? "t" : "a"}:all:${max}:${normalize(q)}`;
+  const folderId = options?.folderId?.trim() ?? "";
+  const poolSlug = options?.poolSlug?.trim() ?? "";
+  const styleSlug = options?.styleSlug?.trim() ?? "";
+  const updateDate = options?.updateDate?.trim() ?? "";
+  const scopeKey = [folderId, poolSlug, styleSlug, updateDate, recentMonths, recentDays].join(":");
+  const cacheKey = `${tracksOnly ? "t" : "a"}:${scopeKey}:${max}:${normalize(q)}`;
   const cached = queryCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.results;
@@ -597,7 +653,16 @@ export async function searchVipMusic(
     ? []
     : catalog.folderHits.filter((hit) => matches(hit.label, q) || matches(hit.path, q)).slice(0, max);
 
-  let trackHits = matchIndexedTracks(catalog.tracks, q, max, catalog.pageByTrackId);
+  const scopedTracks = catalog.tracks.filter((track) => {
+    if (folderId && ![track.monthFolderId, track.weekFolderId, track.poolFolderId, track.styleFolderId].includes(folderId)) {
+      return false;
+    }
+    if (poolSlug && track.poolSlug !== poolSlug) return false;
+    if (styleSlug && slugifyFolderName(track.styleName) !== styleSlug) return false;
+    if (updateDate && track.updateDate !== updateDate) return false;
+    return true;
+  });
+  const trackHits = matchIndexedTracks(scopedTracks, q, max, catalog.pageByTrackId);
 
 
   const results = tracksOnly

@@ -10,6 +10,11 @@ export async function GET(request: Request) {
   const access = vipMusicClientAccess(session);
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q") ?? "";
+  const folderId = searchParams.get("folderId")?.trim() ?? "";
+  const poolSlug = searchParams.get("pool")?.trim() ?? "";
+  const styleSlug = searchParams.get("estilo")?.trim() ?? "";
+  const updateDate = searchParams.get("dia")?.trim() ?? "";
+  const limit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("limit") ?? "36", 10) || 36));
 
   if (query.trim().length < 2) {
     void warmVipMusicSearchIndex().catch(() => undefined);
@@ -17,7 +22,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const results = await searchVipMusic(query, 36);
+    const results = await searchVipMusic(query, limit, {
+      tracksOnly: Boolean(folderId),
+      folderId: folderId || undefined,
+      poolSlug: poolSlug || undefined,
+      styleSlug: styleSlug || undefined,
+      updateDate: updateDate || undefined,
+    });
     return NextResponse.json({ results, ...access });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro na busca.";
