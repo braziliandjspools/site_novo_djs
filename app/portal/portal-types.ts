@@ -87,9 +87,10 @@ export type PortalData = {
     enabled: boolean;
   };
   hasSubscriptionPlan: boolean;
+  musicAssistantAccess: boolean;
   /** Serviços na janela de renovação (≤5 dias ou vencidos). */
   renewables: PortalRenewableService[];
-  /** Planos 1/3/6 meses para upgrade/downgrade no portal. */
+  /** Planos 1/3/6/12 meses para upgrade/downgrade no portal. */
   planChangeCards?: Array<{
     id: string;
     name: string;

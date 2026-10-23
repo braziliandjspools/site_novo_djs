@@ -18,7 +18,6 @@ type PlanCard = {
   features: string[];
   highlight: boolean;
   description?: string;
-  isTestPlan?: boolean;
   serviceProduct?: "poolsVip" | "deemix" | "allavsoft";
 };
 
@@ -37,7 +36,6 @@ type PlansSectionProps = {
   expiredVip?: ActiveServiceInfo | null;
   activeDeemix?: ActiveServiceInfo | null;
   activeAllavsoft?: boolean;
-  testPlanUsed?: boolean;
   showPixNotice?: boolean;
   loginReturnPath?: string;
 };
@@ -60,16 +58,17 @@ function planProduct(plan: PlanCard): "poolsVip" | "deemix" | "allavsoft" {
 }
 
 function planPitch(plan: PlanCard) {
-  if (plan.isTestPlan) return "Para conhecer o BRS antes de escolher seu período.";
   if (plan.id === "brs-drive-1m") return "Para quem quer flexibilidade e acesso mês a mês.";
-  if (plan.id === "brs-drive-3m") return "O melhor equilíbrio entre preço e tempo de acesso.";
-  if (plan.id === "brs-drive-6m") return "Para quem já sabe que vai usar o BRS no dia a dia.";
+  if (plan.id === "brs-drive-3m") return "Mais tempo de acesso e curadoria musical com IA.";
+  if (plan.id === "brs-drive-6m") return "Um semestre de repertório e ferramentas para o seu dia a dia.";
+  if (plan.id === "brs-drive-12m") return "O melhor valor mensal, com um ano completo de acesso.";
   return "Acesso completo para sua rotina.";
 }
 
 function planSavings(plan: PlanCard) {
-  if (plan.id === "brs-drive-3m") return "Economiza R$ 6,50 vs. 3 meses no mensal";
-  if (plan.id === "brs-drive-6m") return "Economiza R$ 13,00 vs. 6 meses no mensal";
+  if (plan.id === "brs-drive-3m") return "Economize R$ 9,00 em relação a 3 mensalidades";
+  if (plan.id === "brs-drive-6m") return "Economize R$ 30,00 em relação a 6 mensalidades";
+  if (plan.id === "brs-drive-12m") return "Economize R$ 84,00 em relação a 12 mensalidades";
   return null;
 }
 
@@ -84,7 +83,6 @@ export function PlansSection({
   expiredVip = null,
   activeDeemix = null,
   activeAllavsoft = false,
-  testPlanUsed = false,
   showPixNotice = true,
   loginReturnPath = "/plans",
 }: PlansSectionProps) {
@@ -98,19 +96,14 @@ export function PlansSection({
   const autoStarted = useRef(false);
   const vipToastShown = useRef(false);
 
-  function isTrialUnavailable(plan: PlanCard) {
-    return plan.isTestPlan && (testPlanUsed || Boolean(activeVip) || Boolean(expiredVip));
-  }
-
   function requiresVipPortal(plan: PlanCard) {
-    return planProduct(plan) === "poolsVip" && !plan.isTestPlan && Boolean(activeVip || expiredVip);
+    return planProduct(plan) === "poolsVip" && Boolean(activeVip || expiredVip);
   }
 
   function isPlanBlocked(plan: PlanCard) {
     const product = planProduct(plan);
     if (product === "deemix") return Boolean(activeDeemix);
     if (product === "allavsoft") return activeAllavsoft;
-    if (isTrialUnavailable(plan)) return true;
     return requiresVipPortal(plan);
   }
 
@@ -121,9 +114,6 @@ export function PlansSection({
     }
     if (product === "allavsoft") {
       return "Licença Allavsoft já ativa";
-    }
-    if (isTrialUnavailable(plan)) {
-      return "Teste exclusivo para novas contas";
     }
     if (expiredVip) return `VIP vencido em ${expiredVip.expiresLabel}`;
     return `VIP ativo até ${activeVip!.expiresLabel}`;
@@ -137,14 +127,6 @@ export function PlansSection({
     }
     if (product === "allavsoft") {
       showToast("Você já tem a licença vitalícia do Allavsoft nesta conta.", "info", 5500);
-      return;
-    }
-    if (isTrialUnavailable(plan)) {
-      showToast(
-        "O Plano Teste é exclusivo para a primeira contratação. Escolha mensal, trimestral ou semestral.",
-        "info",
-        5500,
-      );
       return;
     }
     showToast(
@@ -161,7 +143,7 @@ export function PlansSection({
     if (!plans.some((plan) => planProduct(plan) === "poolsVip")) return;
     vipToastShown.current = true;
     showToast(
-      `Você já tem VIP ativo até ${activeVip.expiresLabel}. O Plano Teste não está disponível.`,
+      `Você já tem VIP ativo até ${activeVip.expiresLabel}. Se quiser trocar de período, acesse sua conta no Portal.`,
       "info",
       6000,
     );
@@ -212,14 +194,9 @@ export function PlansSection({
         res.status === 409 ||
         data.code === "vip_already_active" ||
         data.code === "vip_renewal_in_portal" ||
-        data.code === "deemix_already_active" ||
-        data.code === "test_plan_already_used"
+        data.code === "deemix_already_active"
       ) {
-        const message =
-          data.error ??
-          (data.code === "test_plan_already_used"
-            ? "O Plano Teste só pode ser usado uma vez. Escolha mensal, trimestral ou semestral."
-            : `Você já tem acesso ativo${data.expiresLabel ? ` até ${data.expiresLabel}` : ""}.`);
+        const message = data.error ?? `Você já tem acesso ativo${data.expiresLabel ? ` até ${data.expiresLabel}` : ""}.`;
         if (data.code === "vip_renewal_in_portal") {
           router.push(data.portalUrl ?? "/portal/conta");
         } else {
@@ -292,7 +269,7 @@ export function PlansSection({
   const isBusy = loadingPlanId !== null;
   const gridClass =
     plans.length <= 3
-      ? "mx-auto mt-8 grid gap-5 sm:mt-10 md:grid-cols-3"
+        ? "mx-auto mt-8 grid gap-5 sm:mt-10 md:grid-cols-3 xl:grid-cols-4"
       : "mx-auto mt-8 grid gap-5 sm:mt-10 md:grid-cols-2 xl:grid-cols-4";
 
   return (
@@ -353,9 +330,7 @@ export function PlansSection({
                     ? "opacity-70"
                     : isDeemix
                       ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
-                      : plan.isTestPlan
-                        ? "border-[#6B9FFF]/35 bg-gradient-to-b from-[#002776]/25 to-transparent"
-                        : plan.highlight
+                      : plan.highlight
                           ? "border-[#FFDF00]/40 from-[#009739]/15 bg-gradient-to-b to-transparent shadow-2xl shadow-[#009739]/15"
                           : "hover:border-[#009739]/35"
                 }`}
@@ -363,14 +338,14 @@ export function PlansSection({
                 {plan.badge && (
                   <span
                     className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${
-                      isDeemix || plan.isTestPlan
+                      isDeemix
                         ? "bg-[#6B9FFF] text-[#002776]"
                         : plan.highlight
                           ? "bg-[#FFDF00] text-[#002776]"
                           : "border border-white/15 bg-[#111] text-zinc-300"
                     }`}
                   >
-                    {plan.highlight && !plan.isTestPlan ? "Mais escolhido" : plan.badge}
+                    {plan.id === "brs-drive-12m" ? "Melhor valor" : plan.highlight ? "Mais escolhido" : plan.badge}
                   </span>
                 )}
                 <div className="min-w-0">
@@ -435,11 +410,7 @@ export function PlansSection({
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
-                      {plan.isTestPlan
-                        ? "Ativar plano teste"
-                        : isDeemix
-                          ? "Assinar Deemix"
-                          : "Assinar agora"}
+                      {isDeemix ? "Assinar Deemix" : "Assinar agora"}
                     </>
                   )}
                 </button>
@@ -453,20 +424,16 @@ export function PlansSection({
                   {blocked
                     ? planProduct(plan) === "allavsoft"
                       ? "Licença vitalícia já liberada nesta conta."
-                      : isTrialUnavailable(plan)
-                        ? "Plano Teste exclusivo para a primeira contratação."
-                        : portalOnly
+                      : portalOnly
                           ? "Use /portal/conta para renovar, trocar ou estender o VIP."
                         : isDeemix
                           ? `Renovação disponível após ${activeDeemix!.expiresLabel}.`
-                          : "Troque de plano em /portal/conta (1, 3 ou 6 meses)."
+                          : "Troque de plano em /portal/conta (1, 3, 6 ou 12 meses)."
                     : isDeemix
                       ? "ARL 320 kbps · liberação automática no portal."
                       : planProduct(plan) === "allavsoft"
                         ? "Licença vitalícia · serial no portal após a confirmação."
-                        : plan.isTestPlan
-                          ? "Cobrança real de R$ 3,50 · 3 dias · uma vez por conta."
-                          : "Checkout seguro. Acesso só após confirmação oficial."}
+                        : "Checkout seguro. Acesso só após confirmação oficial."}
                 </p>
               </div>
             );

@@ -26,6 +26,15 @@ type AdminMenuProps = {
 export function AdminMenu({ children, onLogout, activeSection, sections, onSectionChange }: AdminMenuProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const adminSectionSlugs: Record<string, string> = {
+    dashboard: "/admin/painel",
+    users: "/admin/clientes",
+    deliveries: "/admin/producoes-musicais",
+    notices: "/admin/avisos",
+  };
+  const screenSlug = pathname === "/admin" && activeSection
+    ? adminSectionSlugs[activeSection] ?? `/admin/${activeSection}`
+    : pathname;
 
   async function logout() {
     try {
@@ -100,7 +109,7 @@ export function AdminMenu({ children, onLogout, activeSection, sections, onSecti
               </button>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-white">Central de gestão BRS</p>
-                <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.15em] text-white/35">Portal · Catálogo · Operações</p>
+                <p title={screenSlug} className="mt-0.5 truncate font-mono text-[10px] font-semibold tracking-wide text-white/45">Tela: {screenSlug}</p>
               </div>
             </div>
             <span className="hidden items-center gap-2 rounded-full border border-[#1db954]/20 bg-[#1db954]/[0.06] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#a5f3bf] sm:inline-flex">

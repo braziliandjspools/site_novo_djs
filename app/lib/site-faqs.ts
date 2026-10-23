@@ -26,7 +26,7 @@ export const SITE_FAQS: SiteFaq[] = [
   },
   {
     q: "Quanto custa a assinatura VIP?",
-    a: "O plano mensal BRS Drive VIP custa R$ 35,50. Há também trimestral (R$ 100), semestral (R$ 200) e Plano Teste de 3 dias por R$ 3,50 (uma vez por conta). Pagamento seguro, com renovação ou troca de plano no portal.",
+    a: "O plano mensal BRS Drive VIP custa R$ 35,00. Há também trimestral (R$ 96,00), semestral (R$ 180,00) e anual (R$ 336,00, equivalente a R$ 28,00 por mês). Pagamento seguro, com renovação ou troca de plano no portal.",
   },
   {
     q: "O que está incluso no plano VIP?",

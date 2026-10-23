@@ -17,6 +17,7 @@ import { HOTMART_PROVIDER } from "./hotmart/config";
 import { DOWNLOADER_NAME, SITE_PRODUCTION_URL } from "./branding";
 import { getDownloaderReleaseManifest } from "./downloader-updates";
 import { serializePortalRenewables } from "./portal-renewals";
+import { canUseMusicAssistant } from "./portal-music-assistant";
 
 export const PORTAL_COOKIE = "bp_portal_session";
 export const PORTAL_DESKTOP_CLIENT_HEADER = "X-BP-Client";
@@ -191,6 +192,7 @@ export async function getPortalDataForUser(user: PortalUser) {
   const { listPortalPlanChangeCards, hasUsedDriveTestPlan } = await import("./portal-renewals");
   const planChangeCards = await listPortalPlanChangeCards(user);
   const testPlanUsed = await hasUsedDriveTestPlan(user.id);
+  const musicAssistantAccess = await canUseMusicAssistant(user);
 
   const hotmartStatusLabel =
     hotmart?.status === "ACTIVE"
@@ -258,6 +260,7 @@ export async function getPortalDataForUser(user: PortalUser) {
       enabled: user.musicProducerDeliveriesEnabled,
     },
     hasSubscriptionPlan: userHasSubscriptionPlan(user),
+    musicAssistantAccess,
     renewables: serializePortalRenewables(user),
     planChangeCards,
     testPlanUsed,

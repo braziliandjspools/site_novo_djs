@@ -40,7 +40,7 @@ test("buildPortalRenewalPlan usa plano 1 mês do catálogo por padrão", () => {
   assert.equal(built.ok, true);
   if (!built.ok) return;
   assert.equal(built.plan.id, "brs-drive-1m");
-  assert.equal(built.plan.amountBrl, "35.50");
+  assert.equal(built.plan.amountBrl, "35.00");
 });
 
 test("buildPortalRenewalPlan aceita trimestral", () => {
@@ -48,7 +48,7 @@ test("buildPortalRenewalPlan aceita trimestral", () => {
   assert.equal(built.ok, true);
   if (!built.ok) return;
   assert.equal(built.plan.id, "brs-drive-3m");
-  assert.equal(built.plan.amountBrl, "100.00");
+  assert.equal(built.plan.amountBrl, "96.00");
 });
 
 test("cliente VIP bloqueado com histórico pode reativar por 30 dias", () => {

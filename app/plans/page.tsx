@@ -19,7 +19,6 @@ import { formatDueDate } from "../lib/due-queue";
 import { userHasActiveVipAccess } from "../lib/mercadopago/webhook-policy";
 import { SITE_DRIVE_PLANS } from "../lib/plans";
 import { getAuthenticatedPortalUser } from "../lib/portal";
-import { hasPreviouslyPurchasedDrivePlan } from "../lib/portal-renewals";
 import { SITE_NAME } from "../lib/branding";
 import { whatsappUrl } from "../lib/site";
 import { JsonLd } from "../components/JsonLd";
@@ -62,6 +61,11 @@ const benefits = [
     title: "Liberação automática",
     text: "Assim que o pagamento for confirmado, o plano é liberado na sua conta sem espera manual.",
   },
+  {
+    icon: Sparkles,
+    title: "Organizador Musical com IA",
+    text: "Monte uma proposta de repertório por momentos do evento. Disponível nos planos Trimestral, Semestral e Anual com VIP ativo.",
+  },
 ];
 
 const includedDetails = [
@@ -73,9 +77,9 @@ const includedDetails = [
 
 const advantages = [
   "Pagamento único por período — renovação manual quando o acesso vencer",
-  "Com VIP ativo, upgrade/downgrade entre mensal, trimestral e semestral no portal",
+  "Com VIP ativo, upgrade ou troca entre mensal, trimestral, semestral e anual pelo portal",
   "Crédito do período restante aplicado na troca de plano",
-  "Plano Teste de 3 dias (R$ 3,50) só uma vez por conta",
+  "Organizador Musical com IA nos planos Trimestral, Semestral e Anual",
   "Acesso a /musicas, packs organizados e BRS Downloader para Windows",
   `${SITE_NAME} libera o acesso após a confirmação oficial do pagamento`,
 ];
@@ -84,7 +88,7 @@ const howItWorks = [
   {
     step: "01",
     title: "Escolha o plano",
-    text: "Use o Plano Teste (R$ 3,50 / 3 dias, uma vez) ou escolha mensal, trimestral ou semestral.",
+    text: "Escolha mensal, trimestral, semestral ou anual, conforme o período que combina com sua rotina.",
   },
   {
     step: "02",
@@ -99,26 +103,23 @@ const howItWorks = [
 ];
 
 const planComparison = [
-  { label: "Acesso VIP completo", test: "3 dias", monthly: "30 dias", quarterly: "90 dias", halfYear: "180 dias" },
-  { label: "Plataforma /musicas", test: true, monthly: true, quarterly: true, halfYear: true },
-  { label: "BRS Downloader Windows", test: true, monthly: true, quarterly: true, halfYear: true },
-  { label: "Acervo VIP (+315 GB)", test: true, monthly: true, quarterly: true, halfYear: true },
-  { label: "Atualizações contínuas", test: true, monthly: true, quarterly: true, halfYear: true },
-  { label: "Troca de plano no portal", test: false, monthly: true, quarterly: true, halfYear: true },
+  { label: "Acesso VIP completo", monthly: "30 dias", quarterly: "90 dias", halfYear: "180 dias", annual: "365 dias" },
+  { label: "Plataforma /musicas", monthly: true, quarterly: true, halfYear: true, annual: true },
+  { label: "BRS Downloader Windows", monthly: true, quarterly: true, halfYear: true, annual: true },
+  { label: "Acervo VIP (+315 GB)", monthly: true, quarterly: true, halfYear: true, annual: true },
+  { label: "Atualizações contínuas", monthly: true, quarterly: true, halfYear: true, annual: true },
+  { label: "Organizador Musical com IA", monthly: false, quarterly: true, halfYear: true, annual: true },
+  { label: "Troca de plano no portal", monthly: true, quarterly: true, halfYear: true, annual: true },
 ];
 
 const faqs = [
   {
     q: "Posso trocar de plano com VIP ainda ativo?",
-    a: "Sim. No portal (/portal/conta) você escolhe mensal, trimestral ou semestral. O crédito do período restante é aplicado e o novo vencimento é atualizado após o pagamento. O Plano Teste não pode ser reativado.",
+    a: "Sim. No portal (/portal/conta) você escolhe mensal, trimestral, semestral ou anual. O crédito do período restante é aplicado e o novo vencimento é atualizado após o pagamento.",
   },
   {
     q: "Paguei no Pix e a tela do QR não muda. E agora?",
     a: "É normal. Role até o rodapé e clique em “Voltar para Brazilian Dj Pools”. O acesso libera após a confirmação do pagamento; o botão só te devolve ao site.",
-  },
-  {
-    q: "O Plano Teste é cobrança real?",
-    a: "Sim. É R$ 3,50 com acesso VIP completo por 3 dias — uma única vez por conta. Depois, escolha 1, 3 ou 6 meses.",
   },
   {
     q: "O redirect de sucesso já libera o VIP?",
@@ -126,7 +127,11 @@ const faqs = [
   },
   {
     q: "Quais são os valores?",
-    a: "Teste R$ 3,50 (3 dias), mensal R$ 35,50, trimestral R$ 100 e semestral R$ 200.",
+    a: "Mensal R$ 35,00, trimestral R$ 96,00, semestral R$ 180,00 e anual R$ 336,00 (equivalente a R$ 28,00 por mês).",
+  },
+  {
+    q: "Quem pode usar o Organizador Musical com IA?",
+    a: "Clientes com VIP ativo nos planos Trimestral, Semestral e Anual. O Mensal não inclui esse recurso.",
   },
   {
     q: "O Allavsoft está incluso?",
@@ -148,7 +153,6 @@ export default async function PlansPage() {
         features: plan.features,
         highlight: plan.highlight,
         description: plan.description,
-        isTestPlan: plan.isTestPlan,
         serviceProduct: plan.serviceProduct,
       }));
 
@@ -157,7 +161,6 @@ export default async function PlansPage() {
   // Auth/DB failures must not take down the public plans page.
   let activeVip: { expiresLabel: string } | null = null;
   let expiredVip: { expiresLabel: string } | null = null;
-  let testPlanUsed = false;
   try {
     const user = await getAuthenticatedPortalUser();
     if (user) {
@@ -172,7 +175,6 @@ export default async function PlansPage() {
       } else if (user.services.poolsVip) {
         expiredVip = { expiresLabel: formatDueDate(dueAt) };
       }
-      testPlanUsed = await hasPreviouslyPurchasedDrivePlan(user.id);
     }
   } catch (error) {
     console.error("[plans] failed to resolve portal session", error);
@@ -244,7 +246,6 @@ export default async function PlansPage() {
           subtitle="Todos os planos pagos liberam o mesmo acervo. O que muda é o tempo de acesso e o valor equivalente por mês."
           activeVip={activeVip}
           expiredVip={expiredVip}
-          testPlanUsed={testPlanUsed}
           showPixNotice
         />
       </Suspense>
@@ -262,17 +263,17 @@ export default async function PlansPage() {
                 <thead className="border-b border-white/10 bg-white/[0.03]">
                   <tr>
                     <th className="px-4 py-4 font-semibold text-white md:px-5">Incluído</th>
-                    <th className="px-4 py-4 text-center font-semibold text-zinc-300">Teste</th>
                     <th className="px-4 py-4 text-center font-semibold text-zinc-300">Mensal</th>
-                    <th className="px-4 py-4 text-center font-semibold text-[#FFDF00]">3 meses</th>
+                    <th className="px-4 py-4 text-center font-semibold text-sky-200">3 meses</th>
                     <th className="px-4 py-4 text-center font-semibold text-zinc-300">6 meses</th>
+                    <th className="px-4 py-4 text-center font-semibold text-[#FFDF00]">Anual</th>
                   </tr>
                 </thead>
                 <tbody>
                   {planComparison.map((row) => (
                     <tr key={row.label} className="border-b border-white/5 last:border-0">
                       <td className="px-4 py-3.5 text-zinc-300 md:px-5">{row.label}</td>
-                      {[row.test, row.monthly, row.quarterly, row.halfYear].map((value, index) => (
+                      {[row.monthly, row.quarterly, row.halfYear, row.annual].map((value, index) => (
                         <td key={index} className="px-4 py-3.5 text-center text-zinc-400">
                           {typeof value === "boolean" ? (
                             value ? <CheckCircle2 className="mx-auto h-4 w-4 text-[#009739]" /> : <span className="text-zinc-700">—</span>
@@ -288,7 +289,7 @@ export default async function PlansPage() {
             </div>
           </div>
           <p className="mt-4 text-center text-xs text-zinc-500">
-            O plano de 3 meses está destacado porque hoje oferece o melhor equilíbrio entre período e valor mensal equivalente.
+            O plano anual oferece o menor valor mensal equivalente. O Organizador Musical com IA está incluído a partir do trimestral.
           </p>
         </div>
       </section>
@@ -366,7 +367,7 @@ export default async function PlansPage() {
           </ul>
           <p className="mt-8 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
             <Sparkles className="h-3.5 w-3.5 text-[#FFDF00]" />
-            Teste R$ 3,50 · 1m R$ 35,50 · 3m R$ 100 · 6m R$ 200
+            Mensal R$ 35,00 · Trimestral R$ 96,00 · Semestral R$ 180,00 · Anual R$ 336,00 (R$ 28,00/mês)
           </p>
         </div>
       </section>
@@ -415,7 +416,7 @@ export default async function PlansPage() {
         <div className="mx-auto max-w-2xl">
           <SectionHeading
             title="Ainda tem dúvidas?"
-            subtitle="Fale conosco pelo WhatsApp sobre planos, teste de 3 dias, liberação de acesso, Downloader e renovação."
+            subtitle="Fale conosco pelo WhatsApp sobre planos, liberação de acesso, Downloader e renovação."
           />
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a href="#planos" className="site-btn site-btn-primary">

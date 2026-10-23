@@ -616,8 +616,8 @@ export function serviceJsonLd() {
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "BRL",
-      lowPrice: "3.50",
-      highPrice: "200.00",
+      lowPrice: "35.00",
+      highPrice: "336.00",
       offerCount: 4,
       url: absoluteUrl("/plans"),
       availability: "https://schema.org/InStock",
@@ -661,8 +661,8 @@ export function plansProductJsonLd() {
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "BRL",
-      lowPrice: "3.50",
-      highPrice: "200.00",
+      lowPrice: "35.00",
+      highPrice: "336.00",
       offerCount: 4,
       availability: "https://schema.org/InStock",
       url: absoluteUrl("/plans"),

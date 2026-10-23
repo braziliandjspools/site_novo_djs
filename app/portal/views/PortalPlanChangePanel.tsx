@@ -28,7 +28,7 @@ type PortalPlanChangePanelProps = {
   currentDueLabel?: string;
 };
 
-/** Upgrade / downgrade entre mensal (1), trimestral (3) e semestral (6). */
+/** Troca de período entre mensal, trimestral, semestral e anual. */
 export function PortalPlanChangePanel({
   plans,
   hasVip,
@@ -93,13 +93,13 @@ export function PortalPlanChangePanel({
       action={
         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
           <ArrowRightLeft className="h-3 w-3" />
-          1 · 3 · 6 meses
+          1 · 3 · 6 · 12 meses
         </span>
       }
     >
       <p className="mb-4 text-sm text-zinc-400">
         {renewalMode
-          ? "Seu acesso venceu. Escolha 1, 3 ou 6 meses para renovar o VIP."
+          ? "Seu acesso venceu. Escolha mensal, trimestral, semestral ou anual para renovar o VIP."
           : hasVip
           ? `Com VIP ativo, calculamos o crédito do período restante e cobramos só a diferença. Após o pagamento, o vencimento é atualizado automaticamente${
               currentDueLabel ? ` (hoje: ${currentDueLabel})` : ""
@@ -107,7 +107,7 @@ export function PortalPlanChangePanel({
           : "Escolha a duração do acesso VIP. Pagamento único."}
       </p>
 
-      <ul className="grid gap-3 sm:grid-cols-3">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {plans.map((plan) => {
           const isSelected = plan.id === selectedId;
           return (

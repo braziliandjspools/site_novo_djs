@@ -27,6 +27,29 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const { id } = await context.params;
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
+
+  const flagKeys = ["isPublished", "isFeatured", "isNew"] as const;
+  const requestedFlags = flagKeys.filter((key) => Object.hasOwn(body, key));
+  if (Object.keys(body).length === 1 && requestedFlags.length === 1) {
+    const flag = requestedFlags[0];
+    if (typeof body[flag] !== "boolean") {
+      return NextResponse.json({ error: "Opção inválida." }, { status: 400 });
+    }
+    try {
+      const item = await prisma.brsProduction.update({
+        where: { id },
+        data: { [flag]: body[flag] },
+      });
+      return NextResponse.json({ item });
+    } catch (error) {
+      const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+      console.error("[admin-producoes] flag update failed", error);
+      if (code === "P2025") return NextResponse.json({ error: "Produção não encontrada." }, { status: 404 });
+      if (code === "P2021" || code === "P2022") return NextResponse.json({ error: "A tabela de produções ainda não existe." }, { status: 503 });
+      return NextResponse.json({ error: "Não foi possível atualizar esta opção." }, { status: 500 });
+    }
+  }
+
   const title = clean(body.title);
   const artist = clean(body.artist);
   const publishedAt = new Date(clean(body.publishedAt));
@@ -85,6 +108,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!isAuthorizedAdminRequest(request)) return unauthorized();
   const { id } = await context.params;
-  await prisma.brsProduction.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try {
+    const result = await prisma.brsProduction.deleteMany({ where: { id } });
+    if (result.count === 0) return NextResponse.json({ error: "Produção não encontrada." }, { status: 404 });
+    return NextResponse.json({ ok: true, deletedId: id });
+  } catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+    console.error("[admin-producoes] delete failed", error);
+    if (code === "P2021" || code === "P2022") return NextResponse.json({ error: "A tabela de produções ainda não existe." }, { status: 503 });
+    return NextResponse.json({ error: "Não foi possível excluir a produção do catálogo." }, { status: 500 });
+  }
 }

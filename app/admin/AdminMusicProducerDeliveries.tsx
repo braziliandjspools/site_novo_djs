@@ -17,8 +17,10 @@ import {
   Star,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
 import { toDeliveryDateInputValue } from "../lib/music-producer-deliveries";
+import { useSiteToast } from "../components/SiteToast";
 
 type BriefingItem = {
   id: number;
@@ -145,6 +147,8 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
   const [editDrafts, setEditDrafts] = useState<Record<number, DeliveryDraft>>({});
   const [briefingNotes, setBriefingNotes] = useState<Record<number, string>>({});
   const [briefingBusyId, setBriefingBusyId] = useState<number | null>(null);
+  const [pendingBriefingDelete, setPendingBriefingDelete] = useState<{ id: number; plan: string } | null>(null);
+  const { showToast } = useSiteToast();
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -402,8 +406,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
     }
   }
 
-  async function deleteBriefing(briefingId: number, plan: string) {
-    if (!window.confirm(`Excluir o pedido "${plan}"? O cliente deixa de vê-lo.`)) return;
+  async function deleteBriefing(briefingId: number) {
     setBriefingBusyId(briefingId);
     setError(null);
     try {
@@ -412,9 +415,11 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
       });
       const payload = await readApiJson(res);
       if (!res.ok) throw new Error(payload.error ?? "Erro ao excluir pedido.");
+      setPendingBriefingDelete(null);
+      showToast("Pedido excluído. O cliente não poderá mais vê-lo.", "success");
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir pedido.");
+      showToast(err instanceof Error ? err.message : "Erro ao excluir pedido.", "error");
     } finally {
       setBriefingBusyId(null);
     }
@@ -742,7 +747,7 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
                                     <button
                                       type="button"
                                       disabled={briefingBusyId === briefing.id}
-                                      onClick={() => void deleteBriefing(briefing.id, briefing.servicePlan)}
+                                      onClick={() => setPendingBriefingDelete({ id: briefing.id, plan: briefing.servicePlan })}
                                       className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-red-300 hover:bg-red-500/25 disabled:opacity-50"
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
@@ -1106,6 +1111,27 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
           );
         })}
       </div>
+      {pendingBriefingDelete ? (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && briefingBusyId !== pendingBriefingDelete.id) setPendingBriefingDelete(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="delete-briefing-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-[#141617] p-5 shadow-2xl sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-200/80">Excluir pedido</p>
+                <h2 id="delete-briefing-title" className="mt-2 text-lg font-bold text-white">Excluir o pedido “{pendingBriefingDelete.plan}”?</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">O cliente deixa de vê-lo.</p>
+              </div>
+              <button type="button" disabled={briefingBusyId === pendingBriefingDelete.id} onClick={() => setPendingBriefingDelete(null)} aria-label="Fechar" className="rounded-lg p-2 text-white/45 transition hover:bg-white/5 hover:text-white disabled:opacity-50"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button type="button" disabled={briefingBusyId === pendingBriefingDelete.id} onClick={() => setPendingBriefingDelete(null)} className="min-h-10 rounded-lg border border-white/10 px-4 text-xs font-bold text-white/65 transition hover:bg-white/[0.05] hover:text-white">Cancelar</button>
+              <button type="button" disabled={briefingBusyId === pendingBriefingDelete.id} onClick={() => void deleteBriefing(pendingBriefingDelete.id)} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-red-500 px-4 text-xs font-black text-white transition hover:bg-red-400 disabled:opacity-50">
+                {briefingBusyId === pendingBriefingDelete.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Excluir pedido
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -116,7 +116,7 @@ export function listPortalRenewableServices(
       // Renovação iniciada pelo portal cobra o plano mensal, independentemente
       // do valor histórico que possa estar salvo no cadastro.
       const monthlyPlan = getCanonicalPlanById("brs-drive-1m");
-      const value = monthlyPlan ? Number(monthlyPlan.amountBrl) : 35.5;
+      const value = monthlyPlan ? Number(monthlyPlan.amountBrl) : 35;
       items.push({
         key: "poolsVip",
         label: "Pools VIP",
@@ -140,7 +140,7 @@ export function isPortalRenewalServiceKey(value: unknown): value is PortalRenewa
 }
 
 /**
- * Renovação na janela: usa o plano escolhido (1/3/6) do catálogo.
+ * Renovação na janela: usa o plano escolhido (1/3/6/12) do catálogo.
  * Se não informar planId, mantém o mensal como padrão.
  */
 export function buildPortalRenewalPlan(

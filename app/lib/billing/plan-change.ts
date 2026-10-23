@@ -90,7 +90,7 @@ export function resolveVipPeriodContext(input: {
     };
   }
 
-  const paidAmountBrl = input.billingValue > 0 ? input.billingValue : 35.5;
+  const paidAmountBrl = input.billingValue > 0 ? input.billingValue : 35;
   return {
     paidAmountBrl,
     periodDays: inferVipPeriodDaysFromValue(paidAmountBrl),

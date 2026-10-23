@@ -130,7 +130,7 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
       case "scripts":
         return <PortalScriptsView hasActivePlan={portalData.hasSubscriptionPlan} />;
       case "music-assistant":
-        return <PortalMusicAssistantView />;
+        return <PortalMusicAssistantView hasAccess={portalData.musicAssistantAccess} />;
       case "account":
         return <AccountView data={portalData} />;
       case "support":

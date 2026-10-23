@@ -33,6 +33,7 @@ export const PORTAL_SUBSCRIPTION_PLAN_IDS = [
   "brs-drive-1m",
   "brs-drive-3m",
   "brs-drive-6m",
+  "brs-drive-12m",
 ] as const;
 
 export type PortalSubscriptionPlanId = (typeof PORTAL_SUBSCRIPTION_PLAN_IDS)[number];
@@ -61,10 +62,10 @@ export type CanonicalPlan = {
 /**
  * Valores oficiais (pagamentos únicos, renovação manual):
  * Drive VIP:
- * - Teste 3 dias: R$ 3,50 (uma vez por conta)
- * - Mensal: R$ 35,50 (~30 dias)
- * - Trimestral: R$ 100,00 (~90 dias)
- * - Semestral: R$ 200,00 (~180 dias)
+ * - Mensal: R$ 35,00 (~30 dias)
+ * - Trimestral: R$ 96,00 (~90 dias)
+ * - Semestral: R$ 180,00 (~180 dias)
+ * - Anual: R$ 336,00 (~365 dias)
  * Allavsoft: R$ 50,00 vitalícia
  */
 export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
@@ -72,14 +73,14 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     id: "brs-drive-3d",
     title: "BRS Drive — Plano Teste",
     description:
-      "Acesso VIP completo por 3 dias. Disponível uma única vez por conta — depois, escolha mensal, trimestral ou semestral.",
+      "Plano de teste legado, desativado para novas compras.",
     amountBrl: "3.50",
     currency: PLAN_CURRENCY,
     durationDays: 3,
     durationMonths: 0,
     durationLabel: "3 dias",
     lifetime: false,
-    active: true,
+    active: false,
     renewalType: "manual",
     badge: "Teste",
     highlight: false,
@@ -90,14 +91,14 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
       "Acesso VIP completo por 3 dias",
       "Plataforma /musicas + BRS Downloader",
       "Só pode ser ativado uma vez por conta",
-      "Para continuar, escolha 1, 3 ou 6 meses",
+      "Plano preservado apenas para registros de compras anteriores",
     ],
   },
   {
     id: "brs-drive-1m",
     title: "BRS Drive — Mensal",
     description: "Acesso VIP completo por 30 dias. Pagamento único com renovação manual.",
-    amountBrl: "35.50",
+    amountBrl: "35.00",
     currency: PLAN_CURRENCY,
     durationDays: 30,
     durationMonths: 1,
@@ -109,20 +110,21 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    equivalentMonthlyLabel: "R$ 35,50/mês",
+    equivalentMonthlyLabel: "R$ 35,00/mês",
     features: [
       "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
       "BRS Downloader para Windows",
       "Atualizações contínuas",
       "Renovação ou troca de plano no portal",
+      "Organizador Musical com IA disponível nos planos a partir do trimestral",
     ],
   },
   {
     id: "brs-drive-3m",
     title: "BRS Drive — Trimestral",
     description: "Acesso VIP completo por 90 dias. Pagamento único com renovação manual.",
-    amountBrl: "100.00",
+    amountBrl: "96.00",
     currency: PLAN_CURRENCY,
     durationDays: 90,
     durationMonths: 3,
@@ -131,23 +133,24 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     active: true,
     renewalType: "manual",
     badge: "Trimestral",
-    highlight: true,
+    highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    equivalentMonthlyLabel: "R$ 33,33/mês equiv.",
+    equivalentMonthlyLabel: "R$ 32,00/mês",
     features: [
       "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
       "BRS Downloader para Windows",
       "90 dias de acesso",
       "Renovação ou troca de plano no portal",
+      "Organizador Musical com IA",
     ],
   },
   {
     id: "brs-drive-6m",
     title: "BRS Drive — Semestral",
     description: "Acesso VIP completo por 180 dias. Pagamento único com renovação manual.",
-    amountBrl: "200.00",
+    amountBrl: "180.00",
     currency: PLAN_CURRENCY,
     durationDays: 180,
     durationMonths: 6,
@@ -159,13 +162,14 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     highlight: false,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    equivalentMonthlyLabel: "R$ 33,33/mês equiv.",
+    equivalentMonthlyLabel: "R$ 30,00/mês",
     features: [
       "Acervo VIP completo (+315 GB)",
       "Plataforma para DJs (/musicas)",
       "BRS Downloader para Windows",
       "180 dias de acesso",
       "Renovação ou troca de plano no portal",
+      "Organizador Musical com IA",
     ],
   },
   {
@@ -208,22 +212,29 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
   },
   {
     id: "brs-drive-12m",
-    title: "BRS Drive — 1 ano (legado)",
-    description: "Plano anual legado — não listado no checkout.",
-    amountBrl: "384.00",
+    title: "BRS Drive — Anual",
+    description: "Acesso VIP completo por 365 dias. Pagamento único com renovação manual.",
+    amountBrl: "336.00",
     currency: PLAN_CURRENCY,
     durationDays: 365,
     durationMonths: 12,
     durationLabel: "12 meses",
     lifetime: false,
-    active: false,
+    active: true,
     renewalType: "manual",
-    badge: null,
-    highlight: false,
+    badge: "Melhor valor",
+    highlight: true,
     isTestPlan: false,
     serviceProduct: "poolsVip",
-    equivalentMonthlyLabel: null,
-    features: ["Plano legado"],
+    equivalentMonthlyLabel: "R$ 28,00/mês",
+    features: [
+      "Acervo VIP completo (+315 GB)",
+      "Plataforma para DJs (/musicas)",
+      "BRS Downloader para Windows",
+      "365 dias de acesso",
+      "Organizador Musical com IA",
+      "Renovação ou troca de plano no portal",
+    ],
   },
   {
     id: "brs-deemix-1m",

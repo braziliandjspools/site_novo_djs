@@ -1,254 +1,171 @@
 import "server-only";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { prisma } from "./prisma";
+import type { PortalUser } from "./portal-users";
+import { userHasActiveVipAccess } from "./mercadopago/webhook-policy";
 
-export type MusicSearchMoment = {
-  title: string;
-  reason: string;
-  query: string;
+const OPENROUTER_BATCH_URL = "https://openrouter.ai/api/v1/batches";
+const MUSIC_ASSISTANT_MODEL = "openai/gpt-6-luna-pro";
+const MUSIC_ASSISTANT_BATCH_MODEL = `${MUSIC_ASSISTANT_MODEL}:batch`;
+const MUSIC_ASSISTANT_REQUEST_ID = "portal-music-curation";
+const ELIGIBLE_PLAN_IDS = new Set(["brs-drive-3m", "brs-drive-6m", "brs-drive-12m"]);
+const MUSIC_CURATOR_PROMPT = [
+  "Você é um curador musical experiente que ajuda DJs a montar repertórios para eventos.",
+  "Responda em texto bem organizado e direto, usando Markdown simples (títulos, listas e negrito quando ajudar).",
+  "Interprete com atenção o pedido do cliente: respeite gênero, idioma, época, artistas, energia e restrições informadas. Se não houver idioma definido, responda em português do Brasil.",
+  "Monte uma proposta prática por momentos do evento (adapte a quantidade ao pedido), com sugestões de músicas e artistas quando fizer sentido, progressão de energia e dicas de transição.",
+  "Não diga que pesquisou na internet, no YouTube ou no catálogo BRS; esta resposta é uma curadoria gerada por IA, sem consulta a fontes ao vivo. Evite inventar links, disponibilidade, versões específicas ou dados como BPM e tonalidade se não tiver certeza. Identifique as faixas como ideias para o DJ conferir antes de usar.",
+  "Não repita o pedido como introdução. Entregue somente a curadoria em texto.",
+].join("\n");
+
+type MusicAssistantBatch = {
+  id?: string;
+  status?: string;
+  error?: { message?: string } | null;
+  results?: Array<{
+    custom_id?: string;
+    response?: { body?: { choices?: Array<{ message?: { content?: string | null } }> } } | null;
+    error?: { message?: string } | null;
+  }> | null;
 };
 
-export type YouTubeMusicResult = {
-  id: string;
-  kind: "video" | "playlist";
-  title: string;
-  channelTitle: string;
-  description: string;
-  thumbnailUrl: string;
-  publishedAt: string;
-  url: string;
-  embedUrl: string;
-};
+export type MusicCurationJobStatus =
+  | { status: "pending" }
+  | { status: "completed"; text: string }
+  | { status: "failed"; error: string };
 
-export type MusicAssistantSection = MusicSearchMoment & {
-  results: YouTubeMusicResult[];
-  searchError?: string;
-};
-
-function isTimeoutError(error: unknown) {
-  return error instanceof Error && (error.name === "TimeoutError" || /timed? ?out|aborted due to timeout/i.test(error.message));
-}
-
-const PLAN_PROMPT = `Você é um curador musical para DJs. Interprete o pedido do cliente e devolva SOMENTE um JSON válido, sem markdown, neste formato:
-{
-  "overview": "resumo acolhedor em português do Brasil, em até 2 frases",
-  "moments": [
-    { "title": "momento do evento em português do Brasil", "reason": "por que esta seleção combina, em português do Brasil", "query": "consulta curta e concreta para buscar vídeos e playlists reais no YouTube" }
-  ]
-}
-
-Crie de 2 a 3 momentos musicais úteis para o evento (por exemplo, recepção, jantar, entrada ou pista, quando fizer sentido). Respeite o estilo, artistas, época, idioma e energia solicitados, sem impor um gênero padrão. Cada query deve ser específica, curta e pesquisável; use termos que ajudem a encontrar faixas ou playlists reais no idioma pedido. Não invente títulos, artistas nem resultados: as músicas serão retornadas pela busca do YouTube. Mantenha os títulos e motivos em português do Brasil, mas escreva cada query no idioma que melhor atende ao pedido do cliente.`;
-
-function extractJsonObject(raw: string) {
-  const text = raw
-    .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, "")
-    .replace(/```(?:json)?/gi, "")
-    .replace(/```/g, "")
-    .trim();
-  const start = text.indexOf("{");
-  if (start < 0) throw new Error("A IA retornou uma resposta incompleta.");
-
-  let depth = 0;
-  let quoted = false;
-  let escaped = false;
-  let json = "";
-
-  for (let index = start; index < text.length; index += 1) {
-    const char = text[index];
-    json += char;
-
-    if (quoted) {
-      if (escaped) escaped = false;
-      else if (char === "\\") escaped = true;
-      else if (char === '"') quoted = false;
-      continue;
-    }
-
-    if (char === '"') quoted = true;
-    else if (char === "{") depth += 1;
-    else if (char === "}") {
-      depth -= 1;
-      if (depth === 0) return JSON.parse(json) as Record<string, unknown>;
-    }
+export async function canUseMusicAssistant(user: Pick<PortalUser, "id" | "active" | "services" | "serviceBilling" | "nextDueAt">) {
+  if (!user.active || !userHasActiveVipAccess({
+    servicePoolsVip: user.services.poolsVip,
+    nextDueAt: user.nextDueAt,
+    servicePoolsVipDueAt: user.serviceBilling.poolsVip.dueAt,
+  })) {
+    return false;
   }
 
-  throw new Error("A IA retornou uma resposta incompleta.");
+  try {
+    const latestApprovedPlan = await prisma.mercadoPagoOrder.findFirst({
+      where: { portalUserId: user.id, status: "APPROVED", planId: { startsWith: "brs-drive" } },
+      orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
+      select: { planId: true },
+    });
+    return Boolean(latestApprovedPlan && ELIGIBLE_PLAN_IDS.has(latestApprovedPlan.planId));
+  } catch (error) {
+    console.error("[portal/music-assistant] could not validate plan access", error instanceof Error ? error.name : "unknown error");
+    return false;
+  }
 }
 
-function cleanText(value: unknown, maxLength: number) {
-  return typeof value === "string" ? value.replace(/[\u0000-\u001f]/g, " ").trim().slice(0, maxLength) : "";
-}
-
-export async function createMusicSearchPlan(prompt: string): Promise<{
-  overview: string;
-  moments: MusicSearchMoment[];
-}> {
+function apiKeyOrThrow() {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-  if (!apiKey) throw new Error("A busca inteligente está temporariamente indisponível.");
+  if (!apiKey) throw new Error("O organizador musical está temporariamente indisponível.");
+  return apiKey;
+}
 
-  const model = process.env.PORTAL_MUSIC_ASSISTANT_MODEL?.trim() || "liquid/lfm-2.5-2.6b:free";
+function makeJobToken(batchId: string, userId: number, apiKey: string) {
+  const encodedBatchId = Buffer.from(batchId, "utf8").toString("base64url");
+  const signature = createHmac("sha256", process.env.PORTAL_SESSION_SECRET?.trim() || apiKey)
+    .update(`${userId}:${encodedBatchId}`)
+    .digest("base64url");
+  return `${encodedBatchId}.${signature}`;
+}
+
+function readJobBatchId(token: string, userId: number, apiKey: string) {
+  const [encodedBatchId, signature, extra] = token.split(".");
+  if (!encodedBatchId || !signature || extra) return null;
+  const expected = createHmac("sha256", process.env.PORTAL_SESSION_SECRET?.trim() || apiKey)
+    .update(`${userId}:${encodedBatchId}`)
+    .digest();
+  let actual: Buffer;
+  try {
+    actual = Buffer.from(signature, "base64url");
+  } catch {
+    return null;
+  }
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+  try {
+    const batchId = Buffer.from(encodedBatchId, "base64url").toString("utf8");
+    return /^[a-zA-Z0-9_-]{4,160}$/.test(batchId) ? batchId : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function submitMusicCuration(prompt: string, userId: number) {
+  const apiKey = apiKeyOrThrow();
   let response: Response;
   try {
-    response = await fetch(OPENROUTER_URL, {
+    response = await fetch(OPENROUTER_BATCH_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.brazilianremixservice.com.br",
-        "X-Title": "Brazilian Remix Service Music Assistant",
+        "X-Title": "Brazilian Remix Service — Organizador Musical",
       },
       body: JSON.stringify({
-        model,
-        temperature: 0.45,
-        max_tokens: 700,
-        reasoning: { effort: "low" },
-        messages: [
-          { role: "system", content: PLAN_PROMPT },
-          { role: "user", content: `Pedido do cliente:\n${prompt}` },
-        ],
+        endpoint: "/v1/chat/completions",
+        model: MUSIC_ASSISTANT_MODEL,
+        requests: [{
+          custom_id: MUSIC_ASSISTANT_REQUEST_ID,
+          body: {
+            temperature: 0.55,
+            max_tokens: 1400,
+            messages: [
+              { role: "system", content: MUSIC_CURATOR_PROMPT },
+              { role: "user", content: `Pedido do DJ:\n${prompt}` },
+            ],
+          },
+        }],
       }),
       signal: AbortSignal.timeout(25_000),
     });
   } catch (error) {
-    if (isTimeoutError(error)) {
-      console.error("[portal/music-assistant] OpenRouter request timed out");
-      throw new Error("A IA demorou mais que o esperado para montar as sugestões. Tente novamente.");
-    }
-    console.error("[portal/music-assistant] OpenRouter request failed", error instanceof Error ? error.name : "unknown error");
-    throw new Error("Não foi possível conectar à IA agora. Tente novamente em instantes.");
+    console.error("[portal/music-assistant] OpenRouter batch submission failed", error instanceof Error ? error.name : "unknown error");
+    throw new Error("Não foi possível enviar a curadoria para a IA. Tente novamente em instantes.");
   }
 
-  if (!response.ok) {
-    console.error("[portal/music-assistant] OpenRouter returned", response.status);
-    throw new Error("Não foi possível montar as sugestões agora. Tente novamente em instantes.");
+  const data = await response.json().catch(() => null) as MusicAssistantBatch | null;
+  if (!response.ok || !data?.id) {
+    console.error("[portal/music-assistant] OpenRouter batch submission returned", response.status, data?.error?.message ?? "invalid response");
+    throw new Error("Não foi possível iniciar a curadoria agora. Verifique os créditos da IA e tente novamente.");
   }
 
-  let data: { choices?: Array<{ message?: { content?: string | null } }> };
-  try {
-    data = (await response.json()) as typeof data;
-  } catch (error) {
-    if (isTimeoutError(error)) {
-      console.error("[portal/music-assistant] OpenRouter response timed out");
-      throw new Error("A resposta da IA demorou mais que o esperado. Tente novamente.");
-    }
-    console.error("[portal/music-assistant] OpenRouter response could not be read", error instanceof Error ? error.name : "unknown error");
-    throw new Error("A resposta da IA chegou incompleta. Tente novamente.");
-  }
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("A IA não retornou sugestões. Tente descrever o evento de outra forma.");
-
-  const parsed = extractJsonObject(content);
-  const moments = Array.isArray(parsed.moments)
-    ? parsed.moments
-        .slice(0, 3)
-        .map((moment) => {
-          if (!moment || typeof moment !== "object") return null;
-          const item = moment as Record<string, unknown>;
-          const title = cleanText(item.title, 70);
-          const reason = cleanText(item.reason, 220);
-          const query = cleanText(item.query, 150);
-          return title && query ? { title, reason, query } : null;
-        })
-        .filter((moment): moment is MusicSearchMoment => moment !== null)
-    : [];
-
-  if (!moments.length) throw new Error("A IA não conseguiu transformar o pedido em buscas musicais.");
-
-  return {
-    overview: cleanText(parsed.overview, 320) || "Organizamos seu pedido em momentos para facilitar a curadoria.",
-    moments,
-  };
+  return { jobToken: makeJobToken(data.id, userId, apiKey), status: data.status ?? "validating", model: MUSIC_ASSISTANT_BATCH_MODEL };
 }
 
-type YouTubeSearchResponse = {
-  items?: Array<{
-    id?: { kind?: string; videoId?: string; playlistId?: string };
-    snippet?: {
-      title?: string;
-      channelTitle?: string;
-      description?: string;
-      publishedAt?: string;
-      thumbnails?: {
-        high?: { url?: string };
-        medium?: { url?: string };
-        default?: { url?: string };
-      };
-    };
-  }>;
-  error?: { errors?: Array<{ reason?: string }> };
-};
+export async function getMusicCurationJob(token: string, userId: number): Promise<MusicCurationJobStatus | null> {
+  const apiKey = apiKeyOrThrow();
+  const batchId = readJobBatchId(token, userId, apiKey);
+  if (!batchId) return null;
 
-export async function searchYouTubeMusic(query: string, apiKey: string): Promise<YouTubeMusicResult[]> {
-  const url = new URL(YOUTUBE_SEARCH_URL);
-  url.searchParams.set("part", "snippet");
-  url.searchParams.set("q", query);
-  url.searchParams.set("type", "video,playlist");
-  url.searchParams.set("maxResults", "6");
-  url.searchParams.set("regionCode", "BR");
-  url.searchParams.set("safeSearch", "moderate");
-  url.searchParams.set("key", apiKey);
-
-  let response: Response;
-  try {
-    response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
-  } catch (error) {
-    if (isTimeoutError(error)) {
-      console.error("[portal/music-assistant] YouTube search timed out");
-      throw new Error("A pesquisa no YouTube demorou mais que o esperado. Tente novamente.");
-    }
-    console.error("[portal/music-assistant] YouTube request failed", error instanceof Error ? error.name : "unknown error");
-    throw new Error("Não foi possível conectar à pesquisa do YouTube agora. Tente novamente.");
-  }
-  let data: YouTubeSearchResponse;
-  try {
-    data = (await response.json()) as YouTubeSearchResponse;
-  } catch (error) {
-    if (isTimeoutError(error)) {
-      console.error("[portal/music-assistant] YouTube response timed out");
-      throw new Error("A resposta da pesquisa no YouTube demorou mais que o esperado. Tente novamente.");
-    }
-    console.error("[portal/music-assistant] YouTube response could not be read", error instanceof Error ? error.name : "unknown error");
-    throw new Error("A resposta da pesquisa do YouTube chegou incompleta. Tente novamente.");
-  }
-
-  if (!response.ok) {
-    const reason = data.error?.errors?.[0]?.reason;
-    if (reason === "quotaExceeded" || reason === "dailyLimitExceeded") {
-      throw new Error("A cota diária de pesquisa do YouTube foi atingida. Tente novamente mais tarde.");
-    }
-    if (reason === "keyInvalid" || response.status === 401 || response.status === 403) {
-      throw new Error("A busca do YouTube não está configurada. Verifique a chave e a API YouTube Data v3.");
-    }
-    console.error("[portal/music-assistant] YouTube API returned", response.status, reason ?? "unknown");
-    throw new Error("Não foi possível consultar o YouTube agora. Tente novamente em instantes.");
-  }
-
-  return (data.items ?? []).flatMap((item) => {
-    const snippet = item.snippet;
-    const kind = item.id?.kind === "youtube#video" ? "video" : item.id?.kind === "youtube#playlist" ? "playlist" : null;
-    const id = kind === "video" ? item.id?.videoId : kind === "playlist" ? item.id?.playlistId : undefined;
-    const title = cleanText(snippet?.title, 180);
-    if (!kind || !id || !title) return [];
-
-    const thumbnailUrl = snippet?.thumbnails?.medium?.url ?? snippet?.thumbnails?.high?.url ?? snippet?.thumbnails?.default?.url ?? "";
-    const url = kind === "video"
-      ? `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`
-      : `https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`;
-    const embedUrl = kind === "video"
-      ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}`
-      : `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(id)}`;
-
-    return [{
-      id,
-      kind,
-      title,
-      channelTitle: cleanText(snippet?.channelTitle, 120),
-      description: cleanText(snippet?.description, 260),
-      thumbnailUrl,
-      publishedAt: cleanText(snippet?.publishedAt, 40),
-      url,
-      embedUrl,
-    }];
+  const response = await fetch(`${OPENROUTER_BATCH_URL}/${encodeURIComponent(batchId)}`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(20_000),
   });
+  if (!response.ok) {
+    console.error("[portal/music-assistant] OpenRouter batch poll returned", response.status);
+    throw new Error("Não foi possível consultar o andamento da curadoria.");
+  }
+
+  const batch = await response.json() as MusicAssistantBatch;
+  const status = batch.status ?? "validating";
+  if (status === "completed") {
+    const result = batch.results?.find((item) => item.custom_id === MUSIC_ASSISTANT_REQUEST_ID);
+    const text = result?.response?.body?.choices?.[0]?.message?.content
+      ?.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, "")
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+      .trim()
+      .slice(0, 8_000);
+    if (text) return { status: "completed", text };
+    console.error("[portal/music-assistant] batch completed without a text result", result?.error?.message ?? batch.error?.message ?? "empty result");
+    return { status: "failed", error: "A IA não retornou uma curadoria. Tente novamente com outro pedido." };
+  }
+  if (["failed", "expired", "cancelled"].includes(status)) {
+    console.error("[portal/music-assistant] batch ended", status, batch.error?.message ?? "no provider detail");
+    return { status: "failed", error: "A curadoria não pôde ser concluída. Tente novamente mais tarde." };
+  }
+  return { status: "pending" };
 }
