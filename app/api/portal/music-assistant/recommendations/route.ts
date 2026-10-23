@@ -8,7 +8,17 @@ export const dynamic = "force-dynamic";
 const privateHeaders = { "Cache-Control": "private, no-store", Vary: "Cookie" };
 
 export async function POST(request: Request) {
-  const user = await getAuthenticatedPortalUser();
+  let user: Awaited<ReturnType<typeof getAuthenticatedPortalUser>>;
+  try {
+    user = await getAuthenticatedPortalUser();
+  } catch (error) {
+    console.error("[portal/music-assistant] session lookup failed:", error instanceof Error ? error.name : "unknown error");
+    return NextResponse.json({ error: "Não foi possível validar sua sessão do Portal. Atualize a página e tente novamente." }, {
+      status: 503,
+      headers: privateHeaders,
+    });
+  }
+
   if (!user) {
     return NextResponse.json({ error: "Faça login no portal para usar o assistente." }, {
       status: 401,

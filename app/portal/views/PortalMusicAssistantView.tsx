@@ -80,7 +80,24 @@ export function PortalMusicAssistantView() {
         cache: "no-store",
         body: JSON.stringify({ prompt: requestPrompt }),
       });
-      const data = (await response.json()) as RecommendationResponse;
+      const responseText = await response.text();
+      const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+      if (!contentType.includes("json")) {
+        if (response.status === 404) {
+          throw new Error("A busca ainda não está disponível nesta versão do site. Confirme se o último deploy foi concluído e tente novamente.");
+        }
+        if (response.status >= 500) {
+          throw new Error(`O servidor retornou uma página de erro (HTTP ${response.status}). Confira os logs do Dokploy.`);
+        }
+        throw new Error(`O servidor respondeu em um formato inesperado (HTTP ${response.status}). Atualize a página e tente novamente.`);
+      }
+
+      let data: RecommendationResponse;
+      try {
+        data = JSON.parse(responseText) as RecommendationResponse;
+      } catch {
+        throw new Error("O servidor retornou uma resposta inválida. Tente novamente em instantes.");
+      }
       if (!response.ok) throw new Error(data.error || "Não foi possível buscar sugestões agora.");
       setOverview(data.overview);
       setSections(data.sections ?? []);
