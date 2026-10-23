@@ -23,7 +23,12 @@ export type YouTubeMusicResult = {
 
 export type MusicAssistantSection = MusicSearchMoment & {
   results: YouTubeMusicResult[];
+  searchError?: string;
 };
+
+function isTimeoutError(error: unknown) {
+  return error instanceof Error && (error.name === "TimeoutError" || /timed? ?out|aborted due to timeout/i.test(error.message));
+}
 
 const PLAN_PROMPT = `Você é um curador musical para DJs. Interprete o pedido do cliente e devolva SOMENTE um JSON válido, sem markdown, neste formato:
 {
@@ -83,34 +88,53 @@ export async function createMusicSearchPlan(prompt: string): Promise<{
   if (!apiKey) throw new Error("A busca inteligente está temporariamente indisponível.");
 
   const model = process.env.PORTAL_MUSIC_ASSISTANT_MODEL?.trim() || "liquid/lfm-2.5-2.6b:free";
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.brazilianremixservice.com.br",
-      "X-Title": "Brazilian Remix Service Music Assistant",
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.45,
-      max_tokens: 900,
-      messages: [
-        { role: "system", content: PLAN_PROMPT },
-        { role: "user", content: `Pedido do cliente:\n${prompt}` },
-      ],
-    }),
-    signal: AbortSignal.timeout(25_000),
-  });
+  let response: Response;
+  try {
+    response = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.brazilianremixservice.com.br",
+        "X-Title": "Brazilian Remix Service Music Assistant",
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.45,
+        max_tokens: 700,
+        reasoning: { effort: "low" },
+        messages: [
+          { role: "system", content: PLAN_PROMPT },
+          { role: "user", content: `Pedido do cliente:\n${prompt}` },
+        ],
+      }),
+      signal: AbortSignal.timeout(25_000),
+    });
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      console.error("[portal/music-assistant] OpenRouter request timed out");
+      throw new Error("A IA demorou mais que o esperado para montar as sugestões. Tente novamente.");
+    }
+    console.error("[portal/music-assistant] OpenRouter request failed", error instanceof Error ? error.name : "unknown error");
+    throw new Error("Não foi possível conectar à IA agora. Tente novamente em instantes.");
+  }
 
   if (!response.ok) {
     console.error("[portal/music-assistant] OpenRouter returned", response.status);
     throw new Error("Não foi possível montar as sugestões agora. Tente novamente em instantes.");
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string | null } }>;
-  };
+  let data: { choices?: Array<{ message?: { content?: string | null } }> };
+  try {
+    data = (await response.json()) as typeof data;
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      console.error("[portal/music-assistant] OpenRouter response timed out");
+      throw new Error("A resposta da IA demorou mais que o esperado. Tente novamente.");
+    }
+    console.error("[portal/music-assistant] OpenRouter response could not be read", error instanceof Error ? error.name : "unknown error");
+    throw new Error("A resposta da IA chegou incompleta. Tente novamente.");
+  }
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error("A IA não retornou sugestões. Tente descrever o evento de outra forma.");
 
@@ -165,8 +189,28 @@ export async function searchYouTubeMusic(query: string, apiKey: string): Promise
   url.searchParams.set("safeSearch", "moderate");
   url.searchParams.set("key", apiKey);
 
-  const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
-  const data = (await response.json().catch(() => ({}))) as YouTubeSearchResponse;
+  let response: Response;
+  try {
+    response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      console.error("[portal/music-assistant] YouTube search timed out");
+      throw new Error("A pesquisa no YouTube demorou mais que o esperado. Tente novamente.");
+    }
+    console.error("[portal/music-assistant] YouTube request failed", error instanceof Error ? error.name : "unknown error");
+    throw new Error("Não foi possível conectar à pesquisa do YouTube agora. Tente novamente.");
+  }
+  let data: YouTubeSearchResponse;
+  try {
+    data = (await response.json()) as YouTubeSearchResponse;
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      console.error("[portal/music-assistant] YouTube response timed out");
+      throw new Error("A resposta da pesquisa no YouTube demorou mais que o esperado. Tente novamente.");
+    }
+    console.error("[portal/music-assistant] YouTube response could not be read", error instanceof Error ? error.name : "unknown error");
+    throw new Error("A resposta da pesquisa do YouTube chegou incompleta. Tente novamente.");
+  }
 
   if (!response.ok) {
     const reason = data.error?.errors?.[0]?.reason;

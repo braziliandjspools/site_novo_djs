@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedPortalUser } from "../../../../lib/portal";
 import { checkRateLimit } from "../../../../lib/rate-limit";
-import { createMusicSearchPlan, searchYouTubeMusic } from "../../../../lib/portal-music-assistant";
+import { createMusicSearchPlan, searchYouTubeMusic, type MusicAssistantSection } from "../../../../lib/portal-music-assistant";
 
 export const dynamic = "force-dynamic";
 
@@ -68,12 +68,30 @@ export async function POST(request: Request) {
 
   try {
     const plan = await createMusicSearchPlan(prompt);
-    const sections = await Promise.all(
-      plan.moments.map(async (moment) => ({
-        ...moment,
-        results: await searchYouTubeMusic(moment.query, youtubeApiKey),
-      })),
+    const searchResults = await Promise.allSettled(
+      plan.moments.map((moment) => searchYouTubeMusic(moment.query, youtubeApiKey)),
     );
+    const sections: MusicAssistantSection[] = plan.moments.map((moment, index) => {
+      const result = searchResults[index];
+      if (result.status === "fulfilled") return { ...moment, results: result.value };
+
+      const message = result.reason instanceof Error
+        ? result.reason.message
+        : "Não foi possível pesquisar este momento no YouTube.";
+      console.error("[portal/music-assistant] YouTube section search failed:", {
+        userId: user.id,
+        title: moment.title,
+        message,
+      });
+      return { ...moment, results: [], searchError: message };
+    });
+
+    if (sections.every((section) => section.searchError)) {
+      return NextResponse.json({ error: sections[0]?.searchError ?? "Não foi possível consultar o YouTube agora." }, {
+        status: 502,
+        headers: privateHeaders,
+      });
+    }
 
     return NextResponse.json({ overview: plan.overview, sections }, { headers: privateHeaders });
   } catch (error) {

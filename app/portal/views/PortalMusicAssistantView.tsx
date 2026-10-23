@@ -34,6 +34,7 @@ type RecommendationSection = {
   reason: string;
   query: string;
   results: Recommendation[];
+  searchError?: string;
 };
 
 type RecommendationResponse = {
@@ -310,7 +311,7 @@ export function PortalMusicAssistantView() {
                   </div>
                 ) : (
                   <p className="rounded-lg border border-dashed border-white/10 px-4 py-7 text-center text-xs text-zinc-500">
-                    Nenhum resultado para este momento. Tente uma descrição mais específica.
+                    {section.searchError ?? "Nenhum resultado para este momento. Tente uma descrição mais específica."}
                   </p>
                 )}
               </PortalCard>
