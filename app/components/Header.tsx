@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { APP_TOP_CHROME, APP_TOP_CHROME_ROW, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
+import { APP_TOP_CHROME, APP_TOP_CHROME_ROW_H } from "../lib/app-chrome";
 import { SITE_PRIMARY_NAV, SITE_TOOLS_MENU } from "../lib/site-nav";
 import { BrsLogo } from "./BrsLogo";
 import { MarketingAuthControls } from "./MarketingAuthControls";
@@ -13,11 +12,9 @@ import { PageLanguageSwitcher } from "./PageLanguageSwitcher";
 import { SiteNotificationBell } from "./notifications/SiteNotificationBell";
 
 const navLinkClass =
-  "group relative px-3 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-400 transition-colors hover:text-white";
+  "group relative px-2 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400 transition-colors hover:text-white 2xl:px-3 2xl:text-[11px] 2xl:tracking-[0.14em]";
 
 export function Header() {
-  const pathname = usePathname();
-  const isHomePage = pathname === "/";
   const [isOpen, setIsOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
@@ -46,17 +43,13 @@ export function Header() {
       <header className={APP_TOP_CHROME}>
         <div className="br-stripe" />
         <div
-          className={
-            isHomePage
-              ? "relative mx-0 flex h-16 w-full min-w-0 items-center gap-3 px-4 sm:px-6 md:h-[72px] lg:px-8"
-              : `${APP_TOP_CHROME_ROW} ${APP_TOP_CHROME_ROW_H} max-w-6xl md:px-6`
-          }
+          className={`app-top-chrome-row relative mx-0 flex w-full max-w-none min-w-0 items-center gap-2 px-2 sm:gap-3 sm:px-3 md:px-3 ${APP_TOP_CHROME_ROW_H}`}
         >
           <div className="mr-auto flex min-w-0 flex-shrink-0 items-center lg:mr-0">
             <BrsLogo
               href="/"
               priority
-              className="h-8 w-auto max-w-[108px] object-contain min-[390px]:max-w-[132px] sm:h-10 sm:max-w-[220px] md:h-11 md:max-w-[260px]"
+              className="h-8 w-auto max-w-[108px] object-contain min-[390px]:max-w-[132px] sm:h-10 sm:max-w-[220px] md:h-11 md:max-w-[260px] lg:max-w-[176px] 2xl:max-w-[240px]"
             />
           </div>
 
@@ -140,7 +133,7 @@ export function Header() {
             <SiteNotificationBell compact />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="relative z-10 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10"
+              className="relative z-10 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-white transition-colors hover:bg-white/10 sm:h-11 sm:w-11"
               aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}

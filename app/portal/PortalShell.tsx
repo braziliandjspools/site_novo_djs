@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   Music2,
+  Sparkles,
   User,
   X,
 } from "lucide-react";
@@ -40,6 +41,7 @@ const navItems: { id: PortalView; label: string; icon: typeof Home }[] = [
   { id: "services", label: "Meus Serviços", icon: LayoutGrid },
   { id: "service-music-producer", label: "Produções", icon: Music2 },
   { id: "scripts", label: "Scripts", icon: Code2 },
+  { id: "music-assistant", label: "Assistente Musical", icon: Sparkles },
   { id: "account", label: "Minha Conta", icon: User },
   { id: "support", label: "Suporte", icon: HeadphonesIcon },
 ];

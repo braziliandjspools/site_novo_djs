@@ -20,6 +20,7 @@ import {
 } from "./views/ServiceViews";
 import { MusicProducerDeliveriesView } from "./views/MusicProducerDeliveriesView";
 import { PortalScriptsView } from "./views/PortalScriptsView";
+import { PortalMusicAssistantView } from "./views/PortalMusicAssistantView";
 
 type PortalDashboardProps = {
   onLogout: () => void;
@@ -31,12 +32,11 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<PortalView>(() => viewFromPortalPathname(pathname));
+  const activeView = viewFromPortalPathname(pathname);
   const [now, setNow] = useState(() => new Date());
 
   const navigate = useCallback(
     (view: PortalView) => {
-      setActiveView(view);
       const href = portalPath(view);
       if (pathname !== href) {
         router.push(href);
@@ -45,28 +45,29 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
     [pathname, router],
   );
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/portal/data");
-      if (!res.ok) throw new Error("unauthorized");
-      setData((await res.json()) as PortalData);
-    } catch {
-      setError("Não foi possível carregar seus dados.");
-      onLogout();
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    let active = true;
+    fetch("/api/portal/data")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("unauthorized");
+        return (await response.json()) as PortalData;
+      })
+      .then((portalData) => {
+        if (active) setData(portalData);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError("Não foi possível carregar seus dados.");
+        onLogout();
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [onLogout]);
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
-  useEffect(() => {
-    setActiveView(viewFromPortalPathname(pathname));
-  }, [pathname]);
 
   useEffect(() => {
     const legacyView = new URLSearchParams(window.location.search).get("view");
@@ -128,6 +129,8 @@ export function PortalDashboard({ onLogout }: PortalDashboardProps) {
         return <MusicProducerDeliveriesView />;
       case "scripts":
         return <PortalScriptsView hasActivePlan={portalData.hasSubscriptionPlan} />;
+      case "music-assistant":
+        return <PortalMusicAssistantView />;
       case "account":
         return <AccountView data={portalData} />;
       case "support":

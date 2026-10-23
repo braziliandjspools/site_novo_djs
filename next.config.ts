@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "i.ibb.co" },
       { protocol: "https", hostname: "placehold.co" },
       { protocol: "https", hostname: "image-cdn-ak.spotifycdn.com" },
+      { protocol: "https", hostname: "i.ytimg.com" },
     ],
   },
   async redirects() {
