@@ -28,17 +28,14 @@ export function AdminScriptsApp() {
   }, [checkSession]);
 
   if (authenticated === null) {
-    return <div className="py-24 text-center text-sm text-zinc-500">Carregando...</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-[#121212] text-sm text-zinc-500">Carregando painel…</div>;
   }
 
   if (!authenticated) {
-    return <AdminLogin onSuccess={checkSession} />;
+    return <div className="flex min-h-screen items-center justify-center bg-[#121212] px-4"><AdminLogin onSuccess={checkSession} /></div>;
   }
 
   return (
-    <div className="space-y-5">
-      <AdminMenu />
-      <AdminScripts onLogout={() => setAuthenticated(false)} />
-    </div>
+    <AdminMenu onLogout={() => setAuthenticated(false)}><AdminScripts /></AdminMenu>
   );
 }

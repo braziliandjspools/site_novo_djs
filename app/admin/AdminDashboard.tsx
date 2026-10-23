@@ -5,7 +5,6 @@ import {
   FolderTree,
   HardDrive,
   Loader2,
-  LogOut,
   Monitor,
   Music2,
   RefreshCw,
@@ -69,10 +68,6 @@ type AdminStats = {
     failed: number;
     completed: number;
   };
-};
-
-type AdminDashboardProps = {
-  onLogout: () => void;
 };
 
 function formatDateTime(iso: string | null | undefined) {
@@ -144,7 +139,7 @@ function StatCard({
   );
 }
 
-export function AdminDashboard({ onLogout }: AdminDashboardProps) {
+export function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,6 +171,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
     const timer = window.setInterval(() => {
       void load({ silent: true });
@@ -210,14 +206,6 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
               <RefreshCw className="h-3.5 w-3.5" />
             )}
             Atualizar
-          </button>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sair
           </button>
         </div>
       </div>

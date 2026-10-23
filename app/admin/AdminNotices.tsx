@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, LogOut, Megaphone, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, Megaphone, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 type NoticeRow = {
   id: number;
@@ -17,10 +17,6 @@ type NoticeRow = {
 
 type UserOption = { id: number; name: string; email: string };
 
-type AdminNoticesProps = {
-  onLogout: () => void;
-};
-
 const severityLabel: Record<NoticeRow["severity"], string> = {
   INFO: "Info",
   SUCCESS: "Sucesso",
@@ -28,7 +24,7 @@ const severityLabel: Record<NoticeRow["severity"], string> = {
   ERROR: "Urgente",
 };
 
-export function AdminNotices({ onLogout }: AdminNoticesProps) {
+export function AdminNotices() {
   const [notices, setNotices] = useState<NoticeRow[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +66,7 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
@@ -143,13 +140,6 @@ export function AdminNotices({ onLogout }: AdminNoticesProps) {
             className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-zinc-300 hover:bg-white/5"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Atualizar
-          </button>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold uppercase tracking-wider text-red-300 hover:bg-red-500/10"
-          >
-            <LogOut className="h-3.5 w-3.5" /> Sair
           </button>
         </div>
       </div>

@@ -7,11 +7,9 @@ import { formatStyleNameForDisplay } from "../../../lib/style-display";
 
 export default function AdminProductionView({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <main className="mx-auto min-h-screen max-w-3xl overflow-x-hidden px-4 py-8 text-white sm:px-6">
-      <AdminGate>
-        <Preview params={params} />
-      </AdminGate>
-    </main>
+    <AdminGate>
+      <Preview params={params} />
+    </AdminGate>
   );
 }
 

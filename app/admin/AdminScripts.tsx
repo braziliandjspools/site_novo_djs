@@ -17,8 +17,6 @@ type ScriptRow = {
 };
 
 type ScriptForm = Pick<ScriptRow, "title" | "description" | "fileName" | "script">;
-type AdminScriptsProps = { onLogout: () => void };
-
 const emptyForm: ScriptForm = { title: "", description: "", fileName: "", script: "" };
 
 function dateLabel(value: string) {
@@ -26,7 +24,7 @@ function dateLabel(value: string) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("pt-BR");
 }
 
-export function AdminScripts({ onLogout }: AdminScriptsProps) {
+export function AdminScripts() {
   const [scripts, setScripts] = useState<ScriptRow[]>([]);
   const [form, setForm] = useState<ScriptForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -175,16 +173,6 @@ export function AdminScripts({ onLogout }: AdminScriptsProps) {
             className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#1db954] px-3 text-xs font-black uppercase tracking-wider text-black hover:bg-[#55e986]"
           >
             <Plus className="h-4 w-4" /> Novo script
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" });
-              onLogout();
-            }}
-            className="min-h-10 rounded-lg border border-red-400/20 px-3 text-xs font-bold uppercase tracking-wider text-red-300 hover:bg-red-400/10"
-          >
-            Sair
           </button>
         </div>
       </header>

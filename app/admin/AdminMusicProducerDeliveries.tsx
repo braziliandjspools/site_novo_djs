@@ -8,7 +8,6 @@ import {
   ClipboardCheck,
   FileText,
   Loader2,
-  LogOut,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -191,13 +190,9 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
   }, [onLogout]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadData();
   }, [loadData]);
-
-  async function handleLogout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    onLogout();
-  }
 
   function getNewDraft(userId: number) {
     return newDrafts[userId] ?? emptyDraft();
@@ -490,14 +485,6 @@ export function AdminMusicProducerDeliveries({ onLogout }: AdminMusicProducerDel
           >
             <RefreshCw className="h-4 w-4" />
             Atualizar
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleLogout()}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-gray-300 hover:border-red-500/40 hover:text-red-300"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
           </button>
         </div>
       </div>

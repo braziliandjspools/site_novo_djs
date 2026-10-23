@@ -180,6 +180,44 @@ export async function getMusicProducerBriefingById(id: number) {
   return prisma.musicProducerBriefing.findUnique({ where: { id } });
 }
 
+/** Client edits or removes their own request only while it has not entered production. */
+export async function updatePortalUserMusicProducerBriefing(
+  id: number,
+  portalUserId: number,
+  input: UpdateMusicProducerBriefingInput,
+) {
+  const allowedStatuses: MusicProducerBriefingStatus[] = ["PENDENTE", "EM_EDICAO"];
+  const data: Record<string, unknown> = {};
+  if (input.idea !== undefined) data.idea = input.idea;
+  if (input.lyrics !== undefined) data.lyrics = input.lyrics;
+  if (input.style !== undefined) data.style = input.style;
+  if (input.occasion !== undefined) data.occasion = input.occasion;
+  if (input.deadline !== undefined) data.deadline = input.deadline;
+  if (input.additionalNotes !== undefined) data.additionalNotes = input.additionalNotes;
+  if (input.status !== undefined) data.status = input.status;
+  if (input.adminNote !== undefined) data.adminNote = input.adminNote;
+
+  const result = await prisma.musicProducerBriefing.updateMany({
+    where: { id, portalUserId, status: { in: allowedStatuses } },
+    data,
+  });
+  if (!result.count) return null;
+
+  const record = await prisma.musicProducerBriefing.findUnique({ where: { id } });
+  return record ? serializeMusicProducerBriefing(record) : null;
+}
+
+export async function deletePortalUserMusicProducerBriefing(id: number, portalUserId: number) {
+  const result = await prisma.musicProducerBriefing.deleteMany({
+    where: {
+      id,
+      portalUserId,
+      status: { in: ["PENDENTE", "EM_EDICAO"] },
+    },
+  });
+  return result.count > 0;
+}
+
 export function isBriefingStatus(value: string): value is MusicProducerBriefingStatus {
   return (MUSIC_PRODUCER_BRIEFING_STATUSES as readonly string[]).includes(value);
 }

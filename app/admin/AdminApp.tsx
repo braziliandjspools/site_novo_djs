@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell, UsersRound } from "lucide-react";
+import { Bell, Music2, UsersRound } from "lucide-react";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminLogin } from "./AdminLogin";
 import { AdminMenu } from "./AdminMenu";
@@ -32,43 +32,35 @@ export function AdminApp() {
   }, [checkSession]);
 
   if (authenticated === null) {
-    return <div className="py-24 text-center text-sm text-gray-500">Carregando...</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-[#121212] text-sm text-gray-500">Carregando painel…</div>;
   }
 
   if (!authenticated) {
-    return <AdminLogin onSuccess={() => checkSession()} />;
+    return <div className="flex min-h-screen items-center justify-center bg-[#121212] px-4"><AdminLogin onSuccess={() => checkSession()} /></div>;
   }
 
-  const tabs: { id: AdminTab; label: string }[] = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "users", label: "Clientes" },
-    { id: "deliveries", label: "Produções musicais" },
-    { id: "notices", label: "Avisos" },
+  const sections = [
+    { id: "users", label: "Clientes", icon: UsersRound },
+    { id: "deliveries", label: "Produções musicais", icon: Music2 },
+    { id: "notices", label: "Avisos", icon: Bell },
   ];
 
   return (
-    <div className="admin-premium-shell w-full min-w-0 space-y-6">
-      <AdminMenu>
-          <div className="flex gap-1">
-            {tabs.filter((tab) => tab.id !== "dashboard").map((tab) => (
-              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} aria-pressed={activeTab === tab.id} className={`rounded-xl px-3 py-2.5 text-xs font-bold ${activeTab === tab.id ? "bg-sky-300 text-[#061018]" : "text-white/45 hover:bg-white/5 hover:text-white"}`}>
-                {tab.id === "users" ? <UsersRound className="inline h-4 w-4" /> : <Bell className="inline h-4 w-4" />}
-                <span className="ml-1 hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-      </AdminMenu>
-
+    <AdminMenu
+      onLogout={() => setAuthenticated(false)}
+      activeSection={activeTab}
+      sections={sections}
+      onSectionChange={(section) => setActiveTab(section as AdminTab)}
+    >
       {activeTab === "dashboard" ? (
-        <AdminDashboard onLogout={() => setAuthenticated(false)} />
+        <AdminDashboard />
       ) : activeTab === "users" ? (
         <AdminUsersTable onLogout={() => setAuthenticated(false)} />
       ) : activeTab === "deliveries" ? (
         <AdminMusicProducerDeliveries onLogout={() => setAuthenticated(false)} />
       ) : (
-        <AdminNotices onLogout={() => setAuthenticated(false)} />
+        <AdminNotices />
       )}
-
-    </div>
+    </AdminMenu>
   );
 }

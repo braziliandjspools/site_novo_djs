@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Download, Loader2, LogOut, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
+import { Download, Loader2, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { daysUntilDue, getDueUrgency, toDateInputValue } from "../lib/due-queue";
 
 import { ServiceSelector, emptyServices, servicesSummary, type ServiceDraft } from "./ServiceSelector";
@@ -209,6 +209,7 @@ function MoneyInput({
   const [text, setText] = useState(value);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!focused) setText(value);
   }, [value, focused]);
 
@@ -264,7 +265,9 @@ function UserAccountModal({
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -628,13 +631,9 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
   }, [onLogout]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadUsers();
   }, [loadUsers]);
-
-  async function handleLogout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    onLogout();
-  }
 
   function updateDraft(id: number, patch: Partial<DraftRow>) {
     setDrafts((prev) => ({
@@ -919,14 +918,6 @@ export function AdminUsersTable({ onLogout }: AdminUsersTableProps) {
           >
             <Plus className="h-4 w-4" />
             Novo cliente
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleLogout()}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-gray-300 hover:border-red-500/40 hover:text-red-300 sm:w-auto"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
           </button>
         </div>
       </div>

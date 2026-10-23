@@ -7,8 +7,8 @@ import { AdminProductionForm } from "../../AdminProductionForm";
 
 export default function NewProductionPage() {
   return (
-    <main className="admin-production-page mx-auto min-h-screen w-full max-w-5xl overflow-x-hidden px-4 py-6 text-white sm:px-6 sm:py-10">
-      <AdminGate>
+    <AdminGate>
+      <div className="admin-production-page mx-auto min-h-full w-full max-w-5xl overflow-x-hidden text-white">
         <div className="admin-production-heading mb-7 sm:mb-9">
           <Link href="/admin/producoes" className="admin-production-back mb-6 inline-flex items-center gap-2 text-sm font-medium">
             <ArrowLeft className="h-4 w-4" /> Voltar para produções
@@ -28,7 +28,7 @@ export default function NewProductionPage() {
           </div>
         </div>
         <AdminProductionForm />
-      </AdminGate>
-    </main>
+      </div>
+    </AdminGate>
   );
 }

@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminScriptsPage() {
-  return (
-    <main className="mx-auto w-full max-w-[1600px] min-w-0 px-3 py-8 sm:px-4 md:px-6">
-      <AdminScriptsApp />
-    </main>
-  );
+  return <AdminScriptsApp />;
 }

@@ -14,12 +14,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
       .catch(() => setAuthenticated(false));
   }, []);
 
-  if (authenticated === null) return <p className="py-16 text-center text-sm text-zinc-500">Carregando...</p>;
-  if (!authenticated) return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
-  return (
-    <div className="space-y-5">
-      <AdminMenu />
-      {children}
-    </div>
-  );
+  if (authenticated === null) return <div className="flex min-h-screen items-center justify-center bg-[#121212] text-sm text-zinc-500">Carregando painel…</div>;
+  if (!authenticated) return <div className="flex min-h-screen items-center justify-center bg-[#121212] px-4"><AdminLogin onSuccess={() => setAuthenticated(true)} /></div>;
+  return <AdminMenu onLogout={() => setAuthenticated(false)}>{children}</AdminMenu>;
 }
