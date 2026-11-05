@@ -433,7 +433,7 @@ function pushAudioFile(
     id: file.id,
     fileName: file.name,
     haystack: normalize(
-      `${file.name} ${meta.title} ${meta.artist} ${meta.version ?? ""} ${style.name} ${styleLabel} ${nestedLabel ?? ""} ${itemPath}`,
+      `${file.name} ${meta.title} ${meta.artist} ${meta.version ?? ""} ${style.name} ${styleLabel} ${style.poolName ?? ""} ${style.relativePath} ${nestedLabel ?? ""} ${itemPath}`,
     ),
     monthSlug: style.monthSlug,
     monthLabel: style.monthLabel,
