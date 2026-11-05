@@ -6,6 +6,7 @@ import { getVipMusicSession, vipMusicClientAccess } from "../../../lib/vip-music
 import { refreshVipMusicCatalog, clearVipMusicCatalogPageCache } from "../../../lib/vip-music-catalog";
 import { clearVipMusicInventoryCache } from "../../../lib/vip-music-inventory";
 import { clearVipMusicSearchCaches, warmVipMusicSearchIndex } from "../../../lib/vip-music-search";
+import { clearVipStyleTargetCache } from "../../../lib/vip-style-tracks";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     revalidateTag(GOOGLE_DRIVE_CACHE_TAG, { expire: 0 });
     clearVipMusicInventoryCache();
     clearVipMusicSearchCaches();
+    clearVipStyleTargetCache();
     clearVipMusicCatalogPageCache();
     clearDriveChildrenMemo();
 

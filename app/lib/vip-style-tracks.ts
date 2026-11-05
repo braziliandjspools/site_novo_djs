@@ -2,14 +2,14 @@ import { listDriveFolderChildren, parseTrackMeta, type PreviewTrack } from "./go
 import { getTrackDisplayMetadata } from "./track-display-metadata";
 import { isDriveAudioFile } from "./folder-cover";
 import { mapPool } from "./map-pool";
-import { listVipMusicFolders, type VipMusicFolder } from "./vip-music-catalog";
+import { listVipMusicFolders } from "./vip-music-catalog";
 import {
-  childrenAreWeekFolders,
   displayFolderName,
   folderHref,
   isMonthFolderName,
   isWeekFolderName,
   parseYearCollectionFolder,
+  parseUpdateDateFolder,
   slugifyFolderName,
   slugifyStyleName,
   stylesHref,
@@ -22,12 +22,20 @@ const DEFAULT_TRACK_LIMIT = 5000;
 export type VipStyleScanTarget = {
   id: string;
   name: string;
+  styleFolderId: string;
+  stylePathSegments: string[];
+  trackCount: number;
+  latestModifiedAt: string | null;
   packSlug?: string;
   packName?: string;
   monthSlug: string;
   monthName: string;
   weekSlug?: string;
   weekName?: string;
+  poolSlug?: string;
+  poolName?: string;
+  poolFolderId?: string;
+  updateDate?: string | null;
 };
 
 export type StyleTrackHit = PreviewTrack & {
@@ -39,6 +47,10 @@ export type StyleTrackHit = PreviewTrack & {
   monthName: string;
   weekSlug?: string;
   weekName?: string;
+  poolSlug?: string;
+  poolName?: string;
+  poolFolderId?: string;
+  updateDate?: string | null;
   styleSlug: string;
   href: string;
   relativePath: string;
@@ -57,20 +69,39 @@ export type VipStyleListItem = {
   slug: string;
   name: string;
   folderCount: number;
+  trackCount: number;
+  poolCount: number;
+  poolNames: string[];
+  latestUpdateDate: string | null;
   href: string;
 };
 
+type VipStyleScanContext = {
+  packSlug?: string;
+  packName?: string;
+  monthSlug?: string;
+  monthName?: string;
+  weekSlug?: string;
+  weekName?: string;
+  poolSlug?: string;
+  poolName?: string;
+  poolFolderId?: string;
+  updateDate?: string | null;
+  styleName?: string;
+  styleFolderId?: string;
+  stylePathSegments?: string[];
+  pathSegments: string[];
+  __currentName?: string;
+};
+
+const STYLE_TARGETS_TTL_MS = 5 * 60_000;
+let styleTargetsCache: { expiresAt: number; targets: VipStyleScanTarget[] } | null = null;
+let styleTargetsInflight: Promise<VipStyleScanTarget[]> | null = null;
+let styleTargetsGeneration = 0;
+
 async function collectStyleLeaves(
   folderId: string,
-  context: {
-    packSlug?: string;
-    packName?: string;
-    monthSlug?: string;
-    monthName?: string;
-    weekSlug?: string;
-    weekName?: string;
-    __currentName?: string;
-  },
+  context: VipStyleScanContext,
   depth = 0,
   visited = new Set<string>(),
 ): Promise<VipStyleScanTarget[]> {
@@ -86,19 +117,32 @@ async function collectStyleLeaves(
   // "estilo" quando ela não é a própria raiz/pack: isso permite encontrar
   // estilos mesmo em árvores diferentes das atualizações.
   if (audio.length > 0 && folders.length === 0 && depth >= 2) {
-    const name = children.length > 0 ? context.__currentName ?? "" : "";
+    const name = context.styleName ?? context.__currentName ?? "";
     if (name) {
       const slug = slugifyStyleName(name);
       if (slug) {
+        const stylePathSegments = context.stylePathSegments ?? context.pathSegments;
+        const latestModifiedAt = audio
+          .map((item) => item.createdTime ?? item.modifiedTime ?? "")
+          .filter(Boolean)
+          .sort((a, b) => b.localeCompare(a))[0] ?? null;
         out.push({
           id: folderId,
           name,
+          styleFolderId: context.styleFolderId ?? folderId,
+          stylePathSegments: [...stylePathSegments],
+          trackCount: audio.length,
+          latestModifiedAt,
           packSlug: context.packSlug,
           packName: context.packName,
           monthSlug: context.monthSlug ?? "",
           monthName: context.monthName ?? "",
           weekSlug: context.weekSlug,
           weekName: context.weekName,
+          poolSlug: context.poolSlug,
+          poolName: context.poolName,
+          poolFolderId: context.poolFolderId,
+          updateDate: context.updateDate,
         });
       }
     }
@@ -110,12 +154,33 @@ async function collectStyleLeaves(
     const folderName = displayFolderName(folder.name);
     const parsedMonth = isMonthFolderName(folder.name);
     const parsedWeek = isWeekFolderName(folder.name);
+    const parsedDate = parseUpdateDateFolder(folder.name);
+    const currentFolderIsPool = Boolean(
+      context.monthName && !context.weekName && !context.updateDate && !context.poolFolderId &&
+      !context.styleName && context.__currentName !== context.monthName && audio.length === 0 && folders.length > 0,
+    );
+    const poolNode = Boolean(context.updateDate && !context.poolFolderId && !parsedDate);
+    const nextPathSegments = [...context.pathSegments, slugifyFolderName(folder.name)];
+    const parentPoolFolderId = context.poolFolderId ?? (currentFolderIsPool ? folderId : undefined);
+    const isStyleNode = Boolean(
+      !parsedMonth && !parsedWeek && !parsedDate && !poolNode && !context.styleName &&
+      (parentPoolFolderId || context.weekName),
+    );
+    const styleName = context.styleName ?? (isStyleNode ? folderName : undefined);
     const nextContext = {
       ...context,
       monthSlug: parsedMonth ? slugifyFolderName(folder.name) : context.monthSlug,
       monthName: parsedMonth ? folderName : context.monthName,
-      weekSlug: parsedWeek ? slugifyFolderName(folder.name) : context.weekSlug,
-      weekName: parsedWeek ? folderName : context.weekName,
+      updateDate: parsedDate?.key ?? context.updateDate,
+      weekSlug: parsedDate ? slugifyFolderName(folder.name) : parsedWeek ? slugifyFolderName(folder.name) : context.weekSlug,
+      weekName: parsedDate ? parsedDate.label : parsedWeek ? folderName : context.weekName,
+      poolSlug: poolNode ? slugifyFolderName(folder.name) : currentFolderIsPool ? slugifyFolderName(context.__currentName ?? "") : context.poolSlug,
+      poolName: poolNode ? folderName : currentFolderIsPool ? context.__currentName : context.poolName,
+      poolFolderId: poolNode ? folder.id : currentFolderIsPool ? folderId : context.poolFolderId,
+      styleName,
+      styleFolderId: isStyleNode ? folder.id : context.styleFolderId,
+      stylePathSegments: isStyleNode ? nextPathSegments : context.stylePathSegments,
+      pathSegments: nextPathSegments,
       __currentName: folderName,
     };
     return collectStyleLeaves(folder.id, nextContext, depth + 1, visited);
@@ -129,7 +194,7 @@ async function collectStyleLeaves(
  * A estrutura pode ser Pack → Mês → Semana → Estilo, Mês → Estilo,
  * ou possuir níveis intermediários adicionais.
  */
-export async function collectVipStyleTargets(): Promise<VipStyleScanTarget[]> {
+async function buildVipStyleTargets(): Promise<VipStyleScanTarget[]> {
   const roots = await listVipMusicFolders();
   if (!roots.length) return [];
 
@@ -144,6 +209,7 @@ export async function collectVipStyleTargets(): Promise<VipStyleScanTarget[]> {
       packName: rootsArePacks ? rootName : undefined,
       monthSlug: rootsArePacks ? undefined : rootSlug,
       monthName: rootsArePacks ? undefined : rootName,
+      pathSegments: [rootSlug],
       __currentName: rootName,
     };
     return collectStyleLeaves(root.id, rootContext, 1, new Set<string>());
@@ -152,10 +218,36 @@ export async function collectVipStyleTargets(): Promise<VipStyleScanTarget[]> {
   return trees.flat();
 }
 
+export async function collectVipStyleTargets(): Promise<VipStyleScanTarget[]> {
+  if (styleTargetsCache && styleTargetsCache.expiresAt > Date.now()) return styleTargetsCache.targets;
+  if (styleTargetsInflight) return styleTargetsInflight;
+  const generation = styleTargetsGeneration;
+  const promise = buildVipStyleTargets()
+    .then((targets) => {
+      if (generation === styleTargetsGeneration) {
+        styleTargetsCache = { targets, expiresAt: Date.now() + STYLE_TARGETS_TTL_MS };
+      }
+      return targets;
+    })
+    .finally(() => {
+      if (styleTargetsInflight === promise) styleTargetsInflight = null;
+    });
+  styleTargetsInflight = promise;
+  return promise;
+}
+
+export function clearVipStyleTargetCache() {
+  styleTargetsGeneration += 1;
+  styleTargetsCache = null;
+  styleTargetsInflight = null;
+}
+
 function stylePathSegments(style: VipStyleScanTarget, styleSlug: string): string[] {
-  return [style.packSlug, style.monthSlug, style.weekSlug, styleSlug].filter(
-    (part): part is string => Boolean(part),
-  );
+  return style.stylePathSegments.length > 0
+    ? style.stylePathSegments
+    : [style.packSlug, style.monthSlug, style.weekSlug, style.poolSlug, styleSlug].filter(
+        (part): part is string => Boolean(part),
+      );
 }
 
 function toStyleTrack(
@@ -180,7 +272,7 @@ function toStyleTrack(
       file.size != null && file.size !== "" && Number.isFinite(Number(file.size))
         ? Number(file.size)
         : null,
-    styleFolderId: style.id,
+    styleFolderId: style.styleFolderId,
     styleName: displayFolderName(style.name),
     packSlug: style.packSlug,
     packName: style.packName,
@@ -188,9 +280,13 @@ function toStyleTrack(
     monthName: style.monthName,
     weekSlug: style.weekSlug,
     weekName: style.weekName,
+    poolSlug: style.poolSlug,
+    poolName: style.poolName,
+    poolFolderId: style.poolFolderId,
+    updateDate: style.updateDate ?? null,
     styleSlug,
     href: `${folderHref(segments)}?faixa=${encodeURIComponent(file.id)}`,
-    relativePath: [style.packName, style.monthName, style.weekName, displayFolderName(style.name)]
+    relativePath: [style.packName, style.monthName, style.weekName, style.poolName, displayFolderName(style.name)]
       .filter(Boolean)
       .join("/"),
   };
@@ -199,25 +295,49 @@ function toStyleTrack(
 /** Estilos únicos do acervo (para /musicas/estilos). */
 export async function listVipMusicStyles(): Promise<VipStyleListItem[]> {
   const targets = await collectVipStyleTargets();
-  const bySlug = new Map<string, VipStyleListItem>();
+  const bySlug = new Map<string, {
+    item: VipStyleListItem;
+    folders: Set<string>;
+    pools: Set<string>;
+  }>();
 
   for (const target of targets) {
     const slug = slugifyStyleName(target.name);
     if (!slug) continue;
     const existing = bySlug.get(slug);
     if (existing) {
-      existing.folderCount += 1;
+      existing.folders.add(target.styleFolderId);
+      if (target.poolName) existing.pools.add(target.poolName);
+      existing.item.trackCount += target.trackCount;
+      if (target.updateDate && (!existing.item.latestUpdateDate || target.updateDate > existing.item.latestUpdateDate)) {
+        existing.item.latestUpdateDate = target.updateDate;
+      }
       continue;
     }
     bySlug.set(slug, {
-      slug,
-      name: displayFolderName(target.name),
-      folderCount: 1,
-      href: stylesHref(slug),
+      item: {
+        slug,
+        name: displayFolderName(target.name),
+        folderCount: 0,
+        trackCount: target.trackCount,
+        poolCount: 0,
+        poolNames: [],
+        latestUpdateDate: target.updateDate ?? null,
+        href: stylesHref(slug),
+      },
+      folders: new Set([target.styleFolderId]),
+      pools: new Set(target.poolName ? [target.poolName] : []),
     });
   }
 
-  return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  return [...bySlug.values()]
+    .map(({ item, folders, pools }) => ({
+      ...item,
+      folderCount: folders.size,
+      poolCount: pools.size,
+      poolNames: [...pools].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
 
 /**
@@ -304,7 +424,7 @@ export async function findTracksByStyleSlug(
     name: resolvedName,
     imageUrl,
     trackCount: tracks.length,
-    folderCount: targets.length,
+    folderCount: new Set(targets.map((target) => target.styleFolderId)).size,
     tracks: tracks.slice(0, max),
   };
 }

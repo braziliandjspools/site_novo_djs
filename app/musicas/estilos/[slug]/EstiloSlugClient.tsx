@@ -11,6 +11,7 @@ import { VipUpgradeBanner } from "../../VipUpgradeGate";
 import { useMusicasSession } from "../../components/MusicasSessionContext";
 import { MUSICAS_HERO_COVER_SRC } from "../../lib/musicas-hero-art";
 import { formatStyleNameForDisplay } from "../../../lib/style-display";
+import { formatUpdateDateLabel, slugifyFolderName } from "../../../lib/vip-music-slugs";
 
 type StyleTrack = PreviewTrack & {
   styleFolderId?: string;
@@ -61,6 +62,26 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
   }, [slug]);
 
   const tracks = useMemo(() => profile?.tracks ?? [], [profile?.tracks]);
+  const filterPools = useMemo(() => {
+    const pools = new Map<string, string>();
+    for (const track of tracks) {
+      const pool = track.poolName?.trim();
+      if (pool) pools.set(slugifyFolderName(pool), pool);
+    }
+    return [...pools.entries()].map(([slug, name]) => ({ slug, name }));
+  }, [tracks]);
+  const updateDays = useMemo(() => {
+    const days = new Map<string, string>();
+    for (const track of tracks) {
+      const date = track.updateDate?.trim();
+      if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) days.set(date, formatUpdateDateLabel(date));
+    }
+    return [...days.entries()].map(([slug, label]) => ({ slug, label }));
+  }, [tracks]);
+  const latestUpdateDate = useMemo(
+    () => updateDays.map((day) => day.slug).sort((a, b) => b.localeCompare(a))[0] ?? null,
+    [updateDays],
+  );
   const cover = profile?.imageUrl?.trim() || MUSICAS_HERO_COVER_SRC;
   const title = formatStyleNameForDisplay(profile?.name ?? slug.replace(/-/g, " "));
 
@@ -121,6 +142,14 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
                     <FolderTree className="h-3.5 w-3.5" />
                     {profile?.folderCount ?? 0} {profile?.folderCount === 1 ? "pasta" : "pastas"}
                   </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/60">
+                    {filterPools.length} {filterPools.length === 1 ? "pool" : "pools"}
+                  </span>
+                  {latestUpdateDate ? (
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/60">
+                      Atualizado {formatUpdateDateLabel(latestUpdateDate)}
+                    </span>
+                  ) : null}
                   {hasVip ? (
                     <span className="rounded-full border border-[#60cdff]/30 bg-[#60cdff]/10 px-3 py-1.5 text-[#60cdff]">Premium ativo</span>
                   ) : (
@@ -151,8 +180,12 @@ export function EstiloSlugClient({ slug }: { slug: string }) {
                 albumTitle={title}
                 coverUrl={cover}
                 layout="table"
-                groupByDate={false}
+                groupByDate
                 embedded
+                searchStyleSlug={profile?.slug ?? slug}
+                hideStyleFilter
+                filterPools={filterPools}
+                updateDays={updateDays}
               />
             )}
           </section>

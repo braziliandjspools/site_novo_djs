@@ -11,6 +11,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q") ?? "";
   const folderId = searchParams.get("folderId")?.trim() ?? "";
+  const tracksOnly = Boolean(folderId) || searchParams.get("tracksOnly") === "1";
   const poolSlug = searchParams.get("pool")?.trim() ?? "";
   const styleSlug = searchParams.get("estilo")?.trim() ?? "";
   const updateDate = searchParams.get("dia")?.trim() ?? "";
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
 
   try {
     const results = await searchVipMusic(query, limit, {
-      tracksOnly: Boolean(folderId),
+      tracksOnly,
       folderId: folderId || undefined,
       poolSlug: poolSlug || undefined,
       styleSlug: styleSlug || undefined,

@@ -26,6 +26,7 @@ type MusicasTopNavProps = {
 const PLATFORM_NAV = [
   { href: "/musicas", label: "Início" },
   { href: "/musicas/atualizacoes", label: "Atualizações" },
+  { href: "/musicas/estilos", label: "Estilos" },
   { href: "/musicas/artistas", label: "Artistas" },
 ] as const;
 

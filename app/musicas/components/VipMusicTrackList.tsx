@@ -82,6 +82,10 @@ type VipMusicTrackListProps = {
   /** `table` = Atualizações streaming; `discography` = coleções. */
   layout?: "default" | "table" | "discography";
   embedded?: boolean;
+  /** Perfil global de estilo: a pesquisa percorre as faixas desse estilo em todas as pastas. */
+  searchStyleSlug?: string;
+  /** Esconde o filtro redundante do próprio estilo na página global do gênero. */
+  hideStyleFilter?: boolean;
   /** Agrupa por data de upload (Drive). Padrão: ligado em `table`. */
   groupByDate?: boolean;
   hasMore?: boolean;
@@ -957,6 +961,8 @@ export function VipMusicTrackList({
   continueContext,
   layout = "default",
   embedded = false,
+  searchStyleSlug,
+  hideStyleFilter = false,
   groupByDate,
   hasMore = false,
   onLoadMore,
@@ -1062,7 +1068,7 @@ export function VipMusicTrackList({
   }, [folderId]);
 
   const normalizedSearchQuery = searchDraft.trim();
-  const catalogSearchKey = [folderId, normalizedSearchQuery, poolFilterSlug, styleFilterSlug, dayFilterKey].join("|");
+  const catalogSearchKey = [folderId, searchStyleSlug ?? "", normalizedSearchQuery, poolFilterSlug, styleFilterSlug, dayFilterKey].join("|");
   const needsCatalogSearch = layout === "table" && normalizedSearchQuery.length >= 2;
 
   useEffect(() => {
@@ -1073,11 +1079,13 @@ export function VipMusicTrackList({
       setCatalogSearchState({ key: catalogSearchKey, status: "loading", tracks: [] });
       const params = new URLSearchParams({
         q: normalizedSearchQuery,
-        folderId,
+        tracksOnly: "1",
         limit: "100",
       });
+      if (!searchStyleSlug) params.set("folderId", folderId);
       if (poolFilterSlug) params.set("pool", poolFilterSlug);
-      if (styleFilterSlug) params.set("estilo", styleFilterSlug);
+      if (searchStyleSlug) params.set("estilo", searchStyleSlug);
+      else if (styleFilterSlug) params.set("estilo", styleFilterSlug);
       if (dayFilterKey) params.set("dia", dayFilterKey);
 
       void fetch(`/api/musicas/search?${params.toString()}`, {
@@ -1105,7 +1113,7 @@ export function VipMusicTrackList({
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [catalogSearchKey, dayFilterKey, folderId, needsCatalogSearch, normalizedSearchQuery, poolFilterSlug, styleFilterSlug]);
+  }, [catalogSearchKey, dayFilterKey, folderId, needsCatalogSearch, normalizedSearchQuery, poolFilterSlug, searchStyleSlug, styleFilterSlug]);
 
   const currentCatalogSearch = catalogSearchState?.key === catalogSearchKey ? catalogSearchState : null;
   const catalogSearchLoading = needsCatalogSearch && currentCatalogSearch?.status !== "ready" && currentCatalogSearch?.status !== "error";
@@ -1584,7 +1592,7 @@ export function VipMusicTrackList({
     ? "musicas-track-panel music-table-premium overflow-hidden rounded-2xl border border-white/10 bg-[#202020] shadow-[0_18px_40px_rgba(0,0,0,0.35)]"
     : "musicas-track-panel rounded-2xl border border-white/10 bg-[#101210] shadow-[0_18px_40px_rgba(0,0,0,0.35)]";
   const hasCatalogFilters =
-    useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || filterOptions.styles.length > 0);
+    useStreaming && (dayOptions.length > 0 || filterOptions.pools.length > 0 || (!hideStyleFilter && filterOptions.styles.length > 0));
   const activeCatalogFilterCount = Number(Boolean(dayFilterKey)) + Number(Boolean(poolFilterSlug)) + Number(Boolean(styleFilterSlug));
   const driveDayLabel = dayFilterKey
     ? dayOptions.find((day) => day.key === dayFilterKey)?.label ?? formatUpdateDateLabel(dayFilterKey)
@@ -1797,7 +1805,7 @@ export function VipMusicTrackList({
                   </>
                 ) : null}
               </nav>
-              <div className="music-drive-filter-grid grid w-full min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
+              <div className={`music-drive-filter-grid grid w-full min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 ${hideStyleFilter ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}>
                 {dayOptions.length > 0 ? (
                   <label className="music-drive-filter-field music-drive-filter-field-day block min-w-0">
                     <span className="music-drive-filter-label mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em]">
@@ -1850,7 +1858,7 @@ export function VipMusicTrackList({
                     </span>
                   </label>
                 ) : null}
-                {filterOptions.styles.length > 0 ? (
+                {!hideStyleFilter && filterOptions.styles.length > 0 ? (
                   <label className="music-drive-filter-field music-drive-filter-field-style block min-w-0">
                     <span className="music-drive-filter-label mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em]">
                       <FolderOpen className="h-3.5 w-3.5" aria-hidden />

@@ -190,19 +190,24 @@ export function AtualizacoesAcervoSidebar({ home, loading = false }: Atualizacoe
 
         <SidebarSection title="Estilos" icon={Music2}>
           {genres.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5 px-0.5 pb-0.5">
-              {genres.map((genre) => (
-                <Link
-                  key={`${genre.styleFolderId}-${genre.slug}`}
-                  href={genre.href}
-                  className="rounded-md border border-[#60cdff]/25 bg-[rgba(96,205,255,0.07)] px-2.5 py-1 text-[11px] font-semibold text-white/80 transition-colors hover:border-[#60cdff]/45 hover:bg-[#60cdff]/15 hover:text-white"
-                >
-                  {formatStyleNameForDisplay(genre.name)}
-                  {genre.trackCount > 0 ? (
-                    <span className="ml-1 tabular-nums text-white/35">{genre.trackCount}</span>
-                  ) : null}
-                </Link>
-              ))}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1.5 px-0.5 pb-0.5">
+                {genres.map((genre) => (
+                  <Link
+                    key={`${genre.styleFolderId}-${genre.slug}`}
+                    href={genre.href}
+                    className="rounded-md border border-[#60cdff]/25 bg-[rgba(96,205,255,0.07)] px-2.5 py-1 text-[11px] font-semibold text-white/80 transition-colors hover:border-[#60cdff]/45 hover:bg-[#60cdff]/15 hover:text-white"
+                  >
+                    {formatStyleNameForDisplay(genre.name)}
+                    {genre.trackCount > 0 ? (
+                      <span className="ml-1 tabular-nums text-white/35">{genre.trackCount}</span>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+              <Link href="/musicas/estilos" className="inline-flex items-center px-2 text-[11px] font-semibold text-[#8ad4ff] transition-colors hover:text-white">
+                Explorar todos os estilos <span className="ml-1" aria-hidden>→</span>
+              </Link>
             </div>
           ) : (
             <p className="px-2 py-2 text-[12px] text-white/35">
