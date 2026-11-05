@@ -108,7 +108,14 @@ async function collectStyleLeaves(
   if (depth > 8 || visited.has(folderId)) return [];
   visited.add(folderId);
 
-  const children = await listDriveFolderChildren(folderId);
+  let children: Awaited<ReturnType<typeof listDriveFolderChildren>>;
+  try {
+    children = await listDriveFolderChildren(folderId);
+  } catch {
+    // Pastas sem permissão (403) não devem invalidar o catálogo inteiro.
+    // Continua com as demais pools/estilos acessíveis.
+    return [];
+  }
   const audio = children.filter((item) => isDriveAudioFile(item));
   const folders = children.filter((item) => item.mimeType === FOLDER_MIME);
   const out: VipStyleScanTarget[] = [];
