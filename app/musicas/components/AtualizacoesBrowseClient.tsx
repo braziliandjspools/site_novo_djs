@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ArrowLeft, ChevronRight, Download, Ghost, Home, Loader2, MonitorDown, Pause, Play } from "lucide-react";
+import { ArrowLeft, ChevronRight, Download, Home, Loader2, MonitorDown, Pause, Play } from "lucide-react";
 import type { PreviewTrack } from "../../lib/google-drive";
 import { formatBytes } from "../../lib/format-bytes";
 import type { VipMusicCatalogItem, VipMusicFolder } from "../../lib/vip-music-catalog";
@@ -796,10 +796,8 @@ export function AtualizacoesBrowseClient({ slugSegments }: AtualizacoesBrowseCli
 
       {isOctober2026Folder ? (
         <div className="updates-october-halloween-banner mb-5">
-          <div className="updates-october-season-label" aria-label="Especial de Halloween de outubro de 2026">
-            <span className="updates-october-season-icon"><Ghost className="h-4 w-4" aria-hidden /></span>
-            <span>Especial de Halloween <span aria-hidden="true">·</span> Outubro 2026</span>
-            <span className="updates-october-season-spark" aria-hidden="true">✦</span>
+          <div className="updates-october-season-label" aria-label="Atualizações de outubro de 2026">
+            <span>Atualizações <span aria-hidden="true">·</span> Outubro 2026</span>
           </div>
           <AtualizacoesFolderBanner
             title="Outubro 2026"

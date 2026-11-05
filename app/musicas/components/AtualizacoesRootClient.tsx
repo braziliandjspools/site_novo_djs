@@ -33,7 +33,6 @@ import { MusicasCenterLoading } from "./MusicasSkeletons";
 import { MusicLibraryShelf, MusicLibraryTile } from "./MusicLibraryTiles";
 import { VipUpgradeBanner } from "../VipUpgradeGate";
 import { useMusicasSession } from "./MusicasSessionContext";
-import { OctoberHalloweenPromo } from "./OctoberHalloweenPromo";
 
 type TreeResponse = { folders?: Array<VipMusicFolder | VipMusicCatalogItem>; error?: string };
 
@@ -325,10 +324,6 @@ export function AtualizacoesRootClient() {
             <button type="button" aria-label="Ver em lista" aria-pressed={catalogView === "list"} onClick={() => setCatalogView("list")}
               className={`flex h-9 w-9 items-center justify-center rounded-lg transition ${catalogView === "list" ? "bg-[#60cdff] text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}><List className="h-4 w-4" /></button>
           </div>
-        </div>
-
-        <div className="mb-6">
-          <OctoberHalloweenPromo updatesHref="#acervos" />
         </div>
 
         {loading && folders.length === 0 ? (
